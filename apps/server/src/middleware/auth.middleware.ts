@@ -7,7 +7,6 @@ import { UserModel } from '../models/user.model';
 export interface AuthRequest extends Request {
   files?: Multer.File[];
   userId?: number;
-  hospitalId?: number;
 }
 
 export const verifyToken = async (
@@ -25,7 +24,6 @@ export const verifyToken = async (
     const decoded = jwt.verify(token, authConfig.secret as string);
     const userId = (decoded as any).id;
     req.userId = userId;
-    req.hospitalId = await UserModel.getHospitalIdByUserId(userId);
     next();
   } catch (err) {
     return res.status(401).json({ message: '유효하지 않은 토큰입니다.' });

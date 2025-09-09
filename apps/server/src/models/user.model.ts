@@ -24,7 +24,7 @@ export class UserModel {
     }
   }
 
-  static async findById(id: string): Promise<User | null> {
+  static async findById(id: number): Promise<User | null> {
     try {
       const users = await db.query<User>(
         'SELECT * FROM users WHERE id = ?',
@@ -37,4 +37,16 @@ export class UserModel {
     }
   }
 
+  static async userInfoById(id: number): Promise<User | null> {
+    try {
+      const users = await db.query<User>(
+        'SELECT id, email, name FROM users WHERE id = ?',
+        [id]
+      );
+      return users[0] || null;
+    } catch (error) {
+      console.error('Error finding user by id:', error);
+      throw error;
+    }
+  }  
 }
