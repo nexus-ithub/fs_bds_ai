@@ -1,0 +1,1590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions  xmlns:wsr="http://www.openuri.org/2002/10/soap/reliability/"
+  xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:soap12enc="http://www.w3.org/2003/05/soap-encoding"
+  xmlns:s="http://www.w3.org/2001/XMLSchema"
+  xmlns:tns="http://api.nhic.or.kr/services/nhic"
+  xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+  xmlns:conv="http://www.openuri.org/2002/04/wsdl/conversation/"
+  xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+  targetNamespace="http://api.nhic.or.kr/services/nhic">
+ <types>
+  <xsd:schema    xmlns:stns="java:language_builtins.lang"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    attributeFormDefault="qualified"
+    targetNamespace="java:language_builtins.lang"
+    elementFormDefault="qualified">
+   <xsd:complexType     name="ArrayOfString">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="string"
+       type="xsd:string"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+  </xsd:schema>
+  <xsd:schema    xmlns:stns="java:nhmp.wg.yos.maint.vo"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    attributeFormDefault="qualified"
+    targetNamespace="java:nhmp.wg.yos.maint.vo"
+    elementFormDefault="qualified">
+   <xsd:complexType     name="ArrayOfMsg1Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg1Vo"
+       type="stns:Msg1Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="ArrayOfMsg2Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg2Vo"
+       type="stns:Msg2Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="ArrayOfMsg3Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg3Vo"
+       type="stns:Msg3Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="ArrayOfMsg4Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg4Vo"
+       type="stns:Msg4Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="ArrayOfMsg5Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg5Vo"
+       type="stns:Msg5Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="ArrayOfMsg6Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="unbounded"
+       nillable="true"
+       name="Msg6Vo"
+       type="stns:Msg6Vo"
+       minOccurs="0">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg1Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="birthDay"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="hiCardNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="idYN"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="loginId"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="password"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg2Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="asylmSym"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="cfhcRem"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="chwidukRsnCd"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="dentBottom"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="dentImpl1"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="dentImpl2"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="dentTop"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diabetesCd"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson1"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson10"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson11"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson12"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson13"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson14"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson15"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson16"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson17"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson18"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson19"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson2"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson20"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson3"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson4"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson5"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson6"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson7"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson8"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="disRegPrson9"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="dprtYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="idCfrExcepYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="juminSeq"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="mdcareHsptAdminSym"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="mdcareHsptHsptzYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="message"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="messageCode"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="nftfDiagTgtInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ntntType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="obstRegDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="obstYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="payRestricDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="preInfant"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregRemAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="protAdminSym"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="qlfChwidukDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="qlfRestrictCd"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="qlfType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="reqPatInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sangsilProcDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sbdnDifcYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sbrdnType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sedaejuNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="slfPreprPrson"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="visMcareTgtInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho1"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho2"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho3"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho4"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="yoyangNm1"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="yoyangNm2"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="yoyangNm3"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="yoyangNm4"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg3Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       name="adminBrdnAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="cfhcCfrNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="cfhcDmdAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagItem"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagOutCode"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagReqYkiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="loginId"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="mainSickSym"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="otherRequestYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="password"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="payDdCnt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="piAdmin"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregDmndAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregSumAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="prscGnoAdmin"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="prscGnoYn"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sbrdnType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="selfPartBrdnAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="tuyakDdCnt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg4Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="admType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="cfhcCfrNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="cfhcDmdAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="cfhcRem"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="message"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="messageCode"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregDmndAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregRemAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="selfPartBrdnAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg5Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="cfhcCfrNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="diagDt"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="loginId"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="password"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType     name="Msg6Vo">
+    <xsd:sequence>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="cfhcCfrNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="cfhcRem"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="clientInfo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="cnclType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="date"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="id"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="message"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="messageCode"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="msgType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="operatorJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="pgmType"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       name="pregRemAmt"
+       type="xsd:long"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNm"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="sujinjaJuminNo"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="version"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+     <xsd:element       maxOccurs="1"
+       nillable="true"
+       name="ykiho"
+       type="xsd:string"
+       minOccurs="1">
+     </xsd:element>
+    </xsd:sequence>
+   </xsd:complexType>
+  </xsd:schema>
+  <xsd:schema    xmlns:stns="http://api.nhic.or.kr/services/nhic"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    attributeFormDefault="unqualified"
+    targetNamespace="http://api.nhic.or.kr/services/nhic"
+    elementFormDefault="qualified">
+   <xsd:import     namespace="java:language_builtins.lang">
+   </xsd:import>
+   <xsd:import     namespace="java:nhmp.wg.yos.maint.vo">
+   </xsd:import>
+   <xsd:element     name="Test">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        name="string"
+        type="xsd:string">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="TestResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:language_builtins.lang"
+        name="result"
+        type="tp:ArrayOfString">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="cancelApproval">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg5Vo"
+        type="tp:Msg5Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="cancelApprovalList">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg5Vos"
+        type="tp:ArrayOfMsg5Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="cancelApprovalListResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:ArrayOfMsg6Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="cancelApprovalResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:Msg6Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="doNotUseThisMethod">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg1Vo"
+        type="tp:Msg1Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="doNotUseThisMethodResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        name="result"
+        type="xsd:string">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="getisKJCall">
+    <xsd:complexType>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="getisKJCallResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        name="result"
+        type="xsd:boolean">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestApproval">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg3Vo"
+        type="tp:Msg3Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestApprovalList">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg3Vos"
+        type="tp:ArrayOfMsg3Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestApprovalListResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:ArrayOfMsg4Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestApprovalResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:Msg4Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestQualification">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg1Vo"
+        type="tp:Msg1Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestQualificationList">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="msg1Vos"
+        type="tp:ArrayOfMsg1Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestQualificationListResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:ArrayOfMsg2Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="requestQualificationResponse">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        xmlns:tp="java:nhmp.wg.yos.maint.vo"
+        name="result"
+        type="tp:ArrayOfMsg2Vo">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="setisKJCall">
+    <xsd:complexType>
+     <xsd:sequence>
+      <xsd:element        name="booleanVal"
+        type="xsd:boolean">
+      </xsd:element>
+     </xsd:sequence>
+    </xsd:complexType>
+   </xsd:element>
+   <xsd:element     name="setisKJCallResponse">
+    <xsd:complexType>
+    </xsd:complexType>
+   </xsd:element>
+  </xsd:schema>
+ </types>
+ <message   name="Test">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:Test"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="TestResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:TestResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestQualification">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestQualification"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestQualificationResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestQualificationResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestQualificationList">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestQualificationList"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestQualificationListResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestQualificationListResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestApprovalList">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestApprovalList"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestApprovalListResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestApprovalListResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="cancelApprovalList">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:cancelApprovalList"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="cancelApprovalListResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:cancelApprovalListResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="getisKJCall">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:getisKJCall"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="getisKJCallResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:getisKJCallResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="doNotUseThisMethod">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:doNotUseThisMethod"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="doNotUseThisMethodResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:doNotUseThisMethodResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestApproval">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestApproval"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="requestApprovalResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:requestApprovalResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="cancelApproval">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:cancelApproval"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="cancelApprovalResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:cancelApprovalResponse"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="setisKJCall">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:setisKJCall"
+    name="parameters">
+  </part>
+ </message>
+ <message   name="setisKJCallResponse">
+  <part    xmlns:partns="http://api.nhic.or.kr/services/nhic"
+    element="partns:setisKJCallResponse"
+    name="parameters">
+  </part>
+ </message>
+ <portType   name="nhicPort">
+  <operation    name="Test">
+   <input     message="tns:Test">
+   </input>
+   <output     message="tns:TestResponse">
+   </output>
+  </operation>
+  <operation    name="requestQualification">
+   <input     message="tns:requestQualification">
+   </input>
+   <output     message="tns:requestQualificationResponse">
+   </output>
+  </operation>
+  <operation    name="requestQualificationList">
+   <input     message="tns:requestQualificationList">
+   </input>
+   <output     message="tns:requestQualificationListResponse">
+   </output>
+  </operation>
+  <operation    name="requestApprovalList">
+   <input     message="tns:requestApprovalList">
+   </input>
+   <output     message="tns:requestApprovalListResponse">
+   </output>
+  </operation>
+  <operation    name="cancelApprovalList">
+   <input     message="tns:cancelApprovalList">
+   </input>
+   <output     message="tns:cancelApprovalListResponse">
+   </output>
+  </operation>
+  <operation    name="getisKJCall">
+   <input     message="tns:getisKJCall">
+   </input>
+   <output     message="tns:getisKJCallResponse">
+   </output>
+  </operation>
+  <operation    name="doNotUseThisMethod">
+   <input     message="tns:doNotUseThisMethod">
+   </input>
+   <output     message="tns:doNotUseThisMethodResponse">
+   </output>
+  </operation>
+  <operation    name="requestApproval">
+   <input     message="tns:requestApproval">
+   </input>
+   <output     message="tns:requestApprovalResponse">
+   </output>
+  </operation>
+  <operation    name="cancelApproval">
+   <input     message="tns:cancelApproval">
+   </input>
+   <output     message="tns:cancelApprovalResponse">
+   </output>
+  </operation>
+  <operation    name="setisKJCall">
+   <input     message="tns:setisKJCall">
+   </input>
+   <output     message="tns:setisKJCallResponse">
+   </output>
+  </operation>
+ </portType>
+ <binding   name="nhicPort"
+   type="tns:nhicPort">
+   <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+  <operation    name="Test">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="requestQualification">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="requestQualificationList">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="requestApprovalList">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="cancelApprovalList">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="getisKJCall">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="doNotUseThisMethod">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="requestApproval">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="cancelApproval">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+  <operation    name="setisKJCall">
+    <soap:operation style="document" soapAction="" />
+   <input>
+     <soap:body use="literal" />
+   </input>
+   <output>
+     <soap:body use="literal" />
+   </output>
+  </operation>
+ </binding>
+ <service   name="nhic">
+  <port    name="nhicPort"
+    binding="tns:nhicPort">
+    <soap:address location="http://10.1.53.81:8860/services/nhic" />
+  </port>
+ </service>
+</definitions>
