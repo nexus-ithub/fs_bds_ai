@@ -154,6 +154,14 @@ body {
   --color-line-06: var(--gray-080);
 }
 
+
+@layer base {
+  body {
+    @apply text-text-01; /* 기본 TEXT 색상 */
+  }
+}
+
+
 .Toastify__toast-body {
   font-size: 14px;
 }
