@@ -4,6 +4,7 @@ import { Map, Polygon } from "react-kakao-maps-sdk";
 import type { LandInfo } from "@repo/common";
 import { useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
+import { LandInfoCard } from "../landInfo/LandInfo";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -13,7 +14,7 @@ export default function Main() {
   return (
     <div className="flex w-full h-full bg-red-50">
       <div className="w-[360px] h-full bg-amber-50">
-        
+        {landInfo ? <LandInfoCard landInfo={landInfo} /> : null}
       </div>
       <div className="flex-1 h-full">
         <Map

@@ -5,7 +5,7 @@ import { getAccessToken } from "../../authutil";
 import { QUERY_KEY_USER } from "../../constants";
 import { Header } from "../header";
 import Main from "./Main";
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 export const Home = () => {
 
