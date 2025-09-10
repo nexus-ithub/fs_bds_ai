@@ -11,7 +11,7 @@
     "clean": "rm -rf .turbo node_modules dist"
   },
   "dependencies": {
-    "@repo/ui": "workspace:*",
+    "@repo/common": "workspace:*",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

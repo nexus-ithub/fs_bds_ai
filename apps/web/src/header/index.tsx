@@ -1,4 +1,4 @@
-import { BuildingShopBIText } from "@repo/ui"
+import { BuildingShopBIText } from "@repo/common"
 
 
 

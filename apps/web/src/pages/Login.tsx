@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {setToken} from "../../authutil";
 import { API_HOST } from "../../constants";
 import { Link } from "react-router-dom";
-import { BuildingShopBI } from "@repo/ui";
+import { BuildingShopBI } from "@repo/common";
 import axios from 'axios';
 
 interface LoginResponse {

@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ui",
+  "name": "@repo/common",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",

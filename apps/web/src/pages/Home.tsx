@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
 import { getAccessToken } from "../../authutil";
 import { QUERY_KEY_USER } from "../../constants";
-import { Map } from "react-kakao-maps-sdk";
 import { Header } from "../header";
+import Main from "./Main";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
 export const Home = () => {
 
@@ -46,26 +47,11 @@ export const Home = () => {
     <div className="flex flex-col w-full h-screen bg-red-50">
       <Header />
       <div className="flex flex-grow">
-        <div className="w-[360px] h-full bg-amber-50">
-        
-        </div>
-        <div className="flex-1 h-full">
-          <Map
-            onClick={(target, mouseEvent) => {
-              console.log(target, mouseEvent);
-              console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-              // mouseEvent.latLng.lat()
-              // mouseEvent.latLng.lng()
-
-            }}
-            center={{ lat: 37.506448, lng: 127.053366 }}
-            level={3}
-            className="w-full h-full"
-        >
-        </Map>
+        <Routes>
+          <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
+          <Route path={'/main'} element={<Main />} />
+        </Routes>                
       </div>
-      </div>
-      
     </div>
   );
 }

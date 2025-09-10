@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes';
 import { db } from './utils/database';
 import {verifyToken} from "./middleware/auth.middleware";
 import userRoutes from './routes/user.routes';
+import landRoutes from './routes/land.routes';
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/land', landRoutes);
 app.use('/api/*', verifyToken);
 
 app.get('/', (req, res) => {

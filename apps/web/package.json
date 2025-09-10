@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@mui/material": "^7.3.2",
-    "@repo/ui": "workspace:*",
+    "@repo/common": "workspace:*",
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
