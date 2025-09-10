@@ -1,17 +1,15 @@
 import { Request, Response } from 'express';
 import { db } from '../utils/database';
 import { AuthRequest } from 'src/middleware/auth.middleware';
-import bcrypt from 'bcryptjs';
 import { LandModel } from '../models/land.model';
 
 
 export const getLandInfo = async (req: AuthRequest, res: Response) => {
   try {
-    const { lat, lng, legDongCode, jibun } = req.query;
+    const { lat, lng, } = req.query;
     if (!lat || !lng) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
-
     
     const land = await LandModel.findLandIdByLatLng(Number(lat), Number(lng));
     if (!land) {

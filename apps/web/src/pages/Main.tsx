@@ -1,5 +1,5 @@
 
-import useAxiosWithAuth from "../../axiosWithAuth";
+import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon } from "react-kakao-maps-sdk";
 import type { LandInfo } from "@repo/common";
 import { useState } from "react";
@@ -12,8 +12,8 @@ export default function Main() {
 
   // console.log(landInfo?.polygon[0]);
   return (
-    <div className="flex w-full h-full bg-red-50">
-      <div className="w-[360px] h-full bg-amber-50">
+    <div className="flex w-full h-full">
+      <div className="w-[400px] h-full">
         {landInfo ? <LandInfoCard landInfo={landInfo} /> : null}
       </div>
       <div className="flex-1 h-full">

@@ -1,8 +1,8 @@
-import useAxiosWithAuth from "../../axiosWithAuth";
+import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
-import { getAccessToken } from "../../authutil";
-import { QUERY_KEY_USER } from "../../constants";
+import { getAccessToken } from "../authutil";
+import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
 import { Routes, Route, Navigate } from 'react-router-dom'
@@ -44,7 +44,7 @@ export const Home = () => {
   }  
 
   return (
-    <div className="flex flex-col w-full h-screen bg-red-50">
+    <div className="flex flex-col w-full h-screen">
       <Header />
       <div className="flex flex-grow">
         <Routes>
