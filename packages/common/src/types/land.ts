@@ -60,11 +60,11 @@ export const getRoadAddress  = (landInfo: LandInfo) => {
 export const getAreaStrWithPyeong = (area ?: any) => {
   console.log(area);
   if(!area) {
-    return '-m² (0평)';
+    return '-m² (-평)';
   }
 
   const areaNum = Number(area);
   // const area = Number(area);
-  return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(2) + '평)';
+  return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
 }
   

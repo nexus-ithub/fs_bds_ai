@@ -3,14 +3,26 @@ import type { LandInfo } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button } from "@repo/common";
 import { VDivider } from "../common/divider";
 import { krwUnit } from "@repo/common";
+import { TabButton } from "../common/tab";
+import { useState } from "react";
+import { Land } from "./Land";
 
+const TABS = [
+  "토지",
+  "건물",
+  "상권",
+  "입지"
+]
 
 export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfo | null}) => {
+
+  const [selectedTab, setSelectedTab] = useState(0);
+
   if (!landInfo) {
     return null;
   }
   return (
-    <div className="flex flex-col p-[20px]">
+    <div className="h-full flex flex-col px-[20px] pt-[20px]">
       {/* <p>{landInfo.id}</p> */}
       <div className="space-y-[8px]">
         <p className="font-s1-p">{getJibunAddress(landInfo)}</p>
@@ -35,12 +47,12 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfo | null}) => 
           )
         }         */}
       </div>
-      <div className="mt-[10px] flex items-center gap-[12px]">
+      <div className="mt-[10px] flex items-center gap-[5px]">
         <div className="flex-1 flex items-center justify-between">
           <p className="font-s4 text-text-03">토지면적</p>
           <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.area)}</p>
         </div>
-        <VDivider/>
+        <VDivider colorClassName="bg-line-03"/>
         <div className="flex-1 flex items-center justify-between">
           <p className="font-s4 text-text-03">건축면적</p>
           <p className="font-s4 text-text-02">{getAreaStrWithPyeong(null)}</p>
@@ -70,6 +82,26 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfo | null}) => 
       <Button className="mt-[16px] py-[11px]">
         AI 설계 • 임대 분석 리포트
       </Button>
+
+      <div className="mt-[8px] min-h-0 flex-1">
+        <div className="flex w-full">
+          {
+            TABS.map((tab, index) => (
+              <TabButton
+                key={index}
+                className="flex-1 py-[11px]"
+                selected={index === selectedTab}
+                onClick={() => {setSelectedTab(index)}}
+              >
+                {tab}
+              </TabButton>
+            ))
+          }
+        </div>
+        <div className="mt-[16px] min-h-0 flex-1">
+          <Land landInfo={landInfo} />
+        </div>
+      </div>
 
 
       {/* <p>{landInfo.jimokName}</p>
