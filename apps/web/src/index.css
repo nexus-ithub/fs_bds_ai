@@ -96,6 +96,7 @@ body {
   --color-primary-080: var(--primary-080);
 
 
+
   --color-secondary: var(--secondary-050);
   --color-secondary-foreground: var(--secondary-050);
   --color-secondary-020: var(--secondary-020);
@@ -103,7 +104,10 @@ body {
   --color-secondary-050: var(--secondary-050);
   --color-secondary-060: var(--secondary-060);
 
- 
+  --color-purple-010: var(--purple-010);
+  --color-purple-050: var(--purple-050);
+  --color-purple-060: var(--purple-060);
+
   --color-grayscale: var(--gray-050);
   --color-grayscale-foreground: var(--gray-050);
   --color-grayscale-000: var(--gray-000);

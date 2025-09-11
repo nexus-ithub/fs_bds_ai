@@ -50,11 +50,11 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfoResp | null})
               <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.land.usageName}</p>
             )
           }
-          {/* {
-            landInfo.usageName && (
-              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
+          {
+            landInfo.buildings.length > 0 && (
+              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.buildings[0].mainUsageName}</p>
             )
-          }         */}
+          }        
         </div>
         <div className="mt-[10px] flex items-center gap-[5px]">
           <div className="flex-1 flex items-center justify-between">

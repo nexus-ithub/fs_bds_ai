@@ -15,7 +15,7 @@ export const Land = ({landInfo}: {landInfo: LandInfo}) => {
       <Row title="도로측면" content={landInfo.roadContact || '-'} />
       <Row title="공시지가" content={
           landInfo.price && landInfo.area ? 
-            krwUnit(landInfo.price * landInfo.area, true) + ' (' + krwUnit(landInfo.price) + '/m², ' + krwUnit(pricePerM2ToPyong(landInfo.price)) + '/평)' 
+            krwUnit(landInfo.price * landInfo.area, true) + ' (' + krwUnit(landInfo.price, true) + '/㎡, ' + krwUnit(pricePerM2ToPyong(landInfo.price), true) + '/평)' 
             : '-'
       } />
     </div>

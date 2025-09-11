@@ -1,5 +1,5 @@
 
-import { getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
+import { ArrowDown, getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
 import { Row, Title } from "./Row";
 import { useState } from "react";
 
@@ -11,7 +11,12 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
   console.log(buildings);
   return (
     <div className="flex flex-col divide-y divide-line-02">
-      <Title title="건축물 정보"/>
+      <div className="flex items-center justify-between">
+        <Title title="건축물 정보"/>
+        <button onClick={() => setIndex(index + 1)}>
+          <ArrowDown/>
+        </button>
+      </div>
       {
         buildings?.length > 0 ? 
         <>
