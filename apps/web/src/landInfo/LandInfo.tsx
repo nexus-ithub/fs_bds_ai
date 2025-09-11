@@ -4,7 +4,7 @@ import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button } from "@
 import { VDivider } from "../common/divider";
 import { krwUnit } from "@repo/common";
 import { TabButton } from "../common/tab";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
 
@@ -18,10 +18,17 @@ const TABS = [
 export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfoResp | null}) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
-
+  const ref = useRef<HTMLDivElement>(null);
   if (!landInfo) {
     return null;
   }
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.scrollTop = 0;
+    }
+  }, [landInfo]);
+
   return (
     <div className="h-full flex flex-col pt-[20px]">
       <div className="px-[20px]">
@@ -101,7 +108,9 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfoResp | null})
             ))
           }
         </div>
-        <div className="pt-[16px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
+        <div
+          ref={ref}
+          className="pt-[16px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
           <Land landInfo={landInfo.land} />
           <Building buildings={landInfo.buildings} />
         </div>
