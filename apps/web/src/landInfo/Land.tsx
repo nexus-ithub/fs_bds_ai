@@ -4,7 +4,7 @@ import { Row, Title } from "./Row";
 
 export const Land = ({landInfo}: {landInfo: LandInfo}) => {
   return (
-    <div className="flex flex-col divide-y divide-line-02">
+    <div className="flex flex-col divide-y divide-line-02 border-b border-line-02">
       <Title title="토지"/>
       <Row title="용도지역" content={landInfo.usageName} />
       <Row title="주용도" content={landInfo.curUse} />

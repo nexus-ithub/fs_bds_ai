@@ -1,14 +1,14 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon } from "react-kakao-maps-sdk";
-import type { LandInfo } from "@repo/common";
+import type { LandInfo, LandInfoResp } from "@repo/common";
 import { useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
-  const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
+  const [landInfo, setLandInfo] = useState<LandInfoResp | null>(null);
 
   // console.log(landInfo?.polygon[0]);
   return (
@@ -25,7 +25,7 @@ export default function Main() {
             axiosInstance.get(`/api/land/info?lat=${mouseEvent.latLng.getLat()}&lng=${mouseEvent.latLng.getLng()}`)
               .then((response) => {
                 console.log(response.data);
-                const landInfo = response.data as LandInfo;
+                const landInfo = response.data as LandInfoResp;
                 console.log(landInfo);
                 setLandInfo(landInfo);
               })
@@ -45,7 +45,7 @@ export default function Main() {
               strokeColor="var(--color-primary)" // Black border
               strokeOpacity={1}
               strokeWeight={1.5}
-              path={convertXYtoLatLng(landInfo?.polygon || [])} />
+              path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
           )}
         </Map>
       </div>

@@ -11,6 +11,7 @@ export interface Coords {
 
 export interface LandInfo {
   id: string; 
+  legDongCode: string;
   legDongName: string;
   jibun: string;
   area: number;
@@ -38,7 +39,23 @@ export interface LandInfo {
   // roadWidth: string;
   polygon: Coords[] | Coords[][];
 }
-  
+
+export interface BuildingInfo {
+  mainUsageName: string;
+  etcUsageName: string;
+  archArea: number;
+  archLandRatio: number;
+  totalFloorArea: number;
+  floorAreaRatio: number;
+}
+
+
+export interface LandInfoResp {
+  land: LandInfo;
+  buildings: BuildingInfo[];
+}
+
+
 export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo.legDongName} ${landInfo.jibun}`;
 }
@@ -68,3 +85,10 @@ export const getAreaStrWithPyeong = (area ?: any) => {
   return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
 }
   
+
+export const getRatioStr = (value : any) => {
+  if(!value) {
+    return '-';
+  }
+  return Number(value).toFixed(2) + '%';
+}

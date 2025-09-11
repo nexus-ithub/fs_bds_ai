@@ -93,6 +93,7 @@ export class LandModel {
       const lands = await db.query<LandInfo>(
         `SELECT 
           land_info.id AS id,
+          land_info.leg_dong_code as legDongCode,
           address_polygon.leg_dong_name as legDongName,
           address_polygon.jibun as jibun,
           land_info.area AS area,
