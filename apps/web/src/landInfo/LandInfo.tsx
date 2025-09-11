@@ -67,7 +67,7 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfo | null}) => 
         </div>        
       </div>
 
-      <Button className="mt-[16px] py-[11px]">
+      <Button className="">
         AI 설계 • 임대 분석 리포트
       </Button>
 

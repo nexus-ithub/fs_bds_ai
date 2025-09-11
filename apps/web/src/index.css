@@ -5,8 +5,8 @@
 body {
   font-family: 'Pretendard Variable', pretendard, sans-serif;
 }
-
 @import "tailwindcss";
+@import "@repo/common/styles.css";
 
 
 
@@ -207,13 +207,11 @@ input[type="number"] {
 }
 
 
-
 .font-h1 {
   font-size: 24px;
   font-weight: var(--font-weight-semibold);
   line-height: 30px;
 }
-
 
 .font-h2 {
   font-size: 20px;
