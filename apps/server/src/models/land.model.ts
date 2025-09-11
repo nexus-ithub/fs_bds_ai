@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import type { LandInfo } from '@repo/common';
+import { LandInfo } from '@repo/common';
 
 
 export class LandModel {
@@ -11,7 +11,7 @@ export class LandModel {
   //     console.error('Error finding user by email:', error);
   //     throw error; 
   //   }
-  // }ß
+  // }
 
   static async findLandIdByLatLng(lat: number, lng: number): Promise<LandInfo | null> {
     try {
@@ -147,11 +147,11 @@ export class LandModel {
       )
       console.log(lands);
       for (const land of lands) {
-        if (!land.usageList) {
-          continue;
-        }
-        const usageList = JSON.parse(land.usageList);
-        land.usageList = usageList;
+        // if (!land.usageList) {
+        //   continue;
+        // }
+        // const usageList = JSON.parse(land.usageList);
+        // land.usageList = usageList;
       }
 
       return lands[0] || null;
