@@ -5,6 +5,7 @@
 export interface DividerProps {
   className?: string;
   dashed?: boolean;
+  colorClassName?: string;
 }
 
 
@@ -13,6 +14,6 @@ export const HDivider = ({ className, dashed }: DividerProps) => {
 };
 
 
-export const VDivider = ({ className }: DividerProps) => {
-  return <div className={`w-[1px] h-[14px] bg-line-02 ${className}`}/>;
+export const VDivider = ({ className, colorClassName = 'bg-line-02' }: DividerProps) => {
+  return <div className={`w-[1px] h-[14px] ${colorClassName} ${className}`}/>;
 };
