@@ -21,13 +21,13 @@ export default function Main() {
         <Map
           onClick={(_, mouseEvent) => {
             // console.log(target, mouseEvent);
-            console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
+            // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             
             axiosInstance.get(`/api/land/info?lat=${mouseEvent.latLng.getLat()}&lng=${mouseEvent.latLng.getLng()}`)
               .then((response) => {
-                console.log(response.data);
+                // console.log(response.data);
                 const landInfo = response.data as LandInfoResp;
-                console.log(landInfo);
+                // console.log(landInfo);
                 setLandInfo(landInfo);
               })
               .catch((error) => {

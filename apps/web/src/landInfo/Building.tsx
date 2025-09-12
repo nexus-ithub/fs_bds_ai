@@ -1,14 +1,23 @@
 
-import { ArrowDown, getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
+import { ArrowDown, Button, getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
 import { Row, Title } from "./Row";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Dialog, DialogActions } from "@mui/material";
+import { Check } from 'lucide-react';
 
 export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
 
   const [index, setIndex] = useState(0);
   const selectedBuilding = buildings.length > 0 ? buildings[index] : null;
+  const [openSelect, setOpenSelect] = useState(false);
 
-  console.log(buildings);
+  useEffect(() => {
+    if (buildings) {
+      setIndex(0);
+    }
+  }, [buildings]);
+
+  // console.log(buildings);
   return (
     <div className="flex flex-col divide-y divide-line-02">
       <div className="flex items-center justify-between">
@@ -16,9 +25,9 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
         {
           buildings.length > 1 && (
             <button 
-              onClick={() => setIndex(index + 1)}
-              className="p-[4px] flex items-center gap-[8px] font-s2 text-text-02 border border-line-02 rounded-[4px]">
-              <p>{index + 1} / {buildings.length}</p>  
+              onClick={() => setOpenSelect(true)}
+              className="px-[6px] py-[4px] flex items-center gap-[8px] font-s2 text-text-02 border border-line-03 rounded-[4px]">
+              <p>건축물 선택 ({index + 1} / {buildings.length})</p>  
               <ArrowDown/>
             </button>
           )
@@ -27,6 +36,8 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
       {
         buildings?.length > 0 ? 
         <>
+          <Row title="빌딩이름" content={selectedBuilding?.buildingName || '-'} />
+          <Row title="동이름" content={selectedBuilding?.dongName || '-'} />
           <Row title="용도지역" content={selectedBuilding?.mainUsageName || '-'} />
           <Row title="기타용도" content={selectedBuilding?.etcUsageName || '-'} />
           <Row title="건축면적" content={getAreaStrWithPyeong(selectedBuilding?.archArea)} />
@@ -40,7 +51,35 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
           </div>
         )
       }
-     
+      <Dialog 
+        open={openSelect} 
+        onClose={() => setOpenSelect(false)}
+      >
+        <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[320px]">
+          <p className="font-h2">건축물 선택</p>
+          <div className="flex flex-col w-full max-h-[200px] overflow-auto px-[8px] divide-y divide-line-02 border-b border-b-line-02">
+          {
+            buildings.map((building, i) => (
+              <button 
+                key={i} 
+                onClick={() => {
+                  setIndex(i);
+                  setOpenSelect(false);
+                }}
+                className="w-full flex items-center gap-[8px] justify-between hover:bg-line-02 py-[8px]"
+              >
+                <p className="font-s2">{building.buildingName} {building.dongName || '-'}</p>
+                {i === index && <Check/>}
+              </button>
+            ))
+          }
+          </div>
+
+        </div>
+        <DialogActions>
+          <Button onClick={() => setOpenSelect(false)}>닫기</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }

@@ -20,6 +20,8 @@ export class BuildingModel {
       const result = await db.query<BuildingInfo>(
         `SELECT 
          building.building_id AS id,
+         building.building_name AS buildingName,
+         building.dong_name AS dongName,
          building.main_usage_code_name AS mainUsageName,
          building.etc_usage AS etcUsageName,
          building.arch_area AS archArea,
