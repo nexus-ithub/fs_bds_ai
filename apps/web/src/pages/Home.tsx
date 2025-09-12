@@ -46,7 +46,7 @@ export const Home = () => {
   return (
     <div className="flex flex-col w-full h-screen">
       <Header />
-      <div className="flex flex-grow">
+      <div className="min-h-0 flex-1">
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { db } from '../utils/database';
 import { AuthRequest } from 'src/middleware/auth.middleware';
 import { LandModel } from '../models/land.model';
+import { BuildingModel } from '../models/buliding.model';
+import { LandInfoResp } from '@repo/common';
 
 
 export const getLandInfo = async (req: AuthRequest, res: Response) => {
@@ -12,10 +14,17 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
     }
     
     const land = await LandModel.findLandIdByLatLng(Number(lat), Number(lng));
+    const buildings = await BuildingModel.findBuildingListByJibun(land.legDongCode, land.jibun);
     if (!land) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    res.status(200).json(land);
+
+    const landInfoResp = {
+      land,
+      buildings,
+    } as LandInfoResp;
+    
+    res.status(200).json(landInfoResp);
   } catch (err) {
     console.error('Get land info error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
