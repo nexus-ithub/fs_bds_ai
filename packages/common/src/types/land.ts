@@ -56,11 +56,22 @@ export interface DistrictInfo {
   code: string;
   name: string;
   divCodeName: string;
-  totalFootPrint: number;
+  totalFootPrintPerHa: number;
+  avgDailyCount: number;
   area: number;
   distance: number;
 }
 
+export interface PlaceInfo {
+  name: string;
+  distance: number;
+}
+
+export interface PlaceList {
+  subway: PlaceInfo[];
+  school: PlaceInfo[];
+  tour: PlaceInfo[];
+}
 
 export interface LandInfoResp {
   land: LandInfo;

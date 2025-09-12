@@ -63,7 +63,7 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
         </>
         : (
           <div>
-            <p className="h-[300px] flex justify-center items-center font-s2 text-text-03">건축물 정보가 없습니다.</p>
+            <p className="h-[300px] flex justify-center items-center font-s2 text-text-03 bg-surface-second">건축물 정보가 없습니다.</p>
           </div>
         )
       }
@@ -74,46 +74,31 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
         <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[520px]">
           <p className="font-h2">건축물 선택</p>
           <div className="font-s2 flex flex-col w-full max-h-[280px] overflow-auto divide-y divide-line-02 border border-line-03">
-          <table>
-            <thead className="sticky top-0 z-[1] text-text-02 bg-surface-second">
-              <tr>
-                <th className="text-left px-[8px] py-[6px]">건축물 이름</th>
-                <th className="text-left px-[8px] py-[4px]">동이름</th>
-                <th className="text-left px-[8px] py-[4px]"></th>
-              </tr>
-            </thead>
-            <tbody className="text-text-02 divide-y divide-line-02">
-              {
-                buildings.map((building, i) => (
-                  <tr
-                    onClick={() => {
-                      setIndex(i);
-                      setOpenSelect(false);
-                    }} 
-                    key={i} className="hover:bg-line-02 cursor-pointer">
-                    <td className="text-left px-[8px] py-[6px]">{building.buildingName}</td>
-                    <td className="text-left px-[8px] py-[4px]">{building.dongName}</td>
-                    <td className="flex items-center justify-end text-right px-[8px] py-[4px]">{i === index && <Check size={20}/>}</td>
-                  </tr>
-                ))
-              }
-            </tbody>
-          </table>
-          {/* {
-            buildings.map((building, i) => (
-              <button 
-                key={i} 
-                onClick={() => {
-                  setIndex(i);
-                  setOpenSelect(false);
-                }}
-                className="w-full flex items-center gap-[8px] justify-between hover:bg-line-02 py-[8px]"
-              >
-                <p className="font-s2">{building.buildingName} {building.dongName || '-'}</p>
-                {i === index && <Check/>}
-              </button>
-            ))
-          } */}
+            <table>
+              <thead className="sticky top-0 z-[1] text-text-02 bg-surface-second">
+                <tr>
+                  <th className="text-left px-[8px] py-[6px]">건축물 이름</th>
+                  <th className="text-left px-[8px] py-[4px]">동이름</th>
+                  <th className="text-left px-[8px] py-[4px]"></th>
+                </tr>
+              </thead>
+              <tbody className="text-text-02 divide-y divide-line-02">
+                {
+                  buildings.map((building, i) => (
+                    <tr
+                      onClick={() => {
+                        setIndex(i);
+                        setOpenSelect(false);
+                      }} 
+                      key={i} className="hover:bg-line-02 cursor-pointer">
+                      <td className="text-left px-[8px] py-[6px]">{building.buildingName}</td>
+                      <td className="text-left px-[8px] py-[4px]">{building.dongName}</td>
+                      <td className="flex items-center justify-end text-right px-[8px] py-[4px]">{i === index && <Check size={20}/>}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
           </div>
 
         </div>

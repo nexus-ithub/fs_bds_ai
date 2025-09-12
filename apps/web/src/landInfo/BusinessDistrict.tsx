@@ -1,5 +1,5 @@
 
-import { ArrowDown, Button, getAreaStrWithPyeong, getRatioStr, type BuildingInfo, type DistrictInfo } from "@repo/common";
+import { ArrowDown, Button, type DistrictInfo } from "@repo/common";
 import { Row, Title } from "./Row";
 import { useEffect, useState } from "react";
 import { Dialog, DialogActions } from "@mui/material";
@@ -61,7 +61,7 @@ export const BusinessDistrict = ({businessDistrict = []}: {businessDistrict: Dis
         </>
         : (
           <div>
-            <p className="h-[300px] flex justify-center items-center font-s2 text-text-03">주변 상권 정보가 없습니다.</p>
+            <p className="h-[300px] flex justify-center items-center font-s2 text-text-03 bg-surface-second">주변 상권 정보가 없습니다.</p>
           </div>
         )
       }

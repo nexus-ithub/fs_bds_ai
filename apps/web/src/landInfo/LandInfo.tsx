@@ -1,5 +1,5 @@
 
-import type { DistrictInfo, LandInfoResp } from "@repo/common";
+import type { DistrictInfo, LandInfoResp, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
 import { krwUnit } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
@@ -7,6 +7,7 @@ import { Land } from "./Land";
 import { Building } from "./Building";
 import { X } from "lucide-react";
 import { BusinessDistrict } from "./BusinessDistrict";
+import { Place } from "./Place";
 
 const TABS = [
   "토지",
@@ -18,10 +19,12 @@ const TABS = [
 export const LandInfoCard = ({
   landInfo = null,
   businessDistrict = null,
+  place = null,
   onClose
 }: {
   landInfo: LandInfoResp | null;
   businessDistrict: DistrictInfo[] | null;
+  place: PlaceList | null;
   onClose?: () => void;
 }) => {
 
@@ -114,7 +117,7 @@ export const LandInfoCard = ({
             TABS.map((tab, index) => (
               <TabButton
                 key={index}
-                className="flex-1 py-[11px] flex items-center justify-center"
+                className="flex-1 py-[11px]"
                 selected={index === selectedTab}
                 onClick={() => {setSelectedTab(index)}}
               >
@@ -129,6 +132,7 @@ export const LandInfoCard = ({
           <Land landInfo={landInfo.land} />
           <Building buildings={landInfo.buildings} />
           <BusinessDistrict businessDistrict={businessDistrict || []} />
+          <Place place={place} />
         </div>
       </div>
     </div>
