@@ -15,7 +15,7 @@ export default function Main() {
   return (
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full">
-        {landInfo ? <LandInfoCard landInfo={landInfo} /> : <LandInfoGuest />}
+        {landInfo ? <LandInfoCard landInfo={landInfo} onClose={() => setLandInfo(null)} /> : <LandInfoGuest />}
       </div>
       <div className="flex-1 h-full">
         <Map

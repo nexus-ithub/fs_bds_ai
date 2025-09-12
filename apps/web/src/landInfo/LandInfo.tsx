@@ -7,6 +7,7 @@ import { TabButton } from "../common/tab";
 import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
+import { X } from "lucide-react";
 
 const TABS = [
   "토지",
@@ -15,7 +16,7 @@ const TABS = [
   "입지"
 ]
 
-export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfoResp | null}) => {
+export const LandInfoCard = ({landInfo = null, onClose}: {landInfo: LandInfoResp | null, onClose?: () => void}) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +35,14 @@ export const LandInfoCard = ({landInfo = null}: {landInfo: LandInfoResp | null})
       <div className="px-[20px]">
         {/* <p>{landInfo.id}</p> */}
         <div className="space-y-[8px] ">
-          <p className="font-s1-p">{getJibunAddress(landInfo.land)}</p>
+          <div className="flex items-center gap-[6px] justify-between">
+            <p className="font-s1-p">{getJibunAddress(landInfo.land)}</p>
+            <button
+              onClick={() => onClose?.()}
+            >
+              <X size={20}/>
+            </button>
+          </div>
           {
             landInfo.land.roadName && (
               <div className="flex gap-[6px] items-center">
