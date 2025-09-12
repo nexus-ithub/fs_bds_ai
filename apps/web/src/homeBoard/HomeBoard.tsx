@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { TabButton, YoutubeLogo } from "@repo/common";
 import { BuildingList } from "./BuildingList";
-import { BuildingYoutube } from "./BuildingYoutube";
+import { YoutubeList } from "./YoutubeList";
 
 const MAIN_TABS = [
   '빌딩샵 매물',
   '빌딩의 신'
 ]
 
-export const LandInfoGuest = () => {
+export const HomeBoard = () => {
   const [selectedMainTab, setSelectedMainTab] = useState(0);
   
   return (
@@ -35,7 +35,7 @@ export const LandInfoGuest = () => {
       }
       {
         selectedMainTab === 1 && (
-          <BuildingYoutube/>
+          <YoutubeList/>
         )
       }
     </div>
