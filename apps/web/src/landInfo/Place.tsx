@@ -19,8 +19,8 @@ const PlaceInfo = ({title, info = []}: {title: string, info: PlaceInfo[]}) => {
         <div>
           <Row title={title} content={
             <button 
-            onClick={() => setOpen(!open)}
-            className="flex items-center gap-[8px]">
+              onClick={() => setOpen(!open)}
+              className="flex items-center gap-[8px]">
               {info?.length}
               {
                 open ? (

@@ -1,5 +1,6 @@
 import { CI, InstagramIcon, KakaoChannelIcon, NaverBlogIcon, YoutubeIcon } from "@repo/common"
 import { VDivider } from "@repo/common"
+import { INSTAGRAM_URL, KAKAO_CHANNEL_URL, NAVER_BLOG_URL, YOUTUBE_CHANNEL_URL } from "../constants"
 
 
 export const CompanyInfo = () => {
@@ -8,16 +9,20 @@ export const CompanyInfo = () => {
       <div className="flex items-center gap-[8px] justify-between">
         <CI/>
         <div className="flex items-center gap-[18px]">
-          <button>
+          <button
+            onClick={() => window.open(INSTAGRAM_URL)}>
             <InstagramIcon/>
           </button>
-          <button>
+          <button
+            onClick={() => window.open(YOUTUBE_CHANNEL_URL)}>
             <YoutubeIcon/>
           </button>
-          <button>
+          <button
+            onClick={() => window.open(KAKAO_CHANNEL_URL)}>
             <KakaoChannelIcon/>
           </button>
-          <button>
+          <button
+            onClick={() => window.open(NAVER_BLOG_URL)}>
             <NaverBlogIcon/>
           </button>
         </div>
