@@ -1,7 +1,4 @@
 
-
-
-
 export interface DividerProps {
   className?: string;
   dashed?: boolean;

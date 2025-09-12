@@ -1,31 +1,43 @@
 import { useState } from "react";
-import { TabButton } from "../common/tab";
+import { TabButton, YoutubeLogo } from "@repo/common";
+import { BuildingList } from "./BuildingList";
+import { BuildingYoutube } from "./BuildingYoutube";
 
-const TABS = [
+const MAIN_TABS = [
   '빌딩샵 매물',
   '빌딩의 신'
 ]
 
 export const LandInfoGuest = () => {
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedMainTab, setSelectedMainTab] = useState(0);
+  
   return (
-    <div>
+    <div className="flex flex-col h-full scrollbar-hover">
       <div className="flex w-full">
         {
-          TABS.map((tab, index) => (
+          MAIN_TABS.map((tab, index) => (
             <TabButton
               key={index}
-              className="flex-1 py-[11px]"
-              selected={index === selectedTab}
-              onClick={() => {setSelectedTab(index)}}
+              className="flex items-center justify-center flex-1 py-[14px] gap-[10px]"
+              selected={index === selectedMainTab}
+              onClick={() => {setSelectedMainTab(index)}}
             >
               {tab}
-              {tab === '빌딩의 신' && <p className="text-primary-040">아이콘 넣기</p>}
+              {tab === '빌딩의 신' && <YoutubeLogo />}
             </TabButton>
           ))
         }
       </div>
-      <p>비로그인 상태에서 보여주는 페이지</p>
+      {
+        selectedMainTab === 0 && (
+          <BuildingList/>
+        )
+      }
+      {
+        selectedMainTab === 1 && (
+          <BuildingYoutube/>
+        )
+      }
     </div>
   )
 }

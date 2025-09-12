@@ -1,9 +1,8 @@
 
 import type { LandInfo, LandInfoResp } from "@repo/common";
-import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button } from "@repo/common";
-import { VDivider } from "../common/divider";
+import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
+// import { VDivider } from "../common/divider";
 import { krwUnit } from "@repo/common";
-import { TabButton } from "../common/tab";
 import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
