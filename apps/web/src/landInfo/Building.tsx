@@ -13,9 +13,16 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
     <div className="flex flex-col divide-y divide-line-02">
       <div className="flex items-center justify-between">
         <Title title="건축물 정보"/>
-        <button onClick={() => setIndex(index + 1)}>
-          <ArrowDown/>
-        </button>
+        {
+          buildings.length > 1 && (
+            <button 
+              onClick={() => setIndex(index + 1)}
+              className="p-[4px] flex items-center gap-[8px] font-s2 text-text-02 border border-line-02 rounded-[4px]">
+              <p>{index + 1} / {buildings.length}</p>  
+              <ArrowDown/>
+            </button>
+          )
+        }
       </div>
       {
         buildings?.length > 0 ? 
