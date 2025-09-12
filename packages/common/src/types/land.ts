@@ -41,6 +41,8 @@ export interface LandInfo {
 }
 
 export interface BuildingInfo {
+  buildingName: string;
+  dongName: string;
   mainUsageName: string;
   etcUsageName: string;
   archArea: number;
@@ -75,7 +77,7 @@ export const getRoadAddress  = (landInfo: LandInfo) => {
 }
 
 export const getAreaStrWithPyeong = (area ?: any) => {
-  console.log(area);
+  // console.log(area);
   if(!area) {
     return '-m² (-평)';
   }
