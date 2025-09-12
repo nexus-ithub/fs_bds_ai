@@ -2,11 +2,16 @@
 
 import { Row, Title } from "./Row";
 import { type PlaceList, type PlaceInfo, ArrowUpIcon, ArrowDownIcon } from "@repo/common";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 const PlaceInfo = ({title, info = []}: {title: string, info: PlaceInfo[]}) => {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (info) {
+      setOpen(false);
+    }
+  }, [info]);
   return (
     <>
     {
@@ -51,17 +56,6 @@ const PlaceInfo = ({title, info = []}: {title: string, info: PlaceInfo[]}) => {
 
 export const Place = ({place = null}: {place: PlaceList | null}) => {
 
-  // const [index, setIndex] = useState(0);
-  // const selectedDistrict = places.length > 0 ? places[index] : null;
-  // const [openSelect, setOpenSelect] = useState(false);
-
-  // useEffect(() => {
-  //   if (places) {
-  //     setIndex(0);
-  //   }
-  // }, [places]);
-
-  // console.log(buildings);
   if(!place) {
     return null;
   }

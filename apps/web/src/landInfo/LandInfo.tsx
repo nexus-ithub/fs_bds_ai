@@ -8,6 +8,7 @@ import { Building } from "./Building";
 import { X } from "lucide-react";
 import { BusinessDistrict } from "./BusinessDistrict";
 import { Place } from "./Place";
+import { CompanyInfo } from "./CompanyInfo";
 
 const TABS = [
   "토지",
@@ -128,11 +129,12 @@ export const LandInfoCard = ({
         </div>
         <div
           ref={ref}
-          className="pt-[16px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
+          className="py-[20px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
           <Land landInfo={landInfo.land} />
           <Building buildings={landInfo.buildings} />
           <BusinessDistrict businessDistrict={businessDistrict || []} />
           <Place place={place} />
+          <CompanyInfo/>
         </div>
       </div>
     </div>
