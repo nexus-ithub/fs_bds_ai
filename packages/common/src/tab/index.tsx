@@ -16,7 +16,7 @@ export const TabButton: React.FC<TabButtonProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`flex relative font-s2 ${className}`}
+      className={`flex relative font-s2 flex items-center justify-center ${className}`}
     >
       {children}
       {selected ? (

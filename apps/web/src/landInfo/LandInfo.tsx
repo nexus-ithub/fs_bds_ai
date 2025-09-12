@@ -1,12 +1,14 @@
 
-import type { LandInfo, LandInfoResp } from "@repo/common";
+import type { DistrictInfo, LandInfoResp, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
-// import { VDivider } from "../common/divider";
 import { krwUnit } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
 import { X } from "lucide-react";
+import { BusinessDistrict } from "./BusinessDistrict";
+import { Place } from "./Place";
+import { CompanyInfo } from "./CompanyInfo";
 
 const TABS = [
   "토지",
@@ -15,7 +17,17 @@ const TABS = [
   "입지"
 ]
 
-export const LandInfoCard = ({landInfo = null, onClose}: {landInfo: LandInfoResp | null, onClose?: () => void}) => {
+export const LandInfoCard = ({
+  landInfo = null,
+  businessDistrict = null,
+  place = null,
+  onClose
+}: {
+  landInfo: LandInfoResp | null;
+  businessDistrict: DistrictInfo[] | null;
+  place: PlaceList | null;
+  onClose?: () => void;
+}) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -117,9 +129,12 @@ export const LandInfoCard = ({landInfo = null, onClose}: {landInfo: LandInfoResp
         </div>
         <div
           ref={ref}
-          className="pt-[16px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
+          className="py-[20px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
           <Land landInfo={landInfo.land} />
           <Building buildings={landInfo.buildings} />
+          <BusinessDistrict businessDistrict={businessDistrict || []} />
+          <Place place={place} />
+          <CompanyInfo/>
         </div>
       </div>
     </div>

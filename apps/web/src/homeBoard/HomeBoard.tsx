@@ -18,7 +18,7 @@ export const HomeBoard = () => {
           MAIN_TABS.map((tab, index) => (
             <TabButton
               key={index}
-              className="flex items-center justify-center flex-1 py-[14px] gap-[10px]"
+              className="flex-1 py-[14px] gap-[10px]"
               selected={index === selectedMainTab}
               onClick={() => {setSelectedMainTab(index)}}
             >

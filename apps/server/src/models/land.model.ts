@@ -3,15 +3,6 @@ import { LandInfo } from '@repo/common';
 
 
 export class LandModel {
-  // static async findLandInfoByLatLng(lat: string, lng: string): Promise<LandInfo | null> {
-  //   try {
-      
-  //     return users[0] || null;
-  //   } catch (error) {
-  //     console.error('Error finding user by email:', error);
-  //     throw error; 
-  //   }
-  // }
 
   static async findLandIdByLatLng(lat: number, lng: number): Promise<LandInfo | null> {
     try {
