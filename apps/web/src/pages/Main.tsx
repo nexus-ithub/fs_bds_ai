@@ -5,6 +5,7 @@ import type { LandInfo, LandInfoResp } from "@repo/common";
 import { useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
+import { LandInfoGuest } from "../landInfo/LandGuest";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -14,7 +15,7 @@ export default function Main() {
   return (
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full">
-        {landInfo ? <LandInfoCard landInfo={landInfo} /> : null}
+        {landInfo ? <LandInfoCard landInfo={landInfo} /> : <LandInfoGuest />}
       </div>
       <div className="flex-1 h-full">
         <Map
