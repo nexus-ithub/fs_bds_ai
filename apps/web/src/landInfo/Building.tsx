@@ -19,10 +19,10 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
 
   // console.log(buildings);
   return (
-    <div className="flex flex-col divide-y divide-line-02">
+    <div className="flex flex-col divide-y divide-line-02 border-b border-b-line-02">
       <div className="flex items-center justify-between">
-        <Title title="건축물 정보"/>
-        {
+        <Title title={`건축물 정보 ${buildings.length > 0 ? `${buildings.length}` : ''}`}/>
+        {/* {
           buildings.length > 1 && (
             <button 
               onClick={() => setOpenSelect(true)}
@@ -31,12 +31,28 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
               <ArrowDown/>
             </button>
           )
-        }
+        } */}
       </div>
       {
         buildings?.length > 0 ? 
         <>
-          <Row title="빌딩이름" content={selectedBuilding?.buildingName || '-'} />
+          <Row title="빌딩이름" 
+            content={        
+              <>
+              {
+                buildings.length > 1 ? (
+                  <button
+                    className="flex items-center gap-[8px]"
+                    onClick={() => setOpenSelect(true)}
+                  >
+                    <p>{selectedBuilding?.buildingName || '-'}</p>  
+                    <ArrowDown/>
+                  </button>
+                ) :
+                <p>{selectedBuilding?.buildingName || '-'}</p>
+              }
+              </>
+            } />
           <Row title="동이름" content={selectedBuilding?.dongName || '-'} />
           <Row title="용도지역" content={selectedBuilding?.mainUsageName || '-'} />
           <Row title="기타용도" content={selectedBuilding?.etcUsageName || '-'} />
@@ -55,10 +71,35 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
         open={openSelect} 
         onClose={() => setOpenSelect(false)}
       >
-        <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[320px]">
+        <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[520px]">
           <p className="font-h2">건축물 선택</p>
-          <div className="flex flex-col w-full max-h-[200px] overflow-auto px-[8px] divide-y divide-line-02 border-b border-b-line-02">
-          {
+          <div className="font-s2 flex flex-col w-full max-h-[280px] overflow-auto divide-y divide-line-02 border border-line-03">
+          <table>
+            <thead className="sticky top-0 z-[1] text-text-02 bg-surface-second">
+              <tr>
+                <th className="text-left px-[8px] py-[6px]">건축물 이름</th>
+                <th className="text-left px-[8px] py-[4px]">동이름</th>
+                <th className="text-left px-[8px] py-[4px]"></th>
+              </tr>
+            </thead>
+            <tbody className="text-text-02 divide-y divide-line-02">
+              {
+                buildings.map((building, i) => (
+                  <tr
+                    onClick={() => {
+                      setIndex(i);
+                      setOpenSelect(false);
+                    }} 
+                    key={i} className="hover:bg-line-02 cursor-pointer">
+                    <td className="text-left px-[8px] py-[6px]">{building.buildingName}</td>
+                    <td className="text-left px-[8px] py-[4px]">{building.dongName}</td>
+                    <td className="flex items-center justify-end text-right px-[8px] py-[4px]">{i === index && <Check size={20}/>}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          {/* {
             buildings.map((building, i) => (
               <button 
                 key={i} 
@@ -72,7 +113,7 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
                 {i === index && <Check/>}
               </button>
             ))
-          }
+          } */}
           </div>
 
         </div>

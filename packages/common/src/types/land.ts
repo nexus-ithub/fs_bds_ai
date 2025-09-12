@@ -52,6 +52,16 @@ export interface BuildingInfo {
 }
 
 
+export interface DistrictInfo {
+  code: string;
+  name: string;
+  divCodeName: string;
+  totalFootPrint: number;
+  area: number;
+  distance: number;
+}
+
+
 export interface LandInfoResp {
   land: LandInfo;
   buildings: BuildingInfo[];
