@@ -5,3 +5,5 @@ export * from './image';
 export * from './types/land';
 export * from './krw';
 export * from './icons';
+export * from './tab';
+export * from './divider';

@@ -1,9 +1,7 @@
 
-import type { DistrictInfo, LandInfo, LandInfoResp } from "@repo/common";
-import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button } from "@repo/common";
-import { VDivider } from "../common/divider";
+import type { DistrictInfo, LandInfoResp } from "@repo/common";
+import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
 import { krwUnit } from "@repo/common";
-import { TabButton } from "../common/tab";
 import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
@@ -116,7 +114,7 @@ export const LandInfoCard = ({
             TABS.map((tab, index) => (
               <TabButton
                 key={index}
-                className="flex-1 py-[11px]"
+                className="flex-1 py-[11px] flex items-center justify-center"
                 selected={index === selectedTab}
                 onClick={() => {setSelectedTab(index)}}
               >
