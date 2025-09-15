@@ -1,8 +1,8 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon } from "react-kakao-maps-sdk";
-import type { DistrictInfo, LandInfo, LandInfoResp, PlaceList } from "@repo/common";
-import { useState } from "react";
+import { Map, Polygon, MapTypeId } from "react-kakao-maps-sdk";
+import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, StreetViewIcon, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList } from "@repo/common";
+import { useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
@@ -14,6 +14,21 @@ export default function Main() {
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
+  const [mapType, setMapType] =
+    useState<'normal' | 'skyview' | 'use_district'>('normal');
+  const [mapTypeId, setMapTypeId] = useState<'ROADMAP' | 'SKYVIEW' | 'USE_DISTRICT'>('ROADMAP');
+  const mapRef = useRef<any>(null);
+  
+  const changeMapType = (type: 'normal' | 'skyview' | 'use_district') => {
+    setMapType(type);
+    if(type === 'use_district') {
+      setMapTypeId('ROADMAP');
+    } else if(type === 'skyview') {
+      setMapTypeId('SKYVIEW');
+    } else {
+      setMapTypeId('ROADMAP');
+    }
+  }
 
   const getLandInfo = (lat: number, lng: number) => {
     axiosInstance.get(`/api/land/info?lat=${lat}&lng=${lng}`)
@@ -55,6 +70,7 @@ export default function Main() {
       });
   }
 
+  
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
@@ -63,6 +79,8 @@ export default function Main() {
       </div>
       <div className="flex-1 h-full">
         <Map
+          ref={mapRef}
+          mapTypeId={mapTypeId}
           onClick={(_, mouseEvent) => {
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
 
@@ -85,6 +103,16 @@ export default function Main() {
           }}
           className="w-full h-full"
         >
+          {mapType === 'use_district' && (
+            <MapTypeId
+              type="USE_DISTRICT"
+            />
+          )}
+          {/* {mapType === 'skyview' && (
+            <MapTypeId
+              type="SKYVIEW"
+            />
+          )} */}
           {landInfo && (
             <Polygon
               fillColor="var(--color-primary)" // Red fill color
@@ -95,6 +123,54 @@ export default function Main() {
               path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
           )}
         </Map>
+        <div className="fixed top-[84px] right-[24px] z-40 font-c3 space-y-[14px]">
+          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+            <button
+              onClick={() => changeMapType('normal')}
+              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <MapIcon color={mapType === 'normal' ? 'var(--color-primary)' : 'var(--gray-060)'} />
+              <p className={mapType === 'normal' ? 'text-primary font-c3-p' : ''}>일반</p>
+            </button>
+            <button
+              onClick={() => changeMapType('skyview')}
+              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <SatelliteIcon color={mapType === 'skyview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
+              <p className={mapType === 'skyview' ? 'text-primary font-c3-p' : ''}>위성</p>
+            </button>
+            <button
+              onClick={() => changeMapType('use_district')}
+              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <CadastralIcon color={mapType === 'use_district' ? 'var(--color-primary)' : 'var(--gray-060)'} />
+              <p className={mapType === 'use_district' ? 'text-primary font-c3-p' : ''}>지적도</p>
+            </button>      
+            <button
+              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <StreetViewIcon />
+              <p>거리뷰</p>
+            </button>                        
+          </div>
+          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <CalcAreaIcon />
+              <p>면적</p>
+            </button>
+            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <CalcDistanceIcon />
+              <p>거리</p>
+            </button>
+          </div>    
+          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              <MyLocationIcon />
+              <p>내위치</p>
+            </button>
+          </div>      
+          {/* <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+              
+            </button>
+          </div>                               */}
+        </div>
       </div>
     </div>
   );
