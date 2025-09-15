@@ -8,6 +8,7 @@ import type { YoutubeVideo } from "@repo/common";
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { formatTimeAgo, formatDuration } from "../../utils";
+import { Dialog, DialogActions } from "@mui/material";
 export const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
 export const YOUTUBE_SEARCH_URL = import.meta.env.VITE_YOUTUBE_SEARCH_URL;
@@ -40,6 +41,9 @@ export const YoutubeList = () => {
   const [order, setOrder] = useState<string>(ORDER[0]);
   const [mainVideo, setMainVideo] = useState<YoutubeVideo | null>(null);
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+
+  const [openVideoDialog, setOpenVideoDialog] = useState<boolean>(false);
 
   useEffect(() => {
     const getVideoList = async () => {
@@ -69,6 +73,10 @@ export const YoutubeList = () => {
     getBrandingVideo();
   }, [])
 
+  useEffect(() => {
+    console.log("selectedVideo : ", selectedVideo);
+  }, [selectedVideo])
+
   return (
     <div className="flex flex-col overflow-auto">
       <div className="flex flex-col gap-[4px] pt-[20px] px-[20px]">
@@ -87,14 +95,19 @@ export const YoutubeList = () => {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-black/50"></div>
-              <div className="absolute inset-0 flex items-center justify-center cursor-pointer">
+              <div 
+                className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                onClick={() => {
+                  setSelectedVideo(mainVideo);
+                  setOpenVideoDialog(true);
+                }}>
                 <PlayIcon />
               </div>
               <div className="absolute bottom-[12px] right-[14px] flex gap-[12px]">
                 <YoutubeVideoLogo />
-                <ShareIcon className="cursor-pointer"/>
+                {/* <ShareIcon className="cursor-pointer"/>
                 <MiniPlayerIcon className="cursor-pointer"/>
-                <FullScreenIcon className="cursor-pointer"/>
+                <FullScreenIcon className="cursor-pointer"/> */}
               </div>
             </div>
             <p className="font-h3">{mainVideo.title}</p>
@@ -145,7 +158,13 @@ export const YoutubeList = () => {
                 <span className="absolute bottom-[4px] right-[4px] bg-black/60 text-white font-c3 px-[4px] py-[1px] rounded-[4px]">
                   {formatDuration(video.duration || "")}
                 </span>
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                <div 
+                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                  onClick={() => {
+                    setSelectedVideo(video);
+                    setOpenVideoDialog(true);
+                  }}
+                >
                   <PlayIcon className="w-[24px] h-[24px]"/>
                 </div>
               </div>
@@ -158,6 +177,27 @@ export const YoutubeList = () => {
           </React.Fragment>
         ))}
       </div>
+      <Dialog 
+        open={openVideoDialog} 
+        onClose={() => setOpenVideoDialog(false)}
+      >
+        <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[520px]">
+          <p className="font-h2">건축물 선택</p>
+          <div className="font-s2 flex flex-col w-full max-h-[280px] overflow-auto divide-y divide-line-02 border border-line-03">
+            <iframe
+              width="560"
+              height="315"
+              src={`https://www.youtube.com/embed/${selectedVideo?.videoId}`}
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </div>
+        {/* <DialogActions>
+          <Button onClick={() => setOpenVideoDialog(false)}>닫기</Button>
+        </DialogActions> */}
+      </Dialog>
     </div>
   )
 }
