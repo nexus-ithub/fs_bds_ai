@@ -1,6 +1,6 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon, MapTypeId } from "react-kakao-maps-sdk";
+import { Map, Polygon, MapTypeId, Roadview } from "react-kakao-maps-sdk";
 import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, StreetViewIcon, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList } from "@repo/common";
 import { useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
@@ -15,11 +15,13 @@ export default function Main() {
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
-    useState<'normal' | 'skyview' | 'use_district'>('normal');
+    useState<'normal' | 'skyview' | 'use_district' | 'roadview'>('normal');
   const [mapTypeId, setMapTypeId] = useState<'ROADMAP' | 'SKYVIEW' | 'USE_DISTRICT'>('ROADMAP');
-  const mapRef = useRef<any>(null);
+  // const mapRef = useRef<any>(null);
   
-  const changeMapType = (type: 'normal' | 'skyview' | 'use_district') => {
+  const [roadview, setRoadview] = useState(false);
+
+  const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview') => {
     setMapType(type);
     if(type === 'use_district') {
       setMapTypeId('ROADMAP');
@@ -79,7 +81,7 @@ export default function Main() {
       </div>
       <div className="flex-1 h-full">
         <Map
-          ref={mapRef}
+          // ref={mapRef}
           mapTypeId={mapTypeId}
           onClick={(_, mouseEvent) => {
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
@@ -108,11 +110,11 @@ export default function Main() {
               type="USE_DISTRICT"
             />
           )}
-          {/* {mapType === 'skyview' && (
+          {mapType === 'roadview' && (
             <MapTypeId
-              type="SKYVIEW"
+              type="ROADVIEW"
             />
-          )} */}
+          )}
           {landInfo && (
             <Polygon
               fillColor="var(--color-primary)" // Red fill color
@@ -144,9 +146,10 @@ export default function Main() {
               <p className={mapType === 'use_district' ? 'text-primary font-c3-p' : ''}>지적도</p>
             </button>      
             <button
+              onClick={() => changeMapType('roadview')}
               className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <StreetViewIcon />
-              <p>거리뷰</p>
+              <StreetViewIcon color={mapType === 'roadview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
+              <p className={mapType === 'roadview' ? 'text-primary font-c3-p' : ''}>거리뷰</p>
             </button>                        
           </div>
           <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
@@ -171,6 +174,12 @@ export default function Main() {
             </button>
           </div>                               */}
         </div>
+        {/* <div className="fixed top-0 left-0 w-full h-screen z-50">
+          <Roadview
+            position={{ lat: center.current.lat, lng: center.current.lng, radius: 10 }}
+            className="w-full h-full"
+          />
+        </div> */}
       </div>
     </div>
   );
