@@ -8,6 +8,7 @@ import { X } from "lucide-react";
 import { BusinessDistrict } from "./BusinessDistrict";
 import { Place } from "./Place";
 import { CompanyInfo } from "./CompanyInfo";
+import { format } from "date-fns";
 
 const TABS = [
   "토지",
@@ -165,7 +166,7 @@ export const LandInfoCard = ({
           <VDivider colorClassName="bg-line-03"/>
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s4 text-text-03">건축면적</p>
-            <p className="font-s4 text-text-02">{getAreaStrWithPyeong(null)}</p>
+            <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.buildings.length > 0 ? landInfo.buildings[0].archArea : null)}</p>
           </div>        
         </div>
 
@@ -179,13 +180,13 @@ export const LandInfoCard = ({
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가</p>
             <p className="font-h2-p">{krwUnit(landInfo.land.price * landInfo.land.area, true)}</p>
-            <p className="font-c3 text-primary-030">{krwUnit(landInfo.land.price)}</p>
+            <p className="font-c3 text-text-03">{krwUnit(landInfo.land.price, true)}/㎡</p>
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
-            <p className="font-h2-p text-primary">??억</p>
-            <p className="font-c3 text-primary-030">xxxx.xx.xx</p>
+            <p className="font-h2-p">{landInfo.land.dealPrice ? krwUnit(landInfo.land.dealPrice * 10000, true) : '-'}</p>
+            <p className="font-c3 text-text-03">{landInfo.land.dealDate ? format(landInfo.land.dealDate, 'yyyy.MM.dd') : ''}</p>
           </div>        
         </div>
 

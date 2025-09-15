@@ -37,6 +37,9 @@ export interface LandInfo {
   buildingLegName: string;
   // isApartmentHouse: string;
   // roadWidth: string;
+  dealPrice: number;
+  dealDate: string;
+  dealType: string;
   polygon: Coords[] | Coords[][];
 }
 

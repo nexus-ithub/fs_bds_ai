@@ -74,7 +74,8 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
 			let categoryResult = []
 			let page = 1
 			while(true){
-        const url = `https://dapi.kakao.com/v2/local/search/category.json?x=${lng}&y=${lat}&radius=1000&sort=distance&category_group_code=${category}`;
+        console.log('category', category)
+        const url = `https://dapi.kakao.com/v2/local/search/category.json?x=${lng}&y=${lat}&radius=1000&sort=distance&category_group_code=${category}&page=${page}`;
       
 				const kakaoResp = await axios.get(url, {
 					headers : {
@@ -109,17 +110,19 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
     const busData = busResp.data
     const busList = []
-    // console.log('busData', busData)
-    // console.log('busData.response.body.items', busData.response.body.items)
-    for(const item of busData.response.body.items.item){
-      console.log('item', item)
-      const bus = {
-        name: item.nodenm,
-        distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
-        lat: item.gpslati,
-        lng: item.gpslong
+    console.log('busData', busData)
+    console.log('busData.response.body.items', busData.response.body.items)
+    if(busData.response.body.items){
+      for(const item of busData.response.body.items.item){
+        console.log('item', item)
+        const bus = {
+          name: item.nodenm,
+          distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
+          lat: item.gpslati,
+          lng: item.gpslong
+        }
+        busList.push(bus)
       }
-      busList.push(bus)
     }
     console.log('busList', busList)
     // if(busData.response.body.items){
