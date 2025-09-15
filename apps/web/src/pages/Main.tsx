@@ -5,7 +5,7 @@ import type { DistrictInfo, LandInfo, LandInfoResp, PlaceList } from "@repo/comm
 import { useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
-import { LandInfoGuest } from "../landInfo/LandGuest";
+import { HomeBoard } from "../homeBoard/HomeBoard";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -57,7 +57,7 @@ export default function Main() {
   return (
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full">
-        {landInfo ? <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : <LandInfoGuest />}
+        {landInfo ? <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : <HomeBoard />}
       </div>
       <div className="flex-1 h-full">
         <Map

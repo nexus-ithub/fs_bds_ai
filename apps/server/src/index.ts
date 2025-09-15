@@ -9,6 +9,7 @@ import { db } from './utils/database';
 import {verifyToken} from "./middleware/auth.middleware";
 import userRoutes from './routes/user.routes';
 import landRoutes from './routes/land.routes';
+import youtubeRoutes from './routes/youtube.routes';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/land', landRoutes);
+app.use('/api/youtube', youtubeRoutes);
 app.use('/api/*', verifyToken);
 
 app.get('/', (req, res) => {

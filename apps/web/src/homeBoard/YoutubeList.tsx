@@ -1,15 +1,46 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TabButton, SubTabButton, HDivider, VDivider } from "@repo/common";
 import React from "react";
+import axios from "axios";
+export const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
+export const YOUTUBE_SEARCH_URL = import.meta.env.VITE_YOUTUBE_SEARCH_URL;
 
 const FILTER_TABS = [
   '👍 조회수 많은 순',
   '📆 최근 업로드 순',
-  '❤️ 좋아요 많은 순'
+  '💯 평점 높은 순'
+]
+const ORDER = [
+  'viewCount',
+  'date',
+  'rating'
 ]
 
-export const BuildingYoutube = () => {
-  const [selectedFilterTab, setSelectedFilterTab] = useState(0);
+export const YoutubeList = () => {
+  const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
+  const [order, setOrder] = useState<string>(ORDER[0]);
+  const [mainVideo, setMainVideo] = useState<any>(null);
+  const [videos, setVideos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      // setLoading(true);
+      try {
+        const res = await axios.get(`/api/youtube/list/${order}`);
+        // const data = await res.json();
+
+        console.log(">>>>>>>>>>>>", res);
+        // setVideos(res);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchVideos();  
+  }, [order])
 
   return (
     <div className="flex flex-col overflow-auto">
@@ -36,7 +67,7 @@ export const BuildingYoutube = () => {
                 <SubTabButton
                   className="py-[14px] flex items-center justify-center"
                   selected={index === selectedFilterTab}
-                  onClick={() => { setSelectedFilterTab(index) }}
+                  onClick={() => { setSelectedFilterTab(index); setOrder(ORDER[index]) }}
                 >
                   {tab}
                 </SubTabButton>
