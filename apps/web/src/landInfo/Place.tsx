@@ -1,9 +1,7 @@
-
-
 import { Row, Title } from "./Row";
 import { type PlaceList, type PlaceInfo, ArrowUpIcon, ArrowDownIcon } from "@repo/common";
 import { useEffect, useState } from "react";
-
+import React from 'react';
 
 const PlaceInfo = ({title, info = []}: {title: string, info: PlaceInfo[]}) => {
   const [open, setOpen] = useState(false);
@@ -54,22 +52,22 @@ const PlaceInfo = ({title, info = []}: {title: string, info: PlaceInfo[]}) => {
   )
 }
 
-export const Place = ({place = null}: {place: PlaceList | null}) => {
+export const Place = React.forwardRef<HTMLDivElement, {place: PlaceList | null}>(({place = null}, ref) => {
 
   if(!place) {
     return null;
   }
 
   return (
-    <div className="flex flex-col divide-y divide-line-02 border-b border-b-line-02">
+    <div ref={ref} className="flex flex-col divide-y divide-line-02 border-b border-b-line-02">
       <Title title={`입지`}/>
       {
         (place?.subway?.length > 0 || place?.school?.length > 0 || place?.tour?.length > 0) ? 
         <>
+          <PlaceInfo title="버스" info={place?.bus || []} />
           <PlaceInfo title="지하철" info={place?.subway || []} />
           <PlaceInfo title="학교" info={place?.school || []} />
-          <PlaceInfo title="관광지" info={place?.tour || []} />
-       
+          <PlaceInfo title="주변관광지" info={place?.tour || []} />
         </>
         : (
           <div>
@@ -80,4 +78,6 @@ export const Place = ({place = null}: {place: PlaceList | null}) => {
     
     </div>
   )
-}
+})
+
+Place.displayName = 'Place';

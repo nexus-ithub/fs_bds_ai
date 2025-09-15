@@ -1,4 +1,3 @@
-
 import type { DistrictInfo, LandInfoResp, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
 import { krwUnit } from "@repo/common";
@@ -31,6 +30,12 @@ export const LandInfoCard = ({
 
   const [selectedTab, setSelectedTab] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+
+  const landRef = useRef<HTMLDivElement>(null);
+  const buildingRef = useRef<HTMLDivElement>(null);
+  const businessDistrictRef = useRef<HTMLDivElement>(null);
+  const placeRef = useRef<HTMLDivElement>(null);
+
   if (!landInfo) {
     return null;
   }
@@ -40,6 +45,83 @@ export const LandInfoCard = ({
       ref.current.scrollTop = 0;
     }
   }, [landInfo]);
+
+
+  const [selecting, setSelecting] = useState(false);
+
+  const scrollToTab = (tab: number) => {
+    const tabRef = [
+      landRef,
+      buildingRef,
+      businessDistrictRef,
+      placeRef
+    ]
+    tabRef[tab].current?.scrollIntoView({ behavior: "instant" });
+    setSelectedTab(tab);
+    setSelecting(true);
+    setTimeout(() => {
+      setSelecting(false);
+    }, 1000);
+  }
+
+  useEffect(() => {
+    
+    const scrollContainer = ref.current;
+    if (!scrollContainer) return;
+  
+    const ACTIVATION_OFFSET = 24; // 섹션 상단에서 약간 내려왔을 때 활성화
+    let ticking = false;
+  
+    const getRelativeTop = (el: HTMLElement, container: HTMLElement) => {
+      const elRect = el.getBoundingClientRect();
+      const cRect = container.getBoundingClientRect();
+      // 컨테이너 상단 기준 절대 위치(=scrollTop 비교용)
+      return elRect.top - cRect.top + container.scrollTop;
+    };
+  
+    const handleScroll = () => {
+
+      console.log('handleScroll', selecting);
+      if (ticking) return;
+      ticking = true;
+
+      if (selecting) return;
+  
+      
+      requestAnimationFrame(() => {
+        const scrollTop = scrollContainer.scrollTop;
+        const refs = [landRef, buildingRef, businessDistrictRef, placeRef];
+  
+        // 각 섹션의 컨테이너 기준 top 계산
+        const tops = refs.map(r =>
+          r.current ? getRelativeTop(r.current, scrollContainer) : Number.POSITIVE_INFINITY
+        );
+  
+        // 현재 스크롤 위치보다 위(또는 근처)에 있는 가장 마지막 섹션을 선택
+        let active = 0;
+        for (let i = 0; i < tops.length; i++) {
+          if (tops[i] <= scrollTop + ACTIVATION_OFFSET) active = i;
+        }
+
+        // 스크롤이 맨 아래에 도달했을 때 마지막 탭 선택
+        const isAtBottom = scrollTop + scrollContainer.clientHeight >= scrollContainer.scrollHeight - 10;
+        if (isAtBottom) {
+          active = refs.length - 1;
+        }
+
+  
+        setSelectedTab(active);
+        ticking = false;
+      });
+    };
+  
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    // 초기 진입 시 상태 동기화
+    handleScroll();
+  
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, [ref, landRef, buildingRef, businessDistrictRef, placeRef, selecting]);
+    
 
   return (
     <div className="h-full flex flex-col pt-[20px]">
@@ -120,7 +202,10 @@ export const LandInfoCard = ({
                 key={index}
                 className="flex-1 py-[11px]"
                 selected={index === selectedTab}
-                onClick={() => {setSelectedTab(index)}}
+                onClick={() => {
+                  setSelectedTab(index);
+                  scrollToTab(index);
+                }}
               >
                 {tab}
               </TabButton>
@@ -129,11 +214,11 @@ export const LandInfoCard = ({
         </div>
         <div
           ref={ref}
-          className="py-[20px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
-          <Land landInfo={landInfo.land} />
-          <Building buildings={landInfo.buildings} />
-          <BusinessDistrict businessDistrict={businessDistrict || []} />
-          <Place place={place} />
+          className="pt-[20px] pb-[40px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
+          <Land landInfo={landInfo.land} ref={landRef}/>
+          <Building buildings={landInfo.buildings} ref={buildingRef}/>
+          <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef}/>
+          <Place place={place} ref={placeRef}/>
           <CompanyInfo/>
         </div>
       </div>

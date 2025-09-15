@@ -49,7 +49,7 @@ export class DistrictModel {
         ORDER BY distance ASC`,
         [lng, lat, lng, lat, DISTRICT_DISTANCE]
       )
-      console.log(result);
+      // console.log(result);
      
 
       return result || [];

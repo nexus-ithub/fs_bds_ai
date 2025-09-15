@@ -6,6 +6,7 @@ import { BuildingModel } from '../models/buliding.model';
 import { LandInfoResp } from '@repo/common';
 import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
+import { getDistance } from 'geolib';
 
 export const getLandInfo = async (req: AuthRequest, res: Response) => {
   try {
@@ -50,6 +51,7 @@ export const getBusinessDistrict = async (req: AuthRequest, res: Response) => {
 
 
 const KAKAO_API_KEY = process.env.KAKAO_API_KEY;
+const PUBLIC_API_KEY = process.env.PUBLIC_API_KEY;
 const REQUEST_CATEGORY = [
 	// 'MT1', // 대형마트
 	'SC4', // 학교
@@ -69,7 +71,6 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     
     let results = []
     for (const category of REQUEST_CATEGORY) {
-
 			let categoryResult = []
 			let page = 1
 			while(true){
@@ -104,10 +105,39 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     
     }
 
+    console.log('PUBLIC_API_KEY', PUBLIC_API_KEY)
+    const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
+    const busData = busResp.data
+    const busList = []
+    // console.log('busData', busData)
+    // console.log('busData.response.body.items', busData.response.body.items)
+    for(const item of busData.response.body.items.item){
+      console.log('item', item)
+      const bus = {
+        name: item.nodenm,
+        distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
+        lat: item.gpslati,
+        lng: item.gpslong
+      }
+      busList.push(bus)
+    }
+    console.log('busList', busList)
+    // if(busData.response.body.items){
+      
+    //   // busData.response.body.items = busData.response.body.items.map((item: any) => {
+    //   //   return {
+    //   //     name: item.sttn_name,
+    //   //     distance: item.distance,
+    //   //     lat: item.gpsLati,
+    //   //     lng: item.gpsLong
+    //   //   }
+    //   // })
+    // }
     const placeList = {
       school: results[0],
       subway: results[1],
       tour: results[2],
+      bus: busList,
     }
     res.status(200).json(placeList);
   } catch (err) {

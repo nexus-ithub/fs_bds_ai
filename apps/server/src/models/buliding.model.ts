@@ -31,7 +31,7 @@ export class BuildingModel {
         FROM building_leg_headline AS building WHERE building.leg_dong_code_val = ? and building.bun = LPAD(?, 4, 0) and building.ji = LPAD(?, 4, 0)`,
         [legDongCode, Number(bun), Number(ji)]
       )
-      console.log(result);
+      // console.log(result);
      
 
       return result || [];

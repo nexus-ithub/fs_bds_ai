@@ -137,14 +137,14 @@ export class LandModel {
       GROUP BY address_polygon.id`,
         [lng, lat]
       )
-      console.log(lands);
-      for (const land of lands) {
-        // if (!land.usageList) {
-        //   continue;
-        // }
-        // const usageList = JSON.parse(land.usageList);
-        // land.usageList = usageList;
-      }
+      // // console.log(lands);
+      // for (const land of lands) {
+      //   // if (!land.usageList) {
+      //   //   continue;
+      //   // }
+      //   // const usageList = JSON.parse(land.usageList);
+      //   // land.usageList = usageList;
+      // }
 
       return lands[0] || null;
     } catch (error) {

@@ -27,14 +27,14 @@ export const CompanyInfo = () => {
           </button>
         </div>
       </div>
-      <div className="font-s3 text-text-02 flex items-center gap-[10px]">
+      <div className="font-s3 text-text-02 flex items-center justify-between">
         <button className="">서비스소개</button>
         <VDivider/>
         <button className="">고객센터</button>
         <VDivider/>
         <button className="">이용약관</button>
         <VDivider/>
-        <button className="flex-1">개인정보 처리방침</button>
+        <button className="flex-shrink-0">개인정보 처리방침</button>
       </div>
       <div className="font-c2 text-text-02 flex items-center gap-[10px]">
         <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 3366</p>

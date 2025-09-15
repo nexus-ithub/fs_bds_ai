@@ -1,11 +1,11 @@
-
 import { ArrowDown, Button, getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
 import { Row, Title } from "./Row";
 import { useEffect, useState } from "react";
 import { Dialog, DialogActions } from "@mui/material";
 import { Check } from 'lucide-react';
+import React from 'react';
 
-export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
+export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingInfo[] }>(({buildings}, ref) => {
 
   const [index, setIndex] = useState(0);
   const selectedBuilding = buildings.length > 0 ? buildings[index] : null;
@@ -19,7 +19,7 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
 
   // console.log(buildings);
   return (
-    <div className="flex flex-col divide-y divide-line-02 border-b border-b-line-02">
+    <div ref={ref} className="flex flex-col divide-y divide-line-02 border-b border-b-line-02">
       <div className="flex items-center justify-between">
         <Title title={`건축물 정보 ${buildings.length > 0 ? `${buildings.length}` : ''}`}/>
         {/* {
@@ -108,4 +108,6 @@ export const Building = ({buildings}: {buildings: BuildingInfo[]}) => {
       </Dialog>
     </div>
   )
-}
+})
+
+Building.displayName = 'Building';

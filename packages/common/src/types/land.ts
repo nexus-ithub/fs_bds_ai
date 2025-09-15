@@ -71,6 +71,7 @@ export interface PlaceList {
   subway: PlaceInfo[];
   school: PlaceInfo[];
   tour: PlaceInfo[];
+  bus: PlaceInfo[];
 }
 
 export interface LandInfoResp {
