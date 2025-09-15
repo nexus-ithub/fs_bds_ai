@@ -10,7 +10,7 @@ import { getDistance } from 'geolib';
 
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
-const ESTIMATE_REFERENCE_YEAR = 3;
+const ESTIMATE_REFERENCE_YEAR = 2;
 
 export const getLandInfo = async (req: AuthRequest, res: Response) => {
   try {
@@ -29,7 +29,11 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
     let per = 3.0;
     let estimatedPrice = land.price * per * land.area;
     for(let i = 0; i < 4; i++) {
-      const estimatedValues = await LandModel.calcuateEstimatedPrice(land.id, ESTIMATE_REFERENCE_DISTANCE * (i + 1), ESTIMATE_REFERENCE_YEAR);
+      const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
+      const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
+      console.log('distance', distance)
+      console.log('year', year)
+      const estimatedValues = await LandModel.calcuateEstimatedPrice(land.id, distance, year);
       
       // console.log('estimatedValues', estimatedValues)
       const summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
