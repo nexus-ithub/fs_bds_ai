@@ -6,13 +6,15 @@ import { useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
+import { loadMapState, saveMapState } from "../utils";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
   const [landInfo, setLandInfo] = useState<LandInfoResp | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
-  
+  const defaultMapState = loadMapState();
+
   const getLandInfo = (lat: number, lng: number) => {
     axiosInstance.get(`/api/land/info?lat=${lat}&lng=${lng}`)
       .then((response) => {
@@ -62,25 +64,25 @@ export default function Main() {
       <div className="flex-1 h-full">
         <Map
           onClick={(_, mouseEvent) => {
-            // console.log(target, mouseEvent);
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-            
-            // axiosInstance.get(`/api/land/info?lat=${mouseEvent.latLng.getLat()}&lng=${mouseEvent.latLng.getLng()}`)
-            //   .then((response) => {
-            //     // console.log(response.data);
-            //     const landInfo = response.data as LandInfoResp;
-            //     // console.log(landInfo);
-            //     setLandInfo(landInfo);
-            //   })
-            //   .catch((error) => {
-            //     console.error(error);
-            //   });
+
             getLandInfo(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             getBusinessDistrict(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             getPlace(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
           }}
-          center={{ lat: 37.506448, lng: 127.053366 }}
-          level={3}
+          center={{ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng }}
+          level={defaultMapState.level}
+          onCenterChanged={(map) => {
+            // console.log(map.getCenter().getLat(), map.getCenter().getLng());
+            saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
+          }}
+          // onDragEnd={(map) => {
+          //   console.log(map.getCenter().getLat(), map.getCenter().getLng());
+          // }}
+          onZoomChanged={(map) => {
+            // console.log(map.getLevel());
+            saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
+          }}
           className="w-full h-full"
         >
           {landInfo && (
