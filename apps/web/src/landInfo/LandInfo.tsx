@@ -173,8 +173,8 @@ export const LandInfoCard = ({
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
-            <p className="font-h2-p text-primary">??억</p>
-            <p className="font-c3 text-primary-030">공시지가 대비 xx 배</p>
+            <p className="font-h2-p text-primary">{krwUnit(landInfo.estimatedPrice, true)}</p>
+            <p className="font-c3 text-primary-030">공시지가 대비 {landInfo.per} 배</p>
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">

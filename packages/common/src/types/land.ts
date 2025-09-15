@@ -80,6 +80,8 @@ export interface PlaceList {
 export interface LandInfoResp {
   land: LandInfo;
   buildings: BuildingInfo[];
+  estimatedPrice: number;
+  per: number;
 }
 
 
