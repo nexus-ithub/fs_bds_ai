@@ -35,11 +35,10 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
       console.log('year', year)
       const estimatedValues = await LandModel.calcuateEstimatedPrice(land.id, distance, year);
       
-      // console.log('estimatedValues', estimatedValues)
+      console.log('estimatedValues', estimatedValues)
       const summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
       
       let finalRatio = summary.avg_ratio_to_official
-      console.log('finalRatio', finalRatio)
       if(finalRatio){
         let adjustFactor = 1
         if(finalRatio <= 1.8){
@@ -62,6 +61,9 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
         const adjusted = summary.avg_ratio_to_official * adjustFactor
         per = Math.floor(adjusted * 10) / 10;
         estimatedPrice = Math.floor(land.price * per * land.area)
+        console.log('finalRatio', finalRatio)
+        console.log('per', per)
+        console.log('estimatedPrice', estimatedPrice)
         break;
       }
 

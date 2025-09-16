@@ -17,6 +17,8 @@ export class LandModel {
           land_char.usage1_name AS usageName,
           land_char.jimok_name AS jimokName,
           land_char.cur_use AS curUse,
+          leg_land_usage_ratio.far,
+          leg_land_usage_ratio.bcr,
           land_char.road_contact AS roadContact,
           land_char.price AS price,
           jibun.sido_name AS sidoName,
@@ -63,6 +65,8 @@ export class LandModel {
           ORDER BY c.create_date DESC 
           LIMIT 1
         )
+      LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
+        ON land_char.usage1_name = leg_land_usage_ratio.name
       LEFT JOIN jibun_info AS jibun 
         ON jibun.leg_dong_code = address_polygon.leg_dong_code
         AND jibun.jibun_main_num = SUBSTRING_INDEX(address_polygon.jibun, '-', 1)

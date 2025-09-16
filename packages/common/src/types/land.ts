@@ -16,6 +16,8 @@ export interface LandInfo {
   jibun: string;
   area: number;
   usageName: string;
+  far: number;
+  bcr: number;
   jimokName: string;
   curUse: string;
   height: number;

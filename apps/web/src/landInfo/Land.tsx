@@ -14,8 +14,8 @@ export const Land = React.forwardRef<HTMLDivElement, { landInfo: LandInfo }>(
         <Row title="주용도" content={landInfo.curUse} />
         <Row title="지목" content={landInfo.jimokName} />
         <Row title="면적" content={getAreaStrWithPyeong(landInfo.area)} />
-        <Row title="최대용적률" content={"-"} />
-        <Row title="최대건폐률" content={"-"} />
+        <Row title="최대용적률" content={landInfo.far ? landInfo.far + '%' : '-'} />
+        <Row title="최대건폐률" content={landInfo.bcr ? landInfo.bcr + '%' : '-'} />
         <Row title="도로측면" content={landInfo.roadContact || '-'} />
         <Row title="공시지가" content={
           landInfo.price && landInfo.area ? 
