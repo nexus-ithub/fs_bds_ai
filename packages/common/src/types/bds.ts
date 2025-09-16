@@ -1,6 +1,7 @@
 
 
 
+
 export interface BdsSale {
     idx: string;
     name: string;

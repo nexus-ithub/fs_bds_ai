@@ -1,14 +1,16 @@
 import { Request, Response } from 'express';
-import { db } from '../utils/database';
-import { AuthRequest } from 'src/middleware/auth.middleware';
-import { DistrictModel } from '../models/district.model';
+import { AuthRequest } from 'src/middleware/auth.middleware';;
 import { BdsModel } from '../models/bds.model';
+
 
 
 export const getList = async (req: AuthRequest, res: Response) => {
   try {
-
-    const bdsList = await BdsModel.getList();
+    const filter = req.query.filter as string;
+    if (!filter) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    const bdsList = await BdsModel.getList(filter);
     
     res.status(200).json(bdsList);
   } catch (err) {

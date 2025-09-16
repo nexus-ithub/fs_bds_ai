@@ -6,14 +6,14 @@ import React from "react";
 
 const FILTER_TABS = [
   '👍 빌딩샵 추천 TOP5',
-  '🧭 지역 별 추천매물',
-  '💸 가격대 별 추천매물'
+  '🧭 핫플레이스 추천매물',
+  '💸 역세권 추천매물'
 ]
 
 const ORDER = [
   'recommend',
-  'region',
-  'price'
+  'hotplace',
+  'subway'
 ]
 
 export const BuildingList = () => {
@@ -28,7 +28,7 @@ export const BuildingList = () => {
     try {
       setLoading(true);
       setIsError(false);
-      const res = await axiosWithAuth.get('/api/bds/list');
+      const res = await axiosWithAuth.get('/api/bds/list', {params: {filter: order}});
       setBuildings(res.data as BdsSale[]);
     } catch (error) {
       console.error(error);
@@ -48,7 +48,7 @@ export const BuildingList = () => {
 
   useEffect(() => {
     getBuildings();
-  }, []);
+  }, [order]);
 
   return (
     <div className="flex flex-col overflow-hidden">
@@ -106,10 +106,10 @@ export const BuildingList = () => {
                 <div className="flex-shrink-0 relative">
                   <img
                     className="w-[160px] h-[160px] rounded-[8px] object-cover" 
-                    src={building.imagePath} 
+                    src={building.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} 
                     width={160} 
-                  height={160} 
-                  alt=""/>
+                    height={160} 
+                    alt=""/>
                   <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
               <div className="flex-1 flex flex-col h-[160px] gap-[8px] justify-between">

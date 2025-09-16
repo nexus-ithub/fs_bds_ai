@@ -1,13 +1,31 @@
 
 import { bdsDb } from "../utils/bds-database";
-import { BdsSale } from "@repo/common";
+import { type BdsSale } from "@repo/common";
 
 
 const IMAGE_HOST = 'http://admin.buildingshop.co.kr/';
 
 export class BdsModel {
 
-  static async getList(): Promise<BdsSale[]> {
+  static async getList(filter: string): Promise<BdsSale[]> {
+
+
+    let char = `'1%'`;
+    if (filter === 'hotplace') {
+      char = `'_1%'`
+    }else if (filter === 'subway') {
+      char = `'__1%'`
+    }else if (filter === 'income') {
+      char = `'___1%'`
+    }else if (filter === 'office') {
+      char = `'____1%'`
+    }else if (filter === 'newbuild') {
+      char = `'_____1%'`
+    }else if (filter === 'development') {
+      char = `'______1%'`
+    }else if (filter === 'minibuild') {
+      char = `'_______1%'`
+    }
     try {
       const bdsList = await bdsDb.query<BdsSale>(
         `WITH LatestSales AS (
@@ -45,7 +63,7 @@ export class BdsModel {
               AND bd_img.deleted_date IS NULL
           LEFT JOIN bd_sale_valuation AS bd_val
               ON bd_sale.id = bd_val.bd_sale_info_id  -- bd_sale_info_id로 조인하여 value 값을 합산
-          WHERE bd_char LIKE '1%'
+          WHERE bd_char LIKE ${char}
                   and bd_sale.deleted_date is Null
                   and bd_sale.sale_type = 'P'
           GROUP BY bd.id, bd.bd_name, bd.bd_addr, bd.bd_plat_area, bd.bd_total_area, bd_sale.sale_amount,
