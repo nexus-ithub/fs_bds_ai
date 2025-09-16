@@ -9,3 +9,4 @@ export * from './tab';
 export * from './divider';
 export * from './spinner';
 export * from './types/youtube';
+export * from './zoomcontroller';
