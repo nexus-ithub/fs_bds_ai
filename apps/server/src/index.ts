@@ -10,7 +10,8 @@ import {verifyToken} from "./middleware/auth.middleware";
 import userRoutes from './routes/user.routes';
 import landRoutes from './routes/land.routes';
 import youtubeRoutes from './routes/youtube.routes';
-
+import bdsRoutes from './routes/bds.routes';
+import { bdsDb } from './utils/bds-database';
 dotenv.config();
 
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/land', landRoutes);
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/bds', bdsRoutes);
 app.use('/api/*', verifyToken);
 
 app.get('/', (req, res) => {
@@ -70,6 +72,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 const startServer = async () => {
   try {
     await db.connect();
+    await bdsDb.connect();
     // app.listen(port, () => {
     //   console.log(`Server is running on port ${port}`);
     // });

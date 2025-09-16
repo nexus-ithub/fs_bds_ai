@@ -28,7 +28,9 @@
     "npm": "^11.6.0",
     "soap": "^1.1.11",
     "socket.io": "^4.8.1",
-    "ts-node-dev": "^2.0.0"
+    "ssh2": "^1.17.0",
+    "ts-node-dev": "^2.0.0",
+    "tunnel-ssh": "^5.2.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
