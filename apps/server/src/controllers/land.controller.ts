@@ -37,36 +37,36 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
       
       console.log('estimatedValues', estimatedValues)
       const summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
-      
-      let finalRatio = summary.avg_ratio_to_official
-      if(finalRatio){
-        let adjustFactor = 1
-        if(finalRatio <= 1.8){
-          adjustFactor = 1.5
-        }else if(finalRatio <= 2.0){
-          adjustFactor = 1.3
-        }else if(finalRatio <= 2.3){
-          adjustFactor = 1.25
-        }else if(finalRatio <= 2.5){
-          adjustFactor = 1.1
-        }else if(finalRatio <= 3.0){
-          adjustFactor = 1	
-        }else if(finalRatio <= 3.5){
-          adjustFactor = 0.9				
-        }else if(finalRatio <= 4.0){
-          adjustFactor = 0.8				
-        }else{
-          adjustFactor = 0.7
-        }
-        const adjusted = summary.avg_ratio_to_official * adjustFactor
-        per = Math.floor(adjusted * 10) / 10;
-        estimatedPrice = Math.floor(land.price * per * land.area)
-        console.log('finalRatio', finalRatio)
-        console.log('per', per)
-        console.log('estimatedPrice', estimatedPrice)
-        break;
+      if(summary){
+        let finalRatio = summary.avg_ratio_to_official
+        if(finalRatio){
+          let adjustFactor = 1
+          if(finalRatio <= 1.8){
+            adjustFactor = 1.5
+          }else if(finalRatio <= 2.0){
+            adjustFactor = 1.3
+          }else if(finalRatio <= 2.3){
+            adjustFactor = 1.25
+          }else if(finalRatio <= 2.5){
+            adjustFactor = 1.1
+          }else if(finalRatio <= 3.0){
+            adjustFactor = 1	
+          }else if(finalRatio <= 3.5){
+            adjustFactor = 0.9				
+          }else if(finalRatio <= 4.0){
+            adjustFactor = 0.8				
+          }else{
+            adjustFactor = 0.7
+          }
+          const adjusted = summary.avg_ratio_to_official * adjustFactor
+          per = Math.floor(adjusted * 10) / 10;
+          estimatedPrice = Math.floor(land.price * per * land.area)
+          console.log('finalRatio', finalRatio)
+          console.log('per', per)
+          console.log('estimatedPrice', estimatedPrice)
+          break;
+        }        
       }
-
     }
     // const estimatedPrice = await LandModel.calcuateEstimatedPrice(land.id, ESTIMATE_REFERENCE_DISTANCE, ESTIMATE_REFERENCE_YEAR);
 
