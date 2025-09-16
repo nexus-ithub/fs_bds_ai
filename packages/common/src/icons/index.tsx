@@ -186,6 +186,22 @@ export const MyLocationIcon = ({color = "var(--gray-060)"} : {color? : string}) 
   )
 }
 
+export const PlusIcon = ({color = "var(--gray-060)"} : {color? : string}) => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M7 0.333008C7.36819 0.333008 7.66699 0.63181 7.66699 1V6.33301H13L13.0684 6.33691C13.4044 6.37115 13.667 6.65489 13.667 7C13.667 7.34511 13.4044 7.62885 13.0684 7.66309L13 7.66699H7.66699V13C7.66699 13.3682 7.36819 13.667 7 13.667C6.63181 13.667 6.33301 13.3682 6.33301 13V7.66699H1C0.63181 7.66699 0.333008 7.36819 0.333008 7C0.333008 6.63181 0.63181 6.33301 1 6.33301H6.33301V1C6.33301 0.63181 6.63181 0.333008 7 0.333008Z" fill={color}/>
+    </svg>
+  )
+}
+
+export const MinusIcon = ({color = "var(--gray-060)"} : {color? : string}) => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M13.9999 7.33301L14.0683 7.33626C14.4044 7.37048 14.6666 7.65456 14.6666 7.99967C14.6666 8.34479 14.4044 8.62886 14.0683 8.66309L13.9999 8.66634H1.99992C1.63173 8.66634 1.33325 8.36786 1.33325 7.99967C1.33325 7.63148 1.63173 7.33301 1.99992 7.33301H13.9999Z" fill={color}/>
+    </svg>
+  )
+}
+
 export const PlayIcon = ({className=""}: {className?: string}) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="60" height="66" viewBox="0 0 60 66" fill="none" className={className}>

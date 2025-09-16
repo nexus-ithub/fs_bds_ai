@@ -1,14 +1,14 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, Roadview, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
-import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, StreetViewIcon, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList, YoutubeLogo } from "@repo/common";
-import type { YoutubeVideo, PlayerMode } from "@repo/common";
+import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, StreetViewIcon, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, PlusIcon, MinusIcon } from "@repo/common";
 import { useEffect, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { loadMapState, saveMapState } from "../utils";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
+import { ZoomController } from "@repo/common";
 
 function MapWalkerIcon({ angle }: { angle: number }) {
   const threshold = 22.5; // 이미지가 변화되어야 되는(각도가 변해야되는) 임계 값
@@ -42,6 +42,8 @@ export default function Main() {
   // const mapRef = useRef<any>(null);
   
   const [roadViewCenter, setRoadViewCenter] = useState<{ lat: number, lng: number, pan: number } | null>(null);
+  const [level, setLevel] = useState<number>(defaultMapState.level);
+  console.log(">>>>>>>defaultMapState.level", defaultMapState.level);
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview') => {
     setMapType(type);
@@ -61,7 +63,7 @@ export default function Main() {
   const getLandInfo = (lat: number, lng: number) => {
     axiosInstance.get(`/api/land/info?lat=${lat}&lng=${lng}`)
       .then((response) => {
-        // console.log(response.data);
+        // console.log(response.data);.
         const landInfo = response.data as LandInfoResp;
         // console.log(landInfo);
         setLandInfo(landInfo);
@@ -133,7 +135,8 @@ export default function Main() {
             }
           }}
           center={{ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng }}
-          level={defaultMapState.level}
+          // level={defaultMapState.level}
+          level={level}
           onCenterChanged={(map) => {
             // console.log(map.getCenter().getLat(), map.getCenter().getLng());
             saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
@@ -144,6 +147,7 @@ export default function Main() {
           onZoomChanged={(map) => {
             // console.log(map.getLevel());
             saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
+            setLevel(map.getLevel());
           }}
           className="w-full h-full"
         >
@@ -235,11 +239,9 @@ export default function Main() {
               <p>내위치</p>
             </button>
           </div>      
-          {/* <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              
-            </button>
-          </div>                               */}
+          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+            <ZoomController level={level} setLevel={setLevel}/>
+          </div>                              
         </div>
         {roadViewCenter && (
           <div className="fixed top-0 left-[400px] w-[calc(100%-400px)] h-full z-40">

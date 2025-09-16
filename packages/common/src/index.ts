@@ -10,3 +10,4 @@ export * from './divider';
 export * from './spinner';
 export * from './types/youtube';
 export * from './types/bds';
+export * from './zoomcontroller';
