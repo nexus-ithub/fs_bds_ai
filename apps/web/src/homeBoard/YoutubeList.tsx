@@ -36,14 +36,21 @@ function formatViews(num: number) {
   }
 }
 
-export const YoutubeList = () => {
+export const YoutubeList = ({
+  selectedVideo,
+  setSelectedVideo,
+  openVideoMiniPlayer,
+  setOpenVideoMiniPlayer
+}: {
+  selectedVideo: YoutubeVideo | null;
+  setSelectedVideo: (video: YoutubeVideo) => void;
+  openVideoMiniPlayer: boolean;
+  setOpenVideoMiniPlayer: (open: boolean) => void;
+}) => {
   const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
   const [order, setOrder] = useState<string>(ORDER[0]);
   const [mainVideo, setMainVideo] = useState<YoutubeVideo | null>(null);
   const [videos, setVideos] = useState<YoutubeVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
-
-  const [openVideoDialog, setOpenVideoDialog] = useState<boolean>(false);
 
   useEffect(() => {
     const getVideoList = async () => {
@@ -73,10 +80,6 @@ export const YoutubeList = () => {
     getBrandingVideo();
   }, [])
 
-  useEffect(() => {
-    console.log("selectedVideo : ", selectedVideo);
-  }, [selectedVideo])
-
   return (
     <div className="flex flex-col overflow-auto">
       <div className="flex flex-col gap-[4px] pt-[20px] px-[20px]">
@@ -99,7 +102,7 @@ export const YoutubeList = () => {
                 className="absolute inset-0 flex items-center justify-center cursor-pointer"
                 onClick={() => {
                   setSelectedVideo(mainVideo);
-                  setOpenVideoDialog(true);
+                  setOpenVideoMiniPlayer(true);
                 }}>
                 <PlayIcon />
               </div>
@@ -162,7 +165,7 @@ export const YoutubeList = () => {
                   className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
                   onClick={() => {
                     setSelectedVideo(video);
-                    setOpenVideoDialog(true);
+                    setOpenVideoMiniPlayer(true);
                   }}
                 >
                   <PlayIcon className="w-[24px] h-[24px]"/>
@@ -177,27 +180,6 @@ export const YoutubeList = () => {
           </React.Fragment>
         ))}
       </div>
-      <Dialog 
-        open={openVideoDialog} 
-        onClose={() => setOpenVideoDialog(false)}
-      >
-        <div className="flex flex-col items-center justify-between p-[20px] gap-[16px] min-w-[520px]">
-          <p className="font-h2">건축물 선택</p>
-          <div className="font-s2 flex flex-col w-full max-h-[280px] overflow-auto divide-y divide-line-02 border border-line-03">
-            <iframe
-              width="560"
-              height="315"
-              src={`https://www.youtube.com/embed/${selectedVideo?.videoId}`}
-              title="YouTube video player"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
-        </div>
-        {/* <DialogActions>
-          <Button onClick={() => setOpenVideoDialog(false)}>닫기</Button>
-        </DialogActions> */}
-      </Dialog>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TabButton, YoutubeLogo } from "@repo/common";
+import { TabButton, YoutubeLogo, type YoutubeVideo } from "@repo/common";
 import { BuildingList } from "./BuildingList";
 import { YoutubeList } from "./YoutubeList";
 
@@ -8,7 +8,17 @@ const MAIN_TABS = [
   '빌딩의 신'
 ]
 
-export const HomeBoard = () => {
+export const HomeBoard = ({
+  selectedVideo,
+  setSelectedVideo,
+  openVideoMiniPlayer,
+  setOpenVideoMiniPlayer
+}: {
+  selectedVideo: YoutubeVideo | null;
+  setSelectedVideo: (video: YoutubeVideo) => void;
+  openVideoMiniPlayer: boolean;
+  setOpenVideoMiniPlayer: (open: boolean) => void;
+}) => {
   const [selectedMainTab, setSelectedMainTab] = useState(0);
   
   return (
@@ -35,7 +45,12 @@ export const HomeBoard = () => {
       }
       {
         selectedMainTab === 1 && (
-          <YoutubeList/>
+          <YoutubeList
+            selectedVideo={selectedVideo}
+            setSelectedVideo={setSelectedVideo}
+            openVideoMiniPlayer={openVideoMiniPlayer}
+            setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
+          />
         )
       }
     </div>

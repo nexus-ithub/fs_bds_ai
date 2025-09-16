@@ -6,3 +6,5 @@ export interface YoutubeVideo {
   viewCount: number;
   duration?: string;
 }
+
+export type PlayerMode = null | 'large' | 'mini';

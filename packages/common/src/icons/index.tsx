@@ -38,9 +38,9 @@ export const CheckIcon = () => {
 }
 
 
-export const YoutubeLogo = () => {
+export const YoutubeLogo = ({width=64, height=14}: {width?: number, height?: number}) => {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="14" viewBox="0 0 64 14" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 64 14" fill="none">
       <g clipPath="url(#clip0_951_15568)">
         <path d="M20.1706 2.18626C19.9391 1.32526 19.2593 0.648635 18.3944 0.418155C16.8283 1.25169e-07 10.5452 0 10.5452 0C10.5452 0 4.26226 1.25169e-07 2.69607 0.418155C1.83111 0.648635 1.15137 1.32526 0.919834 2.18626C0.499756 3.74529 0.499756 6.99998 0.499756 6.99998C0.499756 6.99998 0.499756 10.2547 0.919834 11.8137C1.15137 12.6747 1.83111 13.3514 2.69607 13.5818C4.26226 14 10.5452 14 10.5452 14C10.5452 14 16.8283 14 18.3944 13.5818C19.2593 13.3514 19.9391 12.6747 20.1706 11.8137C20.5907 10.2547 20.5908 6.99998 20.5908 6.99998C20.5908 6.99998 20.5891 3.74529 20.1706 2.18626Z" fill="#FF0000"/>
         <path d="M8.53442 9.99904L13.754 6.99954L8.53442 4V9.99904Z" fill="white"/>
@@ -54,7 +54,7 @@ export const YoutubeLogo = () => {
       </g>
       <defs>
         <clipPath id="clip0_951_15568">
-          <rect width="63" height="14" fill="white" transform="translate(0.5)"/>
+          <rect width={width} height={height} fill="white" transform="translate(0.5)"/>
         </clipPath>
       </defs>
     </svg>

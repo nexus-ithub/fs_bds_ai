@@ -1,12 +1,14 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon } from "react-kakao-maps-sdk";
-import type { DistrictInfo, LandInfo, LandInfoResp, PlaceList } from "@repo/common";
-import { useState } from "react";
+import { YoutubeLogo, YoutubeVideoLogo, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList } from "@repo/common";
+import { useEffect, useState, useRef } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { loadMapState, saveMapState } from "../utils";
+import type { YoutubeVideo, PlayerMode } from "@repo/common";
+import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -14,6 +16,11 @@ export default function Main() {
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
+
+  const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
+  const [openVideoMiniPlayer, setOpenVideoMiniPlayer] = useState<boolean>(false);
+  const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
+  const iframeRef = useRef<HTMLDivElement>(null);
 
   const getLandInfo = (lat: number, lng: number) => {
     axiosInstance.get(`/api/land/info?lat=${lat}&lng=${lng}`)
@@ -55,11 +62,25 @@ export default function Main() {
       });
   }
 
+  useEffect(() => {
+    console.log(">>>>>", playerMode);
+  }, [playerMode])
+
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full">
-        {landInfo ? <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : <HomeBoard />}
+        {landInfo ? 
+          <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : 
+          <HomeBoard 
+            selectedVideo={selectedVideo}
+            setSelectedVideo={(video) => {
+              setSelectedVideo(video);
+              setPlayerMode("large");
+            }}
+            openVideoMiniPlayer={openVideoMiniPlayer}
+            setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
+          />}
       </div>
       <div className="flex-1 h-full">
         <Map
@@ -96,6 +117,44 @@ export default function Main() {
           )}
         </Map>
       </div>
+      {openVideoMiniPlayer && (
+        <div
+          className={`fixed z-50 bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02
+            ${playerMode === "large"
+              ? "left-[30%] top-[17%] w-[80%] h-[605px] max-w-[960px] aspect-video scale-100"
+              : "bottom-2 right-2 w-[480px] h-[320px]"}`
+          }
+        >
+          <div className={`flex items-center justify-between py-[7px] border-b border-line-02 ${playerMode === "mini" ? "h-[44px]" : "h-[64px]"}`}>
+            <div className="flex items-center gap-[13px] px-[12px] py-[14px]">
+              <p className={playerMode === "mini" ? "font-h4" : "font-h3"}>빌딩의 신</p>
+              <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20}/>
+            </div>
+            <div className={`flex items-center gap-[13px] ${playerMode === "mini" ? "px-[12px]" : "px-[20px]"}`}>
+              {playerMode === "mini" ? (
+                <button onClick={() => setPlayerMode("large")}>
+                  <PictureInPicture2 size={20}/>
+                </button>
+              ) : (
+                <button onClick={() => setPlayerMode("mini")}>
+                  <PictureInPicture size={20}/>
+                </button>
+              )}
+              <button onClick={() => setOpenVideoMiniPlayer(false)}>
+                <X size={20}/>
+              </button>
+            </div>
+          </div>
+          <div className={playerMode === "large" ? "w-[960px] h-[540px]" : "w-[488px] h-[275px]"}>
+            <iframe
+              src={`https://www.youtube.com/embed/${selectedVideo?.videoId}?autoplay=1`}
+              allow="autoplay; clipboard-write; encrypted-media; gyroscope;"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
