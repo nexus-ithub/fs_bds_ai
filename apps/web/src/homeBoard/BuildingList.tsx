@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { getAreaStrWithPyeong, krwUnit, Spinner, SubTabButton, VDivider, type BdsSale } from "@repo/common";
+import { CloseIcon, getAreaStrWithPyeong, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
 import React from "react";
+import { CircularProgress, Dialog, DialogContent } from "@mui/material";
+import { BuildingListDialog } from "./BuildingListDialog";
 
 
 const FILTER_TABS = [
@@ -16,6 +18,28 @@ const ORDER = [
   'subway'
 ]
 
+const BUILDING_LIST_FILTER_TABS = [
+  '실거래 슈퍼빌딩',
+  '핫플레이스',
+  '역세권',
+  '수익용',
+  '사옥용',
+  '신축빌딩',
+  '개발부지/토지',
+  '꼬마빌딩'
+]
+
+const BUILDING_LIST_ORDER = [
+  'recommend',
+  'hotplace',
+  'subway',
+  'income',
+  'office',
+  'newbuild',
+  'development',
+  'minibuild'
+]
+
 export const BuildingList = () => {
   const [buildings, setBuildings] = useState<BdsSale[]>([]);
   const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
@@ -23,6 +47,8 @@ export const BuildingList = () => {
   const axiosWithAuth = useAxiosWithAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
+
+  const [showBuildingListDialog, setShowBuildingListDialog] = useState<boolean>(false);
 
   const getBuildings = async () => {
     try {
@@ -54,7 +80,7 @@ export const BuildingList = () => {
     <div className="flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-[20px] pt-[20px]">
         <p className="font-h3">빌딩샵 <span className="text-primary">추천 매물</span></p>
-        <button className="font-h6 text-primary">전체매물보기</button>
+        <button onClick={() => setShowBuildingListDialog(true)} className="font-h6 text-primary">전체매물보기</button>
       </div>
       <p className="px-[20px] mt-[7px] font-s2 text-text-03">빌딩샵에서 추천하는 실거래 매물을 소개해 드려요.</p>
       <div className="mt-[12px] flex w-full px-[20px]">
@@ -82,7 +108,7 @@ export const BuildingList = () => {
       <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full px-[20px] divide-y divide-line-02">
         {loading ? (  
           <div className="flex items-center justify-center py-[60px]">
-            <Spinner/>
+            <CircularProgress size={24}/>
           </div>
         ) : isError ? (
           <div className="flex items-center justify-center py-[30px]">
@@ -129,7 +155,7 @@ export const BuildingList = () => {
           </div>
         )))}
       </div>
-
+      <BuildingListDialog open={showBuildingListDialog} onClose={() => setShowBuildingListDialog(false)}/>
     </div>
   )
 }

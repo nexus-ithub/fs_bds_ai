@@ -25,7 +25,7 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
     }
 
     const buildings = await BuildingModel.findBuildingListByJibun(land.legDongCode, land.jibun);
-  
+    // const buildings = [];
     let per = 3.0;
     let estimatedPrice = land.price * per * land.area;
     for(let i = 0; i < 4; i++) {
