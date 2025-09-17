@@ -118,7 +118,7 @@ export const BuildingList = () => {
                   <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{shortAddress(building.addr)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className="font-s1-p text-primary">{krwUnit(building.saleAmount * 10000, true)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">가치평가 점수</p><p className="font-s1-p">{Number(building.buildValue).toFixed(0) + '점'}</p></div>
-                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">수익율</p><p className="font-s3">{'-'}</p></div>
+                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">수익율</p><p className="font-s3">{(building.sellProfit && building.sellProfit > 0) ? building.sellProfit.toFixed(1) + '%' : '-'}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">대지면적</p><p className="font-s3">{getAreaStrWithPyeong(building.platArea)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[12px] justify-between"><p className="text-text-03">연면적</p><p className="font-s3">{getAreaStrWithPyeong(building.totalArea)}</p></div>
                 </div>
