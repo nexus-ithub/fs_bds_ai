@@ -1,6 +1,6 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon, MapTypeId, Roadview, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
+import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
 import { type DistrictInfo, type LandInfoResp, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines } from "@repo/common";
 import { useEffect, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
@@ -8,28 +8,8 @@ import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { loadMapState, saveMapState } from "../utils";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
-import { AreaOverlay, DistanceOverlay } from "../map/MapLayers";
+import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
-
-function MapWalkerIcon({ angle }: { angle: number }) {
-  const threshold = 22.5; // 이미지가 변화되어야 되는(각도가 변해야되는) 임계 값
-  let className = 'm0'; // 기본값
-  
-  for (let i = 0; i < 16; i++) { // 각도에 따라 변화되는 앵글 이미지의 수가 16개
-    if (angle > (threshold * i) && angle < (threshold * (i + 1))) {
-      // 각도(pan)에 따라 아이콘의 class명을 변경
-      className = 'm' + i;
-      break;
-    }
-  }
-  
-  return (
-    <div className={`MapWalker ${className}`}>
-      <div className="angleBack"></div>
-      <div className="figure"></div>
-    </div>
-  );
-}
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -67,14 +47,6 @@ export default function Main() {
     } else {
       setMapTypeId('ROADMAP');
     }
-    // setShowAreaOverlay(false);
-    // setIsDrawingArea(false);
-    // setIsDrawingDistance(false);
-    // setAreaPaths([]);
-    // setDistancePaths([]);
-    // setClickLine(null);
-    // setMoveLine(null);
-    // setDistances([]);
     setMousePosition({ lat: 0, lng: 0 });
   }
 
@@ -304,67 +276,11 @@ export default function Main() {
           setLevel={setLevel}
         />
         {roadViewCenter && (
-          <div className="fixed top-0 left-[400px] w-[calc(100%-400px)] h-full z-40">
-            <Roadview
-              onViewpointChange={(viewpoint) => {
-                console.log(viewpoint);
-                setRoadViewCenter({
-                  ...roadViewCenter,
-                  pan: viewpoint.getViewpoint().pan,
-                })
-              }}
-              onPositionChanged={(position) => {
-                console.log(position);
-                setRoadViewCenter({
-                  ...roadViewCenter,
-                  lat: position.getPosition().getLat(),
-                  lng: position.getPosition().getLng(),
-                })
-              }}
-              pan={roadViewCenter.pan}
-              position={{ lat: roadViewCenter.lat, lng: roadViewCenter.lng, radius: 10 }}
-              className="w-full h-full"
-            />
-            <Map
-              onClick={(_, mouseEvent) => {
-                setRoadViewCenter({
-                  ...roadViewCenter,
-                  lat: mouseEvent.latLng.getLat(),
-                  lng: mouseEvent.latLng.getLng(),
-                })
-              }}
-              center={{ lat: roadViewCenter.lat, lng: roadViewCenter.lng }}
-              level={4}
-              className="absolute bottom-[2px] left-[2px] w-[400px] h-[340px] z-40"
-            >
-              <MapTypeId
-                type="ROADVIEW"
-              />
-              <CustomOverlayMap
-                position={roadViewCenter || { lat: 0, lng: 0 }}
-              >
-                <MapWalkerIcon angle={roadViewCenter?.pan} />
-              </CustomOverlayMap>
-              {landInfo && (
-                <Polygon
-                  fillColor="var(--color-primary)" // Red fill color
-                  fillOpacity={0.3} // 70% opacity
-                  strokeColor="var(--color-primary)" // Black border
-                  strokeOpacity={1}
-                  strokeWeight={1.5}
-                  path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
-              )}              
-            </Map>
-
-            <button 
-              onClick={() => {
-                setRoadViewCenter(null);
-              }}
-              className="absolute top-[8px] right-[8px] bg-white/80 p-[8px] rounded-[4px] z-40"
-            >
-              <X size={30} />
-            </button>
-          </div>
+          <RoadViewOverlay
+            roadViewCenter={roadViewCenter}
+            setRoadViewCenter={setRoadViewCenter}
+            landInfo={landInfo}
+          />
         )}
       </div>
       {openVideoMiniPlayer && (

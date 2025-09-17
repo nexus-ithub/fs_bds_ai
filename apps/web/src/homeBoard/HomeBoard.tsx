@@ -29,6 +29,7 @@ export const HomeBoard = ({
             <TabButton
               key={index}
               className="flex-1 py-[14px] gap-[10px]"
+              fontClassName={index === selectedMainTab ? 'font-s1' : 'font-s1-p'}
               selected={index === selectedMainTab}
               onClick={() => {setSelectedMainTab(index)}}
             >

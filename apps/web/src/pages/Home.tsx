@@ -6,6 +6,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Support } from "./Support";
 
 export const Home = () => {
 
@@ -50,6 +51,7 @@ export const Home = () => {
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />
+          <Route path={'/support'} element={<Support />} />
         </Routes>                
       </div>
     </div>
