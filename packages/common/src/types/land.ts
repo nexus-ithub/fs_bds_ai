@@ -9,6 +9,18 @@ export interface Coords {
   y: number;
 }
 
+export interface AreaPolygons {
+  id: string;
+  paths: LatLng[];
+  polygonArea?: any;
+}
+
+export interface DistanceLines {
+  id: string;
+  paths: LatLng[];
+  distances: number[];
+}
+
 export interface LandInfo {
   id: string; 
   legDongCode: string;
