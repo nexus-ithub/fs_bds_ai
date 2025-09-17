@@ -1,14 +1,15 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, Roadview, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
-import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, StreetViewIcon, type DistrictInfo, type LandInfo, type LandInfoResp, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, PlusIcon, MinusIcon } from "@repo/common";
+import { type DistrictInfo, type LandInfoResp, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines } from "@repo/common";
 import { useEffect, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { loadMapState, saveMapState } from "../utils";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
-import { ZoomController } from "@repo/common";
+import { AreaOverlay, DistanceOverlay } from "../map/MapLayers";
+import { MapToolbar } from "../map/MapTool";
 
 function MapWalkerIcon({ angle }: { angle: number }) {
   const threshold = 22.5; // 이미지가 변화되어야 되는(각도가 변해야되는) 임계 값
@@ -43,20 +44,19 @@ export default function Main() {
   
   const [roadViewCenter, setRoadViewCenter] = useState<{ lat: number, lng: number, pan: number } | null>(null);
   const [level, setLevel] = useState<number>(defaultMapState.level);
-  const [mousePosition, setMousePosition] = useState<{ lat: number, lng: number }>({ lat: 0, lng: 0 });
+  const [mousePosition, setMousePosition] = useState<LatLng>({ lat: 0, lng: 0 });
 
   const [isDrawingArea, setIsDrawingArea] = useState<boolean>(false);
-  const [showAreaOverlay, setShowAreaOverlay] = useState<boolean>(false);
-  const [polygonArea, setPolygonArea] = useState<any>();
-  const [areaPaths, setAreaPaths] = useState<any[]>([]);
+  const [areaPaths, setAreaPaths] = useState<LatLng[]>([]);
+  const [areas, setAreas] = useState<AreaPolygons[]>([]);
 
   const [isDrawingDistance, setIsDrawingDistance] = useState<boolean>(false);
+  const [showDistanceOverlay, setShowDistanceOverlay] = useState<boolean>(false);
   const [distancePaths, setDistancePaths] = useState<any[]>([]);
   const [clickLine, setClickLine] = useState<any>();
   const [moveLine, setMoveLine] = useState<any>();
   const [distances, setDistances] = useState<any[]>([]);
-
-
+  const [distanceLines, setDistanceLines] = useState<DistanceLines[]>([]);
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
@@ -67,14 +67,15 @@ export default function Main() {
     } else {
       setMapTypeId('ROADMAP');
     }
-    setShowAreaOverlay(false);
-    setIsDrawingArea(false);
-    setIsDrawingDistance(false);
-    setAreaPaths([]);
-    setDistancePaths([]);
-    setClickLine(null);
-    setMoveLine(null);
-    setDistances([]);
+    // setShowAreaOverlay(false);
+    // setIsDrawingArea(false);
+    // setIsDrawingDistance(false);
+    // setAreaPaths([]);
+    // setDistancePaths([]);
+    // setClickLine(null);
+    // setMoveLine(null);
+    // setDistances([]);
+    setMousePosition({ lat: 0, lng: 0 });
   }
 
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
@@ -121,6 +122,15 @@ export default function Main() {
       });
   }
 
+  useEffect(() => {
+    if (clickLine && moveLine) {
+      const totalDistance = Math.round(
+        clickLine.getLength() + moveLine.getLength()
+      )
+      setDistances((prev) => [...prev, totalDistance])
+    }
+  }, [distancePaths, clickLine, moveLine])
+
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
@@ -158,10 +168,18 @@ export default function Main() {
                   lng: mouseEvent.latLng.getLng(),
                 },
               ])
-              setShowAreaOverlay(false);
               setIsDrawingArea(true);
             } else if (mapType === 'distance') {
+              if (!isDrawingDistance) { setDistances([]); setDistancePaths([]); }
+              setDistancePaths((prev) => [
+                ...prev,
+                {
+                  lat: mouseEvent.latLng.getLat(),
+                  lng: mouseEvent.latLng.getLng(),
+                },
+              ])
               setIsDrawingDistance(true);
+              setShowDistanceOverlay(true);
             } else {
               getLandInfo(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
               getBusinessDistrict(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
@@ -184,10 +202,28 @@ export default function Main() {
           }}
           onRightClick={() => {
             if(mapType === 'area') {
-              setShowAreaOverlay(true);
               setIsDrawingArea(false);
+              setMapType('normal');
+              setAreas((prev: AreaPolygons[]) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  paths: areaPaths,
+                },
+              ]);
             } else if (mapType === 'distance') {
+              setDistancePaths([]);
+              setDistances([]);
               setIsDrawingDistance(false);
+              setMapType('normal');
+              setDistanceLines(prev => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  paths: distancePaths,
+                  distances,
+                },
+              ]);
             }
           }}
           onMouseMove={(_, mouseEvent) => {
@@ -242,96 +278,31 @@ export default function Main() {
               strokeWeight={1.5}
               path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
           )}
-          {isDrawingArea && (
-            <Polygon
-              path={isDrawingArea ? [...areaPaths, mousePosition] : areaPaths}
-              strokeWeight={2}
-              strokeColor={"var(--color-primary)"}
-              strokeOpacity={1}
-              strokeStyle={"solid"}
-              fillColor={"var(--color-primary)"}
-              fillOpacity={0.2}
-              onCreate={setPolygonArea}
-            />
-          )}
-          {!isDrawingArea && areaPaths.length > 2 && (
-            <Polygon
-              path={areaPaths}
-              strokeWeight={2}
-              strokeColor={"var(--color-primary)"}
-              strokeOpacity={1}
-              strokeStyle={"solid"}
-              fillColor={"var(--color-primary)"}
-              fillOpacity={0.2}
-            />
-          )}
-          {showAreaOverlay && areaPaths.length > 2 && polygonArea && (
-            <CustomOverlayMap position={areaPaths[areaPaths.length - 1]}>
-              <div className="relative px-[8px] py-[4px] bg-white rounded-[4px] shadow-md border border-line-03 font-s2">
-                {/* <button
-                  onClick={() => {setShowAreaOverlay(false);}}
-                  className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-300 p-1"
-                >
-                  <X size={12} className="text-gray-500" />
-                </button> */}
-                총면적{" "}
-                <span className="font-s2-p text-primary pl-[2px]"> {Math.round(polygonArea.getArea())}</span> m
-                <sup>2</sup>
-              </div>
-            </CustomOverlayMap>
-          )}
+          <AreaOverlay
+            isDrawingArea={isDrawingArea}
+            areaPaths={areaPaths}
+            mousePosition={mousePosition}
+            areas={areas}
+            setAreas={setAreas}
+          />
+          <DistanceOverlay
+            isDrawingDistance={isDrawingDistance}
+            distancePaths={distancePaths}
+            mousePosition={mousePosition}
+            showDistanceOverlay={showDistanceOverlay}
+            distances={distances}
+            distanceLines={distanceLines}
+            setClickLine={setClickLine}
+            setMoveLine={setMoveLine}
+            setDistanceLines={setDistanceLines}
+          />
         </Map>
-        <div className="fixed top-[84px] right-[24px] z-40 font-c3 space-y-[14px]">
-          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-            <button
-              onClick={() => {changeMapType('normal'); }}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <MapIcon color={mapType === 'normal' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-              <p className={mapType === 'normal' ? 'text-primary font-c3-p' : ''}>일반</p>
-            </button>
-            <button
-              onClick={() => changeMapType('skyview')}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <SatelliteIcon color={mapType === 'skyview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-              <p className={mapType === 'skyview' ? 'text-primary font-c3-p' : ''}>위성</p>
-            </button>
-            <button
-              onClick={() => changeMapType('use_district')}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <CadastralIcon color={mapType === 'use_district' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-              <p className={mapType === 'use_district' ? 'text-primary font-c3-p' : ''}>지적도</p>
-            </button>      
-            <button
-              onClick={() => changeMapType('roadview')}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <StreetViewIcon color={mapType === 'roadview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-              <p className={mapType === 'roadview' ? 'text-primary font-c3-p' : ''}>거리뷰</p>
-            </button>                        
-          </div>
-          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-            <button 
-              onClick={() => changeMapType('area')}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <CalcAreaIcon color={mapType === 'area' ? 'var(--color-primary)' : 'var(--gray-060)'}/>
-              <p>면적</p>
-            </button>
-            <button 
-              onClick={() => changeMapType('distance')}
-              className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <CalcDistanceIcon />
-              <p>거리</p>
-            </button>
-          </div>    
-          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-            <button className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-              <MyLocationIcon />
-              <p>내위치</p>
-            </button>
-          </div>      
-          <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-            <ZoomController level={level} setLevel={setLevel}/>
-          </div>                              
-        </div>
+        <MapToolbar
+          mapType={mapType}
+          changeMapType={changeMapType}
+          level={level}
+          setLevel={setLevel}
+        />
         {roadViewCenter && (
           <div className="fixed top-0 left-[400px] w-[calc(100%-400px)] h-full z-40">
             <Roadview
