@@ -4,6 +4,7 @@ interface TabButtonProps {
   onClick: () => void;
   children: React.ReactNode;
   className?: string;
+  fontClassName?: string;
 }
 
 export const TabButton: React.FC<TabButtonProps> = ({ 
@@ -11,12 +12,13 @@ export const TabButton: React.FC<TabButtonProps> = ({
   onClick, 
   children, 
   className = '', 
+  fontClassName = 'font-s2',
 }) => {
-  
+  const classes = selected ? '' : 'text-text-04';
   return (
     <button
       onClick={onClick}
-      className={`flex relative font-s2 flex items-center justify-center ${className}`}
+      className={`flex relative font-s2 items-center justify-center ${fontClassName} ${className} ${classes}`}
     >
       {children}
       {selected ? (
@@ -33,12 +35,13 @@ export const SubTabButton: React.FC<TabButtonProps> = ({
   onClick,
   children,
   className = '',
+  fontClassName = 'font-s4',
 }) => {
   const classes = selected ? 'text-primary' : 'text-text-04';
   return(
     <button
       onClick={onClick}
-      className={`flex font-s4 ${className} ${classes}`}
+      className={`flex ${fontClassName} ${className} ${classes}`}
     >
       {children}
     </button>
