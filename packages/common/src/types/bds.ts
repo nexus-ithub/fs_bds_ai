@@ -19,3 +19,10 @@ export interface BdsSale {
     imagePath: string;
 }
 
+export const getShortAddress = (address: string) => {
+    const addressArray = address.split(' ');
+    if (addressArray.length < 2) {
+      return address;
+    }
+    return addressArray[0] + ' ' + addressArray[1];
+}

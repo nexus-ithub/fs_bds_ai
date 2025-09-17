@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { CloseIcon, getAreaStrWithPyeong, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
+import { CloseIcon, getAreaStrWithPyeong, getShortAddress, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
 import React from "react";
 import { CircularProgress, Dialog, DialogContent } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
+import { BuildingDetailDialog } from "./BuildingDetail";
 
 
 const FILTER_TABS = [
@@ -49,7 +50,7 @@ export const BuildingList = () => {
   const [isError, setIsError] = useState<boolean>(false);
 
   const [showBuildingListDialog, setShowBuildingListDialog] = useState<boolean>(false);
-
+  const [selectedBuilding, setSelectedBuilding] = useState<BdsSale | null>(null);
   const getBuildings = async () => {
     try {
       setLoading(true);
@@ -64,13 +65,6 @@ export const BuildingList = () => {
     }
   }
 
-  const shortAddress = (address: string) => {
-    const addressArray = address.split(' ');
-    if (addressArray.length < 2) {
-      return address;
-    }
-    return addressArray[0] + ' ' + addressArray[1];
-  }
 
   useEffect(() => {
     getBuildings();
@@ -105,7 +99,7 @@ export const BuildingList = () => {
           }
         </div>
       </div>      
-      <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full px-[20px] divide-y divide-line-02">
+      <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full divide-y divide-line-02">
         {loading ? (  
           <div className="flex items-center justify-center py-[60px]">
             <CircularProgress size={24}/>
@@ -127,7 +121,10 @@ export const BuildingList = () => {
           </div>
         ) : (
           buildings.map((building, index) => (
-            <div key={index} className="space-y-[12px] py-[20px]">
+            <button 
+              key={index} 
+              onClick={() => setSelectedBuilding(building)}
+              className="space-y-[12px] px-[20px] py-[20px] text-start hover:bg-primary-010">
               <div className="flex items-center gap-[12px]">
                 <div className="flex-shrink-0 relative">
                   <img
@@ -141,7 +138,7 @@ export const BuildingList = () => {
               <div className="flex-1 flex flex-col h-[160px] gap-[8px] justify-between">
                 <p className="font-h4">{building.name}</p>
                 <div className="flex-1 flex flex-col gap-[4px]">
-                  <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{shortAddress(building.addr)}</p></div>
+                  <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{getShortAddress(building.addr)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className="font-s1-p text-primary">{krwUnit(building.saleAmount * 10000, true)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">가치평가 점수</p><p className="font-s1-p">{Number(building.buildValue).toFixed(0) + '점'}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">수익율</p><p className="font-s3">{(building.sellProfit && building.sellProfit > 0) ? building.sellProfit.toFixed(1) + '%' : '-'}</p></div>
@@ -152,10 +149,21 @@ export const BuildingList = () => {
             </div>
             <p className="font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">{building.memo}</p>
             
-          </div>
+          </button>
         )))}
       </div>
-      <BuildingListDialog open={showBuildingListDialog} onClose={() => setShowBuildingListDialog(false)}/>
+      <BuildingListDialog 
+        open={showBuildingListDialog} 
+        onClose={() => setShowBuildingListDialog(false)} 
+        onBuildingClick={setSelectedBuilding}/>
+      {
+        selectedBuilding && (
+          <BuildingDetailDialog 
+            open={selectedBuilding !== null} 
+            onClose={() => setSelectedBuilding(null)} 
+            building={selectedBuilding}/>
+        )
+      }
     </div>
   )
 }

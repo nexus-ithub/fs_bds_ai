@@ -134,7 +134,7 @@ export default function Main() {
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
-      <div className="w-[400px] h-full">
+      <div className="w-[400px] h-full border-r border-line-03">
         {landInfo ? 
           <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : 
           <HomeBoard 
