@@ -1,4 +1,4 @@
-import type { AreaPolygons, DistanceLines, LatLng, LandInfoResp } from "@repo/common";
+import type { AreaPolygons, Coords, DistanceLines, LatLng, PolygonInfo } from "@repo/common";
 import { X } from "lucide-react";
 import React from "react";
 import { CustomOverlayMap, Map, MapTypeId, Polygon, Polyline, Roadview } from "react-kakao-maps-sdk"
@@ -27,11 +27,11 @@ function MapWalkerIcon({ angle }: { angle: number }) {
 export const RoadViewOverlay = ({
   roadViewCenter,
   setRoadViewCenter,
-  landInfo
+  polygon
 }: {
   roadViewCenter: { lat: number, lng: number, pan: number };
   setRoadViewCenter: React.Dispatch<React.SetStateAction<{ lat: number, lng: number, pan: number } | null>>;
-  landInfo: LandInfoResp | null;
+  polygon: PolygonInfo;
 }) => {
   return (
     <div className="fixed top-0 left-[400px] w-[calc(100%-400px)] h-full z-40">
@@ -75,14 +75,14 @@ export const RoadViewOverlay = ({
         >
           <MapWalkerIcon angle={roadViewCenter?.pan} />
         </CustomOverlayMap>
-        {landInfo && (
+        {polygon && (
           <Polygon
             fillColor="var(--color-primary)" // Red fill color
             fillOpacity={0.3} // 70% opacity
             strokeColor="var(--color-primary)" // Black border
             strokeOpacity={1}
             strokeWeight={1.5}
-            path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
+            path={convertXYtoLatLng(polygon.polygon || [])} />
         )}              
       </Map>
 

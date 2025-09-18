@@ -332,7 +332,7 @@ export default function Main() {
           <RoadViewOverlay
             roadViewCenter={roadViewCenter}
             setRoadViewCenter={setRoadViewCenter}
-            landInfo={landInfo}
+            polygon={polygon}
           />
         )}
       </div>
