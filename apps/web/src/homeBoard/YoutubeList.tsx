@@ -63,20 +63,21 @@ export const YoutubeList = ({
     }
   };
 
+  const getBrandingVideo = async () => {
+    try {
+      const res = await axios.get(`${API_HOST}/api/youtube/branding`);
+      console.log("Branding : res.data >>>>>>>>>>>>", res.data);
+      setMainVideo(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     getVideoList();  
   }, [order])
 
   useEffect(() => {
-    const getBrandingVideo = async () => {
-      try {
-        const res = await axios.get(`${API_HOST}/api/youtube/branding`);
-        console.log("Branding : res.data >>>>>>>>>>>>", res.data);
-        setMainVideo(res.data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
     getBrandingVideo();
   }, [])
 
@@ -191,7 +192,7 @@ export const YoutubeList = ({
               <p className="font-s3">잠시후 다시 시도해 주세요.</p>
             </div>
             <button 
-              onClick={() => getVideoList()}
+              onClick={() => {getVideoList(); getBrandingVideo();}}
               className="font-s3 text-primary border border-primary rounded-[4px] px-[12px] py-[8px]"
             >
               다시 시도
