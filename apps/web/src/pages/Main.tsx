@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfoResp, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -13,7 +13,10 @@ import { MapToolbar } from "../map/MapTool";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
-  const [landInfo, setLandInfo] = useState<LandInfoResp | null>(null);
+  const [polygon, setPolygon] = useState<PolygonInfo | null>(null);
+  const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
+  const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
+  const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
@@ -54,13 +57,58 @@ export default function Main() {
   const [openVideoMiniPlayer, setOpenVideoMiniPlayer] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
 
-  const getLandInfo = (lat: number, lng: number) => {
-    axiosInstance.get(`/api/land/info?lat=${lat}&lng=${lng}`)
+  const getPolygon = (lat: number, lng: number) => {
+    axiosInstance.get(`/api/land/polygon?lat=${lat}&lng=${lng}`)
       .then((response) => {
         // console.log(response.data);.
-        const landInfo = response.data as LandInfoResp;
+        const polygon = response.data as PolygonInfo;
+        // console.log(polygon);
+        setPolygon(polygon);
+
+        getLandInfo(polygon.id);
+        getBuildingList(polygon.legDongCode, polygon.jibun);
+        getEstimatedPrice(polygon.id);
+        getBusinessDistrict(lat, lng);
+        getPlace(lat, lng);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  const getLandInfo = (id: string) => {
+    axiosInstance.get(`/api/land/info?id=${id}`)
+      .then((response) => {
+        // console.log(response.data);.
+        const landInfo = response.data as LandInfo;
         // console.log(landInfo);
         setLandInfo(landInfo);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+  
+  const getBuildingList = (legDongCode: string, jibun: string) => {
+    axiosInstance.get(`/api/land/building-list?legDongCode=${legDongCode}&jibun=${jibun}`)
+      .then((response) => {
+        // console.log(response.data);.
+        const buildingList = response.data as BuildingInfo[];
+        // console.log(buildingList);
+        setBuildingList(buildingList);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+  
+  const getEstimatedPrice = (id: string) => {
+    axiosInstance.get(`/api/land/estimated-price?id=${id}`)
+      .then((response) => {
+        // console.log(response.data);
+        const estimatedPrice = response.data as EstimatedPrice;
+        // console.log(estimatedPrice);
+        setEstimatedPrice(estimatedPrice);
       })
       .catch((error) => {
         console.error(error);
@@ -108,7 +156,14 @@ export default function Main() {
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full border-r border-line-03">
         {landInfo ? 
-          <LandInfoCard landInfo={landInfo} businessDistrict={businessDistrict} place={place} onClose={() => setLandInfo(null)} /> : 
+          <LandInfoCard 
+            landInfo={landInfo} 
+            buildingList={buildingList}
+            businessDistrict={businessDistrict} 
+            place={place} 
+            estimatedPrice={estimatedPrice}
+            onClose={() => setLandInfo(null)} 
+          /> : 
           <HomeBoard 
             selectedVideo={selectedVideo}
             setSelectedVideo={(video) => {
@@ -153,9 +208,7 @@ export default function Main() {
               setIsDrawingDistance(true);
               setShowDistanceOverlay(true);
             } else {
-              getLandInfo(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-              getBusinessDistrict(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-              getPlace(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
+              getPolygon(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             }
           }}
           center={{ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng }}
@@ -241,14 +294,14 @@ export default function Main() {
             </>
  
           )}
-          {landInfo && (
+          {polygon && (
             <Polygon
               fillColor="var(--color-primary)" // Red fill color
               fillOpacity={0.3} // 70% opacity
               strokeColor="var(--color-primary)" // Black border
               strokeOpacity={1}
               strokeWeight={1.5}
-              path={convertXYtoLatLng(landInfo?.land?.polygon || [])} />
+              path={convertXYtoLatLng(polygon?.polygon || [])} />
           )}
           <AreaOverlay
             isDrawingArea={isDrawingArea}

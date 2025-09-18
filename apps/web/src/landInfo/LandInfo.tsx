@@ -1,4 +1,4 @@
-import type { DistrictInfo, LandInfoResp, PlaceList } from "@repo/common";
+import type { BuildingInfo, DistrictInfo, EstimatedPrice, LandInfo, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
 import { krwUnit } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
@@ -19,12 +19,16 @@ const TABS = [
 
 export const LandInfoCard = ({
   landInfo = null,
+  buildingList = null,
   businessDistrict = null,
+  estimatedPrice = null,
   place = null,
   onClose
 }: {
-  landInfo: LandInfoResp | null;
+  landInfo: LandInfo | null;
+  buildingList: BuildingInfo[] | null;
   businessDistrict: DistrictInfo[] | null;
+  estimatedPrice: EstimatedPrice | null;
   place: PlaceList | null;
   onClose?: () => void;
 }) => {
@@ -130,7 +134,7 @@ export const LandInfoCard = ({
         {/* <p>{landInfo.id}</p> */}
         <div className="space-y-[8px] ">
           <div className="flex items-center gap-[6px] justify-between">
-            <p className="font-s1-p">{getJibunAddress(landInfo.land)}</p>
+            <p className="font-s1-p">{getJibunAddress(landInfo)}</p>
             <button
               onClick={() => onClose?.()}
             >
@@ -138,55 +142,55 @@ export const LandInfoCard = ({
             </button>
           </div>
           {
-            landInfo.land.roadName && (
+            landInfo.roadName && (
               <div className="flex gap-[6px] items-center">
                 <p className="flex-shrink-0 font-c3-p px-[4px] py-[1px] text-text-03 bg-surface-third">도로명</p>
-                <p className="font-s3 flex items-center text-text-03">{getRoadAddress(landInfo.land)}</p>
+                <p className="font-s3 flex items-center text-text-03">{getRoadAddress(landInfo)}</p>
               </div>
             )
           }
         </div>
         <div className="mt-[14px] flex items-center gap-[6px]">
           {
-            landInfo.land.usageName && (
-              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.land.usageName}</p>
+            landInfo.usageName && (
+              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
             )
           }
           {
-            landInfo.buildings.length > 0 && (
-              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.buildings[0].mainUsageName}</p>
+            (buildingList && buildingList.length > 0) && (
+              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{buildingList[0].mainUsageName}</p>
             )
           }        
         </div>
         <div className="mt-[10px] flex items-center gap-[5px]">
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s4 text-text-03">토지면적</p>
-            <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.land.area)}</p>
+            <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.area)}</p>
           </div>
           <VDivider colorClassName="bg-line-03"/>
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s4 text-text-03">건축면적</p>
-            <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.buildings.length > 0 ? landInfo.buildings[0].archArea : null)}</p>
+            <p className="font-s4 text-text-02">{getAreaStrWithPyeong((buildingList && buildingList.length > 0) ? buildingList[0].archArea : null)}</p>
           </div>        
         </div>
 
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
-            <p className="font-h2-p text-primary">{krwUnit(landInfo.estimatedPrice, true)}</p>
-            <p className="font-c3 text-primary-030">공시지가 대비 {landInfo.per} 배</p>
+            <p className="font-h2-p text-primary">{estimatedPrice?.estimatedPrice ? krwUnit(estimatedPrice?.estimatedPrice, true) : '-'}</p>
+            <p className="font-c3 text-primary-030">{estimatedPrice?.per ? '공시지가 대비 ' + estimatedPrice?.per + ' 배' : '-'}</p>
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가</p>
-            <p className="font-h2-p">{krwUnit(landInfo.land.price * landInfo.land.area, true)}</p>
-            <p className="font-c3 text-text-03">{krwUnit(landInfo.land.price, true)}/㎡</p>
+            <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.price * landInfo.area, true) : '-'}</p>
+            <p className="font-c3 text-text-03">{landInfo.price ? krwUnit(landInfo.price, true) : '-'} /㎡</p>
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
-            <p className="font-h2-p">{landInfo.land.dealPrice ? krwUnit(landInfo.land.dealPrice * 10000, true) : '-'}</p>
-            <p className="font-c3 text-text-03">{landInfo.land.dealDate ? format(landInfo.land.dealDate, 'yyyy.MM.dd') : ''}</p>
+            <p className="font-h2-p">{landInfo.dealPrice ? krwUnit(landInfo.dealPrice * 10000, true) : '-'}</p>
+            <p className="font-c3 text-text-03">{landInfo.dealDate ? format(landInfo.dealDate, 'yyyy.MM.dd') : ''}</p>
           </div>        
         </div>
 
@@ -216,8 +220,8 @@ export const LandInfoCard = ({
         <div
           ref={ref}
           className="pt-[20px] pb-[40px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
-          <Land landInfo={landInfo.land} ref={landRef}/>
-          <Building buildings={landInfo.buildings} ref={buildingRef}/>
+          <Land landInfo={landInfo} ref={landRef}/>
+          <Building buildings={buildingList || []} ref={buildingRef}/>
           <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef}/>
           <Place place={place} ref={placeRef}/>
           <CompanyInfo/>

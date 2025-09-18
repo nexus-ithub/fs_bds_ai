@@ -21,6 +21,14 @@ export interface DistanceLines {
   distances: number[];
 }
 
+export interface PolygonInfo {
+  id: string;
+  legDongCode: string;
+  legDongName: string;
+  jibun: string;
+  polygon: Coords[] | Coords[][];
+}
+
 export interface LandInfo {
   id: string; 
   legDongCode: string;
@@ -54,7 +62,6 @@ export interface LandInfo {
   dealPrice: number;
   dealDate: string;
   dealType: string;
-  polygon: Coords[] | Coords[][];
 }
 
 export interface BuildingInfo {
@@ -66,6 +73,11 @@ export interface BuildingInfo {
   archLandRatio: number;
   totalFloorArea: number;
   floorAreaRatio: number;
+}
+
+export interface EstimatedPrice {
+  estimatedPrice: number;
+  per: number;
 }
 
 
@@ -91,12 +103,12 @@ export interface PlaceList {
   bus: PlaceInfo[];
 }
 
-export interface LandInfoResp {
-  land: LandInfo;
-  buildings: BuildingInfo[];
-  estimatedPrice: number;
-  per: number;
-}
+// export interface LandInfoResp {
+//   land: LandInfo;
+//   buildings: BuildingInfo[];
+//   estimatedPrice: number;
+//   per: number;
+// }
 
 
 export const getJibunAddress = (landInfo: LandInfo) => {

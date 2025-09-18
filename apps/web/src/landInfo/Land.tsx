@@ -10,9 +10,9 @@ export const Land = React.forwardRef<HTMLDivElement, { landInfo: LandInfo }>(
         className="flex flex-col divide-y divide-line-02 border-b border-line-02"
       >
         <Title title="토지" />
-        <Row title="용도지역" content={landInfo.usageName} />
-        <Row title="주용도" content={landInfo.curUse} />
-        <Row title="지목" content={landInfo.jimokName} />
+        <Row title="용도지역" content={landInfo.usageName || '-'} />
+        <Row title="주용도" content={landInfo.curUse || '-'}/>
+        <Row title="지목" content={landInfo.jimokName || '-'} />
         <Row title="면적" content={getAreaStrWithPyeong(landInfo.area)} />
         <Row title="최대용적률" content={landInfo.far ? landInfo.far + '%' : '-'} />
         <Row title="최대건폐률" content={landInfo.bcr ? landInfo.bcr + '%' : '-'} />

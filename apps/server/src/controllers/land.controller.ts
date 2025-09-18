@@ -3,87 +3,220 @@ import { db } from '../utils/database';
 import { AuthRequest } from 'src/middleware/auth.middleware';
 import { LandModel } from '../models/land.model';
 import { BuildingModel } from '../models/buliding.model';
-import { LandInfoResp } from '@repo/common';
 import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
 import { getDistance } from 'geolib';
+import { EstimatedPrice } from '@repo/common';
 
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
 
-export const getLandInfo = async (req: AuthRequest, res: Response) => {
+// export const getLandInfo = async (req: AuthRequest, res: Response) => {
+//   try {
+//     const { lat, lng, } = req.query;
+//     if (!lat || !lng) {
+//       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+//     }
+    
+//     const land = await LandModel.findLandIdByLatLng(Number(lat), Number(lng));
+//     if (!land) {
+//       return res.status(404).json({ message: '필지를 찾을 수 없습니다.' });
+//     }
+
+//     // const buildings = await BuildingModel.findBuildingListByJibun(land.legDongCode, land.jibun);
+//     const buildings = [];
+//     let per = 3.0;
+//     let estimatedPrice = land.price * per * land.area;
+//     // for(let i = 0; i < 4; i++) {
+//     //   const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
+//     //   const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
+//     //   console.log('distance', distance)
+//     //   console.log('year', year)
+//     //   const estimatedValues = await LandModel.calcuateEstimatedPrice(land.id, distance, year);
+      
+//     //   console.log('estimatedValues', estimatedValues)
+//     //   const summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
+//     //   if(summary){
+//     //     let finalRatio = summary.avg_ratio_to_official
+//     //     if(finalRatio){
+//     //       let adjustFactor = 1
+//     //       if(finalRatio <= 1.8){
+//     //         adjustFactor = 1.5
+//     //       }else if(finalRatio <= 2.0){
+//     //         adjustFactor = 1.3
+//     //       }else if(finalRatio <= 2.3){
+//     //         adjustFactor = 1.25
+//     //       }else if(finalRatio <= 2.5){
+//     //         adjustFactor = 1.1
+//     //       }else if(finalRatio <= 3.0){
+//     //         adjustFactor = 1	
+//     //       }else if(finalRatio <= 3.5){
+//     //         adjustFactor = 0.9				
+//     //       }else if(finalRatio <= 4.0){
+//     //         adjustFactor = 0.8				
+//     //       }else{
+//     //         adjustFactor = 0.7
+//     //       }
+//     //       const adjusted = summary.avg_ratio_to_official * adjustFactor
+//     //       per = Math.floor(adjusted * 10) / 10;
+//     //       estimatedPrice = Math.floor(land.price * per * land.area)
+//     //       console.log('finalRatio', finalRatio)
+//     //       console.log('per', per)
+//     //       console.log('estimatedPrice', estimatedPrice)
+//     //       break;
+//     //     }        
+//     //   }
+//     // }
+//     // const estimatedPrice = await LandModel.calcuateEstimatedPrice(land.id, ESTIMATE_REFERENCE_DISTANCE, ESTIMATE_REFERENCE_YEAR);
+
+  
+//     const landInfoResp = {
+//       land,
+//       buildings,
+//       estimatedPrice: Math.floor(estimatedPrice / 10) * 10,
+//       per,
+//     } as LandInfoResp;
+    
+//     res.status(200).json(landInfoResp);
+//   } catch (err) {
+//     console.error('Get land info error:', err);
+//     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+//   }
+// };
+
+export const getPolygonInfo = async (req: AuthRequest, res: Response) => {
   try {
     const { lat, lng, } = req.query;
     if (!lat || !lng) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
     
-    const land = await LandModel.findLandIdByLatLng(Number(lat), Number(lng));
+    const polygon = await LandModel.findPolygonByLatLng(Number(lat), Number(lng));
+    if (!polygon) {
+      return res.status(404).json({ message: '폴리곤을 찾을 수 없습니다.' });
+    }
+
+    res.status(200).json(polygon);
+  } catch (err) {
+    console.error('Get polygon info error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const getLandInfo = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const land = await LandModel.findLandById(id as string);
     if (!land) {
       return res.status(404).json({ message: '필지를 찾을 수 없습니다.' });
     }
 
-    const buildings = await BuildingModel.findBuildingListByJibun(land.legDongCode, land.jibun);
-    // const buildings = [];
-    let per = 3.0;
-    let estimatedPrice = land.price * per * land.area;
-    for(let i = 0; i < 4; i++) {
-      const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
-      const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
-      console.log('distance', distance)
-      console.log('year', year)
-      const estimatedValues = await LandModel.calcuateEstimatedPrice(land.id, distance, year);
-      
-      console.log('estimatedValues', estimatedValues)
-      const summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
-      if(summary){
-        let finalRatio = summary.avg_ratio_to_official
-        if(finalRatio){
-          let adjustFactor = 1
-          if(finalRatio <= 1.8){
-            adjustFactor = 1.5
-          }else if(finalRatio <= 2.0){
-            adjustFactor = 1.3
-          }else if(finalRatio <= 2.3){
-            adjustFactor = 1.25
-          }else if(finalRatio <= 2.5){
-            adjustFactor = 1.1
-          }else if(finalRatio <= 3.0){
-            adjustFactor = 1	
-          }else if(finalRatio <= 3.5){
-            adjustFactor = 0.9				
-          }else if(finalRatio <= 4.0){
-            adjustFactor = 0.8				
-          }else{
-            adjustFactor = 0.7
-          }
-          const adjusted = summary.avg_ratio_to_official * adjustFactor
-          per = Math.floor(adjusted * 10) / 10;
-          estimatedPrice = Math.floor(land.price * per * land.area)
-          console.log('finalRatio', finalRatio)
-          console.log('per', per)
-          console.log('estimatedPrice', estimatedPrice)
-          break;
-        }        
-      }
-    }
-    // const estimatedPrice = await LandModel.calcuateEstimatedPrice(land.id, ESTIMATE_REFERENCE_DISTANCE, ESTIMATE_REFERENCE_YEAR);
-
-  
-    const landInfoResp = {
-      land,
-      buildings,
-      estimatedPrice: Math.floor(estimatedPrice / 10) * 10,
-      per,
-    } as LandInfoResp;
-    
-    res.status(200).json(landInfoResp);
+    res.status(200).json(land);
   } catch (err) {
     console.error('Get land info error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+
+export const getBuildingList = async (req: AuthRequest, res: Response) => {
+  try {
+    const { legDongCode, jibun, } = req.query;
+    if (!legDongCode || !jibun) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const buildings = await BuildingModel.findBuildingListByJibun(legDongCode as string, jibun as string);
+    
+    res.status(200).json(buildings);
+  } catch (err) {
+    console.error('Get building list error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+
+    console.log('getEstimatedPrice for ', id)
+
+    let summary = null;
+    let finalRatio = null;
+    for(let i = 0; i < 4; i++) {
+      const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
+      const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
+      console.log('distance', distance)
+      console.log('year', year)
+      const estimatedValues = await LandModel.calcuateEstimatedPrice(id as string, distance, year);
+      
+      console.log('estimatedValues', estimatedValues)
+      summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
+      if(summary){
+        if(summary.avg_ratio_to_official){
+          finalRatio = summary.avg_ratio_to_official
+          break;
+        }
+      }
+    }
+
+    let per = 3.0;
+    let estimatedPrice = 0;
+    if(finalRatio){
+      let adjustFactor = 1
+      if(finalRatio <= 1.8){
+        adjustFactor = 1.5
+      }else if(finalRatio <= 2.0){
+        adjustFactor = 1.3
+      }else if(finalRatio <= 2.3){
+        adjustFactor = 1.25
+      }else if(finalRatio <= 2.5){
+        adjustFactor = 1.1
+      }else if(finalRatio <= 3.0){
+        adjustFactor = 1	
+      }else if(finalRatio <= 3.5){
+        adjustFactor = 0.9				
+      }else if(finalRatio <= 4.0){
+        adjustFactor = 0.8				
+      }else{
+        adjustFactor = 0.7
+      }
+      const adjusted = summary.avg_ratio_to_official * adjustFactor
+      per = Math.floor(adjusted * 10) / 10;
+      estimatedPrice = Math.floor(summary.target_official_price_per_m2 * per * summary.target_area_m2)
+      console.log('finalRatio', finalRatio)
+      console.log('per', per)
+      console.log('estimatedPrice', estimatedPrice)
+    }else{
+      if(summary){
+        estimatedPrice = summary.target_official_price_per_m2 * 3.0 * summary.target_area_m2;
+        per = 3.0;
+      }else{
+        estimatedPrice = null;
+        per = null
+      }
+    }        
+
+    const result = {
+      estimatedPrice,
+      per,
+    } as EstimatedPrice;
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Get estimated price error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 
 export const getBusinessDistrict = async (req: AuthRequest, res: Response) => {
   try {
@@ -130,11 +263,12 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
         const url = `https://dapi.kakao.com/v2/local/search/category.json?x=${lng}&y=${lat}&radius=1000&sort=distance&category_group_code=${category}&page=${page}`;
       
 				const kakaoResp = await axios.get(url, {
-					headers : {
-						'Authorization' : `KakaoAK ${KAKAO_API_KEY}`,
-					}
-				}
+            headers : {
+              'Authorization' : `KakaoAK ${KAKAO_API_KEY}`,
+            }
+          }
 				)
+
 				const resp_data = kakaoResp.data
 				const documents = resp_data['documents']
 				const meta = resp_data['meta']
