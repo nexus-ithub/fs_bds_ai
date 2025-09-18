@@ -1,5 +1,6 @@
 import { BuildingShopBIText, VDivider, AlarmIcon } from "@repo/common"
-import { useLocation } from "react-router-dom";
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const SUPPORT_MENU = [
   {
@@ -12,30 +13,36 @@ const SUPPORT_MENU = [
   },
   {
     title: "서비스 이용약관",
-    path: "/support"
+    path: "/support/terms"
   },
   {
     title: "개인정보 처리방침",
-    path: "/support"
+    path: "/support/privacy"
   },
 ]
 
 export const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isSupportPage = location.pathname.startsWith("/support");
 
   return (
-    <div className={`px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03 ${isSupportPage ? "w-[1920px]" : "w-full"}`}>
+    <div className={`min-w-[1440px] px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px]">
         <BuildingShopBIText/>
         {isSupportPage && (
           <>
-            <span className="font-s1-p mr-[8px]">고객센터</span>
+            <span className="font-s1-p mr-[8px] cursor-pointer" onClick={() => navigate("/support")}>고객센터</span>
             {SUPPORT_MENU.map((menu, index) => (
-              <>
+              <React.Fragment key={index}>
                 <VDivider/>
-                <button key={index} className="font-s2-p text-text-04">{menu.title}</button>
-              </>
+                <button 
+                  className="font-s2-p text-text-04"
+                  onClick={() => navigate(menu.path)}
+                >
+                  {menu.title}
+                </button>
+              </React.Fragment>
             ))}
           </>
         )}

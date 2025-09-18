@@ -51,7 +51,7 @@ export const Home = () => {
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />
-          <Route path={'/support'} element={<Support />} />
+          <Route path={'/support/*'} element={<Support />} />
         </Routes>                
       </div>
     </div>

@@ -6,10 +6,16 @@ export const getVideoList = async (req: Request, res: Response) => {
   const order = req.query.order as string
 
   try {
-    const filePath = path.join(__dirname, `../../youtube/${order}.json`);
+    // const filePath = path.join(__dirname, `../../youtube/${order}.json`);
+    let filePath = path.join(__dirname, `../../youtube/${order}.json`);
+
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: `${order}.json 파일이 없습니다.` });
+      filePath = path.join(__dirname, `../youtube/${order}.json`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: `${order}.json 파일이 없습니다.` });
+      }
     }
+    
     const fileData = fs.readFileSync(filePath, "utf-8");
     const result = JSON.parse(fileData);
     return res.json(result);
