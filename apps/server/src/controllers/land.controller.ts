@@ -296,11 +296,11 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
     const busData = busResp.data
     const busList = []
-    console.log('busData', busData)
-    console.log('busData.response.body.items', busData.response.body.items)
+    // console.log('busData', busData)
+    // console.log('busData.response.body.items', busData.response.body.items)
     if(busData.response.body.items){
       for(const item of busData.response.body.items.item){
-        console.log('item', item)
+        // console.log('item', item)
         const bus = {
           name: item.nodenm,
           distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
@@ -310,7 +310,7 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
         busList.push(bus)
       }
     }
-    console.log('busList', busList)
+    // console.log('busList', busList)
     // if(busData.response.body.items){
       
     //   // busData.response.body.items = busData.response.body.items.map((item: any) => {

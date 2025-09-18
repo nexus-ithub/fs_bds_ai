@@ -338,12 +338,14 @@ export class LandModel {
         ),
         /* 3) 거래필지 최신 공시지가(원/㎡) – 반경 내 필요한 키만 */
         near_keys AS (
-          SELECT DISTINCT leg_dong_code, jibun FROM near_building
+          SELECT DISTINCT id FROM near_building
           UNION
-          SELECT DISTINCT leg_dong_code, jibun FROM near_land
+          SELECT DISTINCT id FROM near_land
         ),
         latest_official_per_parcel AS (
           SELECT
+            lci.id,
+            lci.key,
             lci.leg_dong_code,
             lci.jibun,
             CAST(REPLACE(lci.price, ',', '') AS DECIMAL(20,2)) AS official_price_per_m2,
@@ -353,14 +355,14 @@ export class LandModel {
             ) AS rn
           FROM land_char_info lci
           JOIN near_keys nk
-            ON nk.leg_dong_code = lci.leg_dong_code
-           AND nk.jibun         = lci.jibun
+            ON nk.id = lci.id
           WHERE lci.price IS NOT NULL AND lci.price <> ''
         ),
         
         /* 4) 건물/토지 거래 각각 공시지가 붙이기 + 총액(원) 계산 */
         building_with_official AS (
           SELECT
+            lo.key,
             'building' AS deal_kind,
             nb.id, nb.leg_dong_code, nb.leg_dong_name, nb.jibun, nb.deal_date,
             nb.usage_name,
@@ -374,13 +376,13 @@ export class LandModel {
             (nb.deal_price_per_m2 / lo.official_price_per_m2 - 1) * 100 AS premium_pct
           FROM near_building nb
           JOIN latest_official_per_parcel lo
-            ON lo.leg_dong_code = nb.leg_dong_code
-           AND lo.jibun         = nb.jibun
+            ON lo.id = nb.id
            AND lo.rn = 1
           WHERE lo.official_price_per_m2 > 0
         ),
         land_with_official AS (
           SELECT
+            lo.key,
             'land' AS deal_kind,
             nl.id, nl.leg_dong_code, nl.leg_dong_name, nl.jibun, nl.deal_date,
             nl.usage_name,
@@ -444,6 +446,7 @@ export class LandModel {
               THEN ROUND(base.area_m2 * base.official_price_per_m2 * a.avg_ratio_to_official)
             ELSE ROUND(base.area_m2 * base.official_price_per_m2)
           END AS estimated_deal_total_price_won,
+          NULL AS ref_key,
           NULL AS deal_kind,
           NULL AS ref_id,
           NULL AS ref_leg_dong_code,
@@ -476,6 +479,7 @@ export class LandModel {
           NULL AS avg_premium_pct,
           NULL AS estimated_deal_price_per_m2,
           NULL AS estimated_deal_total_price_won,
+          d.key AS ref_key,
           d.deal_kind,
           d.id AS ref_id,
           d.leg_dong_code AS ref_leg_dong_code,
