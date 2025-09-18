@@ -64,6 +64,13 @@ body {
   --text-05: var(--gray-040);
   --text-reverse: var(--gray-000);
 
+  --contents-02: var(--gray-070);
+  --contents-03: var(--gray-060);
+  --contents-04: var(--gray-050);
+  --contents-05: var(--gray-030);
+  --contents-06: var(--gray-020);
+  --contents-reverse: var(--gray-000);
+
   --line-01: var(--gray-005);
   --line-02: var(--gray-010);
   --line-03: var(--gray-020);

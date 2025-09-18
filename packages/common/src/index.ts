@@ -11,3 +11,4 @@ export * from './spinner';
 export * from './types/youtube';
 export * from './types/bds';
 export * from './zoomcontroller';
+export * from './searchbar';
