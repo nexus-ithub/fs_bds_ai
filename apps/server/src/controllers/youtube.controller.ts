@@ -15,7 +15,7 @@ export const getVideoList = async (req: Request, res: Response) => {
         return res.status(404).json({ message: `${order}.json 파일이 없습니다.` });
       }
     }
-    
+
     const fileData = fs.readFileSync(filePath, "utf-8");
     const result = JSON.parse(fileData);
     return res.json(result);
@@ -27,9 +27,14 @@ export const getVideoList = async (req: Request, res: Response) => {
 
 export const getBrandingVideo = async (req: Request, res: Response) => {
   try {
-    const filePath = path.join(__dirname, "../../youtube/branding.json");
+    // const filePath = path.join(__dirname, "../../youtube/branding.json");
+    let filePath = path.join(__dirname, `../../youtube/branding.json`);
+
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "브랜딩 영상 파일이 없습니다." });
+      filePath = path.join(__dirname, `../youtube/branding.json`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: `branding.json 파일이 없습니다.` });
+      }
     }
     const fileData = fs.readFileSync(filePath, "utf-8");
     const result = JSON.parse(fileData);
