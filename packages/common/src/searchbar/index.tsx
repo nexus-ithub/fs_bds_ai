@@ -1,4 +1,5 @@
-import { useState, KeyboardEvent, useRef } from "react";
+'use client';
+import { useRef } from "react";
 import { SearchIcon, CloseIcon } from "../icons";
 
 type SearchBarProps = {

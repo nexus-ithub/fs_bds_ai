@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+'use client';
+import { useEffect, useMemo, useRef } from "react";
 import { MinusIcon, PlusIcon } from "../icons";
 
 export function ZoomController({level=5, setLevel}: {level: number, setLevel: React.Dispatch<React.SetStateAction<number>>;}) {
