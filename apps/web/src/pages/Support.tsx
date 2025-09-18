@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { SupportMain } from "../support/SupportMain";
 import { Board } from "../support/Board";
-import { FAQ } from "../support/FAQ";
 import { Terms } from "../support/Terms";
 import { Privacy } from "../support/Privacy";
 import { BoardDetail } from "../support/BoardDetail";
