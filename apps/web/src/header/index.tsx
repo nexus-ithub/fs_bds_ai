@@ -28,7 +28,7 @@ export const Header = () => {
 
   return (
     <div className={`min-w-[1440px] px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
-      <div className="flex items-center gap-[16px]">
+      <div className="flex items-center gap-[16px] h-[64px]">
         <BuildingShopBIText/>
         {isSupportPage && (
           <>
@@ -37,7 +37,7 @@ export const Header = () => {
               <React.Fragment key={index}>
                 <VDivider/>
                 <button 
-                  className="font-s2-p text-text-04"
+                  className={`h-full font-s2-p text-text-04 border-b-[2px] box-border ${location.pathname.startsWith(menu.path) ? "border-b-primary" : "border-b-transparent"}`}
                   onClick={() => navigate(menu.path)}
                 >
                   {menu.title}
