@@ -247,7 +247,7 @@ export default function Main() {
               setAreas((prev: AreaPolygons[]) => [
                 ...prev,
                 {
-                  id: crypto.randomUUID(),
+                  id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
                   paths: areaPaths,
                 },
               ]);
@@ -259,7 +259,7 @@ export default function Main() {
               setDistanceLines(prev => [
                 ...prev,
                 {
-                  id: crypto.randomUUID(),
+                  id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
                   paths: distancePaths,
                   distances,
                 },

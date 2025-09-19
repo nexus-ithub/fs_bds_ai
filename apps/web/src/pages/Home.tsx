@@ -7,6 +7,7 @@ import { Header } from "../header";
 import Main from "./Main";
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Support } from "./Support";
+import { MyPage } from "./MyPage";
 
 export const Home = () => {
 
@@ -52,6 +53,7 @@ export const Home = () => {
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />
           <Route path={'/support/*'} element={<Support />} />
+          <Route path={'/myPage/*'} element={<MyPage />} />
         </Routes>                
       </div>
     </div>
