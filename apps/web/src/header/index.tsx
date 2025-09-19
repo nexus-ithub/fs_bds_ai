@@ -1,4 +1,4 @@
-import { BuildingShopBIText, VDivider, AlarmIcon, HDivider } from "@repo/common"
+import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown } from "@repo/common"
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, MenuItem, IconButton, Avatar, Typography, Box, Divider } from "@mui/material";
@@ -27,6 +27,7 @@ export const Header = () => {
   const navigate = useNavigate();
   const isSupportPage = location.pathname.startsWith("/support");
 
+  const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const ProfileRef = useRef<HTMLButtonElement | null>(null);
 
@@ -66,6 +67,7 @@ export const Header = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => {setAnchorEl(null)}}
+          disableScrollLock={true}
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
           transformOrigin={{ vertical: "top", horizontal: "center" }}
           PaperProps={{
@@ -126,9 +128,21 @@ export const Header = () => {
           LOGOUT
         </button>
         <VDivider colorClassName="bg-line-04"/>
-        <div className="w-[160px] h-full font-b3 text-text-04 rounded-[2px] border border-line-03">
+        {/* <div className="w-[160px] h-full font-b3 text-text-04 rounded-[2px] border border-line-03">
           빌딩샵 관련 사이트 (TODO)
-        </div>
+        </div> */}
+        <MenuDropdown 
+          options={[
+            { value: 'apple', label: '🍎 사과' },
+            { value: 'banana', label: '🍌 바나나' },
+            { value: 'orange', label: '🍊 오렌지' },
+            { value: 'grape', label: '🍇 포도' },
+            { value: 'strawberry', label: '🍓 딸기' },
+          ]} 
+          value={selectedMenu} 
+          onChange={(value) => {setSelectedMenu(value)}}
+          placeholder="빌딩샵 관련 사이트"
+        />
       </div>
     </div>
   )

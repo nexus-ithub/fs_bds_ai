@@ -13,3 +13,4 @@ export * from './types/bds';
 export * from './zoomcontroller';
 export * from './searchbar';
 export * from './types/support';
+export * from './menudropdown';
