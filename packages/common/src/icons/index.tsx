@@ -28,10 +28,10 @@ export const ArrowDownIcon = () => {
 };
 
 
-export const CheckIcon = () => {
+export const CheckIcon = ({size=24, color="#1A1C20"}: {size?: number, color?: string}) => {
   return (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19.2263 5.36563C19.5767 4.93875 20.2076 4.87666 20.6345 5.22695C21.0614 5.57729 21.1235 6.20823 20.7732 6.63516L10.9265 18.6352C10.7331 18.8707 10.4422 19.0052 10.1375 19.0004C9.83271 18.9955 9.54693 18.8514 9.36109 18.6098L3.20679 10.6098L3.14918 10.5258C2.88229 10.0949 2.97998 9.52312 3.39039 9.20742C3.80085 8.89199 4.37842 8.94433 4.72632 9.31289L4.79273 9.39102L10.1785 16.393L19.2263 5.36563Z" fill="#1A1C20"/>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.2263 5.36563C19.5767 4.93875 20.2076 4.87666 20.6345 5.22695C21.0614 5.57729 21.1235 6.20823 20.7732 6.63516L10.9265 18.6352C10.7331 18.8707 10.4422 19.0052 10.1375 19.0004C9.83271 18.9955 9.54693 18.8514 9.36109 18.6098L3.20679 10.6098L3.14918 10.5258C2.88229 10.0949 2.97998 9.52312 3.39039 9.20742C3.80085 8.89199 4.37842 8.94433 4.72632 9.31289L4.79273 9.39102L10.1785 16.393L19.2263 5.36563Z" fill={color}/>
   </svg>
 
   )
@@ -282,17 +282,17 @@ export const SearchIcon = ({size = 16, color = "var(--gray-050)"} : {size? : num
   )
 }
 
-export const ChevronRightCustomIcon = () => {
+export const ChevronRightCustomIcon = ({size=12} : {size?: number}) => {
   return(
-    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 12 12" fill="none">
       <path d="M3.73483 1.73483C3.88128 1.58839 4.11866 1.58839 4.26511 1.73483L8.26511 5.73484C8.41155 5.88128 8.41155 6.11866 8.26511 6.26511L4.26511 10.2651C4.11866 10.4116 3.88128 10.4116 3.73483 10.2651C3.58839 10.1187 3.58839 9.88128 3.73483 9.73483L7.4697 5.99997L3.73483 2.26511C3.58839 2.11866 3.58839 1.88128 3.73483 1.73483Z" fill="#1A1C20"/>
     </svg>
   )
 }
 
-export const ChevronDownCustomIcon = () => {
+export const ChevronDownCustomIcon = ({width = 10, height = 6, className} : {width?: number, height?: number, className?: string}) => {
   return(
-    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 10 6" fill="none" className={className}>
       <path d="M8.73483 0.734835C8.88128 0.588388 9.11866 0.588388 9.26511 0.734835C9.41155 0.881282 9.41155 1.11866 9.26511 1.26511L5.26511 5.26511C5.11866 5.41155 4.88128 5.41155 4.73484 5.26511L0.734835 1.26511C0.588388 1.11866 0.588388 0.881282 0.734835 0.734835C0.881282 0.588388 1.11866 0.588388 1.26511 0.734835L4.99997 4.4697L8.73483 0.734835Z" fill="#1A1C20"/>
     </svg>
   )

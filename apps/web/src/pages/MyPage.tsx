@@ -4,60 +4,93 @@ import { Board } from "../support/Board";
 import { Terms } from "../support/Terms";
 import { Privacy } from "../support/Privacy";
 import { BoardDetail } from "../support/BoardDetail";
-import { HDivider } from "@repo/common";
+import { CheckIcon, HDivider } from "@repo/common";
 
+import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { Avatar, Accordion, AccordionSummary, AccordionDetails, Typography, List, ListItem, ListItemText } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Avatar } from "@mui/material";
+import { ChevronDownCustomIcon } from "@repo/common";
 
 interface MenuItemType {
   label: string;
-  path: string; // 클릭 시 이동할 URL
+  path: string;
 }
 
-interface TogglePanelProps {
+interface CustomAccordionProps {
   title: string;
   menuItems: MenuItemType[];
   defaultExpanded?: boolean;
 }
 
-const TogglePanel = ({ title, menuItems, defaultExpanded = false }: TogglePanelProps) => {
+const accountMenu: MenuItemType[] = [
+  { label: "개인정보", path: "/myPage" },
+  { label: "추가정보", path: "/myPage/additional-info" },
+  { label: "비밀번호 변경", path: "/myPage/edit-pw" },
+];
+
+const interestMenu: MenuItemType[] = [
+  { label: "빌딩샵 추천매물", path: "/myPage/recommend" },
+  { label: "저장된 관심물건", path: "/myPage/interest" },
+];
+
+const reportMenu: MenuItemType[] = [
+  { label: "생성한 AI 리포트", path: "/myPage/ai-report" },
+];
+
+const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const location = useLocation();
   const currentPath = location.pathname;
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <Accordion defaultExpanded={defaultExpanded}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>{title}</Typography>
-      </AccordionSummary>
-      <AccordionDetails>
-        <List>
+    <div className="flex flex-col gap-[12px]">
+      <button
+        onClick={toggleExpanded}
+        className="w-full flex items-center justify-between py-[12px] text-left hover:bg-gray-50 transition-colors border-b border-line-03"
+      >
+        <p className="font-s1">{title}</p>
+        <ChevronDownCustomIcon
+          className={`mr-[8px] transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"}`}
+          width={14}
+          height={14}
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isExpanded ? `max-h-[${menuItems.length * 36}px] opacity-100` : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="">
           {menuItems.map((item, index) => {
-            const isActive = currentPath === item.path || currentPath.startsWith(item.path + "/");
+            const isActive = currentPath === item.path;
             return (
-              <ListItem
+              <Link
                 key={index}
-                component={Link}
                 to={item.path}
-                sx={{
-                  backgroundColor: isActive ? "rgba(25, 118, 210, 0.1)" : "transparent",
-                  "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.2)" },
-                }}
+                className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
+                  isActive
+                    ? 'bg-primary-010 text-primary'
+                    : 'text-text-02'
+                }`}
               >
-                <ListItemText primary={item.label} />
-              </ListItem>
+                <p className="font-s2">{item.label}</p>
+                <CheckIcon size={16} color={isActive ? "#4E52FF" : ""}/>
+              </Link>
             );
           })}
-        </List>
-      </AccordionDetails>
-    </Accordion>
+        </div>
+      </div>
+    </div>
   );
 };
 
-
 export const MyPage = () => {
   return (
-    <div className="flex h-full">
+    <div className="flex">
       <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02">
         <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
@@ -85,9 +118,9 @@ export const MyPage = () => {
             </div>
           </div>
         </div>
-        <div>
-          
-        </div>
+        <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
+        <CustomAccordion title="관심물건 관리" menuItems={interestMenu} defaultExpanded />
+        <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded />
       </div>
       <Routes>
         <Route path="/" element={<Profile />} />
