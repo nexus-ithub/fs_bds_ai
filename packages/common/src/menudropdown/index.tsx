@@ -16,6 +16,7 @@ interface MenuDropdownProps {
   padding?: 'default';
   width?: string;
   font?: 'font-b3';
+  borderStyle?: 'outlined' | 'underline';
 }
 
 export const MenuDropdown: React.FC<MenuDropdownProps> = ({ 
@@ -26,7 +27,8 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   disabled = false,
   padding = 'default',
   width = 'w-[160px]',
-  font = 'font-b3'
+  font = 'font-b3',
+  borderStyle = 'outlined'
 }) => {
   const paddingClasses = {
     default: "6px 8px 6px 10px",
@@ -38,6 +40,37 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
       fontWeight: "var(--font-weight-regular)",
       lineHeight: "20px",
     },
+  };
+
+  const getBorderStyles = () => {
+    if (borderStyle === 'underline') {
+      return {
+        '& fieldset': {
+          borderRadius: '0px !important',
+        },
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+          borderBottom: '1px solid #ccc',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderBottom: '1px solid #808080',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderBottom: '1px solid #808080',
+        },
+      };
+    }
+    return {
+      '& fieldset': {
+        borderRadius: '2px !important',
+      },
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#808080',
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#808080',
+      },
+    };
   };
 
   const handleChange = (event: { target: { value: string } }) => {
@@ -71,16 +104,16 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
             alignItems: "center",
             ...fontClasses[font],
           },
-          '& fieldset': {
-            borderRadius: '2px !important',
-          },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#808080',
-          },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#808080',
-            borderWidth: 1,
-          },
+          // '& fieldset': {
+          //   borderRadius: '2px !important',
+          // },
+          // '&:hover .MuiOutlinedInput-notchedOutline': {
+          //   borderColor: '#cccccc',
+          // },
+          // '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          //   borderColor: '#cccccc',
+          //   borderWidth: 1,
+          // },
           position: 'relative',
           '&::after': {
             content: '""',
@@ -95,6 +128,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
             width: '10px',
             height: '6px',
           },
+          ...getBorderStyles(),
         }}
       >
         {options.map((option) => (

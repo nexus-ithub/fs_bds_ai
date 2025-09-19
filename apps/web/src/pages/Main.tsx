@@ -151,6 +151,21 @@ export default function Main() {
     }
   }, [distancePaths, clickLine, moveLine])
 
+  useEffect(() => {
+    // 현재 진행 중인 측정이 있는지 확인하고 초기화
+    if (mapType !== 'distance') {
+      // 거리 측정이 아닌 다른 모드로 전환 시, 거리 측정 상태 초기화
+      setIsDrawingDistance(false);
+      setDistancePaths([]);
+      setDistances([]);
+    }
+    if (mapType !== 'area') {
+      // 면적 측정이 아닌 다른 모드로 전환 시, 면적 측정 상태 초기화
+      setIsDrawingArea(false);
+      setAreaPaths([]);
+    }
+  }, [mapType]);
+
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
