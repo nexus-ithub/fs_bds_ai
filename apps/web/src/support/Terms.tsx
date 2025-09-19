@@ -21,10 +21,16 @@ export const Terms = () => {
               <ChevronDownCustomIcon/>
             </div>
           </div>
-          <div className="w-full flex items-center justify-end gap-[20px]">
-            <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">다운로드</span><DownloadIcon/></button>
-            <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
-            <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">인쇄하기</span><PrintIcon/></button>
+          <div className="w-full flex flex-col gap-[16px]">
+            <div className="w-full flex items-center justify-end gap-[20px]">
+              <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">다운로드</span><DownloadIcon/></button>
+              <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
+              <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">인쇄하기</span><PrintIcon/></button>
+            </div>
+            <HDivider className="!border-b-line-02"/>
+          </div>
+          <div>
+            약관 내용
           </div>
         </div>
       </div>
