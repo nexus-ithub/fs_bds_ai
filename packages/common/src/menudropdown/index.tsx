@@ -65,10 +65,10 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
         borderRadius: '2px !important',
       },
       '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#808080',
+        border: '1px solid #DCDEE2',
       },
       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#808080',
+        border: '1px solid #DCDEE2',
       },
     };
   };
@@ -80,12 +80,12 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   return (
     <FormControl disabled={disabled} className={`${width}`}>
       <Select
-        value={value}
+        value={value || ""}
         onChange={handleChange}
         displayEmpty
         renderValue={(selected) => {
           if (!selected) {
-            return <span style={{ color: '#808080', ...fontClasses[font] }}>{placeholder}</span>;
+            return <span style={{ color: '#9EA2A8', ...fontClasses[font] }}>{placeholder}</span>;
           }
           return options.find(option => option.value === selected)?.label;
         }}
@@ -94,7 +94,8 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
           disableScrollLock: true,
           MenuListProps: {
             autoFocus: false,
-            autoFocusItem: false,
+            autoFocusItem: true,
+            disablePadding: true,
           },
         }}
         sx={{
@@ -103,17 +104,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
             display: "flex",
             alignItems: "center",
             ...fontClasses[font],
-          },
-          // '& fieldset': {
-          //   borderRadius: '2px !important',
-          // },
-          // '&:hover .MuiOutlinedInput-notchedOutline': {
-          //   borderColor: '#cccccc',
-          // },
-          // '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-          //   borderColor: '#cccccc',
-          //   borderWidth: 1,
-          // },
+          }, 
           position: 'relative',
           '&::after': {
             content: '""',
