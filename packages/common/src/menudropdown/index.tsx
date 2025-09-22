@@ -97,6 +97,12 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
             autoFocusItem: true,
             disablePadding: true,
           },
+          PaperProps: {
+            sx: {
+              borderRadius: 0,
+              boxShadow: "0px 2px 6px rgba(0,0,0,0.1)",
+            },
+          },
         }}
         sx={{
           '& .MuiSelect-select': {

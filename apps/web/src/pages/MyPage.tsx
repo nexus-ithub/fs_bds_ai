@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
+import { Recommend } from "../myPage/Recommend";
 
 interface MenuItemType {
   label: string;
@@ -124,6 +125,7 @@ export const MyPage = () => {
       </div>
       <Routes>
         <Route path="/" element={<Profile />} />
+        <Route path="recommend" element={<Recommend />} />
         {/* <Route path="notice" element={<Board type="notice" />} />
         <Route path="notice/:id" element={<BoardDetail />} />
         <Route path="faq" element={<Board type="faq" />} />

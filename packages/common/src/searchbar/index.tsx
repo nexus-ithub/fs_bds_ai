@@ -32,15 +32,15 @@ export const SearchBar = ({
   // suffixIcon,
   showClearButton = false,
   variant = "default",
-  className,
-  inputClassName,
+  className = "",
+  inputClassName = "",
 }: SearchBarProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const variantClasses = {
     default: "border border-line-03",  // 수정해서 쓰셔도 돼요.
     roundedOutline: "border border-line-03 rounded-[100px] bg-white",
-    filled: "bg-gray-100 border border-transparent",  // 이것도 수정해서 쓰셔도 돼요.
+    filled: "rounded-[2px] bg-[var(--color-surface-second)]",
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
