@@ -70,6 +70,10 @@ export const BuildingList = () => {
     getBuildings();
   }, [order]);
 
+  useEffect(() => {
+    console.log("selectedBuilding", selectedBuilding);
+  }, [selectedBuilding]);
+
   return (
     <div className="flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-[20px] pt-[20px]">

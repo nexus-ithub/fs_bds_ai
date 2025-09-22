@@ -1,5 +1,6 @@
 
 import { bdsDb } from "../utils/bds-database";
+import { db } from '../utils/database';
 import { type BdsSale } from "@repo/common";
 
 
@@ -167,6 +168,37 @@ export class BdsModel {
     } catch (error) {
       console.error('Error getting building shop list:', error);
       throw error;
+    }
+  }
+
+  static async isBookmarked(userId: string, bdsId: string): Promise<boolean> {
+    try {
+      console.log(userId, bdsId)
+      const [rows] = await db.query(
+        `SELECT 1 
+         FROM bookmarked_bds
+         WHERE user_id = ? AND bds_id = ? 
+         LIMIT 1`,
+        [userId, bdsId]
+      ) as any;
+      
+      return !!rows;
+    } catch (err) {
+      console.error('Error checking bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async addBookmark(userId: string, building: BdsSale) {
+    try {
+      await db.query(
+        `INSERT INTO bookmarked_bds (user_id, bds_id, sale_id, image_path, memo, name, addr, plat_area, total_area, sale_amount, sell_profit)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, building.idx, building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit]
+      );
+    } catch (err) {
+      console.error('Error adding bookmark:', err);
+      throw err;
     }
   }
 }

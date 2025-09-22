@@ -34,7 +34,9 @@ export const Header = () => {
   return (
     <div className={`min-w-[1440px] px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px] h-[64px]">
-        <BuildingShopBIText/>
+        <button onClick={() => navigate("/main")}>
+          <BuildingShopBIText />
+        </button>
         {isSupportPage && (
           <>
             <span className="font-s1-p mr-[8px] cursor-pointer" onClick={() => navigate("/support")}>고객센터</span>

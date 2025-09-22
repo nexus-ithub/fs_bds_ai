@@ -64,6 +64,9 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
       '& fieldset': {
         borderRadius: '2px !important',
       },
+      '& .MuiOutlinedInput-notchedOutline': {
+        border: '1px solid #DCDEE2',
+      },
       '&:hover .MuiOutlinedInput-notchedOutline': {
         border: '1px solid #DCDEE2',
       },

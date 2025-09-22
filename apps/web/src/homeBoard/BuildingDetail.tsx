@@ -1,6 +1,11 @@
-import { BookmarkIcon, Button, CloseIcon, getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, ShareIcon, VDivider, type BdsSale } from "@repo/common";
+import { BookmarkFilledIcon, BookmarkIcon, Button, CloseIcon, getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, ShareIcon, VDivider, type BdsSale } from "@repo/common";
 import { Dialog } from "@mui/material";
-
+import useAxiosWithAuth from "../axiosWithAuth";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
+import { type User } from "@repo/common";
+import { useEffect, useState } from "react";
 
 export const BuildingDetailDialog = ({
   open,
@@ -11,6 +16,33 @@ export const BuildingDetailDialog = ({
   onClose: () => void;
   building: BdsSale;
 }) => {
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  const addBookmark = async () => {
+    try {
+      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building});
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const getIdBookmarked = async () => {
+    try {
+      const res = await axiosWithAuth.get('/api/bds/isBookmarked', {params: {userId: config?.id, bdsId: building.idx}});
+      setIsBookmarked(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    getIdBookmarked();
+  }, [])
 
   return (
     <Dialog
@@ -26,9 +58,12 @@ export const BuildingDetailDialog = ({
               공유하기
               <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
             </button>
-            <button className="flex items-center px-[16px] gap-[4px]">
+            <button 
+              className="flex items-center px-[16px] gap-[4px]"
+              onClick={addBookmark}
+            >
               관심물건 추가
-              <BookmarkIcon/>
+              {isBookmarked ? <BookmarkFilledIcon /> : <BookmarkIcon />}
             </button>            
             <button
               className="flex items-center pl-[16px]"

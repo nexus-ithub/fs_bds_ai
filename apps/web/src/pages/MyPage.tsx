@@ -10,7 +10,8 @@ import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
-import { Recommend } from "../myPage/Recommend";
+import { BookmarkedBds } from "../myPage/BookmarkedBds";
+import { BookmarkedReport } from "../myPage/BookmarkedReport";
 
 interface MenuItemType {
   label: string;
@@ -29,9 +30,9 @@ const accountMenu: MenuItemType[] = [
   { label: "비밀번호 변경", path: "/myPage/edit-pw" },
 ];
 
-const interestMenu: MenuItemType[] = [
-  { label: "빌딩샵 추천매물", path: "/myPage/recommend" },
-  { label: "저장된 관심물건", path: "/myPage/interest" },
+const favoriteMenu: MenuItemType[] = [
+  { label: "빌딩샵 추천매물", path: "/myPage/bookmarked-bds" },
+  { label: "저장된 관심물건", path: "/myPage/bookmarked-report" },
 ];
 
 const reportMenu: MenuItemType[] = [
@@ -120,12 +121,13 @@ export const MyPage = () => {
           </div>
         </div>
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
-        <CustomAccordion title="관심물건 관리" menuItems={interestMenu} defaultExpanded />
+        <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
         <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded />
       </div>
       <Routes>
         <Route path="/" element={<Profile />} />
-        <Route path="recommend" element={<Recommend />} />
+        <Route path="bookmarked-bds" element={<BookmarkedBds />} />
+        <Route path="bookmarked-report" element={<BookmarkedReport />} />
         {/* <Route path="notice" element={<Board type="notice" />} />
         <Route path="notice/:id" element={<BoardDetail />} />
         <Route path="faq" element={<Board type="faq" />} />
