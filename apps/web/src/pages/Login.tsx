@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
-import { BuildingShopBI } from "@repo/common";
+import { BuildingShopBI, Checkbox, FacebookLogo, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
 
 interface LoginResponse {
@@ -46,7 +46,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center w-full max-w-[664px] h-[820px] flex-shrink-0 rounded">
-        <div className="flex flex-col w-[320px] my-[75px] pb-[40px] gap-[48px]">
+        <div className="flex flex-col w-[320px] my-[75px] pb-[40px] gap-[40px]">
           <div className="flex flex-col gap-[24px] items-center">
             <BuildingShopBI/>
             <div className='flex flex-col gap-[6px]'>
@@ -99,6 +99,13 @@ export default function Login() {
                   }
                 />
               </div>
+              <Checkbox
+                checked={keepLoggedIn}
+                onChange={() => setKeepLoggedIn(!keepLoggedIn)}
+                label="로그인 상태 유지"
+                labelOrderLast={true}
+                labelClassName="font-s2 text-text-04"
+              />
               {/* <div>
                 <label className="flex items-center gap-[8px]">
                 <input
@@ -127,12 +134,29 @@ export default function Login() {
             </div>
             <button
               type="submit"
-              className="w-full flex justify-center mt-[48px] py-[14px] px-[12px] border border-transparent font-h4 rounded-[2px] text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="w-full flex justify-center mt-[40px] py-[14px] px-[12px] border border-transparent font-h4 rounded-[2px] text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2"
             >
               로그인
             </button>
+            <div className="flex items-center justify-center gap-[24px] mt-[20px] font-s2 text-text-03">
+              <p>아이디 찾기</p>
+              <VDivider colorClassName="bg-line-04"/>
+              <p>비밀번호 찾기</p>
+            </div>
           </form>
-        
+          <div className="flex flex-col gap-[28px]">
+            <div className='flex items-center gap-[12px] font-s2 text-text-03'>
+              <HDivider/>
+              <p className='flex-shrink-0'>간편 로그인</p>
+              <HDivider/>
+            </div>
+            <div className="flex items-center justify-center gap-[36px]">
+              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FEE502] rounded-full"><KakaoLogo/></button>
+              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#04C73C] rounded-full"><NaverLogo/></button>
+              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#1977F3] rounded-full"><FacebookLogo/></button>
+              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"><GoogleLogo/></button>
+            </div>
+          </div>
         </div>
         <div className="flex items-center">
           {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
