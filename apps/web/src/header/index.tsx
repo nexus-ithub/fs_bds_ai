@@ -1,7 +1,11 @@
 import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown } from "@repo/common"
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, MenuItem, IconButton, Avatar, Typography, Box, Divider } from "@mui/material";
+import { Menu, MenuItem, IconButton, Avatar } from "@mui/material";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import type { User } from "@repo/common";
+import { getAccessToken } from "../authutil";
 
 const SUPPORT_MENU = [
   {
@@ -25,6 +29,9 @@ const SUPPORT_MENU = [
 export const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
   const isSupportPage = location.pathname.startsWith("/support");
 
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
@@ -61,7 +68,7 @@ export const Header = () => {
             <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 24, height: 24 }}/>
           </IconButton>
           <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
-            <span className="font-s2-p">김이름</span>
+            <span className="font-s2-p">{config?.name}</span>
             <span className="font-s2 text-text-02">고객님</span>
           </p>
         </div>

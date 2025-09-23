@@ -1,4 +1,5 @@
-import { HDivider, VDivider, JunginLogo, InstagramIcon, KakaoChannelIcon, NaverBlogIcon, YoutubeIcon } from "@repo/common"
+import { HDivider, VDivider, CI, InstagramIcon, KakaoChannelIcon, NaverBlogIcon, YoutubeIcon } from "@repo/common"
+import { INSTAGRAM_URL, KAKAO_CHANNEL_URL, NAVER_BLOG_URL, YOUTUBE_CHANNEL_URL } from "../constants"
 
 export const Footer = () => {
   return (
@@ -6,7 +7,7 @@ export const Footer = () => {
       <div className="w-[960px] mx-auto flex flex-col gap-[20px]">
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-[20px] font-s3 text-text-02">
-            <p className="mr-[4px]"><JunginLogo/></p>
+            <p className="mr-[4px]"><CI/></p>
             <VDivider className="!h-[12px]"/>
             <p>고객센터</p>
             <VDivider className="!h-[12px]"/>
@@ -16,10 +17,18 @@ export const Footer = () => {
             <VDivider className="!h-[12px]"/>
           </div>
           <div className="flex items-center gap-[24px]">
-            <InstagramIcon/>
-            <YoutubeIcon/>
-            <KakaoChannelIcon/>
-            <NaverBlogIcon/>
+            <button onClick={() => window.open(INSTAGRAM_URL)}>
+              <InstagramIcon/>
+            </button>
+            <button onClick={() => window.open(YOUTUBE_CHANNEL_URL)}>
+              <YoutubeIcon/>
+            </button>
+            <button onClick={() => window.open(KAKAO_CHANNEL_URL)}>
+              <KakaoChannelIcon/>
+            </button>
+            <button onClick={() => window.open(NAVER_BLOG_URL)}>
+              <NaverBlogIcon/>
+            </button>
           </div>
         </div>
         <div className="flex flex-col gap-[12px]">

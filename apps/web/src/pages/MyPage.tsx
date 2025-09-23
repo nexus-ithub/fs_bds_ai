@@ -121,8 +121,8 @@ export const MyPage = () => {
           <div className="flex flex-col items-center gap-[12px]">
             <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 64, height: 64 }}/>
             <div className="flex flex-col items-center gap-[4px]">
-              <p className="font-s2-p"><span className="font-s1-p mr-[4px]">김이름</span><span className="font-s1 text-text-02">고객님</span></p>
-              <p className="font-s2-p">admin@jungin.com</p>
+              <p className="font-s2-p"><span className="font-s1-p mr-[4px]">{config?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
+              <p className="font-s2-p">{config?.email}</p>
             </div>
           </div>
           <HDivider className="!border-b-line-02"/>
