@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 // import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, MoreHorizontal } from "lucide-react";
 import { ChevronRightCustomIcon, ChevronsRightCustomIcon } from "../icons";
@@ -10,7 +10,7 @@ interface PaginationProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   pageRangeDisplayed?: number;
-  toast: (msg: string) => void;
+  toast?: (msg: string) => void;
 }
 
 export const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange, pageRangeDisplayed = 10, toast, className }: PaginationProps) => {
@@ -65,9 +65,9 @@ export const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange
     const page = parseInt(pageInput, 10);
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       onPageChange(page);
-      setPageInput(''); // Clear input on successful navigation
+      setPageInput('');
     } else {
-      toast?.('유효하지 않은 페이지 번호입니다.');
+      // toast?.('유효하지 않은 페이지 번호입니다.');
       setPageInput('');
     }
   };
@@ -78,16 +78,25 @@ export const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange
   const isLastPage = currentPage === totalPages || totalPages <= 1 || isEntirelyDisabled;
 
   const displayCurrentPage = isEntirelyDisabled ? 1 : currentPage;
+  useEffect(() => {
+    console.log("currentPage", currentPage)
+    console.log('isFirstPage', isFirstPage)
+    console.log('isLastPage', isLastPage)
+  }, [currentPage])
 
   return (
     <div className={`flex items-center gap-[8px] ${className}`}>
       {/* 이전 블록 (<<) */}
       <button onClick={handlePrevBlock} disabled={isFirstPage}>
-        {/* <ChevronsLeft color={isFirstPage ? 'rgba(0, 0, 0, 0.15)' : 'black'} size={18}/> */}
+        <div className="transform rotate-180">
+          <ChevronsRightCustomIcon color={isFirstPage ? '#1A1C20' : '#000000'} opacity={isFirstPage ? 0.3 : 1}/>
+        </div>
       </button>
       {/* 이전 페이지 (<) */}
       <button onClick={handlePrevPage} disabled={isFirstPage}>
-        {/* <ChevronLeft color={isFirstPage ? 'rgba(0, 0, 0, 0.15)' : 'black'} size={18}/> */}
+        <div className="transform rotate-180">
+          <ChevronRightCustomIcon color={isFirstPage ? '#BABABA' : '#000000'} size={16}/>
+        </div>
       </button>
 
       {/* 페이지 번호 목록 */}
@@ -113,11 +122,11 @@ export const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange
 
       {/* 다음 페이지 (>) */}
       <button onClick={handleNextPage} disabled={isLastPage}>
-        <ChevronRightCustomIcon color={isLastPage ? '#1A1C20' : 'black'} />
+        <ChevronRightCustomIcon color={isLastPage ? '#BABABA' : '#000000'} size={16}/>
       </button>
       {/* 다음 블록 (>>) */}
       <button onClick={handleNextBlock} disabled={isLastPage}>
-        <ChevronsRightCustomIcon color={isLastPage ? '#1A1C20' : 'black'} />
+        <ChevronsRightCustomIcon color={isLastPage ? '#1A1C20' : '#000000'} opacity={isLastPage ? 0.3 : 1} />
       </button>
 
       {/* 직접 페이지 이동 */}

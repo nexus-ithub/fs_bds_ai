@@ -1,5 +1,5 @@
 import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination } from "@repo/common";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
@@ -7,16 +7,18 @@ import { getAccessToken } from "../authutil";
 import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
 
 const COUNT_BUTTON = [
-  { value: '10', label: '10' },
-  { value: '20', label: '20' },
-  { value: '50', label: '50' },
+  { value: 10, label: '10' },
+  { value: 20, label: '20' },
+  { value: 50, label: '50' },
 ]
 
 export const BookmarkedBds = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>("");
-  const [selectedMenu, setSelectedMenu] = useState<string>("");
-  const [selectedCount, setSelectedCount] = useState<string>(COUNT_BUTTON[0].value);
   const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
+
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(COUNT_BUTTON[0].value);
 
   const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
 
@@ -27,9 +29,9 @@ export const BookmarkedBds = () => {
 
   const getBookmarkList = async() => {
     try {
-      const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id}});
-      console.log(response.data);
-      setBookmarkList(response.data);
+      const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
+      setBookmarkList(response.data.result);
+      setTotalCount(response.data.total);
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
     }
@@ -45,11 +47,18 @@ export const BookmarkedBds = () => {
   }
 
   useEffect(() => {
+    console.log("currentPage", currentPage)
+    console.log("pageSize", pageSize)
+    console.log("totalCount", totalCount)
     getBookmarkList();
-  }, [])
+  }, [pageSize, currentPage])
+
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: 'smooth'})
+  }, [currentPage])
 
   return (
-    <div className="w-[800px] flex flex-col gap-[16px] p-[40px] shrink-0">
+    <div className="w-[800px] flex flex-col gap-[16px] p-[40px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
@@ -85,8 +94,8 @@ export const BookmarkedBds = () => {
           {COUNT_BUTTON.map((item) => (
             <button
               key={item.value}
-              className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === selectedCount ? 'text-primary' : 'text-text-04'}`}
-              onClick={() => setSelectedCount(item.value)}
+              className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
+              onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
             >
               {item.label}
             </button>
@@ -95,7 +104,7 @@ export const BookmarkedBds = () => {
       </div>
       <div className="flex flex-col gap-[16px]">
         {bookmarkList.map((item) => (
-          <div className="w-full flex h-[220px] rounded-[8px] border border-line-03">
+          <div key={item.idx} className="w-full flex h-[220px] rounded-[8px] border border-line-03">
             <img
               className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
               src={item.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
@@ -149,9 +158,9 @@ export const BookmarkedBds = () => {
         ))}
       </div>
       <div className="w-full flex items-center justify-center py-[12px]">
-        <Pagination totalItems={100} itemsPerPage={10} currentPage={1} onPageChange={(page) => {}} toast={(msg) => {}}/>
+        <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
       </div>
-      <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false)}}/>
+      <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false);}}/>
     </div>
   )
 }

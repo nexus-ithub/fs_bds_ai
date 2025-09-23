@@ -99,8 +99,8 @@ export const Header = () => {
             <div className="flex flex-col gap-[12px]">
               <p className="font-s1 border-b border-line-03 py-[10px]">관심물건 관리</p>
               <div>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">빌딩샵 추천매물</span></MenuItem>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">저장된 관심물건</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/bookmarked-bds')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">빌딩샵 추천매물</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/bookmarked-report')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">저장된 관심물건</span></MenuItem>
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">

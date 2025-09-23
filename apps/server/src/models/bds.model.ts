@@ -209,16 +209,34 @@ export class BdsModel {
     }
   }
 
-  static async getBookmarkList(userId: string) {
+  static async getTotalBookmarked(userId: string) {
+    try {
+      const countRows = await db.query(
+        `SELECT COUNT(*) as total FROM bookmarked_bds WHERE user_id = ? AND delete_yn = 'N'`,
+        [userId]
+      );
+      const total = (countRows as any)[0].total;
+      return total;
+    } catch (err) {
+      console.error('Error getting total bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async getBookmarkList(userId: string, page: number, size: number) {
     try{
+      const total = await this.getTotalBookmarked(userId);
+      
       const result = await db.query(
         `SELECT bds_id as idx, sale_id as saleId, image_path as imagePath, memo, name, addr, plat_area as platArea, total_area as totalArea, sale_amount as saleAmount, sell_profit as sellProfit, build_value as buildValue
         FROM bookmarked_bds 
-        WHERE user_id = ? AND delete_yn = 'N'`,
-        [userId]
+        WHERE user_id = ? AND delete_yn = 'N'
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?`,
+        [userId, size, (page - 1) * size]
       );
 
-      return result;
+      return {total, result};
     } catch (err) {
       console.error('Error getting bookmark list:', err);
       throw err;

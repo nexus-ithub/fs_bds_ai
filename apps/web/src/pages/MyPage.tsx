@@ -4,14 +4,18 @@ import { Board } from "../support/Board";
 import { Terms } from "../support/Terms";
 import { Privacy } from "../support/Privacy";
 import { BoardDetail } from "../support/BoardDetail";
-import { CheckIcon, HDivider } from "@repo/common";
+import { CheckIcon, HDivider, type User } from "@repo/common";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
 import { BookmarkedReport } from "../myPage/BookmarkedReport";
+import useAxiosWithAuth from "../axiosWithAuth";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 interface MenuItemType {
   label: string;
@@ -91,6 +95,25 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 };
 
 export const MyPage = () => {
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
+  const [bdsCount, setBdsCount] = useState<number>(0);
+
+  const getTotalBookmarked = async () => {
+    try {
+      const response = await axiosWithAuth.get('/api/bds/total-bookmarked', {params: {userId: config?.id}});
+      setBdsCount(response.data);
+    } catch (error) {
+      console.error('Failed to fetch total bookmarked:', error);
+    }
+  }
+
+  useEffect(() => {
+    getTotalBookmarked();
+  }, [])
+
   return (
     <div className="flex">
       <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02">
@@ -107,16 +130,16 @@ export const MyPage = () => {
             <p className="font-s1">관심물건</p>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">빌딩샵 추천매물</p>
-              <p className="font-s2 text-text-02">8</p>
+              <p className="font-s2 text-text-02">{bdsCount}</p>
             </div>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">저장된 관심물건</p>
-              <p className="font-s2 text-text-02">12</p>
+              <p className="font-s2 text-text-02">12TODO</p>
             </div>
             <HDivider className="!border-b-line-02" dashed={true}/>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">생성한 AI 리포트</p>
-              <p className="font-s2 text-text-02">32</p>
+              <p className="font-s2 text-text-02">32TODO</p>
             </div>
           </div>
         </div>
