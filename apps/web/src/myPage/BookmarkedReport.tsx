@@ -1,5 +1,9 @@
-import { HDivider, MenuDropdown, SearchBar } from "@repo/common";
-import { useState } from "react";
+import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale } from "@repo/common";
+import { useEffect, useState } from "react";
+import useAxiosWithAuth from "../axiosWithAuth";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 const COUNT_BUTTON = [
   { value: '10', label: '10' },
@@ -8,9 +12,14 @@ const COUNT_BUTTON = [
 ]
 
 export const BookmarkedReport = () => {
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+      queryKey: [QUERY_KEY_USER, getAccessToken()]
+    })
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [selectedMenu, setSelectedMenu] = useState<string>("");
   const [selectedCount, setSelectedCount] = useState<string>(COUNT_BUTTON[0].value);
+  const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
 
   return (
     <div className="flex flex-col gap-[16px] p-[40px]">

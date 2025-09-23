@@ -24,7 +24,7 @@ export const BuildingDetailDialog = ({
 
   const addBookmark = async () => {
     try {
-      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building});
+      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building, deleteYn: isBookmarked ? 'Y' : 'N'});
       setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error(error);

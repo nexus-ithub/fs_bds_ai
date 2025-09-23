@@ -35,14 +35,26 @@ export const isBookmarked = async (req: AuthRequest, res: Response) => {
 
 export const addBookmark = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, building } = req.body as { 
+    const { userId, building, deleteYn } = req.body as { 
       userId: string; 
       building: BdsSale; 
+      deleteYn: string;
     };
-    await BdsModel.addBookmark(userId, building);
+    await BdsModel.addBookmark(userId, building, deleteYn);
     res.status(200).json({ message: '즐겨찾기 추가 성공' });
   } catch (err) {
     console.error('Add bookmark error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+export const getBookmarkList = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    const bookmarkList = await BdsModel.getBookmarkList(userId);
+    res.status(200).json(bookmarkList);
+  } catch (err) {
+    console.error('Get bookmark list error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }

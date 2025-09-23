@@ -173,15 +173,14 @@ export class BdsModel {
 
   static async isBookmarked(userId: string, bdsId: string): Promise<boolean> {
     try {
-      console.log(userId, bdsId)
       const [rows] = await db.query(
         `SELECT 1 
          FROM bookmarked_bds
-         WHERE user_id = ? AND bds_id = ? 
+         WHERE user_id = ? AND bds_id = ? AND delete_yn = 'N'
          LIMIT 1`,
         [userId, bdsId]
       ) as any;
-      
+
       return !!rows;
     } catch (err) {
       console.error('Error checking bookmarked:', err);
@@ -189,15 +188,39 @@ export class BdsModel {
     }
   }
 
-  static async addBookmark(userId: string, building: BdsSale) {
+  static async addBookmark(userId: string, building: BdsSale, deleteYn: string) {
     try {
-      await db.query(
-        `INSERT INTO bookmarked_bds (user_id, bds_id, sale_id, image_path, memo, name, addr, plat_area, total_area, sale_amount, sell_profit)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [userId, building.idx, building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit]
-      );
+      const [rows] = await db.query(`SELECT 1 FROM bookmarked_bds WHERE user_id = ? AND bds_id = ? LIMIT 1`, [userId, building.idx])
+      if(!!rows) {
+        await db.query(
+          `UPDATE bookmarked_bds SET sale_id = ?, image_path = ?, memo = ?, name = ?, addr = ?, plat_area = ?, total_area = ?, sale_amount = ?, sell_profit = ?, build_value = ?, delete_yn = ? WHERE user_id = ? AND bds_id = ?`,
+          [building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue, deleteYn, userId, building.idx]
+        );
+      } else{
+        await db.query(
+          `INSERT INTO bookmarked_bds (user_id, bds_id, sale_id, image_path, memo, name, addr, plat_area, total_area, sale_amount, sell_profit, build_value)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [userId, building.idx, building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue]
+        );
+      }
     } catch (err) {
       console.error('Error adding bookmark:', err);
+      throw err;
+    }
+  }
+
+  static async getBookmarkList(userId: string) {
+    try{
+      const result = await db.query(
+        `SELECT bds_id as idx, sale_id as saleId, image_path as imagePath, memo, name, addr, plat_area as platArea, total_area as totalArea, sale_amount as saleAmount, sell_profit as sellProfit, build_value as buildValue
+        FROM bookmarked_bds 
+        WHERE user_id = ? AND delete_yn = 'N'`,
+        [userId]
+      );
+
+      return result;
+    } catch (err) {
+      console.error('Error getting bookmark list:', err);
       throw err;
     }
   }

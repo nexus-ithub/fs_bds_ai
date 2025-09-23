@@ -1,5 +1,9 @@
-import { HDivider, MenuDropdown, SearchBar, Pagination } from "@repo/common";
-import { useState } from "react";
+import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination } from "@repo/common";
+import { useEffect, useState } from "react";
+import useAxiosWithAuth from "../axiosWithAuth";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 const COUNT_BUTTON = [
   { value: '10', label: '10' },
@@ -11,10 +15,41 @@ export const BookmarkedBds = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [selectedMenu, setSelectedMenu] = useState<string>("");
   const [selectedCount, setSelectedCount] = useState<string>(COUNT_BUTTON[0].value);
+  const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
+
+  const [openCounselModal, setOpenCounselModal] = useState<boolean>(false);
+
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+      queryKey: [QUERY_KEY_USER, getAccessToken()]
+    })
+
+  const getBookmarkList = async() => {
+    try {
+      const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id}});
+      console.log(response.data);
+      setBookmarkList(response.data);
+    } catch (error) {
+      console.error('Failed to fetch bookmark list:', error);
+    }
+  }
+
+  const cancelBookmark = async (item: BdsSale) => {
+    try {
+      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building: item, deleteYn: 'Y'});
+      getBookmarkList();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    getBookmarkList();
+  }, [])
 
   return (
-    <div className="flex flex-col gap-[16px] p-[40px]">
-      <div className="flex flex-col gap-[4px]">
+    <div className="w-[800px] flex flex-col gap-[16px] p-[40px] shrink-0">
+      <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
       </div>
@@ -29,7 +64,7 @@ export const BookmarkedBds = () => {
             prefixSize={14}
             className="font-b3 px-[8px] py-[6px]"
           />
-          <div className="flex items-center gap-[8px]">
+          {/* <div className="flex items-center gap-[8px]">
             <p className="font-s3 text-text-03">지역</p>
             <MenuDropdown 
               options={[
@@ -43,13 +78,13 @@ export const BookmarkedBds = () => {
               onChange={(value) => {setSelectedMenu(value)}}
               placeholder="전체"
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
           {COUNT_BUTTON.map((item) => (
             <button
               key={item.value}
-              className={`p-[7px] font-s2 ${item.value === selectedCount ? 'text-primary' : 'text-text-04'}`}
+              className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === selectedCount ? 'text-primary' : 'text-text-04'}`}
               onClick={() => setSelectedCount(item.value)}
             >
               {item.label}
@@ -57,11 +92,64 @@ export const BookmarkedBds = () => {
           ))}
         </div>
       </div>
-      <div>
-        매물 리스트
+      <div className="flex flex-col gap-[16px]">
+        {bookmarkList.map((item) => (
+          <div className="w-full flex h-[220px] rounded-[8px] border border-line-03">
+            <img
+              className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+              src={item.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
+            <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
+              <div className="flex flex-col gap-[8px]">
+                <div className="flex items-center justify-between gap-[8px]">
+                  <p className="font-s1-p">{item.name || '-'}</p>
+                  <div className="flex items-center gap-[8px]">
+                    <button className="flex items-center gap-[6px]" onClick={() => {setOpenCounselModal(true)}}>
+                      <p className="font-s4 text-primary">매입 상담 요청</p>
+                      <CounselIcon/>
+                    </button>
+                    <VDivider colorClassName="bg-line-03 !h-[12px]"/>
+                    <button onClick={() => {cancelBookmark(item)}}>
+                      <BookmarkFilledIcon/>
+                    </button>
+                  </div>
+                </div>
+                <p className="font-s1-p">{getShortAddress(item.addr)}</p>
+                <div className="flex items-center gap-[12px]">
+                  <div className="flex-1 flex items-center justify-between gap-[6px]">
+                    <p className="w-[44px] font-s4 text-text-03">대지면적</p>
+                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.platArea)}</p>
+                  </div>
+                  <VDivider colorClassName="bg-line-03"/>
+                  <div className="flex-1 flex items-center justify-between gap-[6px]">
+                    <p className="w-[44px] font-s4 text-text-03">연면적</p>
+                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.totalArea)}</p>
+                  </div>        
+                </div>
+              </div>
+              <div className="flex items-center gap-[8px] px-[8px] py-[12px] border border-line-02 rounded-[4px]">
+                <div className="flex-1 flex flex-col items-center gap-[8px]">
+                  <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">매매가</p>
+                  <p className="font-h2-p text-primary">{krwUnit(item.saleAmount * 10000, true)}</p>
+                </div>
+                <VDivider className="h-[76px]"/>
+                <div className="flex-1 flex flex-col items-center gap-[8px]">
+                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">수익률</p>
+                  <p className="font-h2-p">{item.sellProfit ? (Number(item.sellProfit)).toFixed(1) + '%' : '-'}</p>
+                </div>
+                <VDivider className="h-[76px]"/>
+                <div className="flex-1 flex flex-col items-center gap-[8px]">
+                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">가치평가점수</p>
+                  <p className="font-h2-p">{item.buildValue ? Number(item.buildValue).toFixed(0) + '점' : '-'}</p>
+                </div>        
+              </div>
+  
+            </div>
+          </div>
+        ))}
       </div>
-      {/* <div><Pagination totalItems={100} itemsPerPage={10} currentPage={1} onPageChange={(page) => {}} toast={(msg) => {}}/></div> */}
-      <div>페이지네이션</div>
+      <div className="w-full flex items-center justify-center py-[12px]">
+        <Pagination totalItems={100} itemsPerPage={10} currentPage={1} onPageChange={(page) => {}} toast={(msg) => {}}/>
+      </div>
     </div>
   )
 }
