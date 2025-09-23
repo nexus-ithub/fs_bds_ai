@@ -12,6 +12,7 @@ export * from './searchbar';
 export * from './switch';
 export * from './menudropdown';
 export * from './pagination';
+export * from './checkbox';
 
 export * from './types/land';
 export * from './types/user';

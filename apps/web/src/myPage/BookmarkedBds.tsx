@@ -4,6 +4,7 @@ import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
+import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
 
 const COUNT_BUTTON = [
   { value: '10', label: '10' },
@@ -17,7 +18,7 @@ export const BookmarkedBds = () => {
   const [selectedCount, setSelectedCount] = useState<string>(COUNT_BUTTON[0].value);
   const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
 
-  const [openCounselModal, setOpenCounselModal] = useState<boolean>(false);
+  const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
 
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
@@ -103,7 +104,7 @@ export const BookmarkedBds = () => {
                 <div className="flex items-center justify-between gap-[8px]">
                   <p className="font-s1-p">{item.name || '-'}</p>
                   <div className="flex items-center gap-[8px]">
-                    <button className="flex items-center gap-[6px]" onClick={() => {setOpenCounselModal(true)}}>
+                    <button className="flex items-center gap-[6px]" onClick={() => {setOpenCounselDialog(true)}}>
                       <p className="font-s4 text-primary">매입 상담 요청</p>
                       <CounselIcon/>
                     </button>
@@ -150,6 +151,7 @@ export const BookmarkedBds = () => {
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={100} itemsPerPage={10} currentPage={1} onPageChange={(page) => {}} toast={(msg) => {}}/>
       </div>
+      <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false)}}/>
     </div>
   )
 }
