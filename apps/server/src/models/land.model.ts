@@ -6,7 +6,18 @@ import { LandInfo, PolygonInfo } from '@repo/common';
 export class LandModel {
 
   
-  static async findPolygonByLatLng(lat: number, lng: number): Promise<PolygonInfo | null> {
+  static async findPolygon(id: string, lat: number, lng: number): Promise<PolygonInfo | null> {
+
+    let where = '';
+    let params = [];
+    if(id){
+      where = 'address_polygon.id = ?';
+      params.push(id);
+    }else if(lat && lng){
+      where = `ST_CONTAINS(address_polygon.polygon, GeomFromText('Point(${lng} ${lat})'))`;
+      params.push(lng, lat);
+    }
+
     try { 
       const polygon = await db.query<PolygonInfo>(
         `SELECT 
@@ -14,11 +25,12 @@ export class LandModel {
           address_polygon.leg_dong_code as legDongCode,
           address_polygon.leg_dong_name as legDongName,
           address_polygon.jibun as jibun,
+          address_polygon.lat as lat,
+          address_polygon.lng as lng,
           address_polygon.polygon
       FROM address_polygon AS address_polygon
-      WHERE ST_CONTAINS(address_polygon.polygon, GeomFromText('Point(? ?)'))
-      GROUP BY address_polygon.id`,
-        [lng, lat]
+      WHERE ${where}`,
+        params
       )
       return polygon[0] || null;
     } catch (error) {
@@ -132,6 +144,7 @@ export class LandModel {
       GROUP BY land_info.id`,
         [id]
       )
+      console.log(lands)
       return lands[0] || null;
     } catch (error) {
       console.error('Error finding land by lat and lng:', error);

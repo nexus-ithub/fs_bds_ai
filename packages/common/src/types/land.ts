@@ -26,6 +26,8 @@ export interface PolygonInfo {
   legDongCode: string;
   legDongName: string;
   jibun: string;
+  lat: number;
+  lng: number;
   polygon: Coords[] | Coords[][];
 }
 

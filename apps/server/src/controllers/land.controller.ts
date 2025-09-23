@@ -87,14 +87,15 @@ const ESTIMATE_REFERENCE_YEAR = 2;
 
 export const getPolygonInfo = async (req: AuthRequest, res: Response) => {
   try {
-    const { lat, lng, } = req.query;
-    if (!lat || !lng) {
+    const { id, lat, lng, } = req.query;
+    console.log(req.query)
+    if (!id && (!lat || !lng)) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
     
-    const polygon = await LandModel.findPolygonByLatLng(Number(lat), Number(lng));
+    const polygon = await LandModel.findPolygon(id as string, Number(lat), Number(lng));
     if (!polygon) {
-      return res.status(404).json({ message: '폴리곤을 찾을 수 없습니다.' });
+      return res.status(404).json({ message: '위치를 찾을수 없습니다.' });
     }
 
     res.status(200).json(polygon);
@@ -154,11 +155,11 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
     for(let i = 0; i < 4; i++) {
       const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
       const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
-      console.log('distance', distance)
-      console.log('year', year)
+      // console.log('distance', distance)
+      // console.log('year', year)
       const estimatedValues = await LandModel.calcuateEstimatedPrice(id as string, distance, year);
       
-      console.log('estimatedValues', estimatedValues)
+      // console.log('estimatedValues', estimatedValues)
       summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
       if(summary){
         if(summary.avg_ratio_to_official){

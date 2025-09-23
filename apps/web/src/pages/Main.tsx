@@ -2,7 +2,7 @@
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
 import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice } from "@repo/common";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
@@ -10,6 +10,7 @@ import { loadMapState, saveMapState } from "../utils";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
+import { SearchBar } from "../search/SearchBar";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -23,10 +24,11 @@ export default function Main() {
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
   const [mapTypeId, setMapTypeId] = useState<'ROADMAP' | 'SKYVIEW' | 'USE_DISTRICT'>('ROADMAP');
-  // const mapRef = useRef<any>(null);
+  const mapRef = useRef<any>(null);
   
   const [roadViewCenter, setRoadViewCenter] = useState<{ lat: number, lng: number, pan: number } | null>(null);
   const [level, setLevel] = useState<number>(defaultMapState.level);
+  const [center, setCenter] = useState<LatLng>({ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng });
   const [mousePosition, setMousePosition] = useState<LatLng>({ lat: 0, lng: 0 });
 
   const [isDrawingArea, setIsDrawingArea] = useState<boolean>(false);
@@ -57,8 +59,9 @@ export default function Main() {
   const [openVideoMiniPlayer, setOpenVideoMiniPlayer] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
 
-  const getPolygon = (lat: number, lng: number) => {
-    axiosInstance.get(`/api/land/polygon?lat=${lat}&lng=${lng}`)
+  const getPolygon = ({id, lat, lng, changePosition = false}: {id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean}) => {
+    const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
+    axiosInstance.get(url)
       .then((response) => {
         // console.log(response.data);.
         const polygon = response.data as PolygonInfo;
@@ -68,14 +71,23 @@ export default function Main() {
         getLandInfo(polygon.id);
         getBuildingList(polygon.legDongCode, polygon.jibun);
         getEstimatedPrice(polygon.id);
-        getBusinessDistrict(lat, lng);
-        getPlace(lat, lng);
+        getBusinessDistrict(polygon.lat, polygon.lng);
+        getPlace(polygon.lat, polygon.lng);
+        console.log('changePosition', changePosition, polygon.lat, polygon.lng);
+        if(changePosition){
+          console.log('setCenter', polygon.lat, polygon.lng);
+          setCenter({ lat: polygon.lat, lng: polygon.lng });
+          console.log('setLevel', polygon.lat, polygon.lng);
+          setLevel(2);
+          saveMapState(polygon.lat, polygon.lng, 2);
+        }
       })
       .catch((error) => {
         console.error(error);
       });
   }
 
+  
   const getLandInfo = (id: string) => {
     axiosInstance.get(`/api/land/info?id=${id}`)
       .then((response) => {
@@ -191,7 +203,7 @@ export default function Main() {
       </div>
       <div className="flex-1 h-full">
         <Map
-          // ref={mapRef}
+          ref={mapRef}
           mapTypeId={mapTypeId}
           onClick={(_, mouseEvent) => {
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
@@ -223,10 +235,10 @@ export default function Main() {
               setIsDrawingDistance(true);
               setShowDistanceOverlay(true);
             } else {
-              getPolygon(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
+              getPolygon({lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng()});
             }
           }}
-          center={{ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng }}
+          center={center}
           level={level}
           onCenterChanged={(map) => {
             // console.log(map.getCenter().getLat(), map.getCenter().getLng());
@@ -337,11 +349,18 @@ export default function Main() {
             setDistanceLines={setDistanceLines}
           />
         </Map>
+        
         <MapToolbar
           mapType={mapType}
           changeMapType={changeMapType}
           level={level}
           setLevel={setLevel}
+        />
+        <SearchBar 
+          onSelect={(id) => {
+            console.log('onSelect', id);
+            getPolygon({id, changePosition: true});
+          }}
         />
         {roadViewCenter && (
           <RoadViewOverlay
