@@ -7,7 +7,7 @@ import { Building } from "./Building";
 import { X } from "lucide-react";
 import { BusinessDistrict } from "./BusinessDistrict";
 import { Place } from "./Place";
-import { CompanyInfo } from "./CompanyInfo";
+import { CompanyInfo } from "../footer/CompanyInfo";
 import { format } from "date-fns";
 
 const TABS = [

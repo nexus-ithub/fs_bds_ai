@@ -2,8 +2,8 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'default' | 'outline';
-  size?: 'default';
+  variant?: 'default' | 'outline' | 'bggray';
+  size?: 'default' | 'medium';
   fontSize?: string;
 }
 
@@ -20,11 +20,13 @@ export function Button({
   const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
     default: 'border border-[1px] border-primary bg-primary text-white hover:bg-primary/90',
     outline: 'border border-[1px] border-primary text-primary hover:bg-primary/10',
+    bggray: 'bg-surface-third',
   };
   
 
   const sizes = {
     default: 'py-[8px] px-[12px]',
+    medium: 'py-[14px] px-[12px]',
   };
 
   const variantStyles = variants[variant];

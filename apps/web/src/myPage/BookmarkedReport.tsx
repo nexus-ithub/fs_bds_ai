@@ -1,5 +1,9 @@
-import { HDivider, MenuDropdown, SearchBar } from "@repo/common";
-import { useState } from "react";
+import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale } from "@repo/common";
+import { useEffect, useState } from "react";
+import useAxiosWithAuth from "../axiosWithAuth";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 const COUNT_BUTTON = [
   { value: '10', label: '10' },
@@ -7,16 +11,21 @@ const COUNT_BUTTON = [
   { value: '50', label: '50' },
 ]
 
-export const Recommend = () => {
+export const BookmarkedReport = () => {
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+      queryKey: [QUERY_KEY_USER, getAccessToken()]
+    })
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [selectedMenu, setSelectedMenu] = useState<string>("");
   const [selectedCount, setSelectedCount] = useState<string>(COUNT_BUTTON[0].value);
+  const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
 
   return (
     <div className="flex flex-col gap-[16px] p-[40px]">
       <div className="flex flex-col gap-[4px]">
-        <h2 className="font-h2">빌딩샵 추천매물</h2>
-        <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
+        <h2 className="font-h2">관심물건 관리</h2>
+        <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>
       </div>
       <HDivider className="!border-b-line-02"/>
       <div className="flex items-center justify-between">
@@ -27,7 +36,7 @@ export const Recommend = () => {
             onChange={setSearchKeyword}
             variant="filled"
             prefixSize={14}
-            className="font-b3"
+            className="font-b3 px-[8px] py-[6px]"
           />
           <div className="flex items-center gap-[8px]">
             <p className="font-s3 text-text-03">지역</p>

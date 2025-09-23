@@ -1,10 +1,17 @@
 import { Avatar } from "@mui/material";
 import { ChevronRightCustomIcon, HDivider, Switch } from "@repo/common";
 import { useState } from "react";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import type { User } from "@repo/common";
+import { getAccessToken } from "../authutil";
 
 export const Profile = () => {
-  const [email, setEmail] = useState<string | null>(null);
-  const [name, setName] = useState<string | null>(null);
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
+  const [email, setEmail] = useState<string>(config?.email ?? "");
+  const [name, setName] = useState<string>(config?.name ?? "");
   const [phone, setPhone] = useState<string | null>(null);
   const [login, setLogin] = useState(null);
   const [alarm, setAlarm] = useState<boolean>(false);
@@ -16,20 +23,20 @@ export const Profile = () => {
           <div className="flex flex-col items-center gap-[12px]">
             <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 64, height: 64 }}/>
             <div className="flex flex-col items-center gap-[4px]">
-              <p><span className="font-s1-p mr-[4px]">김이름</span><span className="font-s1 text-text-02">고객님</span></p>
-              <p className="font-s1-p">admin@jungin.com</p>
+              <p><span className="font-s1-p mr-[4px]">{name}</span><span className="font-s1 text-text-02">고객님</span></p>
+              <p className="font-s1-p">{email}</p>
             </div>
           </div>
           <HDivider/>
           <div className="flex flex-col gap-[20px]">
             <div className="flex flex-col gap-[12px]">
               <p className="font-s2">이메일</p>
-              <div className="py-[12px] font-b1 text-text-05 border-b border-line-03">{email ?? "이메일 넣어줘야됨(수정불가)"}</div>
+              <div className="py-[12px] font-b1 text-text-05 border-b border-line-03">{email}</div>
             </div>
             <div className="flex flex-col gap-[12px]">
               <p className="font-s2 text-text-02">고객명</p>
               <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${name ? "border-line-04" : "border-line-03"}`}>
-                <p>{name ?? "이름(수정가능)"}</p>
+                <p>{name}</p>
                 <ChevronRightCustomIcon size={16} />
               </div>
             </div>

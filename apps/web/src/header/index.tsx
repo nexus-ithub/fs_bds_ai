@@ -1,7 +1,11 @@
 import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown } from "@repo/common"
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, MenuItem, IconButton, Avatar, Typography, Box, Divider } from "@mui/material";
+import { Menu, MenuItem, IconButton, Avatar } from "@mui/material";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import type { User } from "@repo/common";
+import { getAccessToken } from "../authutil";
 
 const SUPPORT_MENU = [
   {
@@ -25,6 +29,9 @@ const SUPPORT_MENU = [
 export const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
   const isSupportPage = location.pathname.startsWith("/support");
 
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
@@ -34,7 +41,9 @@ export const Header = () => {
   return (
     <div className={`min-w-[1440px] px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px] h-[64px]">
-        <BuildingShopBIText/>
+        <button onClick={() => navigate("/main")}>
+          <BuildingShopBIText />
+        </button>
         {isSupportPage && (
           <>
             <span className="font-s1-p mr-[8px] cursor-pointer" onClick={() => navigate("/support")}>고객센터</span>
@@ -59,7 +68,7 @@ export const Header = () => {
             <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 24, height: 24 }}/>
           </IconButton>
           <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
-            <span className="font-s2-p">김이름</span>
+            <span className="font-s2-p">{config?.name}</span>
             <span className="font-s2 text-text-02">고객님</span>
           </p>
         </div>
@@ -97,8 +106,8 @@ export const Header = () => {
             <div className="flex flex-col gap-[12px]">
               <p className="font-s1 border-b border-line-03 py-[10px]">관심물건 관리</p>
               <div>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">빌딩샵 추천매물</span></MenuItem>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">저장된 관심물건</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/bookmarked-bds')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">빌딩샵 추천매물</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/bookmarked-report')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">저장된 관심물건</span></MenuItem>
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">
