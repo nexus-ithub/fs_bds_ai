@@ -61,7 +61,7 @@ export interface SearchBarProps {
   onSelect: (id: string) => void;
 }
 
-const validPattern = /^[가-힣0-9a-zA-Z\s]+$/;
+const validPattern = /^[가-힣0-9a-zA-Z\s-]+$/;
 
 export const SearchBar = ({onSelect}: SearchBarProps) => {
 
@@ -238,19 +238,19 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         setHighlightedIndex(-1)
         inputRef.current?.blur()
         break;
-      case 'ArrowDown':
+      case 'ArrowDown': {
         const list = query ? results : recent;
-        setHighlightedIndex((prev) =>
-          prev < list.length - 1 ? prev + 1 : prev
-        );
-        scrollToHighlighted(highlightedIndex);
-     
+        const newIndex = highlightedIndex < list.length - 1 ? highlightedIndex + 1 : highlightedIndex;
+        setHighlightedIndex(newIndex);
+        scrollToHighlighted(newIndex);
         break;
-      case 'ArrowUp':
+      }
+      case 'ArrowUp': {
         console.log('ArrowUp')
         setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         scrollToHighlighted(highlightedIndex);
         break;
+      }
       case 'Enter':
         if (highlightedIndex >= 0) {
           const list = query ? results : recent;
