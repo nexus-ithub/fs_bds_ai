@@ -253,7 +253,8 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         break;
       case 'Enter':
         if (highlightedIndex >= 0) {
-          onSelectResult(results[highlightedIndex])
+          const list = query ? results : recent;
+          onSelectResult(list[highlightedIndex])
         }
         break;
       default:

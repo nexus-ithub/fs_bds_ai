@@ -63,6 +63,8 @@ export default function Main() {
   const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
 
   const getPolygon = ({id, lat, lng, changePosition = false}: {id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean}) => {
+    setOpenAIReport(false);
+
     const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
     axiosInstance.get(url)
       .then((response) => {
