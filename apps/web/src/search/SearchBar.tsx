@@ -1,4 +1,4 @@
-import { FilterIcon, SearchIcon, Switch, VDivider, type SearchResult } from "@repo/common"
+import { CloseIcon, FilterIcon, SearchIcon, Switch, VDivider, type SearchResult } from "@repo/common"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import debounce from "lodash/debounce";
 import useAxiosWithAuth from "../axiosWithAuth";
@@ -6,6 +6,56 @@ import { CircularProgress, Menu } from "@mui/material";
 
 
 const DEBOUNCE_DELAY = 300
+const STORAGE_KEY = "recentSelectedSearch";
+const MAX_ITEMS = 30;
+
+
+function loadRecent(): SearchResult[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as SearchResult[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+// 맨 앞 삽입(중복 제거), 최대 개수 제한
+function upsertFront(list: SearchResult[], item: SearchResult): SearchResult[] {
+  const withoutDup = list.filter((x) => x.id !== item.id);
+  return [item, ...withoutDup].slice(0, MAX_ITEMS);
+}
+
+function useRecentSelections() {
+  const [recent, setRecent] = useState<SearchResult[]>([]);
+
+  useEffect(() => {
+    setRecent(loadRecent());
+  }, []);
+
+  const push = (item: SearchResult) => {
+    setRecent((prev) => {
+      const updated = upsertFront(prev, item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clear = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setRecent([]);
+  };
+
+  const removeById = (id: string) => {
+    setRecent((prev) => {
+      const updated = prev.filter((x) => x.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  return { recent, push, clear, removeById };
+}
+
 
 export interface SearchBarProps {
   onSelect: (id: string) => void;
@@ -15,23 +65,48 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const { recent, push, clear, removeById } = useRecentSelections();
   const axiosInstance = useAxiosWithAuth()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isKeyboardNav, setIsKeyboardNav] = useState(false); // 키보드로 이동 중 여부
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const recentContainerRef = useRef<HTMLDivElement>(null);
+
   const scrollToHighlighted = (highlightedIndex: number) => {
-    if (containerRef.current && highlightedIndex >= 0) {
-      const element = containerRef.current.querySelector(
+    const ref = query ? containerRef : recentContainerRef;
+
+    if (ref && highlightedIndex >= 0) {
+      const element = ref.current.querySelector(
         `[data-index="${highlightedIndex}"]`
       );
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+
+    // if(query) {
+    //   if (containerRef.current && highlightedIndex >= 0) {
+    //     const element = containerRef.current.querySelector(
+    //       `[data-index="${highlightedIndex}"]`
+    //     );
+    //     if (element) {
+    //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //     }
+    //   }
+    // }else{
+    //   if (recentContainerRef.current && highlightedIndex >= 0) {
+    //     const element = recentContainerRef.current.querySelector(
+    //       `[data-index="${highlightedIndex}"]`
+    //     );
+    //     if (element) {
+    //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //     }
+    //   }
+    // }
   };
 
 
@@ -87,18 +162,21 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         inputRef.current?.blur()
         break;
       case 'ArrowDown':
+        const list = query ? results : recent;
         setHighlightedIndex((prev) =>
-          prev < results.length - 1 ? prev + 1 : prev
+          prev < list.length - 1 ? prev + 1 : prev
         );
         scrollToHighlighted(highlightedIndex);
+     
         break;
       case 'ArrowUp':
+        console.log('ArrowUp')
         setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         scrollToHighlighted(highlightedIndex);
         break;
       case 'Enter':
         if (highlightedIndex >= 0) {
-          onSelectResult(results[highlightedIndex].id)
+          onSelectResult(results[highlightedIndex])
         }
         break;
       default:
@@ -106,13 +184,14 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
     }
   };
 
-  const onSelectResult = (id: string) => {
-    onSelect(id)
+  const onSelectResult = (searchResult: SearchResult) => {
+    onSelect(searchResult.id)
     setMenuAnchorEl(null)
     setQuery('')
     setResults([])
     setHighlightedIndex(-1)
     inputRef.current?.blur()
+    push(searchResult);
   }
 
   const getClientPoint = (evt: any): { x: number; y: number } | null => {
@@ -219,7 +298,44 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
                   </div>
                 ) : ( 
                 !query ? (
-                  <p className="px-[12px] py-[4px]">최근검색</p>
+                  <div>
+                    <p className="px-[12px] py-[4px] text-primary">최근검색</p>
+                    <div 
+                      ref={recentContainerRef} 
+                      onMouseMove={()=> {
+                        if (isKeyboardNav) setIsKeyboardNav(false);
+                      }}
+                      className="flex flex-col w-full overflow-y-auto divide-y divide-line-03 text-text-02">
+                        {
+                          recent.map((result, index) => (
+                            <button
+                              onClick={() => {
+                                onSelectResult(result)
+                              }} 
+                              onMouseEnter={() => {
+                                if (!isKeyboardNav) {
+                                  setHighlightedIndex(index);
+                                }
+                              }}
+                              data-index={index} 
+                              key={result.id} className={`text-start flex px-[12px] py-[3px] ${index === highlightedIndex ? 'bg-primary-010' : ''} border-b-[1px] border-b-line-03`}>
+                                <div className="flex-1">
+                                  <p className="py-[2px]">{result.jibun || ''}</p>
+                                  <p className="py-[2px]">{(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}</p>
+                                </div>
+                                <button
+                                  onClick={(e)=> {
+                                    e.stopPropagation()
+                                    removeById(result.id)
+                                  }}
+                                  >
+                                  <CloseIcon/>
+                                </button>
+                            </button>
+                        ))
+                        }
+                    </div>
+                  </div>
                 ) : (
                   results.length === 0 ? (
                     <p className="px-[12px] py-[4px]"> "{query}" 에 대한 검색 결과가 없습니다.</p>
@@ -233,12 +349,7 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
                       {results.map((result, index) => (
                         <button
                           onClick={() => {
-                            console.log('onClick  ', result)
-                            // onSelect(result.id)
-                            // setMenuAnchorEl(null)
-                            // setQuery('')
-                            // setResults([])
-                            onSelectResult(result.id)
+                            onSelectResult(result)
                           }} 
                           onMouseEnter={() => {
                             if (!isKeyboardNav) {
