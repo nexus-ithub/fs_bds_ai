@@ -144,7 +144,7 @@ export class LandModel {
       GROUP BY land_info.id`,
         [id]
       )
-      console.log(lands)
+      // console.log(lands)
       return lands[0] || null;
     } catch (error) {
       console.error('Error finding land by lat and lng:', error);
@@ -268,7 +268,7 @@ export class LandModel {
   // }
 
 
-  static async calcuateEstimatedPrice(id: string, referenceDistance: number, referenceYear: number): Promise<any | null> {
+  static async calcuateEstimatedPrice(id: string, referenceDistance: number, referenceYear: number, checkUsage: boolean = true): Promise<any | null> {
     try {
       const results = await db.query(`
         -- 조회할 대상 id
@@ -319,7 +319,7 @@ export class LandModel {
           WHERE b.position IS NOT NULL
             AND ST_Distance_Sphere(POINT(base.lng, base.lat), b.position) <= ${referenceDistance}
             AND b.price IS NOT NULL AND b.price <> ''
-            AND b.usage_name = base.usage1_name
+            ${checkUsage ? 'AND b.usage_name = base.usage1_name' : ''}
             AND b.land_area IS NOT NULL AND b.land_area > 0
             AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${referenceYear} YEAR)
             AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
@@ -344,7 +344,7 @@ export class LandModel {
           WHERE l.position IS NOT NULL
             AND ST_Distance_Sphere(POINT(base.lng, base.lat), l.position) <= ${referenceDistance}
             AND l.price IS NOT NULL AND l.price <> ''
-            AND l.usage_name = base.usage1_name
+            ${checkUsage ? 'AND l.usage_name = base.usage1_name' : ''}
             AND l.area IS NOT NULL AND l.area > 0
             AND l.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${referenceYear} YEAR)
             AND (l.cancel_yn != 'O' OR l.cancel_yn IS NULL)

@@ -141,6 +141,8 @@ export const getBuildingList = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const MAX_CHECK = 4;
+
 export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.query;
@@ -152,14 +154,18 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
 
     let summary = null;
     let finalRatio = null;
-    for(let i = 0; i < 4; i++) {
+    for(let i = 0; i < MAX_CHECK; i++) {
       const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
       const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
-      // console.log('distance', distance)
-      // console.log('year', year)
-      const estimatedValues = await LandModel.calcuateEstimatedPrice(id as string, distance, year);
+      const checkUsage = (i !== (MAX_CHECK - 1));
+
+      const estimatedValues = await LandModel.calcuateEstimatedPrice(id as string, distance, year, checkUsage);
+
+      console.log('estimatedValues', estimatedValues)
+      console.log('distance', distance)
+      console.log('year', year)
+      console.log('checkUsage', checkUsage)
       
-      // console.log('estimatedValues', estimatedValues)
       summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
       if(summary){
         if(summary.avg_ratio_to_official){
@@ -193,9 +199,9 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
       const adjusted = summary.avg_ratio_to_official * adjustFactor
       per = Math.floor(adjusted * 10) / 10;
       estimatedPrice = Math.floor(summary.target_official_price_per_m2 * per * summary.target_area_m2)
-      console.log('finalRatio', finalRatio)
-      console.log('per', per)
-      console.log('estimatedPrice', estimatedPrice)
+      // console.log('finalRatio', finalRatio)
+      // console.log('per', per)
+      // console.log('estimatedPrice', estimatedPrice)
     }else{
       if(summary){
         estimatedPrice = summary.target_official_price_per_m2 * 3.0 * summary.target_area_m2;
