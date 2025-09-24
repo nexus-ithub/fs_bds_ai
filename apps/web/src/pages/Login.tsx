@@ -4,7 +4,6 @@ import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
 import { BuildingShopBI, Checkbox, FacebookLogo, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
-import { Signup } from '../myPage/Signup';
 
 interface LoginResponse {
   id: string;
@@ -21,8 +20,6 @@ export default function Login() {
   const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
-
-  const [openSignup, setOpenSignup] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +145,7 @@ export default function Login() {
               <VDivider colorClassName="bg-line-04"/>
               <button>비밀번호 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => {setOpenSignup(true)}}>회원가입</button>
+              <button onClick={() => navigate('/signup')}>회원가입</button>
             </div>
           </div>
           <div className="flex flex-col gap-[28px]">
@@ -169,7 +166,6 @@ export default function Login() {
           {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
         </div>
       </div>
-      <Signup open={openSignup} onClose={() => setOpenSignup(false)}/>
     </div>
   );
 }

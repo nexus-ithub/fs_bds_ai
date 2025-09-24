@@ -1,34 +1,22 @@
-import { Dialog } from "@mui/material"
-import { Button, Checkbox, ChevronDownCustomIcon, ChevronRightCustomIcon, HDivider } from "@repo/common"
+import { Dialog } from "@mui/material";
+import { Button, Checkbox, ChevronDownCustomIcon, ChevronRightCustomIcon, CloseIcon, HDivider } from "@repo/common"
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { TermsContent } from "../support/Terms";
 
-export const Signup = ({open, onClose}: {open: boolean, onClose: () => void}) => {
+export const SignupTerms = () => {
+  const navigate = useNavigate();
   const [serviceAgree, setServiceAgree] = useState<boolean>(false);
   const [privacyAgree, setPrivacyAgree] = useState<boolean>(false);
   const [marketingEmailAgree, setMarketingEmailAgree] = useState<boolean>(false);
   const [marketingSmsAgree, setMarketingSmsAgree] = useState<boolean>(false);
   const [openMarketingAgree, setOpenMarketingAgree] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (open) {
-      setServiceAgree(false);
-      setPrivacyAgree(false);
-      setMarketingEmailAgree(false);
-      setMarketingSmsAgree(false);
-      setOpenMarketingAgree(false);
-    }
-  }, [open]);
+  const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={(event, reason) => {
-        if (reason === 'backdropClick') return;
-        if (reason === 'escapeKeyDown') return;
-        onClose();
-      }}
-    >
-      <div className="w-[360px] flex flex-col gap-[24px] p-[32px]">
+    <div className="flex h-screen items-center justify-center">
+      <div className="w-[360px] flex flex-col gap-[24px] p-[32px] rounded-[8px] border border-line-02 shadow-[0_20px_40px_0_rgba(0,0,0,0.06)]">
         <div className="flex flex-col items-center gap-[6px]">
           <h2 className="font-h2">서비스 약관동의</h2>
           <p className="font-s2 text-text-02">빌딩샵 사용을 위한 약관 동의가 필요해요</p>
@@ -54,7 +42,7 @@ export const Signup = ({open, onClose}: {open: boolean, onClose: () => void}) =>
               onChange={(checked) => {
                 setServiceAgree(checked);
               }}/>
-            <button className="w-[14px] h-[14px] flex items-center justify-center">
+            <button className="w-[14px] h-[14px] flex items-center justify-center" onClick={() => {setOpenServiceTerms(true)}}>
               <ChevronRightCustomIcon/>
             </button>
           </div>
@@ -108,14 +96,14 @@ export const Signup = ({open, onClose}: {open: boolean, onClose: () => void}) =>
         </div>
         <div className="flex items-center gap-[12px]">
           <Button
-            onClick={onClose}
+            onClick={() => navigate('/login')}
             variant="bggray"
             size="medium"
             fontSize="font-h4"
             className="w-[80px]"
           >취소</Button>
           <Button
-            onClick={onClose}
+            onClick={() => navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})}
             variant="default"
             size="medium"
             fontSize="font-h4"
@@ -126,9 +114,38 @@ export const Signup = ({open, onClose}: {open: boolean, onClose: () => void}) =>
         <HDivider className="!border-b-line-02"/>
         <div className="flex items-center gap-[12px] mt-[8px] mx-auto">
           <p className="font-s2 text-text-03">이미 회원이세요?</p>
-          <button className="font-s2 text-primary" onClick={onClose}>로그인</button>
+          <button className="font-s2 text-primary" onClick={() => navigate('/login')}>로그인</button>
         </div>
       </div>
-    </Dialog>
+      {openServiceTerms && (
+        <Dialog
+          maxWidth="md"
+          open={openServiceTerms}
+          onClose={() => setOpenServiceTerms(false)}
+        >
+          <div className="w-[768px] p-[20px] flex flex-col gap-[16px] items-center scrollbar-hover">
+            <div className="w-full h-[16px] flex items-center justify-end">
+              <button onClick={() => setOpenServiceTerms(false)}><CloseIcon/></button>
+            </div>
+            <TermsContent menuSelectable={false} contentClassName="p-[24px] bg-surface-second"/>
+            <div className="w-full flex items-center gap-[12px]">
+            <Button
+              onClick={() => setOpenServiceTerms(false)}
+              variant="bggray"
+              size="medium"
+              fontSize="font-h4"
+              className="w-[120px]"
+            >취소</Button>
+            <Button
+              onClick={() => {setOpenServiceTerms(false); setServiceAgree(true);}}
+              size="medium"
+              fontSize="font-h4"
+              className="flex-1"
+            >동의</Button>
+            </div>
+          </div>
+        </Dialog>
+      )}
+    </div>
   )
 }
