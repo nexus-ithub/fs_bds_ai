@@ -1,18 +1,20 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type BuildingInfo, type EstimatedPrice, type LandInfo } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
+import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 
 
 
 export interface AIReportProps {
+  polygon: PolygonInfo;
   landInfo: LandInfo;
   buildings: BuildingInfo[];
   estimatedPrice: EstimatedPrice;
   onClose: () => void;
 }
 
-export const AIReport = ({ landInfo, buildings, estimatedPrice, onClose }: AIReportProps) => {
+export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose }: AIReportProps) => {
   const axiosWithAuth = useAxiosWithAuth();
   
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -83,11 +85,34 @@ export const AIReport = ({ landInfo, buildings, estimatedPrice, onClose }: AIRep
             </div>
         </div>    
 
-        <div className="flex-1 px-[24px] space-y-[24px] overflow-y-auto">
+        <div className="flex-1 px-[24px] pb-[24px] space-y-[24px] overflow-y-auto">
           <div className="flex rounded-[8px] border border-line-02">
-            <img
+            <Roadview
+              onViewpointChange={(viewpoint) => {
+                console.log(viewpoint);
+                // setRoadViewCenter({
+                //   ...roadViewCenter,
+                //   pan: viewpoint.getViewpoint().pan,
+                // })
+              }}
+              onPositionChanged={(position) => {
+                console.log(position);
+                // setRoadViewCenter({
+                //   ...roadViewCenter,
+                //   lat: position.getPosition().getLat(),
+                //   lng: position.getPosition().getLng(),
+                // })
+              }}
+              // pan={roadViewCenter.pan}
+              position={{ lat: polygon.lat, lng: polygon.lng, radius: 50 }}
+              
               className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
-              src={'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
+            >
+              <RoadviewMarker position={{ lat: polygon.lat, lng: polygon.lng }} />
+            </Roadview>
+            {/* <img
+              className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+              src={'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/> */}
             <div className="flex-1 flex flex-col p-[16px]">
               <div className="flex items-center gap-[8px]">
                 <p className="font-s1-p">{getJibunAddress(landInfo)}</p>
@@ -239,7 +264,7 @@ export const AIReport = ({ landInfo, buildings, estimatedPrice, onClose }: AIRep
             </div>
           </div>          
         </div>
-        <div className="pt-[12px]">
+        <div className="">
           <HDivider/>
           <div className="mx-[16px]">
             <Button className="my-[12px] py-[12px] w-full" fontSize="font-h4">추천 항목 상세 리포트 보기</Button>  

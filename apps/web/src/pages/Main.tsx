@@ -420,6 +420,7 @@ export default function Main() {
       {
         openAIReport &&
           <AIReport 
+            polygon={polygon}
             landInfo={landInfo}
             buildings={buildingList}
             estimatedPrice={estimatedPrice}
