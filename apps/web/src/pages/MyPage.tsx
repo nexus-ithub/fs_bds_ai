@@ -16,6 +16,7 @@ import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
+import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 
 interface MenuItemType {
   label: string;
@@ -149,6 +150,7 @@ export const MyPage = () => {
       </div>
       <Routes>
         <Route path="/" element={<Profile />} />
+        <Route path="additional-info" element={<MyAdditionalInfo />} />
         <Route path="bookmarked-bds" element={<BookmarkedBds />} />
         <Route path="bookmarked-report" element={<BookmarkedReport />} />
         {/* <Route path="notice" element={<Board type="notice" />} />
