@@ -207,10 +207,35 @@ export const AIReport = ({ landInfo, buildings, estimatedPrice, onClose }: AIRep
                 임대 리포트
               </TabButton>
             </div>
-            <div className="flex items-center border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
-              <p className="font-s2">신축 설계 리포트</p>
-              <VDivider/>
-              <p className="font-s2">신축 설계 리포트</p>
+            <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
+              <div className="flex-1 space-y-[14px]">
+                <div className="flex justify-between">
+                  <p className="font-s2 text-text-03">매입 가능 금액</p>
+                  <p className="font-s1-p">219.7억원</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="font-s2 text-text-03">금융 가능 비율</p>
+                  <p className="font-s1-p">25%</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="font-s2 text-text-03">연간수익</p>
+                  <p className="font-s1-p">7.03억원</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="font-s2 text-text-03">연간수익률</p>
+                  <p className="font-s1-p">3.2%</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="font-s2 text-text-03">리모델링후 예상 수익률</p>
+                  <p className="font-s1-p">3.5~3.8%</p>
+                </div>
+              </div>
+              <div className="w-[1px] bg-line-02"/>
+              <div className="flex-1 flex flex-col items-center gap-[12px]">
+                <p className="font-s2">N년후 예상 매각금액</p>
+                <HDivider/>
+                <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">320~340억원</p>
+              </div>
             </div>
           </div>          
         </div>
