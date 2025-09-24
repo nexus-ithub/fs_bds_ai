@@ -7,7 +7,7 @@ export interface DividerProps {
 
 
 export const HDivider = ({ className, dashed }: DividerProps) => {
-  return <div className={`flex items-center w-full border border-t-[0px] border-b-[1px] border-b-line-03 ${className} ${dashed ? 'border-dashed' : ''}`}/>;
+  return <div className={`flex items-center w-full h-[1px] bg-line-03 ${className} ${dashed ? 'border-dashed' : ''}`}/>;
 };
 
 

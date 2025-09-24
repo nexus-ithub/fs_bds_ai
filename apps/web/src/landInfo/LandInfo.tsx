@@ -23,7 +23,8 @@ export const LandInfoCard = ({
   businessDistrict = null,
   estimatedPrice = null,
   place = null,
-  onClose
+  onClose,
+  onOpenAIReport,
 }: {
   landInfo: LandInfo | null;
   buildingList: BuildingInfo[] | null;
@@ -31,6 +32,7 @@ export const LandInfoCard = ({
   estimatedPrice: EstimatedPrice | null;
   place: PlaceList | null;
   onClose?: () => void;
+  onOpenAIReport?: () => void;
 }) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
@@ -194,7 +196,10 @@ export const LandInfoCard = ({
           </div>        
         </div>
 
-        <Button className="w-full mt-[16px] py-[11px]">
+        <Button 
+          className="w-full mt-[16px] py-[11px]"
+          onClick={() => onOpenAIReport?.()}
+        >
           AI 설계 • 임대 분석 리포트
         </Button>
       </div>

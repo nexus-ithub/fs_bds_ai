@@ -11,6 +11,7 @@ import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
+import { AIReport } from "../aiReport/AIReport";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -43,6 +44,8 @@ export default function Main() {
   const [distances, setDistances] = useState<any[]>([]);
   const [distanceLines, setDistanceLines] = useState<DistanceLines[]>([]);
 
+  const [openAIReport, setOpenAIReport] = useState<boolean>(false);
+  
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
     if(type === 'use_district') {
@@ -189,7 +192,13 @@ export default function Main() {
             businessDistrict={businessDistrict} 
             place={place} 
             estimatedPrice={estimatedPrice}
-            onClose={() => setLandInfo(null)} 
+            onClose={() => {
+              setLandInfo(null)
+              setOpenAIReport(false)
+            }} 
+            onOpenAIReport={() => {
+              setOpenAIReport(true)
+            }}
           /> : 
           <HomeBoard 
             selectedVideo={selectedVideo}
@@ -408,6 +417,14 @@ export default function Main() {
           </div>
         </div>
       )}
+      {
+        openAIReport &&
+          <AIReport 
+            landInfo={landInfo}
+            buildings={buildingList}
+            estimatedPrice={estimatedPrice}
+            onClose={() => setOpenAIReport(false)}/>
+      }
     </div>
   );
 }
