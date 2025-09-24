@@ -76,6 +76,11 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const recentContainerRef = useRef<HTMLDivElement>(null);
 
+  const activeControllerRef = useRef<AbortController | null>(null);
+  const requestSeqRef = useRef(0);           // 발사된 요청 번호
+  const latestQueryRef = useRef("");         // 마지막으로 요청한 쿼리
+
+
   const scrollToHighlighted = (highlightedIndex: number) => {
     const ref = query ? containerRef : recentContainerRef;
 
@@ -112,26 +117,96 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
 
   // const [openSearchResult, setOpenSearchResult] = useState(false)
   // 실제 API 호출 함수
-  const fetchResults = async (searchTerm: string) => {
+  // const fetchResults = async (searchTerm: string) => {
 
-    setResults([]);
+  //   setResults([]);
+  //   if (!searchTerm.trim()) {
+  //     activeControllerRef.current?.abort();
+  //     setResults([]);
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   // 내 요청 번호 할당
+  //   const mySeq = ++requestSeqRef.current;
+  //   latestQueryRef.current = searchTerm;
+
+  //   // 이전 요청 취소
+  //   activeControllerRef.current?.abort();
+  //   const controller = new AbortController();
+  //   activeControllerRef.current = controller;
+
+
+  //   try {
+  //     setLoading(true)
+  //     console.log('request ', searchTerm)
+  //     const res = await axiosInstance.get(`/api/search?q=${encodeURIComponent(searchTerm)}`, { signal: controller.signal });
+  //     console.log(res.data)
+      
+  //     // ⛑️ 최신성 확인: 내가 마지막으로 보낸 요청이 아니면 버림
+  //     if (mySeq !== requestSeqRef.current || latestQueryRef.current !== searchTerm) {
+  //       return;
+  //     }
+
+  //     setResults(res.data);
+  //   } catch (error) {
+
+  //     if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+  //       return;
+  //     }
+
+  //     console.error("API error:", error);
+  //   } finally{
+  //     if (mySeq === requestSeqRef.current) {
+  //       setLoading(false)
+  //     }
+  //   }
+  // };
+  const fetchResults = useCallback(async (searchTerm: string) => {
+    // 비어있으면 정리만
     if (!searchTerm.trim()) {
+      // 이전 요청이 남아있다면 취소
+      activeControllerRef.current?.abort();
+      setResults([]);
+      setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true)
-      console.log('request ', searchTerm)
-      const res = await axiosInstance.get(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-      console.log(res.data)
-      setResults(res.data);
-    } catch (error) {
-      console.error("API error:", error);
-    } finally{
-      setLoading(false)
-    }
-  };
+    // 내 요청 번호 할당
+    const mySeq = ++requestSeqRef.current;
+    latestQueryRef.current = searchTerm;
 
+    // 이전 요청 취소
+    activeControllerRef.current?.abort();
+    const controller = new AbortController();
+    activeControllerRef.current = controller;
+
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get(
+        `/api/search?q=${encodeURIComponent(searchTerm)}`,
+        { signal: controller.signal }
+      );
+
+      // ⛑️ 최신성 확인: 내가 마지막으로 보낸 요청이 아니면 버림
+      if (mySeq !== requestSeqRef.current || latestQueryRef.current !== searchTerm) {
+        return;
+      }
+
+      setResults(res.data);
+    } catch (err: any) {
+      // 취소는 에러로 오니 조용히 무시
+      if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+        return;
+      }
+      console.error("API error:", err);
+    } finally {
+      // 마찬가지로 최신 요청인 경우에만 로딩 해제
+      if (mySeq === requestSeqRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [axiosInstance]);
+  
   // debounce 래핑 (500ms 대기)
   const debouncedSearch = useMemo(
     () => debounce(fetchResults, DEBOUNCE_DELAY),
