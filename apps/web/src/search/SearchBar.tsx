@@ -61,6 +61,8 @@ export interface SearchBarProps {
   onSelect: (id: string) => void;
 }
 
+const validPattern = /^[가-힣0-9a-zA-Z\s]+$/;
+
 export const SearchBar = ({onSelect}: SearchBarProps) => {
 
   const [query, setQuery] = useState("");
@@ -163,7 +165,7 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
   // };
   const fetchResults = useCallback(async (searchTerm: string) => {
     // 비어있으면 정리만
-    if (!searchTerm.trim()) {
+    if (!searchTerm.trim() || !validPattern.test(searchTerm)) {
       // 이전 요청이 남아있다면 취소
       activeControllerRef.current?.abort();
       setResults([]);
@@ -206,7 +208,7 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
       }
     }
   }, [axiosInstance]);
-  
+
   // debounce 래핑 (500ms 대기)
   const debouncedSearch = useMemo(
     () => debounce(fetchResults, DEBOUNCE_DELAY),
