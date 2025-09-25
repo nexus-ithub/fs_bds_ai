@@ -1,9 +1,10 @@
-import { ArrowDown, Button, getAreaStrWithPyeong, getRatioStr, type BuildingInfo } from "@repo/common";
+import { ArrowDown, Button, getAreaStrWithPyeong, getBuildingCreateDate, getRatioStr, type BuildingInfo } from "@repo/common";
 import { Row, Title } from "./Row";
 import { useEffect, useState } from "react";
 import { Dialog, DialogActions } from "@mui/material";
 import { Check } from 'lucide-react';
 import React from 'react';
+import { format } from "date-fns";
 
 export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingInfo[] }>(({buildings}, ref) => {
 
@@ -16,6 +17,11 @@ export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingIn
       setIndex(0);
     }
   }, [buildings]);
+
+  const getBuildingCreateDateStr = (date: string) => {
+    const buildingCreateDate = getBuildingCreateDate(date);
+    return buildingCreateDate ? format(buildingCreateDate, 'yyyy년 MM월 dd일') : '-';
+  }
 
   // console.log(buildings);
   return (
@@ -60,6 +66,7 @@ export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingIn
           <Row title="건폐율" content={getRatioStr(selectedBuilding?.archLandRatio)} />
           <Row title="연면적" content={getAreaStrWithPyeong(selectedBuilding?.totalFloorArea)} />
           <Row title="용적률" content={getRatioStr(selectedBuilding?.floorAreaRatio)} />
+          <Row title="준공년도" content={getBuildingCreateDateStr(selectedBuilding?.useApprovalDate)} />
         </>
         : (
           <div>

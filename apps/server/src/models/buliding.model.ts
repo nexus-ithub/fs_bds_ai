@@ -27,7 +27,8 @@ export class BuildingModel {
          building.arch_area AS archArea,
          building.arch_land_ratio AS archLandRatio,
          building.total_floor_area AS totalFloorArea,
-         building.floor_area_ratio AS floorAreaRatio
+         building.floor_area_ratio AS floorAreaRatio,
+         building.use_approval_date AS useApprovalDate
         FROM building_leg_headline AS building WHERE building.leg_dong_code_val = ? and building.bun = LPAD(?, 4, 0) and building.ji = LPAD(?, 4, 0)`,
         [legDongCode, Number(bun), Number(ji)]
       )

@@ -19,3 +19,5 @@ export * from './types/user';
 export * from './types/support';
 export * from './types/youtube';
 export * from './types/bds';
+export * from './types/aireport';
+export * from './dotprogress';

@@ -7,6 +7,7 @@ import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
 import { getDistance } from 'geolib';
 import { EstimatedPrice } from '@repo/common';
+import { AIReportModel } from '../models/aireport.model';
 
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
@@ -220,6 +221,26 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
     res.status(200).json(result);
   } catch (err) {
     console.error('Get estimated price error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+
+export const getAIReport = async (req: AuthRequest, res: Response) => {
+  try {
+    const { landId, buildingId, estimatedPrice } = req.body;
+    console.log('landId', landId)
+    console.log('buildingId', buildingId)
+    console.log('estimatedPrice', estimatedPrice)
+    if (!landId) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const aiReport = await AIReportModel.getAIReport(landId as string, buildingId as string, estimatedPrice);
+    
+    res.status(200).json(aiReport);
+  } catch (err) {
+    console.error('Get AI report error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };

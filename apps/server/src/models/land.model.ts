@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { LandInfo, PolygonInfo } from '@repo/common';
+import { EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
 
 
@@ -518,6 +518,8 @@ export class LandModel {
       throw error;
     }
   }
+
+
 
   // static async findLandInfo(legDongCode: string, jibun: string): Promise<LandInfo | null> {
     
