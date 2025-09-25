@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from "react";
-import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User } from "@repo/common";
-import { Menu, MenuItem, IconButton } from "@mui/material";
+import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User, DotProgress } from "@repo/common";
+import { Menu, MenuItem } from "@mui/material";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
+import { v4 as uuidv4 } from 'uuid';
 
 const HistorySample = [
   {label: "채팅1번이고 이름 길게길게길게 더어어어 길게", id: 1},
@@ -21,8 +22,9 @@ interface AIChatProps {
 }
 
 interface MenuItemType {
-  label: string;
-  id: number;
+  title: string;
+  sessionId: string;
+  messages: ChatMessage[];
 }
 
 interface CustomAccordionProps {
@@ -46,15 +48,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const { data : config } = useQuery<User>({
       queryKey: [QUERY_KEY_USER, getAccessToken()]
     })
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [questionInput, setQuestionInput] = useState<string>('');
   // const [currentChat, setCurrentChat] = useState<ChatMessage[]>([]);
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const currentChat = chatHistory.find(c => c.sessionId === currentSessionId);
-
-  console.log("currentChat", currentChat)
 
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -62,16 +63,16 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedMenuItemId, setSelectedMenuItemId] = useState<number | null>(null);
+    const [selectedMenuItemId, setSelectedMenuItemId] = useState<string | null>(null);
   
     const toggleExpanded = () => {
       setIsExpanded(!isExpanded);
     };
   
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, itemId: number) => {
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, itemSessionId: string) => {
       event.stopPropagation();
       setAnchorEl(event.currentTarget);
-      setSelectedMenuItemId(itemId);
+      setSelectedMenuItemId(itemSessionId);
     };
   
     const handleMenuClose = () => {
@@ -99,8 +100,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         >
           <div>
             {menuItems.map((item, index) => {
-              const isActive = selectedChatId === item.id;
-              const isMenuOpen = selectedMenuItemId === item.id;
+              const isActive = selectedChatId === item.sessionId;
+              const isMenuOpen = selectedMenuItemId === item.sessionId;
               
               return (
                 <button
@@ -108,10 +109,10 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   className={`group w-full flex items-center justify-between gap-[6px] block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                     isActive ? 'bg-primary-010 text-primary' : 'text-text-02'
                   }`}
-                  onClick={() => setSelectedChatId(item.id)}
+                  onClick={() => {setSelectedChatId(item.sessionId); setCurrentSessionId(item.sessionId);}}
                 >
                   <p className={`font-s2 ${isActive ? "text-primary" : "text-text-02"} truncate`}>
-                    {item.label}
+                    {item.title}
                   </p>
                   <div
                     className={`transition-opacity cursor-pointer ${
@@ -119,7 +120,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                     } ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      handleMenuOpen(event, item.id);
+                      handleMenuOpen(event, item.sessionId);
                     }}
                   >
                     <MenuIcon />
@@ -155,27 +156,92 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const handleAskChat = async() => {
     if (!questionInput) return;
 
+    const newSessionId = currentSessionId || uuidv4();
     const userMessage: ChatMessage = { role: "user", content: questionInput };
-    setChatHistory(prev =>
-      prev.map(c =>
-        c.sessionId === currentSessionId
-          ? { ...c, messages: [...c.messages, userMessage] }
-          : c
-      )
-    );
+
+    setChatHistory(prev => {
+      const existing = prev.find(c => c.sessionId === newSessionId);
+      if (existing) {
+        return prev.map(c =>
+          c.sessionId === newSessionId
+            ? { ...c, messages: [...c.messages, userMessage] }
+            : c
+        );
+      }
+      return [
+        ...prev,
+        {
+          sessionId: newSessionId,
+          title: null,
+          messages: [userMessage],
+        },
+      ];
+    });
+
+    setCurrentSessionId(newSessionId);
+    setQuestionInput("");
+    setLoading(true);
 
     try {
-      const response = await axios.post(`${API_HOST}/api/chat/ask`, { question: questionInput, userId: config?.id, titleExists: false, sessionId: "123123123" });
-      console.log("???????", response.data);
+      const response = await axios.post(`${API_HOST}/api/chat/ask`, 
+        { question: questionInput, userId: config?.id, titleExists: !!currentSessionId, sessionId: newSessionId });
+
       const aiMessage: ChatMessage = { role: "ai", content: response.data.answer };
+
       setChatHistory(prev =>
         prev.map(c =>
-          c.sessionId === currentSessionId
-            ? { ...c, messages: [...c.messages, aiMessage], title: c.title || response.data.summary_question }
+          c.sessionId === newSessionId
+            ? {
+                ...c,
+                messages: [...c.messages, aiMessage],
+                title: c.title || response.data.summary_question,
+              }
             : c
         )
       );
-      setQuestionInput("");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleGetChatHistory = async() => {
+    try {
+      const response = await axios.get(`${API_HOST}/api/chat/getChatHistory`, { params: { userId: config?.id } });
+      console.log("*******", response.data);
+      const raw = response.data; // DB에서 오는 배열
+
+    // sessionId 기준으로 묶기
+    const grouped: Record<string, ChatHistory> = {};
+
+    raw.forEach((row: any) => {
+      if (!grouped[row.session_id]) {
+        grouped[row.session_id] = {
+          sessionId: row.session_id,
+          title: row.title,
+          messages: [],
+        };
+      }
+
+      // question → user 메시지
+      grouped[row.session_id].messages.push({
+        role: "user",
+        content: row.question,
+      });
+
+      // answer → ai 메시지
+      grouped[row.session_id].messages.push({
+        role: "ai",
+        content: row.answer,
+      });
+    });
+
+    // 객체 → 배열 변환
+    const chatHistories: ChatHistory[] = Object.values(grouped);
+
+    console.log("******* parsed chat history", chatHistories);
+    setChatHistory(chatHistories);
     } catch (error) {
       console.error(error);
     }
@@ -183,6 +249,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
 
   useEffect(() => {
     setMounted(true);
+    handleGetChatHistory();
   }, []);
 
   useEffect(() => {
@@ -226,13 +293,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
             <p className="font-s2 text-text-03">부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다.</p>
           </div>
           <div className="flex items-center gap-[12px]">
-            <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null)}}>NEW CHAT</Button>
+            <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null);}}>NEW CHAT</Button>
             <button onClick={onClose}><CloseIcon/></button>
           </div>
         </div>    
         <div className="flex h-[calc(100%-64px)]">
           <div className="w-[252px] p-[20px] border-r border-line-02">
-            <CustomAccordion title="HISTORY" menuItems={HistorySample} defaultExpanded={true}/>
+            <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
           </div>
           <div className="w-[768px] flex flex-col">
             <div ref={chatContainerRef} className="flex-1 px-[48px] overflow-y-auto scrollbar-hover">
@@ -264,10 +331,15 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                       <div className="flex justify-end w-full py-[24px]">
                         <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p whitespace-pre-line">{msg.content}</p>
                       </div>}
-                    {msg.role === 'ai' && <p className="font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">{msg.content}</p>}
+                    {msg.role === 'ai' && <p className="w-full font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">{msg.content}</p>}
                   </div>
                 ))
-              )}      
+              )}
+              {loading && (
+                <p className="w-full border-t border-line-02">
+                  <DotProgress size="sm" />
+                </p>
+              )}
             </div>
             <div className="w-full flex flex-col items-center px-[32px]">
               <div className="w-full flex items-center gap-[10px] p-[16px] rounded-[4px] border border-line-03">
@@ -278,7 +350,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   value={questionInput}
                   onChange={(e) => setQuestionInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as any).isComposing && questionInput.trim() !== "") {
+                    // if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as any).isComposing && questionInput.trim() !== "") {
+                    if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as unknown as { isComposing?: boolean }).isComposing && questionInput.trim() !== "") {
                       e.preventDefault();
                       // setCurrentChat((prev) => [...prev, { role: "user", content: questionInput.trim() }]);
                       handleAskChat();

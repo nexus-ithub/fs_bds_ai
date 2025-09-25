@@ -10,6 +10,7 @@ export const askChat = async (req: Request, res: Response) => {
   console.log(">>>user_id", userId)
   console.log(">>>sessionId", sessionId)
   console.log(">>>titleExists", titleExists)
+  console.log(">>>apiKey", apiKey)
 
   const response = await axios.post(
     url,
@@ -21,6 +22,7 @@ export const askChat = async (req: Request, res: Response) => {
       },
     }
   );
+  console.log(">>>>>", response.data)
   const user = await ChatModel.saveChat({
     session_id: sessionId,
     user_id: userId,
@@ -37,4 +39,14 @@ export const askChat = async (req: Request, res: Response) => {
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
   // return res.json(response.data);
+}
+
+export const getChatHistory = async (req: Request, res: Response) => {
+  const { userId } = req.query;
+  const user = await ChatModel.getChatHistory(userId as unknown as number);
+  if (user) {
+    return res.json(user); 
+  } else {
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
 }

@@ -16,6 +16,19 @@ export class ChatModel {
     }
   }
  
+  static async getChatHistory(userId: number) {
+    try {
+      const result = await db.query<ChatInfo>(
+        `SELECT * FROM ai_chat WHERE user_id = ? ORDER BY created_at ASC`,
+        [userId]
+      );
+      console.log("result", result);
+      return result;
+    } catch (error) {
+      console.error('Error getting chat history:', error);
+      throw error;
+    }
+  }
 
 
 }
