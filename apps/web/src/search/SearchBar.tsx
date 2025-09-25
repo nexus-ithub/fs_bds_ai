@@ -301,6 +301,7 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         <Switch
           checked={false}
           onChange={() => {}}
+          isLabel={true}
         />
         <VDivider className="h-full"/>
         <SearchIcon/>

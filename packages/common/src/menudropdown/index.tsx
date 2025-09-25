@@ -4,12 +4,13 @@ import { ChevronDownCustomIcon } from "../icons";
 interface DropdownOption {
   value: string;
   label: string;
+  url?: string;
 }
 
 interface MenuDropdownProps {
   options: DropdownOption[];
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string, option?: DropdownOption) => void;
   placeholder?: string;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -77,7 +78,9 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   };
 
   const handleChange = (event: { target: { value: string } }) => {
-    onChange(event.target.value);
+    const selectedValue = event.target.value;
+    const selectedOption = options.find((o) => o.value === selectedValue);
+    onChange(selectedValue, selectedOption);
   };
 
   return (

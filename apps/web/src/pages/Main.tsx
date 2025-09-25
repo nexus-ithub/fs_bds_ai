@@ -366,6 +366,8 @@ export default function Main() {
           changeMapType={changeMapType}
           level={level}
           setLevel={setLevel}
+          center={center}
+          setCenter={setCenter}
         />
         <SearchBar 
           onSelect={(id) => {

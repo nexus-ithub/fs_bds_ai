@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, MenuItem, IconButton, Avatar } from "@mui/material";
 import { useQuery } from "react-query";
-import { QUERY_KEY_USER } from "../constants";
+import { BUILDINGSHOP_URL, INSTAGRAM_URL, JUNGIN_URL, KAKAO_CHANNEL_URL, NAVER_BLOG_URL, QUERY_KEY_USER, YOUTUBE_CHANNEL_URL } from "../constants";
 import type { User } from "@repo/common";
 import { getAccessToken } from "../authutil";
 
@@ -120,10 +120,10 @@ export const Header = () => {
             <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">로그아웃</span></MenuItem>
           </div>
         </Menu>
-        <VDivider colorClassName="bg-line-04"/>
+        {/* <VDivider colorClassName="bg-line-04"/>
         <button>
           <AlarmIcon/>
-        </button>
+        </button> */}
         <VDivider colorClassName="bg-line-04"/>
         <a 
           href="/support"
@@ -142,14 +142,20 @@ export const Header = () => {
         </div> */}
         <MenuDropdown 
           options={[
-            { value: 'apple', label: '🍎 사과' },
-            { value: 'banana', label: '🍌 바나나' },
-            { value: 'orange', label: '🍊 오렌지' },
-            { value: 'grape', label: '🍇 포도' },
-            { value: 'strawberry', label: '🍓 딸기' },
-          ]} 
+            { value: "buildingshop", label: "빌딩샵 홈페이지", url: BUILDINGSHOP_URL },
+            { value: "jungin", label: "정인부동산 홈페이지", url: JUNGIN_URL },
+            { value: "youtube", label: "YouTube 채널", url: YOUTUBE_CHANNEL_URL },
+            { value: "kakao", label: "Kakao 채널", url: KAKAO_CHANNEL_URL },
+            { value: "naver", label: "네이버 블로그", url: NAVER_BLOG_URL },
+            { value: "instagram", label: "인스타그램", url: INSTAGRAM_URL },
+          ]}
           value={selectedMenu} 
-          onChange={(value) => {setSelectedMenu(value)}}
+          onChange={(value, option) => {
+            setSelectedMenu(value);
+            if (option?.url) {
+              window.open(option.url, "_blank", "noopener,noreferrer");
+            }
+          }}
           placeholder="빌딩샵 관련 사이트"
         />
       </div>
