@@ -153,12 +153,6 @@ export const MyPage = () => {
         <Route path="additional-info" element={<MyAdditionalInfo />} />
         <Route path="bookmarked-bds" element={<BookmarkedBds />} />
         <Route path="bookmarked-report" element={<BookmarkedReport />} />
-        {/* <Route path="notice" element={<Board type="notice" />} />
-        <Route path="notice/:id" element={<BoardDetail />} />
-        <Route path="faq" element={<Board type="faq" />} />
-        <Route path="faq/:id" element={<BoardDetail />} />
-        <Route path="terms" element={<Terms />} />
-        <Route path="privacy" element={<Privacy />} /> */}
       </Routes>
     </div>
   )

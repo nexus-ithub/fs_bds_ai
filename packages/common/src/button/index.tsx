@@ -20,7 +20,7 @@ export function Button({
   const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
     default: 'bg-primary text-white hover:bg-primary/90',
     outline: 'border border-[1px] border-primary text-primary',
-    outlinegray: 'border border-[1px] border-[#D2D4DA] text-text-03',
+    outlinegray: 'border border-[1px] border-line-03 text-text-03',
     bggray: 'bg-surface-third',
   };
   

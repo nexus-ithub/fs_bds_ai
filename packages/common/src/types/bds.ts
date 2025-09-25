@@ -19,6 +19,11 @@ export interface BdsSale {
     imagePath: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+}
+
 export const getShortAddress = (address: string) => {
     const addressArray = address.split(' ');
     if (addressArray.length < 2) {

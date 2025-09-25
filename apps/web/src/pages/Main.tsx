@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -12,6 +12,7 @@ import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers"
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
 import { AIReport } from "../aiReport/AIReport";
+import { AIChat } from "../aiChat/AIChat";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
@@ -45,6 +46,7 @@ export default function Main() {
   const [distanceLines, setDistanceLines] = useState<DistanceLines[]>([]);
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
+  const [openAIChat, setOpenAIChat] = useState<boolean>(false);
   
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
@@ -375,6 +377,15 @@ export default function Main() {
             getPolygon({id, changePosition: true});
           }}
         />
+        <Button
+          onClick={() => {
+            setOpenAIChat(true);
+          }}
+          className="fixed gap-[12px] z-30 left-[calc(400px+40%)] -translate-x-1/2 bottom-[16px] w-[480px] h-[50px] rounded-full"
+        >
+          <BuildingShopBITextSmall />
+          <AIShineLogo/>
+        </Button>
         {roadViewCenter && (
           <RoadViewOverlay
             roadViewCenter={roadViewCenter}
@@ -430,6 +441,12 @@ export default function Main() {
             estimatedPrice={estimatedPrice}
             onClose={() => setOpenAIReport(false)}/>
       }
+      {openAIChat && (
+        <AIChat
+          open={openAIChat}
+          onClose={() => setOpenAIChat(false)}
+        />
+      )}
     </div>
   );
 }
