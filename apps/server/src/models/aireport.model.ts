@@ -4,7 +4,7 @@ import { AIReportInfo, BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo, Repo
 
 
 function getBuildingAge (useApprovalDateStr: string){
-  if (!useApprovalDateStr || useApprovalDateStr.length < 4) {
+  if (!useApprovalDateStr || useApprovalDateStr.length < 8) {
     return null; // 잘못된 입력 처리
   }
 
@@ -37,6 +37,8 @@ function makeReportValue(report : ReportValue, grade : string, type : 'rent' | '
   report.grade = grade;
   report.message = 'AI 메세지 메세지 메세지 메세지.....';
 }
+
+
 
 export class AIReportModel {
 
@@ -172,8 +174,11 @@ export class AIReportModel {
         }          
       }else{
         makeReportValue(aiReport.build, 'A', 'build');
-        makeReportValue(aiReport.remodel, 'C', 'remodel');
-        makeReportValue(aiReport.rent, 'C', 'rent');
+        aiReport.remodel = null;
+        aiReport.rent = null;
+        
+        // makeReportValue(aiReport.remodel, 'C', 'remodel');
+        // makeReportValue(aiReport.rent, 'C', 'rent');
       }
 
       return aiReport;

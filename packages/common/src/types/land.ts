@@ -76,6 +76,7 @@ export interface BuildingInfo {
   archLandRatio: number;
   totalFloorArea: number;
   floorAreaRatio: number;
+  useApprovalDate : string;
 }
 
 export interface EstimatedPrice {
@@ -149,4 +150,20 @@ export const getRatioStr = (value : any) => {
     return '-';
   }
   return Number(value).toFixed(2) + '%';
+}
+
+
+export const getBuildingCreateDate = (date : string) => {
+  if(!date || date.length < 8) {
+    return null;
+  }
+  // 문자열에서 연, 월, 일 추출
+  const year = parseInt(date.substring(0, 4), 10);
+  const month = parseInt(date.substring(4, 6), 10) - 1; // JS month는 0부터 시작
+  const day = parseInt(date.substring(6, 8), 10);
+  // console.log('getBuildingCreateDate', date, year, month, day);
+  // 준공일 Date 객체 생성
+  const completionDate = new Date(year, month, day);
+  // console.log('getBuildingCreateDate', completionDate);
+  return completionDate;
 }
