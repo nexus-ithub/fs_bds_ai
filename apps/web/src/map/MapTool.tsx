@@ -1,17 +1,21 @@
-import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, Spinner, StreetViewIcon, ZoomController } from "@repo/common";
+import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, Spinner, StreetViewIcon, ZoomController, type LatLng } from "@repo/common";
 import { saveMapState } from "../utils";
 import { useState } from "react";
 
 export const MapToolbar = ({
   mapType,
+  center,
   level,
   changeMapType,
+  setCenter,
   setLevel,
 }: {
   mapType: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance';
   changeMapType: (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => void;
   level: number;
   setLevel: React.Dispatch<React.SetStateAction<number>>;
+  center: LatLng;
+  setCenter: React.Dispatch<React.SetStateAction<LatLng>>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,7 +31,9 @@ export const MapToolbar = ({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        saveMapState(latitude, longitude, 4);
+        console.log(latitude, longitude);
+        // saveMapState(latitude, longitude, 4);
+        setCenter({ lat: latitude, lng: longitude });
         setLevel(4);
         setIsLoading(false);
       },
