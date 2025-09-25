@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect } from "react";
-import { Button, VDivider, CloseIcon, type ChatMessage, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo } from "@repo/common";
+import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User } from "@repo/common";
 import { Menu, MenuItem, IconButton } from "@mui/material";
+import axios from "axios";
+import { API_HOST } from "../constants";
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 const HistorySample = [
   {label: "채팅1번이고 이름 길게길게길게 더어어어 길게", id: 1},
@@ -26,12 +31,30 @@ interface CustomAccordionProps {
   defaultExpanded?: boolean;
 }
 
+interface ChatMessage {
+  role: 'user' | 'ai';
+  content: string;
+}
+
+interface ChatHistory {
+  sessionId: string;
+  title: string | null;
+  messages: ChatMessage[];
+}
+
 export const AIChat = ({open, onClose}: AIChatProps) => {
+  const { data : config } = useQuery<User>({
+      queryKey: [QUERY_KEY_USER, getAccessToken()]
+    })
   const [mounted, setMounted] = useState(false);
-  const [chatHistory, setChatHistory] = useState<Record<string, string[]>>({});
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [questionInput, setQuestionInput] = useState<string>('');
-  const [currentChat, setCurrentChat] = useState<ChatMessage[]>([]);
+  // const [currentChat, setCurrentChat] = useState<ChatMessage[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const currentChat = chatHistory.find(c => c.sessionId === currentSessionId);
+
+  console.log("currentChat", currentChat)
 
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +62,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedMenuItemId, setSelectedMenuItemId] = useState<number | null>(null); // 추가
+    const [selectedMenuItemId, setSelectedMenuItemId] = useState<number | null>(null);
   
     const toggleExpanded = () => {
       setIsExpanded(!isExpanded);
@@ -48,12 +71,12 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, itemId: number) => {
       event.stopPropagation();
       setAnchorEl(event.currentTarget);
-      setSelectedMenuItemId(itemId); // 선택된 아이템 ID 저장
+      setSelectedMenuItemId(itemId);
     };
   
     const handleMenuClose = () => {
       setAnchorEl(null);
-      setSelectedMenuItemId(null); // 메뉴 닫을 때 초기화
+      setSelectedMenuItemId(null);
     };
   
     return (
@@ -77,51 +100,49 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           <div>
             {menuItems.map((item, index) => {
               const isActive = selectedChatId === item.id;
-              const isMenuOpen = selectedMenuItemId === item.id; // 현재 아이템의 메뉴가 열렸는지 확인
+              const isMenuOpen = selectedMenuItemId === item.id;
               
               return (
                 <button
                   key={index}
                   className={`group w-full flex items-center justify-between gap-[6px] block py-[9px] px-[8px] rounded-[4px] transition-colors ${
-                    isActive
-                      ? 'bg-primary-010 text-primary'
-                      : 'text-text-02'
+                    isActive ? 'bg-primary-010 text-primary' : 'text-text-02'
                   }`}
                   onClick={() => setSelectedChatId(item.id)}
                 >
                   <p className={`font-s2 ${isActive ? "text-primary" : "text-text-02"} truncate`}>
                     {item.label}
                   </p>
-                  <button 
-                    className={`transition-opacity ${
+                  <div
+                    className={`transition-opacity cursor-pointer ${
                       isMenuOpen || 'group-hover:opacity-100'
-                    } ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`} // 메뉴가 열렸거나 hover시 표시
-                    onClick={(event) => handleMenuOpen(event, item.id)}
+                    } ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleMenuOpen(event, item.id);
+                    }}
                   >
-                    <MenuIcon/>
-                  </button>
+                    <MenuIcon />
+                  </div>
                 </button>
-              );
+              );              
             })}
           </div>
         </div>
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
-          onClose={handleMenuClose} // 수정된 핸들러 사용
+          onClose={handleMenuClose}
           disableScrollLock
           container={panelRef.current}
         >
           <MenuItem onClick={() => {
-            // 여기서 selectedMenuItemId를 사용해서 특정 아이템에 대한 삭제 작업 수행
             console.log('삭제할 아이템 ID:', selectedMenuItemId);
             handleMenuClose();
           }}>
             삭제
           </MenuItem>
           <MenuItem onClick={() => {
-            // 다른 메뉴 액션
-            console.log('다른 액션 아이템 ID:', selectedMenuItemId);
             handleMenuClose();
           }}>
             수정
@@ -130,6 +151,35 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       </div>
     );
   };
+
+  const handleAskChat = async() => {
+    if (!questionInput) return;
+
+    const userMessage: ChatMessage = { role: "user", content: questionInput };
+    setChatHistory(prev =>
+      prev.map(c =>
+        c.sessionId === currentSessionId
+          ? { ...c, messages: [...c.messages, userMessage] }
+          : c
+      )
+    );
+
+    try {
+      const response = await axios.post(`${API_HOST}/api/chat/ask`, { question: questionInput, userId: config?.id, titleExists: false, sessionId: "123123123" });
+      console.log("???????", response.data);
+      const aiMessage: ChatMessage = { role: "ai", content: response.data.answer };
+      setChatHistory(prev =>
+        prev.map(c =>
+          c.sessionId === currentSessionId
+            ? { ...c, messages: [...c.messages, aiMessage], title: c.title || response.data.summary_question }
+            : c
+        )
+      );
+      setQuestionInput("");
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -153,6 +203,12 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     };
   }, [onClose]);
 
+  useEffect(() => {
+    console.log("currentSessionId", currentSessionId);
+    console.log("currentChat", currentChat);
+    console.log("chatHistory", chatHistory);
+  }, [currentSessionId, currentChat, chatHistory]);
+
   return (
     <div ref={panelRef} className="fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end">
       <div className={`
@@ -170,7 +226,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
             <p className="font-s2 text-text-03">부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다.</p>
           </div>
           <div className="flex items-center gap-[12px]">
-            <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentChat([])}}>NEW CHAT</Button>
+            <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null)}}>NEW CHAT</Button>
             <button onClick={onClose}><CloseIcon/></button>
           </div>
         </div>    
@@ -180,7 +236,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           </div>
           <div className="w-[768px] flex flex-col">
             <div ref={chatContainerRef} className="flex-1 px-[48px] overflow-y-auto scrollbar-hover">
-              {currentChat.length === 0 ? (
+              {currentChat?.messages.length === 0 || !currentChat ? (
                 <div className="flex flex-col gap-[40px] py-[64px]">
                   <div className="flex flex-col gap-[8px] items-center">
                     <h2 className="font-h2">안녕하세요! 빌딩샵 AI 입니다.</h2>
@@ -202,13 +258,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   </div>
                 </div>
               ) : (
-                currentChat.map((msg, index) => (
+                currentChat?.messages?.map((msg, index) => (
                   <div key={index} className="flex items-center gap-[8px]">
                     {msg.role === 'user' && 
                       <div className="flex justify-end w-full py-[24px]">
-                        <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p">{msg.content}</p>
+                        <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p whitespace-pre-line">{msg.content}</p>
                       </div>}
-                    {msg.role === 'ai' && <p className="font-b1-p py-[40px] border-t border-line-02">{msg.content}</p>}
+                    {msg.role === 'ai' && <p className="font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">{msg.content}</p>}
                   </div>
                 ))
               )}      
@@ -222,19 +278,20 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   value={questionInput}
                   onChange={(e) => setQuestionInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey && questionInput.trim() !== "") {
+                    if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as any).isComposing && questionInput.trim() !== "") {
                       e.preventDefault();
-                      setCurrentChat((prev) => [...prev, { role: "user", content: questionInput }]);
-                      setQuestionInput("");
+                      // setCurrentChat((prev) => [...prev, { role: "user", content: questionInput.trim() }]);
+                      handleAskChat();
+                      // setQuestionInput("");
                       const target = e.target as HTMLTextAreaElement;
                       target.style.height = "auto";
-                      setTimeout(() => {
-                        const aiMessage: ChatMessage = {
-                          role: "ai",
-                          content: "아래는 서울특별시 강남구 청담동 95-16(도로명: 압구정로72길 26) 건물의 재건축 가능성, 매매 동향, 임대 전략 등을 정리한 리포트입니다."
-                        };
-                        setCurrentChat((prev) => [...prev, aiMessage]);
-                      }, 500);
+                      // setTimeout(() => {
+                      //   const aiMessage: ChatMessage = {
+                      //     role: "ai",
+                      //     content: "아래는 서울특별시 강남구 청담동 95-16(도로명: 압구정로72길 26) 건물의 재건축 가능성, 매매 동향, 임대 전략 등을 정리한 리포트입니다."
+                      //   };
+                      //   // setCurrentChat((prev) => [...prev, aiMessage]);
+                      // }, 500);
                     }
                   }}
                   onInput={(e) => {
@@ -243,7 +300,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                     target.style.height = target.scrollHeight + "px";
                   }}
                 />
-                <SendIcon/>
+                <button 
+                  onClick={(e) => {
+                    handleAskChat();
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = "auto";
+                  }}>
+                  <SendIcon/>
+                </button>
               </div>
               <div className="flex h-[56px] items-center font-c2 text-text-04">
                 <p>빌딩샵은 AI 모델입니다. 제공된 정보를 항상 검증하시기 바랍니다.</p>

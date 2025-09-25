@@ -20,4 +20,5 @@ export * from './types/support';
 export * from './types/youtube';
 export * from './types/bds';
 export * from './types/aireport';
+export * from './types/chat';
 export * from './dotprogress';

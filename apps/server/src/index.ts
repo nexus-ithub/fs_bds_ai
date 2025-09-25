@@ -13,6 +13,7 @@ import youtubeRoutes from './routes/youtube.routes';
 import bdsRoutes from './routes/bds.routes';
 import { bdsDb } from './utils/bds-database';
 import searchRoutes from './routes/search.routes';
+import chatRoutes from './routes/chat.routes';
 dotenv.config();
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/land', landRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/bds', bdsRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/*', verifyToken);
 
 app.get('/', (req, res) => {
