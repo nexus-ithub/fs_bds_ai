@@ -67,6 +67,7 @@ export interface LandInfo {
 }
 
 export interface BuildingInfo {
+  id: string;
   buildingName: string;
   dongName: string;
   mainUsageName: string;
