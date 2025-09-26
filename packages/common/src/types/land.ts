@@ -114,6 +114,14 @@ export interface PlaceList {
 //   per: number;
 // }
 
+export interface BookmarkedReportType {
+  landInfo: LandInfo;
+  buildings: BuildingInfo[];
+  polygonLat: string;
+  polygonLng: string;
+  estimatedPrice: number;
+  estimatedPricePer: number;
+}
 
 export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo.legDongName} ${landInfo.jibun}`;

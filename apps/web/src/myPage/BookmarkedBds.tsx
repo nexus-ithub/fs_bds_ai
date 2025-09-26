@@ -13,6 +13,10 @@ const COUNT_BUTTON = [
 ]
 
 export const BookmarkedBds = () => {
+  const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+      queryKey: [QUERY_KEY_USER, getAccessToken()]
+    })
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
 
@@ -21,11 +25,6 @@ export const BookmarkedBds = () => {
   const [pageSize, setPageSize] = useState<number>(COUNT_BUTTON[0].value);
 
   const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
-
-  const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()]
-    })
 
   const getBookmarkList = async() => {
     try {
@@ -58,7 +57,7 @@ export const BookmarkedBds = () => {
   }, [currentPage])
 
   return (
-    <div className="w-[800px] flex flex-col gap-[16px] p-[40px]">
+    <div className="min-w-[800px] flex flex-col gap-[16px] p-[40px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
@@ -111,19 +110,22 @@ export const BookmarkedBds = () => {
             <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
               <div className="flex flex-col gap-[8px]">
                 <div className="flex items-center justify-between gap-[8px]">
-                  <p className="font-s1-p">{item.name || '-'}</p>
                   <div className="flex items-center gap-[8px]">
-                    <button className="flex items-center gap-[6px]" onClick={() => {setOpenCounselDialog(true)}}>
+                    <p className="font-s1-p shrink-0">{getShortAddress(item.addr)}</p>
+                    <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                    <p className="font-s1-p shrink-0">{item.name || '-'}</p>
+                  </div>
+                  <div className="flex items-center gap-[8px]">
+                    <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setOpenCounselDialog(true)}}>
                       <p className="font-s4 text-primary">매입 상담 요청</p>
                       <CounselIcon/>
                     </button>
-                    <VDivider colorClassName="bg-line-03 !h-[12px]"/>
-                    <button onClick={() => {cancelBookmark(item)}}>
+                    <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                    <button onClick={() => {cancelBookmark(item)}} className="shrink-0">
                       <BookmarkFilledIcon/>
                     </button>
                   </div>
                 </div>
-                <p className="font-s1-p">{getShortAddress(item.addr)}</p>
                 <div className="flex items-center gap-[12px]">
                   <div className="flex-1 flex items-center justify-between gap-[6px]">
                     <p className="w-[44px] font-s4 text-text-03">대지면적</p>

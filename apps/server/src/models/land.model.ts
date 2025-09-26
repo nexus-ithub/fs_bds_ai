@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
+import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
 
 
@@ -605,6 +605,123 @@ export class LandModel {
   //   }
   // }
  
+  static async isBookmarked(userId: string, landId: string, buildingId: string): Promise<boolean> {
+    try {
+      const [rows] = await db.query(
+        `SELECT 1 
+          FROM bookmarked_report
+          WHERE user_id = ? AND land_id = ? AND building_id = ? AND delete_yn = 'N'
+          LIMIT 1`,
+        [userId, landId, buildingId]
+      ) as any;
 
+      return !!rows;
+    } catch (err) {
+      console.error('Error checking bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async addBookmark(userId: string, landId: string, buildingId: string, estimatedPrice: number, estimatedPricePer: number, polygonLat: string, polygonLng: string, deleteYn: string) {
+    try {
+      const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? AND building_id = ? AND estimated_price = ? AND estimated_price_per = ? AND polygon_lat = ? AND polygon_lng = ? LIMIT 1`, 
+        [userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng])
+      if(!!rows) {
+        await db.query(
+          `UPDATE bookmarked_report SET delete_yn = ? WHERE user_id = ? AND land_id = ? AND building_id = ? AND estimated_price = ? AND estimated_price_per = ? AND polygon_lat = ? AND polygon_lng = ?`,
+          [deleteYn, userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng]
+        );
+      } else{
+        await db.query(
+          `INSERT INTO bookmarked_report (user_id, land_id, building_id, estimated_price, estimated_price_per, polygon_lat, polygon_lng, delete_yn)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng, deleteYn]
+        );
+      }
+    } catch (err) {
+      console.error('Error adding bookmark:', err);
+      throw err;
+    }
+  }
+
+  static async getTotalBookmarked(userId: string) {
+    try {
+      const countRows = await db.query(
+        `SELECT COUNT(*) as total FROM bookmarked_bds WHERE user_id = ? AND delete_yn = 'N'`,
+        [userId]
+      );
+      const total = (countRows as any)[0].total;
+      return total;
+    } catch (err) {
+      console.error('Error getting total bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async getBookmarkList(userId: string, page: number, size: number) {
+    try{
+      const total = await this.getTotalBookmarked(userId);
+      
+      const response = await db.query(
+        `SELECT land_id as landId, building_id as buildingId, polygon_lat as polygonLat, polygon_lng as polygonLng, estimated_price as estimatedPrice, estimated_price_per as estimatedPricePer 
+        FROM bookmarked_report 
+        WHERE user_id = ? AND delete_yn = 'N'
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?`,
+        [userId, size, (page - 1) * size]
+      );
+      return {total, response};
+    } catch (err) {
+      console.error('Error getting bookmark list:', err);
+      throw err;
+    }
+  }
+
+  static async getBuildingInfo(buildingId: string): Promise<BuildingInfo[]> {
+    try {
+      const [rows] = await db.query<BuildingInfo[]>(
+        `SELECT 
+          building_id AS id,
+          floor_area_ratio AS floorAreaRatio,
+          use_approval_date AS useApprovalDate
+        FROM building_leg_headline
+        WHERE building_id = ?`,
+        [buildingId]
+      );
+      return rows;
+    } catch (err) {
+      console.error('Error getting building info:', err);
+      throw err;
+    }
+  }
+
+  static async getLandInfo(landId: string): Promise<LandInfo> {
+    try {
+      const landInfo = await db.query<any>(
+        `SELECT 
+          land_info.id AS id,
+          land_char.usage1_name AS usageName,
+          leg_land_usage_ratio.far,
+          leg_land_usage_ratio.bcr
+      FROM land_info AS land_info
+      LEFT JOIN land_char_info AS land_char
+        ON land_char.key = (
+          SELECT c.key 
+          FROM land_char_info AS c 
+          WHERE c.id = land_info.id 
+          ORDER BY c.create_date DESC 
+          LIMIT 1
+        )
+      LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
+        ON land_char.usage1_name = leg_land_usage_ratio.name
+      WHERE land_info.id = ?`,
+        [landId]
+      )   
+      return landInfo[0];
+    } catch (err) {
+      console.error('Error getting land info:', err);
+      throw err;
+    }
+  }
 
 }
