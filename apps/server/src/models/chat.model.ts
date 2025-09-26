@@ -22,7 +22,6 @@ export class ChatModel {
         `SELECT * FROM ai_chat WHERE user_id = ? ORDER BY created_at ASC`,
         [userId]
       );
-      console.log("result", result);
       return result;
     } catch (error) {
       console.error('Error getting chat history:', error);
@@ -30,5 +29,29 @@ export class ChatModel {
     }
   }
 
+  static async updateTitle(sessionId: string, title: string, userId: number): Promise<boolean> {
+    try {
+      await db.query(
+        `UPDATE ai_chat SET title = ? WHERE session_id = ? AND user_id = ? AND title IS NOT NULL`,
+        [title, sessionId, userId]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating chat title:', error);
+      throw error;
+    }
+  }
 
+  static async deleteChat(sessionId: string, userId: number): Promise<boolean> {
+    try {
+      await db.query(
+        `UPDATE ai_chat SET delete_yn = 'Y' WHERE session_id = ? AND user_id = ?`,
+        [sessionId, userId]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      throw error;
+    }
+  }
 }
