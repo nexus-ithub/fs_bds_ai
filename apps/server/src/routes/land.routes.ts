@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthRequest, verifyToken } from '../middleware/auth.middleware';
-import { getLandInfo, getPolygonInfo, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList } from '../controllers/land.controller';
+import { getLandInfo, getPolygonInfo, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked } from '../controllers/land.controller';
 
 
 const router: Router = Router();
@@ -15,6 +15,7 @@ router.post('/ai-report', verifyToken, getAIReport);
 router.get('/is-bookmarked', verifyToken, isBookmarked);
 router.post('/bookmark', verifyToken, addBookmark);
 router.get('/bookmark', verifyToken, getBookmarkList);
+router.get('/total-bookmarked', verifyToken, getTotalBookmarked);
 
 
 export default router;

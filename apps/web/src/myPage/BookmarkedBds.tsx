@@ -12,7 +12,7 @@ const COUNT_BUTTON = [
   { value: 50, label: '50' },
 ]
 
-export const BookmarkedBds = () => {
+export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
       queryKey: [QUERY_KEY_USER, getAccessToken()]
@@ -31,6 +31,9 @@ export const BookmarkedBds = () => {
       const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
       setBookmarkList(response.data.result);
       setTotalCount(response.data.total);
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
     }
@@ -46,18 +49,11 @@ export const BookmarkedBds = () => {
   }
 
   useEffect(() => {
-    console.log("currentPage", currentPage)
-    console.log("pageSize", pageSize)
-    console.log("totalCount", totalCount)
     getBookmarkList();
   }, [pageSize, currentPage])
 
-  useEffect(() => {
-    window.scrollTo({top: 0, behavior: 'smooth'})
-  }, [currentPage])
-
   return (
-    <div className="min-w-[800px] flex flex-col gap-[16px] p-[40px]">
+    <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>

@@ -15,7 +15,7 @@ const COUNT_BUTTON = [
   { value: 50, label: '50' },
 ]
 
-export const BookmarkedReport = () => {
+export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
       queryKey: [QUERY_KEY_USER, getAccessToken()]
@@ -42,6 +42,10 @@ export const BookmarkedReport = () => {
       setBookmarkList(response.data.result);
       console.log(">>>>", response.data)
       setTotalCount(response.data.total);
+
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
     }
@@ -67,9 +71,11 @@ export const BookmarkedReport = () => {
     getBookmarkList();
   }, [currentPage, pageSize]);
 
-  useEffect(() => {
-    window.scrollTo({top: 0, behavior: 'smooth'})
-  }, [currentPage])
+  // useEffect(() => {
+  //   if (scrollContainerRef.current) {
+  //     scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+  //   }
+  // }, [currentPage])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,7 +97,7 @@ export const BookmarkedReport = () => {
   }, [openAIReport]);
 
   return (
-    <div className="min-w-[800px] flex flex-col gap-[16px] p-[40px]">
+    <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
       <div className="flex flex-col gap-[4px]">
         <h2 className="font-h2">관심물건 관리</h2>
         <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>
@@ -128,7 +134,7 @@ export const BookmarkedReport = () => {
             <button
               key={item.value}
               className={`p-[7px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
-              onClick={() => setPageSize(item.value)}
+              onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
             >
               {item.label}
             </button>

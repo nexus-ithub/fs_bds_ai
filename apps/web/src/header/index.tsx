@@ -39,7 +39,7 @@ export const Header = () => {
   const ProfileRef = useRef<HTMLButtonElement | null>(null);
 
   return (
-    <div className={`min-w-[1440px] px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
+    <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px] h-[64px]">
         <button onClick={() => navigate("/main")}>
           <BuildingShopBIText />
