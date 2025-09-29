@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
+import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
 
 
@@ -40,7 +40,7 @@ export class LandModel {
     
   }
 
-  static async findLandById(id: string): Promise<LandInfo | null>{
+  static async findLandById(ids: string[]): Promise<LandInfo[] | null>{
     try {
       const lands = await db.query<LandInfo>(
         `SELECT 
@@ -140,12 +140,12 @@ export class LandModel {
         WHERE t.rn = 1
       ) AS ld_latest
         ON ld_latest.id = land_info.id  
-      WHERE land_info.id = ?
+      WHERE land_info.id IN (?)
       GROUP BY land_info.id`,
-        [id]
+        [ids]
       )
       // console.log(lands)
-      return lands[0] || null;
+      return lands || null;
     } catch (error) {
       console.error('Error finding land by lat and lng:', error);
       throw error;
@@ -605,6 +605,80 @@ export class LandModel {
   //   }
   // }
  
+  static async isBookmarked(userId: string, landId: string): Promise<boolean> {
+    try {
+      const [rows] = await db.query(
+        `SELECT 1 
+          FROM bookmarked_report
+          WHERE user_id = ? AND land_id = ? AND delete_yn = 'N'
+          LIMIT 1`,
+        [userId, landId]
+      ) as any;
+
+      return !!rows;
+    } catch (err) {
+      console.error('Error checking bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async addBookmark(userId: string, landId: string, buildingId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
+    try {
+      const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? LIMIT 1`, 
+        [userId, landId])
+
+      if(!!rows) {
+        await db.query(
+          `UPDATE bookmarked_report SET delete_yn = ?, estimated_price = ?, estimated_price_per = ?, building_id = ? WHERE user_id = ? AND land_id = ?`,
+          [deleteYn, estimatedPrice, estimatedPricePer, buildingId, userId, landId]
+        );
+      } else{
+        await db.query(
+          `INSERT INTO bookmarked_report (user_id, land_id, building_id, estimated_price, estimated_price_per, delete_yn)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+          [userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn]
+        );
+      }
+    } catch (err) {
+      console.error('Error adding bookmark:', err);
+      throw err;
+    }
+  }
+
+  static async getTotalBookmarked(userId: string) {
+    try {
+      const countRows = await db.query(
+        `SELECT COUNT(*) as total FROM bookmarked_bds WHERE user_id = ? AND delete_yn = 'N'`,
+        [userId]
+      );
+      const total = (countRows as any)[0].total;
+      return total;
+    } catch (err) {
+      console.error('Error getting total bookmarked:', err);
+      throw err;
+    }
+  }
+
+  static async getBookmarkList(userId: string, page: number, size: number) {
+    try{
+      const total = await this.getTotalBookmarked(userId);
+      
+      const response = await db.query(
+        `SELECT br.land_id as landId, br.building_id as buildingId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
+        ap.leg_dong_code as legDongCode, ap.leg_dong_name as legDongName, ap.jibun, ap.lat, ap.lng, ap.polygon 
+        FROM bookmarked_report br 
+        LEFT JOIN address_polygon ap ON br.land_id = ap.id
+        WHERE br.user_id = ? AND br.delete_yn = 'N'
+        ORDER BY br.created_at DESC
+        LIMIT ? OFFSET ?`,
+        [userId, size, (page - 1) * size]
+      );
+      return {total, response};
+    } catch (err) {
+      console.error('Error getting bookmark list:', err);
+      throw err;
+    }
+  }
 
 
 }

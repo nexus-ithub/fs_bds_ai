@@ -33,7 +33,7 @@ export const BuildingDetailDialog = ({
 
   const getIdBookmarked = async () => {
     try {
-      const res = await axiosWithAuth.get('/api/bds/isBookmarked', {params: {userId: config?.id, bdsId: building.idx}});
+      const res = await axiosWithAuth.get('/api/bds/is-bookmarked', {params: {userId: config?.id, bdsId: building.idx}});
       setIsBookmarked(res.data);
     } catch (error) {
       console.error(error);

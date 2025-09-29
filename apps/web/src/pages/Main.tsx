@@ -99,9 +99,9 @@ export default function Main() {
     axiosInstance.get(`/api/land/info?id=${id}`)
       .then((response) => {
         // console.log(response.data);.
-        const landInfo = response.data as LandInfo;
+        const landInfo = response.data as LandInfo[];
         // console.log(landInfo);
-        setLandInfo(landInfo);
+        setLandInfo(landInfo[0]);
       })
       .catch((error) => {
         console.error(error);

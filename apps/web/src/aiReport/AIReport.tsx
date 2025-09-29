@@ -4,7 +4,10 @@ import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 import { CircularProgress } from "@mui/material";
-
+import { useQuery } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
+import { type User } from "@repo/common";
 
 
 export interface AIReportProps {
@@ -22,6 +25,9 @@ interface AIReportItem {
 
 export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose }: AIReportProps) => {
   const axiosWithAuth = useAxiosWithAuth();
+  const { data : config } = useQuery<User>({
+    queryKey: [QUERY_KEY_USER, getAccessToken()]
+  })
   
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -70,24 +76,30 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
     }
   }, [landInfo, buildings, estimatedPrice]);
 
-
   
   const addBookmark = async () => {
-    // try {
-    //   await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building, deleteYn: isBookmarked ? 'Y' : 'N'});
-    //   setIsBookmarked(!isBookmarked);
-    // } catch (error) {
-    //   console.error(error);
-    // }
+    try {
+      await axiosWithAuth.post('/api/land/bookmark', {
+        userId: config?.id, 
+        landId: landInfo.id, 
+        buildingId: buildings.length > 0 ? buildings[0].id : null, 
+        estimatedPrice: estimatedPrice?.estimatedPrice,
+        estimatedPricePer: estimatedPrice?.per,
+        deleteYn: isBookmarked ? 'Y' : 'N'});
+      setIsBookmarked(!isBookmarked);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   const getIdBookmarked = async () => {
-    // try {
-    //   const res = await axiosWithAuth.get('/api/bds/isBookmarked', {params: {userId: config?.id, bdsId: building.idx}});
-    //   setIsBookmarked(res.data);
-    // } catch (error) {
-    //   console.error(error);
-    // }
+    try {
+      const res = await axiosWithAuth.get('/api/land/is-bookmarked', {
+        params: {userId: config?.id, landId: landInfo.id}});
+      setIsBookmarked(res.data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   useEffect(() => {

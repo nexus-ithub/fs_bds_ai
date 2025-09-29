@@ -6,7 +6,7 @@ import { BuildingModel } from '../models/buliding.model';
 import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
 import { getDistance } from 'geolib';
-import { EstimatedPrice } from '@repo/common';
+import { BookmarkedReportType, BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
 import { AIReportModel } from '../models/aireport.model';
 
 
@@ -113,7 +113,7 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
     
-    const land = await LandModel.findLandById(id as string);
+    const land = await LandModel.findLandById([id as string]);
     if (!land) {
       return res.status(404).json({ message: '필지를 찾을 수 없습니다.' });
     }
@@ -133,7 +133,7 @@ export const getBuildingList = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
     
-    const buildings = await BuildingModel.findBuildingListByJibun(legDongCode as string, jibun as string);
+    const buildings = await BuildingModel.findBuildingListByJibun({legDongCode: legDongCode as string, jibun: jibun as string});
     
     res.status(200).json(buildings);
   } catch (err) {
@@ -358,3 +358,87 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+export const isBookmarked = async (req: AuthRequest, res: Response) => {
+  try{
+    const userId = req.query.userId as string;
+    const landId = req.query.landId as string;
+    const isBookmarked = await LandModel.isBookmarked(userId, landId);
+    res.status(200).json(isBookmarked);
+  } catch (err) {
+    console.error('Check bookmarked error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+export const addBookmark = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn } = req.body as { 
+      userId: string; 
+      landId: string; 
+      buildingId: string;
+      estimatedPrice: number;
+      estimatedPricePer: number;
+      deleteYn: string;
+    };
+    await LandModel.addBookmark(userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn);
+    res.status(200).json({ message: '즐겨찾기 ' + (deleteYn === 'Y' ? '삭제' : '추가') + ' 성공' });
+  } catch (err) {
+    console.error('Add bookmark error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    const total = await LandModel.getTotalBookmarked(userId);
+    res.status(200).json(total);
+  } catch (err) {
+    console.error('Get total bookmarked error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+export const getBookmarkList = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.query.userId as string;
+    const page = Number(req.query.page) || 1;
+    const size = Number(req.query.size) || 10;
+    const rawBookmarks = await LandModel.getBookmarkList(userId, page, size) as {total: number, response: any[]};
+    
+    const landIds = rawBookmarks.response.map(r => r.landId).filter(Boolean);
+    let lands: LandInfo[] = [];
+    if (landIds.length > 0) { lands = await LandModel.findLandById(landIds); }
+
+    const buildingIds = rawBookmarks.response.map(r => r.buildingId).filter(Boolean);
+    let buildings: BuildingInfo[] = [];
+    if (buildingIds.length > 0) { buildings = await BuildingModel.findBuildingListByJibun({buildingIds}); }
+
+    const bookmarksWithLandInfo = rawBookmarks.response.map(b => ({
+      ...b,
+      landInfo: lands.find(l => l.id === b.landId) || null,
+      buildings: buildings.filter(building => building.id === b.buildingId)
+    }));
+
+    // const result: BookmarkedReportType[] = [];
+    // for (const bm of rawBookmarks.response) {
+    //   const landInfo = await LandModel.findLandById(bm.landId);
+
+    //   result.push({
+    //     landInfo,
+    //     buildings: buildingInfo,
+    //     estimatedPrice: bm.estimatedPrice,
+    //     estimatedPricePer: bm.estimatedPricePer,
+    //   });
+    // }
+
+    res.status(200).json({
+      result: bookmarksWithLandInfo,
+      total: rawBookmarks.total,
+    });
+  } catch (err) {
+    console.error('Get bookmark list error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
