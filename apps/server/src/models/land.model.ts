@@ -40,7 +40,7 @@ export class LandModel {
     
   }
 
-  static async findLandById(id: string): Promise<LandInfo | null>{
+  static async findLandById(ids: string[]): Promise<LandInfo[] | null>{
     try {
       const lands = await db.query<LandInfo>(
         `SELECT 
@@ -140,12 +140,12 @@ export class LandModel {
         WHERE t.rn = 1
       ) AS ld_latest
         ON ld_latest.id = land_info.id  
-      WHERE land_info.id = ?
+      WHERE land_info.id IN (?)
       GROUP BY land_info.id`,
-        [id]
+        [ids]
       )
       // console.log(lands)
-      return lands[0] || null;
+      return lands || null;
     } catch (error) {
       console.error('Error finding land by lat and lng:', error);
       throw error;
@@ -605,14 +605,14 @@ export class LandModel {
   //   }
   // }
  
-  static async isBookmarked(userId: string, landId: string, buildingId: string): Promise<boolean> {
+  static async isBookmarked(userId: string, landId: string): Promise<boolean> {
     try {
       const [rows] = await db.query(
         `SELECT 1 
           FROM bookmarked_report
-          WHERE user_id = ? AND land_id = ? AND building_id = ? AND delete_yn = 'N'
+          WHERE user_id = ? AND land_id = ? AND delete_yn = 'N'
           LIMIT 1`,
-        [userId, landId, buildingId]
+        [userId, landId]
       ) as any;
 
       return !!rows;
@@ -622,20 +622,21 @@ export class LandModel {
     }
   }
 
-  static async addBookmark(userId: string, landId: string, buildingId: string, estimatedPrice: number, estimatedPricePer: number, polygonLat: string, polygonLng: string, deleteYn: string) {
+  static async addBookmark(userId: string, landId: string, buildingId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
     try {
-      const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? AND building_id = ? AND estimated_price = ? AND estimated_price_per = ? AND polygon_lat = ? AND polygon_lng = ? LIMIT 1`, 
-        [userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng])
+      const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? LIMIT 1`, 
+        [userId, landId])
+
       if(!!rows) {
         await db.query(
-          `UPDATE bookmarked_report SET delete_yn = ? WHERE user_id = ? AND land_id = ? AND building_id = ? AND estimated_price = ? AND estimated_price_per = ? AND polygon_lat = ? AND polygon_lng = ?`,
-          [deleteYn, userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng]
+          `UPDATE bookmarked_report SET delete_yn = ?, estimated_price = ?, estimated_price_per = ?, building_id = ? WHERE user_id = ? AND land_id = ?`,
+          [deleteYn, estimatedPrice, estimatedPricePer, buildingId, userId, landId]
         );
       } else{
         await db.query(
-          `INSERT INTO bookmarked_report (user_id, land_id, building_id, estimated_price, estimated_price_per, polygon_lat, polygon_lng, delete_yn)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [userId, landId, buildingId, estimatedPrice, estimatedPricePer, polygonLat, polygonLng, deleteYn]
+          `INSERT INTO bookmarked_report (user_id, land_id, building_id, estimated_price, estimated_price_per, delete_yn)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+          [userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn]
         );
       }
     } catch (err) {
@@ -663,10 +664,12 @@ export class LandModel {
       const total = await this.getTotalBookmarked(userId);
       
       const response = await db.query(
-        `SELECT land_id as landId, building_id as buildingId, polygon_lat as polygonLat, polygon_lng as polygonLng, estimated_price as estimatedPrice, estimated_price_per as estimatedPricePer 
-        FROM bookmarked_report 
-        WHERE user_id = ? AND delete_yn = 'N'
-        ORDER BY created_at DESC
+        `SELECT br.land_id as landId, br.building_id as buildingId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
+        ap.leg_dong_code as legDongCode, ap.leg_dong_name as legDongName, ap.jibun, ap.lat, ap.lng, ap.polygon 
+        FROM bookmarked_report br 
+        LEFT JOIN address_polygon ap ON br.land_id = ap.id
+        WHERE br.user_id = ? AND br.delete_yn = 'N'
+        ORDER BY br.created_at DESC
         LIMIT ? OFFSET ?`,
         [userId, size, (page - 1) * size]
       );
@@ -677,51 +680,5 @@ export class LandModel {
     }
   }
 
-  static async getBuildingInfo(buildingId: string): Promise<BuildingInfo[]> {
-    try {
-      const [rows] = await db.query<BuildingInfo[]>(
-        `SELECT 
-          building_id AS id,
-          floor_area_ratio AS floorAreaRatio,
-          use_approval_date AS useApprovalDate
-        FROM building_leg_headline
-        WHERE building_id = ?`,
-        [buildingId]
-      );
-      return rows;
-    } catch (err) {
-      console.error('Error getting building info:', err);
-      throw err;
-    }
-  }
-
-  static async getLandInfo(landId: string): Promise<LandInfo> {
-    try {
-      const landInfo = await db.query<any>(
-        `SELECT 
-          land_info.id AS id,
-          land_char.usage1_name AS usageName,
-          leg_land_usage_ratio.far,
-          leg_land_usage_ratio.bcr
-      FROM land_info AS land_info
-      LEFT JOIN land_char_info AS land_char
-        ON land_char.key = (
-          SELECT c.key 
-          FROM land_char_info AS c 
-          WHERE c.id = land_info.id 
-          ORDER BY c.create_date DESC 
-          LIMIT 1
-        )
-      LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
-        ON land_char.usage1_name = leg_land_usage_ratio.name
-      WHERE land_info.id = ?`,
-        [landId]
-      )   
-      return landInfo[0];
-    } catch (err) {
-      console.error('Error getting land info:', err);
-      throw err;
-    }
-  }
 
 }

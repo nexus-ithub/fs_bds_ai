@@ -115,12 +115,18 @@ export interface PlaceList {
 // }
 
 export interface BookmarkedReportType {
+  landId: string;
   landInfo: LandInfo;
+  buildingId: string;
   buildings: BuildingInfo[];
-  polygonLat: string;
-  polygonLng: string;
   estimatedPrice: number;
   estimatedPricePer: number;
+  jibun: string;
+  legDongCode: string;
+  legDongName: string;
+  lat: number;
+  lng: number;
+  polygon: Coords[] | Coords[][];
 }
 
 export const getJibunAddress = (landInfo: LandInfo) => {

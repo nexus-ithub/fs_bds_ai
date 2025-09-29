@@ -4,19 +4,65 @@ import { BuildingInfo, LandInfo } from '@repo/common';
 
 export class BuildingModel {
 
-  static async findBuildingListByJibun(legDongCode: string, jibun: string): Promise<BuildingInfo[] | null> {
+  static async findBuildingListByJibun(options: {legDongCode?: string, jibun?: string, buildingIds?: string[]}): Promise<BuildingInfo[] | null> {
     try {
-      let jibunArray = jibun.split('-')
+      let query = `
+        SELECT 
+          building.building_id AS id,
+          building.building_name AS buildingName,
+          building.dong_name AS dongName,
+          building.main_usage_code_name AS mainUsageName,
+          building.etc_usage AS etcUsageName,
+          building.arch_area AS archArea,
+          building.arch_land_ratio AS archLandRatio,
+          building.total_floor_area AS totalFloorArea,
+          building.floor_area_ratio AS floorAreaRatio,
+          building.use_approval_date AS useApprovalDate
+        FROM building_leg_headline AS building
+      `;
+      let params = [];
+      if (options.buildingIds && options.buildingIds.length > 0) {
+        query += ' WHERE building.building_id IN (' + options.buildingIds.map(() => '?').join(',') + ')';
+        params.push(...options.buildingIds);
+      } else if (options.legDongCode && options.jibun) {
+        let jibunArray = options.jibun.split('-')
+        let bun = jibunArray[0]
+        let ji = jibunArray[1] || 0
+
+        query += ` WHERE building.leg_dong_code_val = ? 
+                    AND building.bun = LPAD(?, 4, 0) 
+                    AND building.ji = LPAD(?, 4, 0) 
+                  ORDER BY building.arch_area DESC`;
+        params.push(options.legDongCode, Number(bun), Number(ji));
+      } else {
+        return []
+      }
+
       
-      let bun = jibunArray[0]
-      let ji = jibunArray[1] || 0
+      // let jibunArray = jibun.split('-')
+      
+      // let bun = jibunArray[0]
+      // let ji = jibunArray[1] || 0
       // let where = ''
       // if (jibunArray.length > 1){
       //   where = `where building.leg_dong_code_val = '${legDongCode}' and building.bun = LPAD(${jibunArray[0]}, 4, 0) and building.ji = LPAD(${jibunArray[1]}, 4, 0)`
       // }else{
       //   where = `where building.leg_dong_code_val = '${legDongCode}' and building.bun = LPAD(${jibunArray[0]}, 4, 0) and building.ji = LPAD(0, 4, 0)`
       // }
-    
+      // console.log(result);
+     
+
+      const result = await db.query<BuildingInfo>(query, params);
+
+      return result || [];
+    } catch (error) {
+      console.error('Error finding land by lat and lng:', error);
+      throw error;
+    }
+  }
+
+  static async findBuildingListByBuildingId(buildingId: string): Promise<BuildingInfo[] | null> {
+    try {
       const result = await db.query<BuildingInfo>(
         `SELECT 
          building.building_id AS id,
@@ -29,8 +75,8 @@ export class BuildingModel {
          building.total_floor_area AS totalFloorArea,
          building.floor_area_ratio AS floorAreaRatio,
          building.use_approval_date AS useApprovalDate
-        FROM building_leg_headline AS building WHERE building.leg_dong_code_val = ? and building.bun = LPAD(?, 4, 0) and building.ji = LPAD(?, 4, 0)`,
-        [legDongCode, Number(bun), Number(ji)]
+        FROM building_leg_headline AS building WHERE building.building_id = ?`,
+        [buildingId]
       )
       // console.log(result);
      

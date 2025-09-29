@@ -85,8 +85,6 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
         buildingId: buildings.length > 0 ? buildings[0].id : null, 
         estimatedPrice: estimatedPrice?.estimatedPrice,
         estimatedPricePer: estimatedPrice?.per,
-        polygonLat: polygon.lat, 
-        polygonLng: polygon.lng, 
         deleteYn: isBookmarked ? 'Y' : 'N'});
       setIsBookmarked(!isBookmarked);
     } catch (error) {
@@ -97,7 +95,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   const getIdBookmarked = async () => {
     try {
       const res = await axiosWithAuth.get('/api/land/is-bookmarked', {
-        params: {userId: config?.id, landId: landInfo.id, buildingId: buildings.length > 0 ? buildings[0].id : null}});
+        params: {userId: config?.id, landId: landInfo.id}});
       setIsBookmarked(res.data);
     } catch (error) {
       console.error(error);
