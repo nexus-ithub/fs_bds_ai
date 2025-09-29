@@ -143,6 +143,9 @@ export interface ReportResult {
   // assetGrowthAmount: number;
   // 실투자금 대비 연간 수익율 
   investmentProfitRatio: number;
+
+  // 매각금액
+  expectedSaleAmount: number;
 }
 
 export interface AIReportResult {

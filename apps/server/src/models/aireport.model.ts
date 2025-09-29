@@ -711,6 +711,7 @@ export class AIReportModel {
           rentProfitRatio: calculateaAnnualProfit(aiReport.rent, aiReport.tax) / calculateInvestmentCapital(aiReport.rent),
           // assetGrowthAmount: aiReport.rent.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.rent, aiReport.tax) + (aiReport.rent.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.rent),
+          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100),
         },
         remodel: {
           grade: aiReport.remodel.grade,
@@ -721,6 +722,7 @@ export class AIReportModel {
           rentProfitRatio: calculateaAnnualProfit(aiReport.remodel, aiReport.tax) / calculateInvestmentCapital(aiReport.remodel),
           // assetGrowthAmount: aiReport.remodel.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.remodel, aiReport.tax) + (aiReport.remodel.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.remodel),
+          expectedSaleAmount: (aiReport.remodel.annualManagementProfit + aiReport.remodel.annualRentProfit) / (3.5 / 100),
         },
         build: {
           grade: aiReport.build.grade,
@@ -731,6 +733,7 @@ export class AIReportModel {
           rentProfitRatio: calculateaAnnualProfit(aiReport.build, aiReport.tax) / calculateInvestmentCapital(aiReport.build),
           // assetGrowthAmount: aiReport.build.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.build, aiReport.tax) + (aiReport.build.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.build),
+          expectedSaleAmount: (aiReport.build.annualManagementProfit + aiReport.build.annualRentProfit) / (3.5 / 100),
         },
         analysisMessage: aiReport.analysisMessage,
       };
