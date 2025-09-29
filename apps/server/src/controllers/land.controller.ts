@@ -303,7 +303,7 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
 
 				for(let doc of documents){
 					categoryResult.push({
-						address_name : doc['address_name'],
+						addressName : doc['address_name'],
 						name : doc['place_name'],
 						distance : Number(doc['distance']),
 						lat : Number(doc['y']),
@@ -320,36 +320,32 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     
     }
 
-    console.log('PUBLIC_API_KEY', PUBLIC_API_KEY)
-    const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
-    const busData = busResp.data
     const busList = []
-    // console.log('busData', busData)
-    // console.log('busData.response.body.items', busData.response.body.items)
-    if(busData.response.body.items){
-      for(const item of busData.response.body.items.item){
-        // console.log('item', item)
-        const bus = {
-          name: item.nodenm,
-          distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
-          lat: item.gpslati,
-          lng: item.gpslong
-        }
-        busList.push(bus)
-      }
-    }
-    // console.log('busList', busList)
-    // if(busData.response.body.items){
+
+    try{
+      // console.log('PUBLIC_API_KEY', PUBLIC_API_KEY)
+      const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
+      const busData = busResp.data
       
-    //   // busData.response.body.items = busData.response.body.items.map((item: any) => {
-    //   //   return {
-    //   //     name: item.sttn_name,
-    //   //     distance: item.distance,
-    //   //     lat: item.gpsLati,
-    //   //     lng: item.gpsLong
-    //   //   }
-    //   // })
-    // }
+      // console.log('busData', busData)
+      // console.log('busData.response.body.items', busData.response.body.items)
+      if(busData.response.body.items){
+        for(const item of busData.response.body.items.item){
+          // console.log('item', item)
+          const bus = {
+            name: item.nodenm,
+            distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
+            lat: item.gpslati,
+            lng: item.gpslong
+          }
+          busList.push(bus)
+        }
+      }
+    }catch(err){
+      // console.error('Get bus error:', err);
+    }
+
+
     const placeList = {
       school: results[0],
       subway: results[1],

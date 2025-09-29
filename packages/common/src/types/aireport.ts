@@ -18,8 +18,10 @@ export interface LandCost {
   agentFee: number;
 }
 
+
+
 // 사업비
-export interface BuildingCost {
+export interface ProjectCost {
   // 해체공사비 
   demolitionCost: number; 
   // 해체감리비
@@ -31,6 +33,7 @@ export interface BuildingCost {
 
   // 감리비 
   managementCost: number;
+
   // PM 용역비 
   pmFee: number;
   // 취득세 
@@ -38,6 +41,27 @@ export interface BuildingCost {
   // 예비비
   reserveFee: number;
 }
+
+
+// 건축 정보
+export interface BuildInfo {
+
+  buildingArea: number; // 건축면적
+  
+  upperFloorCount: number; // 지상층 층수
+  lowerFloorCount: number; // 지하층 층수
+
+
+  publicAreaPerFloor: number; // 공용면적
+
+
+  upperFloorArea: number; // 지상층 연면적 
+  lowerFloorArea: number; // 지하층 연면적
+  firstFloorExclusiveArea: number; // 1층 전용면적
+  secondFloorExclusiveArea: number; // 2층 이상 총 전용면적
+  lowerFloorExclusiveArea: number; // 지하층 총 전용면적
+} 
+
 
 // 금융차입
 export interface Loan {
@@ -51,32 +75,50 @@ export interface ReportValue {
   grade: string;
   message: string;
 
-  // 매입비용 
-  purchaseCost: number;
-  // 사업비용 (business cost)
-  businessCost: number;
-  // 사업기간
-  businessPeriod: number;
-  // 수익률 (profit rate)
-  annualProfitRate: number; 
-  // 연간수익 (annual profit)
+
+  duration: ProjectDuration;
+  // 토지비
+  landCost: LandCost;
+  // 사업비
+  projectCost: ProjectCost;
+  // 금융차입
+  loan: Loan;
+  // 금융차입 (소유자)
+  loanForOwner: Loan;
+
+  // 연간임대수익
   annualProfit: number;
 
-  // 예상 매각금액
-  expectedSellingPrice: number;
+}
+
+export interface ProjectDuration {
+  // 기획 (months)
+  planningDurationMonths: number;
+  // 설계 (months)
+  designDurationMonths: number;
+  // 공사 (months)
+  constructionDurationMonths: number;
+}
+
+export interface TaxInfo {
+  // 재산세(토지)
+  propertyTax: number;
+  // 재산세 (건물) + 지역자원신설세
+  propertyTaxForBuilding: number;
+  // 종합부동산세
+  comprehensiveRealEstateTax: number;
 }
 
 export interface AIReportInfo {
+
+  // 건축정보
+  buildInfo: BuildInfo;
+
   rent: ReportValue; // 임대 (미개발)
   remodel: ReportValue; // 리모델링
   build: ReportValue; // 신축
 
-  // 토지비
-  landCost: LandCost;
-  // 사업비
-  buildingCost: BuildingCost;
-  // 금융차입
-  loan: Loan;
+  tax: TaxInfo;
 
   analysisMessage: string;
 }
