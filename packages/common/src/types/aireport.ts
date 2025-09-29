@@ -87,8 +87,11 @@ export interface ReportValue {
   loanForOwner: Loan;
 
   // 연간임대수익
-  annualProfit: number;
-
+  annualRentProfit: number;
+  // 연간관리비수익
+  annualManagementProfit: number;
+  // 연간보증금수익
+  annualDepositProfit: number;
 }
 
 export interface ProjectDuration {
@@ -119,6 +122,33 @@ export interface AIReportInfo {
   build: ReportValue; // 신축
 
   tax: TaxInfo;
+
+  analysisMessage: string;
+}
+
+export interface ReportResult {
+  grade: string;
+  message: string;
+   
+  // 초기준비자금 
+  initialCapital: number;
+  // 실투자금
+  investmentCapital: number;
+  // 연간 순수익
+  annualProfit: number;
+
+  // 실투자금대비 임대수익율 
+  rentProfitRatio: number;
+  // 연간 자산상승금액
+  // assetGrowthAmount: number;
+  // 실투자금 대비 연간 수익율 
+  investmentProfitRatio: number;
+}
+
+export interface AIReportResult {
+  rent: ReportResult; // 임대 (미개발)
+  remodel: ReportResult; // 리모델링
+  build: ReportResult; // 신축
 
   analysisMessage: string;
 }

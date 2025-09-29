@@ -1,4 +1,4 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportInfo, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
 import { useEffect, useMemo, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
@@ -18,9 +18,13 @@ export interface AIReportProps {
   onClose: () => void;
 }
 
-interface AIReportItem {
-  title: string;
-  value: ReportValue;
+const ReportItem = ({title, value}: {title: string, value: string}) => {
+  return (
+    <div className="flex justify-between">
+      <p className="font-s2 text-text-03">{title}</p>
+      <p className="font-s1-p">{value}</p>
+    </div>
+  )
 }
 
 export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose }: AIReportProps) => {
@@ -32,8 +36,8 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [aiReport, setAiReport] = useState<AIReportInfo | null>(null);
-
+  const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
+  const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const getGrade = (grade: string) => {
     switch (grade) {
@@ -67,7 +71,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
       setLoading(true);
       axiosWithAuth.post('/api/land/ai-report', aiReport).then((res) => {
         console.log(res.data);
-        setAiReport(res.data);
+        setAiReportResult(res.data);
       }).catch((error) => {
         console.error(error);
       }).finally(() => {
@@ -107,17 +111,17 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   }, [])
 
   const sortedItems = useMemo(() => {
-    if(aiReport){
+    if(aiReportResult){
       return [
-        {title: '신축', value: aiReport.build}, 
-        {title: '리모델링', value: aiReport.remodel}, 
-        {title: '임대', value: aiReport.rent}
+        {title: '신축', value: aiReportResult.build}, 
+        {title: '리모델링', value: aiReportResult.remodel}, 
+        {title: '임대', value: aiReportResult.rent}
       ]
       .filter((item) => item.value !== null)
       .sort((a, b) => b.value.grade > a.value.grade ? -1 : 1)
     }
     return []
-  }, [aiReport])
+  }, [aiReportResult])
 
 
   return (
@@ -302,12 +306,17 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
               <div className="space-y-[16px]">
                 <p className="font-h3">AI 분석 리포트</p>
                 <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
-                  {aiReport.analysisMessage}
+                  {aiReportResult?.analysisMessage}
                 </p>
               </div>
               <div className="">
                 <div className="flex items-center">
-                  <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={true} onClick={() => {}}>
+                {sortedItems?.map((item, index) => (
+                  <TabButton key={index} fontClassName="font-s1" className="flex-1 h-[48px]" selected={selectedTab === index} onClick={() => {setSelectedTab(index)}}>
+                    {item.title} 설계 리포트  
+                  </TabButton>
+                ))}
+                  {/* <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={true} onClick={() => {}}>
                     신축 설계 리포트
                   </TabButton>
                   <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={false} onClick={() => {}}>
@@ -315,11 +324,18 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                   </TabButton>
                   <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={false} onClick={() => {}}>
                     임대 리포트
-                  </TabButton>
+                  </TabButton> */}
                 </div>
                 <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
                   <div className="flex-1 space-y-[14px]">
-                    <div className="flex justify-between">
+                    <ReportItem title="초기준비자금" value={krwUnit(sortedItems?.[selectedTab]?.value.initialCapital || 0, true)}/>
+                    <ReportItem title="실투자금" value={krwUnit(sortedItems?.[selectedTab]?.value.investmentCapital || 0, true)}/>
+                    <ReportItem title="연간 순수익" value={krwUnit(sortedItems?.[selectedTab]?.value.annualProfit || 0, true)}/>
+                    <ReportItem title="실투자금대비 임대수익률" value={sortedItems?.[selectedTab]?.value.rentProfitRatio.toFixed(2) + '%'}/>
+                    {/* <ReportItem title="연간 자산상승" value={krwUnit(sortedItems?.[selectedTab]?.value.assetGrowthAmount || 0, true)}/> */}
+                    <ReportItem title="실투자금대비 연간수익율" value={sortedItems?.[selectedTab]?.value.investmentProfitRatio.toFixed(2) + '%'}/>
+                    
+                    {/* <div className="flex justify-between">
                       <p className="font-s2 text-text-03">매입 가능 금액</p>
                       <p className="font-s1-p">219.7억원</p>
                     </div>
@@ -338,7 +354,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                     <div className="flex justify-between">
                       <p className="font-s2 text-text-03">리모델링후 예상 수익률</p>
                       <p className="font-s1-p">3.5~3.8%</p>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="w-[1px] bg-line-02"/>
                   <div className="flex-1 flex flex-col items-center gap-[12px]">
