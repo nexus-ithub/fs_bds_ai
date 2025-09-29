@@ -1,5 +1,5 @@
 import { BookmarkFilledIcon, CounselIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, getShortAddress, HDivider, krwUnit, MenuDropdown, NoteIcon, Pagination, SearchBar, VDivider, type User } from "@repo/common";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
@@ -31,6 +31,8 @@ export const BookmarkedReport = () => {
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
   const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
+
+  const aiReportRef = useRef<HTMLDivElement>(null);
 
   // const [selectedMenu, setSelectedMenu] = useState<string>("");
 
@@ -68,6 +70,25 @@ export const BookmarkedReport = () => {
   useEffect(() => {
     window.scrollTo({top: 0, behavior: 'smooth'})
   }, [currentPage])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (aiReportRef.current && !aiReportRef.current.contains(event.target as Node)) {
+        setOpenAIReport(false);
+        setSelectedItem(null);
+      }
+    }
+  
+    if (openAIReport) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+  
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [openAIReport]);
 
   return (
     <div className="min-w-[800px] flex flex-col gap-[16px] p-[40px]">
@@ -217,12 +238,14 @@ export const BookmarkedReport = () => {
       </div>
       {
         openAIReport &&
+        <div ref={aiReportRef}>
           <AIReport 
             polygon={{id: null, legDongCode: selectedItem.legDongCode, legDongName: selectedItem.legDongName, jibun: selectedItem.jibun, lat: selectedItem.lat, lng: selectedItem.lng, polygon: selectedItem.polygon}}
             landInfo={selectedItem?.landInfo}
             buildings={selectedItem?.buildings}
             estimatedPrice={{estimatedPrice: selectedItem?.estimatedPrice, per: selectedItem?.estimatedPricePer}}
-            onClose={() => setOpenAIReport(false)}/>
+            onClose={() => {setOpenAIReport(false); setSelectedItem(null)}}/>
+        </div>
       }
     </div>
   )
