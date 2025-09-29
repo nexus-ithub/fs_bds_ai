@@ -61,14 +61,15 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       <HDivider className="!border-b-line-02"/>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
-          <SearchBar
+          {/* 빌딩샵은 주소 빼기로 함 -> 검색할 항목이 없음 */}
+          {/* <SearchBar
             placeholder="검색어를 입력해 주세요."
             value={searchKeyword}
             onChange={setSearchKeyword}
             variant="filled"
             prefixSize={14}
             className="font-b3 px-[8px] py-[6px]"
-          />
+          /> */}
           {/* <div className="flex items-center gap-[8px]">
             <p className="font-s3 text-text-03">지역</p>
             <MenuDropdown 
@@ -99,9 +100,9 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       </div>
       <div className="flex flex-col gap-[16px]">
         {bookmarkList.map((item) => (
-          <div key={item.idx} className="w-full flex h-[220px] rounded-[8px] border border-line-03">
+          <div key={item.idx} className="w-full flex h-[190px] rounded-[8px] border border-line-03">
             <img
-              className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+              className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
               src={item.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
             <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
               <div className="flex flex-col gap-[8px]">

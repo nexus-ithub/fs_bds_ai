@@ -67,6 +67,20 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     }
   }
 
+  const searchBookmark = async() => {
+    try {
+      console.log(`userId: ${config?.id}, query: ${searchKeyword}, page: ${currentPage}, size: ${pageSize}`)
+      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: searchKeyword, page: currentPage, size: pageSize}});
+      console.log("<<<<<", response)
+      setBookmarkList(response.data.result);
+      console.log(">>>>", response.data)
+      setTotalCount(response.data.total);
+    } catch (error) {
+      console.log(error)
+      console.error('Failed to fetch bookmark list:', error);
+    }
+  }
+
   useEffect(() => {
     getBookmarkList();
   }, [currentPage, pageSize]);
@@ -95,6 +109,12 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [openAIReport]);
+
+  useEffect(() => {
+    if (searchKeyword.length > 0) {
+      searchBookmark();
+    }
+  }, [searchKeyword])
 
   return (
     <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
