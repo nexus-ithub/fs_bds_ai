@@ -69,11 +69,13 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
 
   const searchBookmark = async() => {
     try {
-      console.log(`userId: ${config?.id}, query: ${searchKeyword}, page: ${currentPage}, size: ${pageSize}`)
-      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: searchKeyword, page: currentPage, size: pageSize}});
-      console.log("<<<<<", response)
-      setBookmarkList(response.data.result);
-      console.log(">>>>", response.data)
+      setCurrentPage(1);
+      console.log(`userId: ${config?.id}, query: ${searchKeyword}, page: 1, size: ${pageSize}`)
+      console.log("Request headers:", axiosWithAuth.defaults.headers);
+
+      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: searchKeyword, page: 1, size: pageSize}});
+      console.log(response.config.headers);
+      setBookmarkList(response.data.response);
       setTotalCount(response.data.total);
     } catch (error) {
       console.log(error)
@@ -113,8 +115,14 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   useEffect(() => {
     if (searchKeyword.length > 0) {
       searchBookmark();
+    } else {
+      getBookmarkList();
     }
   }, [searchKeyword])
+
+  useEffect(() => {
+    console.log("bookmarked list", bookmarkList)
+  }, [bookmarkList])
 
   return (
     <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
@@ -162,7 +170,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         </div>
       </div>
       <div className="flex flex-col gap-[16px]">
-        {bookmarkList.map((item) => (
+        { bookmarkList?.length > 0 ? bookmarkList.map((item) => (
           <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`} className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
             <Roadview
               onViewpointChange={(viewpoint) => {
@@ -257,7 +265,9 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   
             </div>
           </div>
-        ))}
+        )) : (
+          <p className="text-text-03">관심물건이 없습니다.</p>
+        )}
       </div>
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
