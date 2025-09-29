@@ -48,7 +48,7 @@ export const Home = () => {
   return (
     <div className="flex flex-col w-full h-screen">
       <Header />
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 mt-[64px]">
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />

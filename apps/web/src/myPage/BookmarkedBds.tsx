@@ -12,7 +12,7 @@ const COUNT_BUTTON = [
   { value: 50, label: '50' },
 ]
 
-export const BookmarkedBds = () => {
+export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
       queryKey: [QUERY_KEY_USER, getAccessToken()]
@@ -31,6 +31,9 @@ export const BookmarkedBds = () => {
       const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
       setBookmarkList(response.data.result);
       setTotalCount(response.data.total);
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
     }
@@ -46,18 +49,11 @@ export const BookmarkedBds = () => {
   }
 
   useEffect(() => {
-    console.log("currentPage", currentPage)
-    console.log("pageSize", pageSize)
-    console.log("totalCount", totalCount)
     getBookmarkList();
   }, [pageSize, currentPage])
 
-  useEffect(() => {
-    window.scrollTo({top: 0, behavior: 'smooth'})
-  }, [currentPage])
-
   return (
-    <div className="min-w-[800px] flex flex-col gap-[16px] p-[40px]">
+    <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
@@ -65,14 +61,15 @@ export const BookmarkedBds = () => {
       <HDivider className="!border-b-line-02"/>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
-          <SearchBar
+          {/* 빌딩샵은 주소 빼기로 함 -> 검색할 항목이 없음 */}
+          {/* <SearchBar
             placeholder="검색어를 입력해 주세요."
             value={searchKeyword}
             onChange={setSearchKeyword}
             variant="filled"
             prefixSize={14}
             className="font-b3 px-[8px] py-[6px]"
-          />
+          /> */}
           {/* <div className="flex items-center gap-[8px]">
             <p className="font-s3 text-text-03">지역</p>
             <MenuDropdown 
@@ -103,9 +100,9 @@ export const BookmarkedBds = () => {
       </div>
       <div className="flex flex-col gap-[16px]">
         {bookmarkList.map((item) => (
-          <div key={item.idx} className="w-full flex h-[220px] rounded-[8px] border border-line-03">
+          <div key={item.idx} className="w-full flex h-[190px] rounded-[8px] border border-line-03">
             <img
-              className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+              className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
               src={item.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
             <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
               <div className="flex flex-col gap-[8px]">

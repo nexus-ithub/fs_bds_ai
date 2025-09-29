@@ -6,7 +6,7 @@ import { Privacy } from "../support/Privacy";
 import { BoardDetail } from "../support/BoardDetail";
 import { CheckIcon, HDivider, type User } from "@repo/common";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
@@ -101,8 +101,10 @@ export const MyPage = () => {
     queryKey: [QUERY_KEY_USER, getAccessToken()]
   })
   const [bdsCount, setBdsCount] = useState<number>(0);
+  const [reportCount, setReportCount] = useState<number>(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const getTotalBookmarked = async () => {
+  const getTotalBookmarkedBds = async () => {
     try {
       const response = await axiosWithAuth.get('/api/bds/total-bookmarked', {params: {userId: config?.id}});
       setBdsCount(response.data);
@@ -111,13 +113,23 @@ export const MyPage = () => {
     }
   }
 
+  const getTotalBookmarkedReport = async () => {
+    try {
+      const response = await axiosWithAuth.get('/api/land/total-bookmarked', {params: {userId: config?.id}});
+      setReportCount(response.data);
+    } catch (error) {
+      console.error('Failed to fetch total bookmarked:', error);
+    }
+  }
+
   useEffect(() => {
-    getTotalBookmarked();
+    getTotalBookmarkedBds();
+    getTotalBookmarkedReport();
   }, [])
 
   return (
-    <div className="flex">
-      <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02">
+    <div className="flex h-full">
+      <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
         <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
             <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 64, height: 64 }}/>
@@ -135,7 +147,7 @@ export const MyPage = () => {
             </div>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">저장된 관심물건</p>
-              <p className="font-s2 text-text-02">12TODO</p>
+              <p className="font-s2 text-text-02">{reportCount}</p>
             </div>
             <HDivider className="!border-b-line-02" dashed={true}/>
             <div className="flex items-center justify-between gap-[6px]">
@@ -148,12 +160,14 @@ export const MyPage = () => {
         <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
         <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded />
       </div>
-      <Routes>
-        <Route path="/" element={<Profile />} />
-        <Route path="additional-info" element={<MyAdditionalInfo />} />
-        <Route path="bookmarked-bds" element={<BookmarkedBds />} />
-        <Route path="bookmarked-report" element={<BookmarkedReport />} />
-      </Routes>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
+        <Routes>
+          <Route path="/" element={<Profile />} />
+          <Route path="additional-info" element={<MyAdditionalInfo />} />
+          <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
+          <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
+        </Routes>
+      </div>
     </div>
   )
 }
