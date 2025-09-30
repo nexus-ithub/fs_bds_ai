@@ -648,7 +648,7 @@ export class LandModel {
   static async getTotalBookmarked(userId: string) {
     try {
       const countRows = await db.query(
-        `SELECT COUNT(*) as total FROM bookmarked_bds WHERE user_id = ? AND delete_yn = 'N'`,
+        `SELECT COUNT(*) as total FROM bookmarked_report WHERE user_id = ? AND delete_yn = 'N'`,
         [userId]
       );
       const total = (countRows as any)[0].total;

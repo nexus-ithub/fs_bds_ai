@@ -40,6 +40,7 @@ export class SearchModel {
       );
       
       const total = countResult[0].total;
+      console.log(`size >> ${size}, page >> ${page}`)
       
       const response = await db.query(
         `SELECT br.land_id as landId, br.building_id as buildingId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
