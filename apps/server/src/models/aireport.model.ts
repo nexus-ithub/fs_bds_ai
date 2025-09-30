@@ -1,3 +1,4 @@
+import { publicDecrypt } from 'crypto';
 import { db } from '../utils/database';
 import { AIReportInfo, AIReportResult, BuildInfo, BuildingInfo, EstimatedPrice, LandCost, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportValue, TaxInfo } from '@repo/common';
 
@@ -280,7 +281,7 @@ function makeBuildInfo(buildInfo : BuildInfo, area : number, far : number, bcr :
 
 
 function makeProjectCost(projectCost : ProjectCost, currentFloorArea : number, totalFloorArea : number, projectDuration : ProjectDuration, remodeling : boolean){
-  console.log('makeProjectCost ', currentFloorArea, totalFloorArea, projectDuration, remodeling);
+  // console.log('makeProjectCost ', currentFloorArea, totalFloorArea, projectDuration, remodeling);
   
   if(remodeling){
     projectCost.demolitionCost = 0;
@@ -346,16 +347,59 @@ function makeLoanForOwner(value: ReportValue) { // landCost에 대한 정보를 
 }
 
 
-function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, buildInfo : BuildInfo, firstFloorRentProfitPerPy : number, upperFloorRentProfitPerPy : number, baseFloorRentProfitPerPy : number){
-  // 월 임대료 수익 
-  const rentProfit =  getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025) + 
-  upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025) + 
-  baseFloorRentProfitPerPy * buildInfo.lowerFloorExclusiveArea * 0.3025) // 임대료 
+function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, buildInfo : BuildInfo, currentBuilding : BuildingData, firstFloorRentProfitPerPy : number, upperFloorRentProfitPerPy : number, baseFloorRentProfitPerPy : number){
+  
+  let rentProfit;
+  let managementProfit;
+  
+  if(type === 'rent'){
+    let archArea;
+    if(currentBuilding.archArea > 0){
+      archArea = Number(currentBuilding.archArea);
+    }else if(Number(currentBuilding.totalFloorArea) > 0 && (Number(currentBuilding.gndFloorNumber) + Number(currentBuilding.baseFloorNumber)) > 0){
+      archArea = (Number(currentBuilding.totalFloorArea) / (Number(currentBuilding.gndFloorNumber) + Number(currentBuilding.baseFloorNumber)));
+    }else {
+      // 현재 빌딩의 정보로 계산 할수 없으면 현재기준의 연면적을 건축 면적으로 계산 
+      archArea = buildInfo.buildingArea;
+    }
 
-  // 월 관리비 수익 (1/2 만 수익으로 계산)
-  const managementProfit = 
-    (getManagementCostPerPy(buildInfo.upperFloorArea + buildInfo.lowerFloorArea, type) 
-    * (buildInfo.upperFloorArea + buildInfo.lowerFloorArea) * 0.3025) / 2;
+    // 연면적이 없으면 archArea로 대체 (1층짜리 건물이라고 생각) 
+    const totalFloorArea = currentBuilding.totalFloorArea ? Number(currentBuilding.totalFloorArea) : archArea;  
+    const publicArea = getDefaultPublicArea(totalFloorArea);
+    const firstFloorExclusiveArea = Number(archArea) - publicArea;
+    const baseExclusiveArea = Number(currentBuilding.gndFloorNumber) > 1 ? 
+      (Number(currentBuilding.landArea) * BASE_FLOOR_AREA_RATIO) - publicArea :
+      0;
+    const totalUpperFloorArea = Number(currentBuilding.totalFloorArea) - firstFloorExclusiveArea - baseExclusiveArea 
+    const totalUpperFloorExclusiveArea = totalUpperFloorArea - (publicArea * (Number(currentBuilding.gndFloorNumber) - 1));
+
+    console.log('currentBuilding', currentBuilding);
+    console.log('archArea', archArea);
+    console.log('publicArea', publicArea);
+    console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
+    console.log('totalUpperFloorExclusiveArea', totalUpperFloorExclusiveArea);
+    console.log('baseExclusiveArea', baseExclusiveArea);
+    console.log('currentBuilding.totalFloorArea', currentBuilding.totalFloorArea);
+    
+    rentProfit = getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (firstFloorExclusiveArea * 0.3025) + 
+      upperFloorRentProfitPerPy * (totalUpperFloorExclusiveArea) * 0.3025 + 
+      baseFloorRentProfitPerPy * (baseExclusiveArea * 0.3025));
+
+    managementProfit = 
+      (getManagementCostPerPy(currentBuilding.totalFloorArea, type) 
+      * (currentBuilding.totalFloorArea) * 0.3025) / 2;
+  }else{
+    // 월 임대료 수익 
+    rentProfit = getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025) + 
+    upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025) + 
+    baseFloorRentProfitPerPy * buildInfo.lowerFloorExclusiveArea * 0.3025) // 임대료 
+
+    // 월 관리비 수익 (1/2 만 수익으로 계산)
+    managementProfit = 
+      (getManagementCostPerPy(buildInfo.upperFloorArea + buildInfo.lowerFloorArea, type) 
+      * (buildInfo.upperFloorArea + buildInfo.lowerFloorArea) * 0.3025) / 2;
+  }
+
 
   value.annualRentProfit = rentProfit * 12;  
   value.annualManagementProfit = managementProfit * 12;
@@ -431,6 +475,28 @@ function newReportValue(): ReportValue {
 }
 
 
+interface BuildingData{
+  id: string;
+  floorAreaRatio: number;
+  useApprovalDate: string;
+  totalFloorArea: number;
+  archArea: number;
+  landArea: number;
+  gndFloorNumber: number;
+  baseFloorNumber: number;
+}
+
+interface LandData{
+  id: string;
+  area: number;
+  usageName: string;
+  price: number;
+  far: number;
+  bcr: number;
+  lat: number;
+  lng: number;
+}
+
 export class AIReportModel {
 
   
@@ -439,19 +505,23 @@ export class AIReportModel {
 
       let buildingInfo = null;
       if(buildingId){
-        buildingInfo = await db.query<any>(
+        buildingInfo = await db.query<BuildingData>(
           `SELECT 
             building_id AS id,
             floor_area_ratio AS floorAreaRatio,
             use_approval_date AS useApprovalDate,
-            total_floor_area AS totalFloorArea
+            total_floor_area AS totalFloorArea,
+            arch_area AS archArea,
+            land_area AS landArea,
+            gnd_floor_number AS gndFloorNumber,
+            base_floor_number AS baseFloorNumber
             FROM building_leg_headline
             WHERE building_id = ?`,
           [buildingId]
         )        
       }
 
-      const landInfo = await db.query<any>(
+      const landInfo = await db.query<LandData>(
         `SELECT 
           land_info.id AS id,
           land_info.area AS area,
@@ -602,10 +672,10 @@ export class AIReportModel {
         }          
       }else{
         makeReportValue(aiReport.build, 'A', 'build');
-        // aiReport.remodel = null;
-        // aiReport.rent = null;
-        makeReportValue(aiReport.remodel, 'C', 'remodel');
-        makeReportValue(aiReport.rent, 'C', 'rent');
+        aiReport.remodel = null;
+        aiReport.rent = null;
+        // makeReportValue(aiReport.remodel, 'C', 'remodel');
+        // makeReportValue(aiReport.rent, 'C', 'rent');
       }
 
       const aroundRentInfo = await db.query<any>(
@@ -646,49 +716,54 @@ export class AIReportModel {
       
       ////////////////////////////////////////////////////////////////
       // 신축 
-      aiReport.build.duration = getBuildProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-      makeLandCost(aiReport.build.landCost, estimatedPrice);
-      makeProjectCost(
-        aiReport.build.projectCost,
-        buildingTotalFloorArea,
-        aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-        aiReport.build.duration,
-        false
-      );
-      aiReport.build.loan = makeLoan(aiReport.build);
-      aiReport.build.loanForOwner = makeLoanForOwner(aiReport.build);
-      makeProfit('build', aiReport.build, aiReport.buildInfo, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+      if(aiReport.build){
+        aiReport.build.duration = getBuildProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
+        makeLandCost(aiReport.build.landCost, estimatedPrice);
+        makeProjectCost(
+          aiReport.build.projectCost,
+          buildingTotalFloorArea,
+          aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
+          aiReport.build.duration,
+          false
+        );
+        aiReport.build.loan = makeLoan(aiReport.build);
+        aiReport.build.loanForOwner = makeLoanForOwner(aiReport.build);
+        makeProfit('build', aiReport.build, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+      }
       // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
       ////////////////////////////////////////////////////////////////
       // 리모델링   
-      aiReport.remodel.duration = getRemodelProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-      makeLandCost(aiReport.remodel.landCost, estimatedPrice);
-      makeProjectCost(
-        aiReport.remodel.projectCost,
-        buildingTotalFloorArea,
-        aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-        aiReport.remodel.duration,
-        true
-      );
-      aiReport.remodel.loan = makeLoan(aiReport.remodel);
-      aiReport.remodel.loanForOwner = makeLoanForOwner(aiReport.remodel);
-      makeProfit('remodel', aiReport.remodel, aiReport.buildInfo, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
-      
+      if(aiReport.remodel){
+        aiReport.remodel.duration = getRemodelProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
+        makeLandCost(aiReport.remodel.landCost, estimatedPrice);
+        makeProjectCost(
+          aiReport.remodel.projectCost,
+          buildingTotalFloorArea,
+          aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
+          aiReport.remodel.duration,
+          true
+        );
+        aiReport.remodel.loan = makeLoan(aiReport.remodel);
+        aiReport.remodel.loanForOwner = makeLoanForOwner(aiReport.remodel);
+        makeProfit('remodel', aiReport.remodel, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+      }
       ////////////////////////////////////////////////////////////////
       // 임대
-      // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-      makeLandCost(aiReport.rent.landCost, estimatedPrice);
-      // makeProjectCost(
-      //   aiReport.rent.projectCost,
-      //   building?.totalFloorArea || 0,
-      //   aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-      //   aiReport.rent.duration,
-      //   false
-      // );
-      aiReport.rent.loan = makeLoan(aiReport.rent);
-      aiReport.rent.loanForOwner = makeLoanForOwner(aiReport.rent);
-      makeProfit('rent', aiReport.rent, aiReport.buildInfo, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+      if(aiReport.rent){
+        // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
+        makeLandCost(aiReport.rent.landCost, estimatedPrice);
+        // makeProjectCost(
+        //   aiReport.rent.projectCost,
+        //   building?.totalFloorArea || 0,
+        //   aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
+        //   aiReport.rent.duration,
+        //   false
+        // );
+        aiReport.rent.loan = makeLoan(aiReport.rent);
+        aiReport.rent.loanForOwner = makeLoanForOwner(aiReport.rent);
+        makeProfit('rent', aiReport.rent, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+      }
 
       const taxBase = land.price * land.area * FAIR_MARKET_RATIO; // 과세표준 공정시장가 비율 공시지가 * 70%  
       aiReport.tax.propertyTax = getPropertyTax(taxBase);
@@ -702,7 +777,7 @@ export class AIReportModel {
       console.log(aiReport);
 
       const aiReportResult: AIReportResult = {
-        rent: {
+        rent: aiReport.rent ? {
           grade: aiReport.rent.grade,
           message: aiReport.rent.message,
           initialCapital: calculateInitialCapital(aiReport.rent),
@@ -711,9 +786,9 @@ export class AIReportModel {
           rentProfitRatio: calculateaAnnualProfit(aiReport.rent, aiReport.tax) / calculateInvestmentCapital(aiReport.rent),
           // assetGrowthAmount: aiReport.rent.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.rent, aiReport.tax) + (aiReport.rent.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.rent),
-          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100),
-        },
-        remodel: {
+          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100)
+        } : null,
+        remodel: aiReport.remodel ? {
           grade: aiReport.remodel.grade,
           message: aiReport.remodel.message,
           initialCapital: calculateInitialCapital(aiReport.remodel),
@@ -723,8 +798,8 @@ export class AIReportModel {
           // assetGrowthAmount: aiReport.remodel.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.remodel, aiReport.tax) + (aiReport.remodel.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.remodel),
           expectedSaleAmount: (aiReport.remodel.annualManagementProfit + aiReport.remodel.annualRentProfit) / (3.5 / 100),
-        },
-        build: {
+        } : null,
+        build: aiReport.build ? {
           grade: aiReport.build.grade,
           message: aiReport.build.message,
           initialCapital: calculateInitialCapital(aiReport.build),
@@ -734,7 +809,7 @@ export class AIReportModel {
           // assetGrowthAmount: aiReport.build.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.build, aiReport.tax) + (aiReport.build.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.build),
           expectedSaleAmount: (aiReport.build.annualManagementProfit + aiReport.build.annualRentProfit) / (3.5 / 100),
-        },
+        } : null,
         analysisMessage: aiReport.analysisMessage,
       };
       return aiReportResult;
