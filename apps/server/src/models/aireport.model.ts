@@ -1,6 +1,8 @@
 import { publicDecrypt } from 'crypto';
 import { db } from '../utils/database';
 import { AIReportInfo, AIReportResult, BuildInfo, BuildingInfo, EstimatedPrice, LandCost, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportValue, TaxInfo } from '@repo/common';
+import OpenAI from "openai";
+const client = new OpenAI();
 
 
 const RENT_CANDIDATE_RADIUS = 1000;
@@ -488,13 +490,19 @@ interface BuildingData{
 
 interface LandData{
   id: string;
+  legDongName: string;
   area: number;
+  jibun: string;
   usageName: string;
   price: number;
   far: number;
   bcr: number;
   lat: number;
   lng: number;
+
+  dealPrice: number;
+  dealDate: string;
+  dealType: string;
 }
 
 export class AIReportModel {
@@ -503,6 +511,8 @@ export class AIReportModel {
   static async getAIReport(landId: string, buildingId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
     try {
 
+
+     
       let buildingInfo = null;
       if(buildingId){
         buildingInfo = await db.query<BuildingData>(
@@ -521,16 +531,40 @@ export class AIReportModel {
         )        
       }
 
+      
       const landInfo = await db.query<LandData>(
         `SELECT 
           land_info.id AS id,
+          land_info.leg_dong_name as legDongName,
+          land_info.jibun as jibun,
           land_info.area AS area,
           land_char.usage1_name AS usageName,
           land_char.price AS price,
           leg_land_usage_ratio.far,
           leg_land_usage_ratio.bcr,
           polygon.lat,
-          polygon.lng
+          polygon.lng,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN bd_latest.deal_date
+            ELSE ld_latest.deal_date
+          END AS dealDate,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN bd_latest.price
+            ELSE ld_latest.price
+          END AS dealPrice,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN 'building'
+            ELSE 'land'
+          END AS dealType          
           FROM land_info AS land_info
           LEFT JOIN land_char_info AS land_char
             ON land_char.key = (
@@ -544,6 +578,32 @@ export class AIReportModel {
             ON polygon.id = land_info.id
           LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
             ON land_char.usage1_name = leg_land_usage_ratio.name
+          LEFT JOIN (
+            SELECT id, deal_date, price
+            FROM (
+              SELECT 
+                id,
+                deal_date,
+                price,
+                ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+              FROM building_deal_list
+            ) t
+            WHERE t.rn = 1
+          ) AS bd_latest
+            ON bd_latest.id = land_info.id
+          LEFT JOIN (
+            SELECT id, deal_date, price
+            FROM (
+              SELECT 
+                id,
+                deal_date,
+                price,
+                ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+              FROM land_deal_list
+            ) t
+            WHERE t.rn = 1
+          ) AS ld_latest
+            ON ld_latest.id = land_info.id              
           WHERE land_info.id = ?`,
         [landId]
       )   
@@ -812,6 +872,15 @@ export class AIReportModel {
         } : null,
         analysisMessage: aiReport.analysisMessage,
       };
+
+      // const response = await client.responses.create({
+      //   model: "gpt-5-mini",
+      //   instructions: "Write a one-sentence bedtime story about a unicorn.",
+      //   input: "Write a one-sentence bedtime story about a unicorn."
+      // });
+
+      // console.log(response);
+
       return aiReportResult;
     } catch (error) {
       // console.error('Error getting AI report:', error);
