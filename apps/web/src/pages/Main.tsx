@@ -84,7 +84,11 @@ export default function Main() {
         if(changePosition){
           console.log('setCenter', polygon.lat, polygon.lng);
           setCenter({ lat: polygon.lat, lng: polygon.lng });
-          console.log('setLevel', polygon.lat, polygon.lng);
+          setTimeout(() => {
+            console.log('setLevel', polygon.lat, polygon.lng);
+            setCenter({ lat: polygon.lat, lng: polygon.lng });
+            setCenter({ lat: polygon.lat, lng: polygon.lng });
+          }, 100);
           setLevel(2);
           saveMapState(polygon.lat, polygon.lng, 2);
         }

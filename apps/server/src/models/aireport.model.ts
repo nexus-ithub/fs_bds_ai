@@ -711,7 +711,7 @@ export class AIReportModel {
           rentProfitRatio: calculateaAnnualProfit(aiReport.rent, aiReport.tax) / calculateInvestmentCapital(aiReport.rent),
           // assetGrowthAmount: aiReport.rent.landCost.purchaseCost * 0.045,
           investmentProfitRatio: (calculateaAnnualProfit(aiReport.rent, aiReport.tax) + (aiReport.rent.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.rent),
-          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100),
+          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100)
         },
         remodel: {
           grade: aiReport.remodel.grade,
