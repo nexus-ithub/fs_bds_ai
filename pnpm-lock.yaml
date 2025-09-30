@@ -23,15 +23,24 @@ importers:
       '@repo/common':
         specifier: workspace:*
         version: link:../../packages/common
+      '@tailwindcss/postcss':
+        specifier: ^4.1.13
+        version: 4.1.13
       next:
         specifier: ^15.5.0
         version: 15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
       react:
         specifier: ^19.1.0
         version: 19.1.1
       react-dom:
         specifier: ^19.1.0
         version: 19.1.1(react@19.1.1)
+      tailwindcss:
+        specifier: ^4.1.13
+        version: 4.1.13
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
