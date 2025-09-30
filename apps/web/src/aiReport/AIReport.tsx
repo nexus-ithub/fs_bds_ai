@@ -316,15 +316,6 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                     {item.title} 설계 리포트  
                   </TabButton>
                 ))}
-                  {/* <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={true} onClick={() => {}}>
-                    신축 설계 리포트
-                  </TabButton>
-                  <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={false} onClick={() => {}}>
-                    리모델링 설계 리포트
-                  </TabButton>
-                  <TabButton fontClassName="font-s1" className="flex-1 h-[48px]" selected={false} onClick={() => {}}>
-                    임대 리포트
-                  </TabButton> */}
                 </div>
                 <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
                   <div className="flex-1 space-y-[14px]">

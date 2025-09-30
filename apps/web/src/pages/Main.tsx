@@ -84,6 +84,8 @@ export default function Main() {
         if(changePosition){
           console.log('setCenter', polygon.lat, polygon.lng);
           setCenter({ lat: polygon.lat, lng: polygon.lng });
+
+          // 지도 중심좌표가 제대로 이동 안되는 현상이 있어 몇번 더 시도 하는 코드 추가
           setTimeout(() => {
             console.log('setLevel', polygon.lat, polygon.lng);
             setCenter({ lat: polygon.lat, lng: polygon.lng });
