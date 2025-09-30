@@ -158,7 +158,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   };
 
   const handleAskChat = async(question?: string) => {
-    const inputToUse = question || questionInput;
+    const inputToUse = question?.trim() || questionInput.trim();
     if (!inputToUse) return;
 
     const newSessionId = currentSessionId || uuidv4();
@@ -411,7 +411,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                     value={questionInput}
                     onChange={(e) => setQuestionInput(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as unknown as { isComposing?: boolean }).isComposing && questionInput.trim() !== "") {
+                      if (e.key === "Enter" && !e.shiftKey && !(e.nativeEvent as unknown as { isComposing?: boolean }).isComposing && questionInput.trim() !== "" && !loading) {
                         e.preventDefault();
                         handleAskChat();
                         const target = e.target as HTMLTextAreaElement;
@@ -429,8 +429,9 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                       handleAskChat();
                       const target = e.target as HTMLTextAreaElement;
                       target.style.height = "auto";
-                    }}>
-                    <SendIcon/>
+                    }}
+                    disabled={loading || questionInput.trim() === ""}>
+                    <SendIcon color={loading || questionInput.trim() === "" ? "#D2D4DA" : "#4E52FF"}/>
                   </button>
                 </div>
                 <div className="flex h-[56px] items-center font-c2 text-text-04">

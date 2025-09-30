@@ -23,13 +23,13 @@ export const askChat = async (req: Request, res: Response) => {
     user_id: userId ?? null,
     title: titleExists ? null : response.data.summary_question,
     question: question,
-    answer: response.data.answer,
+    answer: response.data.answer ? response.data.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
   });
 
   if (user) {
     return res.json({
       title: titleExists ? null : response.data.summary_question,
-      answer: response.data.answer,
+      answer: response.data.answer ? response.data.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
     }); 
   } else {
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });

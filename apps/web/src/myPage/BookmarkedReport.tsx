@@ -1,14 +1,15 @@
-import { BookmarkFilledIcon, CounselIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, getShortAddress, HDivider, krwUnit, MenuDropdown, NoteIcon, Pagination, SearchBar, VDivider, type User } from "@repo/common";
+import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
-import { type BookmarkedReportType, type LandInfo, type BuildingInfo } from "@repo/common";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 import { format } from "date-fns";
 import { AIReport } from "../aiReport/AIReport";
+import debounce from "lodash/debounce";
 
+const DEBOUNCE_DELAY = 300;
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
   { value: 20, label: '20' },
@@ -30,7 +31,6 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   const [selectedItem, setSelectedItem] = useState<BookmarkedReportType | null>(null);
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
-  const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
 
   const aiReportRef = useRef<HTMLDivElement>(null);
 
@@ -67,13 +67,11 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     }
   }
 
-  const searchBookmark = async() => {
+  const searchBookmark = async(keyword: string, page: number, size: number) => {
     try {
-      console.log(`userId: ${config?.id}, query: ${searchKeyword}, page: ${currentPage}, size: ${pageSize}`)
-      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: searchKeyword, page: currentPage, size: pageSize}});
-      console.log("<<<<<", response)
-      setBookmarkList(response.data.result);
-      console.log(">>>>", response.data)
+      console.log(`userId : ${config?.id}, query : ${keyword}, page : ${page}, size : ${size}`)
+      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: keyword, page: page, size: size}});
+      setBookmarkList(response.data.response);
       setTotalCount(response.data.total);
     } catch (error) {
       console.log(error)
@@ -81,15 +79,11 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     }
   }
 
-  useEffect(() => {
-    getBookmarkList();
-  }, [currentPage, pageSize]);
-
-  // useEffect(() => {
-  //   if (scrollContainerRef.current) {
-  //     scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-  //   }
-  // }, [currentPage])
+  const debouncedSearch = useRef(
+    debounce((keyword: string, page: number, size: number) => {
+      searchBookmark(keyword, page, size);
+    }, DEBOUNCE_DELAY)
+  ).current
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -112,9 +106,27 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
 
   useEffect(() => {
     if (searchKeyword.length > 0) {
-      searchBookmark();
+      setCurrentPage(1);
+      debouncedSearch(searchKeyword, 1, pageSize); // 검색어가 바뀌면 항상 1페이지
+    } else {
+      debouncedSearch.cancel();
+      getBookmarkList(); // 검색어가 없으면 전체 리스트
     }
-  }, [searchKeyword])
+  }, [searchKeyword, pageSize]);
+
+  useEffect(() => {
+    if (searchKeyword.length > 0) {
+      debouncedSearch(searchKeyword, currentPage, pageSize);
+    } else {
+      getBookmarkList();
+    }
+  }, [currentPage, pageSize]);
+  
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   return (
     <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
@@ -162,7 +174,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         </div>
       </div>
       <div className="flex flex-col gap-[16px]">
-        {bookmarkList.map((item) => (
+        { bookmarkList?.length > 0 ? bookmarkList.map((item) => (
           <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`} className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
             <Roadview
               onViewpointChange={(viewpoint) => {
@@ -257,7 +269,9 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   
             </div>
           </div>
-        ))}
+        )) : (
+          <p className="text-text-03">관심물건이 없습니다.</p>
+        )}
       </div>
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
