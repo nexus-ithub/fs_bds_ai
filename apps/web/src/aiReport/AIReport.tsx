@@ -1,9 +1,8 @@
 import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
-import { CircularProgress } from "@mui/material";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
@@ -38,7 +37,8 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   const [loading, setLoading] = useState(true);
   const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
   const [selectedTab, setSelectedTab] = useState<number>(0);
-
+  const didRunRef = useRef(false);
+  
   const getGrade = (grade: string) => {
     switch (grade) {
       case 'A':
@@ -59,25 +59,39 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   }, []);
 
 
-  useEffect(() => {
+  const getAIReport = async () => {
     
-    if(landInfo && buildings && estimatedPrice){
-      const aiReport = {
-        landId: landInfo.id,
-        buildingId: buildings.length > 0 ? buildings[0].id : null,
-        estimatedPrice
-      }
-      
-      setLoading(true);
-      axiosWithAuth.post('/api/land/ai-report', aiReport).then((res) => {
-        console.log(res.data);
-        setAiReportResult(res.data);
-      }).catch((error) => {
-        console.error(error);
-      }).finally(() => {
-        setLoading(false);
-      });
+    console.log('request ai report ', landInfo, buildings, estimatedPrice);
+    const buildingId = buildings?.[0]?.id ?? null;
+    
+    const aiReport = {
+      landId: landInfo.id,
+      buildingId,
+      estimatedPrice
     }
+    
+    setLoading(true);
+    axiosWithAuth.post('/api/land/ai-report', aiReport).then((res) => {
+      console.log(res.data);
+      setAiReportResult(res.data);
+    }).catch((error) => {
+      console.error(error);
+    }).finally(() => {
+      setLoading(false);
+    });
+  }
+
+  useEffect(() => {
+
+    if (!landInfo?.id || !estimatedPrice) return;
+    
+  
+    if(didRunRef.current) return;
+    didRunRef.current = true;
+    
+    getAIReport();
+
+
   }, [landInfo, buildings, estimatedPrice]);
 
   
@@ -297,7 +311,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                       {sortedItems?.[0]?.value.grade}
                     </p>
                     <p className="w-full font-s3 bg-surface-second px-[12px] py-[8px] rounded-[2px]">
-                      {sortedItems?.[0]?.value.message}
+                      {aiReportResult?.summary}
                     </p>
                   </div>
                   
@@ -322,9 +336,9 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                     <ReportItem title="초기준비자금" value={krwUnit(sortedItems?.[selectedTab]?.value.initialCapital || 0, true)}/>
                     <ReportItem title="실투자금" value={krwUnit(sortedItems?.[selectedTab]?.value.investmentCapital || 0, true)}/>
                     <ReportItem title="연간 순수익" value={krwUnit(sortedItems?.[selectedTab]?.value.annualProfit || 0, true)}/>
-                    <ReportItem title="실투자금대비 임대수익률" value={sortedItems?.[selectedTab]?.value.rentProfitRatio.toFixed(2) + '%'}/>
+                    <ReportItem title="실투자금대비 임대수익률" value={(sortedItems?.[selectedTab]?.value.rentProfitRatio * 100).toFixed(1) + '%'}/>
                     {/* <ReportItem title="연간 자산상승" value={krwUnit(sortedItems?.[selectedTab]?.value.assetGrowthAmount || 0, true)}/> */}
-                    <ReportItem title="실투자금대비 연간수익율" value={sortedItems?.[selectedTab]?.value.investmentProfitRatio.toFixed(2) + '%'}/>
+                    <ReportItem title="실투자금대비 연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/>
                     
                     {/* <div className="flex justify-between">
                       <p className="font-s2 text-text-03">매입 가능 금액</p>

@@ -1,9 +1,50 @@
 import { publicDecrypt } from 'crypto';
 import { db } from '../utils/database';
-import { AIReportInfo, AIReportResult, BuildInfo, BuildingInfo, EstimatedPrice, LandCost, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportValue, TaxInfo } from '@repo/common';
+import { AIReportInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo } from '@repo/common';
 import OpenAI from "openai";
-const client = new OpenAI();
+const client = new OpenAI({
+  timeout: 20 * 1000, 
+});
 
+
+
+
+const INSTRUCTION_PROMPT = `"""
+너는 부동산 분석 전문가로서 
+현재 토지와 건물에 대한 내용을 아래의 예와 비슷하게 요약 해야해
+
+"서울 강남구 청담동 95-16은 제2종 일반주거지역에 위치한 지하 1층, 지상 4층 규모의 중소형 빌딩으로, 대지 약 101평, 연면적 약 255평입니다. 2021년에는 약 178억 원에 매매되었으며, 현재 시세는 약 230억~250억 원 수준으로 예측 됩니다. 제2종 일반주거지역이라는 점에서 용적률 제한과 인허가 절차의 제약이 있으며, 인접 건물과의 관계도 고려해야 합니다. 다만, 리모델링 후 상가+주거 혼합 임대 전략으로 안정적인 수익 창출이 가능하며, 지하층은 상업용(바, 스튜디오), 상층부는 오피스텔 또는 공유오피스로 활용 가능합니다. 예상 연 임대수익은 약 1.2억원 수준입니다.
+다만, 실거래가와 공시지가 괴리에 따른 세금 부담, 임대 공실 위험, 재건축 관련 규제 등을 충분히 검토해야 하며, 중장기적으로는 재건축 또는 고급 리모델링을 통해 자산가치 상승이 기대되는 건물입니다." 
+
+**** 요약의 주요 조건 ****
+- 한국어로 작성
+- 고급스럽고 전문적인 톤
+- ~입니다. ~합니다 등으로 문장의 끝은 사용자에게 이야기 하듯 작성해줘
+- 건물 특징(위치, 용도, 임대료, 준공연도)을 포함하고 건물이 없으면 "현재 건축물 없는 상태"라고 작성 
+- 주용도에 따른 제한사항/고려해야할점/긍정적인면 등 지식을 동원해서 용도에 대한 이야기 작성, 만약 주용도가 
+  특별한게 없다면 작성하지 않아도 됨  
+- 주소를 보고 지식을 동원해서 주변 랜드마크, 대중교통, 개발계획, 개발호재등의 입지의 특징을 설명해주고, 만약 주변입지가 특별한게 없다면 작성하지 않아도 됨 
+- 기타로 현재 데이터를 기반으로 추가 내용이 있다면 간단하게 첨부해도 됨
+- 신축 / 리모델링 / 임대중 등급이 'A' 는 가장 추천하는 개발 방향이고, 'B'는 두번째로 추천하는 개발 방향이고, 'C'는 가장 추천하지 않는 개발 방향임.
+- 등급 이야기는 하지 말고 추천/두번째로 추천/추천하지 않음 용어로 설명해줘 
+- 매각금액/투자금/순수익등의 설명은 등급이 "A" 인 것을 기준으로 설명
+- 신축 / 리모델링 / 임대중 등급 A, B 까지만 설명 하고 C 에 대해서는 굳이 설명하지 않아도 됨
+
+
+*** 중요 *** 
+- 응답 텍스트는 너무 길지 않게 800자 이내로 작성해줘 
+- 프롬프트의 내용이 작성되지 않도록 주의 
+- 금액은 1.4억 , 2.3천만원 등으로 표시해줘 
+
+*** 출력 형식 ***
+사용자의 질문에 먼저 답변을 작성하고, 그 뒤에 짧은 요약을 작성해줘.
+* 요약은 70자 이내로 작성하고 answer 를 참고해서 아래 예처림 등급 A 인 개발방향을 중점으로 서술형으로 요약 작성해줘 
+"즉시 수익 창출이 가능하고 리스크가 낮아 안정적 현금 흐름 확보에 유리한 저위험 투자처입니다."
+* 반드시 다음과 같은 JSON 형식을 지켜줘
+{"answer": "...", "summary": "..."}
+
+
+"""`;
 
 const RENT_CANDIDATE_RADIUS = 1000;
 
@@ -477,32 +518,21 @@ function newReportValue(): ReportValue {
 }
 
 
-interface BuildingData{
-  id: string;
-  floorAreaRatio: number;
-  useApprovalDate: string;
-  totalFloorArea: number;
-  archArea: number;
-  landArea: number;
-  gndFloorNumber: number;
-  baseFloorNumber: number;
-}
-
-interface LandData{
-  id: string;
-  legDongName: string;
-  area: number;
-  jibun: string;
-  usageName: string;
-  price: number;
-  far: number;
-  bcr: number;
-  lat: number;
-  lng: number;
-
-  dealPrice: number;
-  dealDate: string;
-  dealType: string;
+function reportValueToJsonString(report: ReportValue, result: ReportResult): string {
+  if(report && result){
+    const reportJson = {
+      '등급': report.grade,
+      '공사기간': report.duration.constructionDurationMonths + report.duration.designDurationMonths + report.duration.planningDurationMonths,
+      '초기준비자금': result.initialCapital,
+      '실투자금': result.investmentCapital,
+      '연간 순수익': result.annualProfit,
+      '실투자금 대비 임대수익율': result.rentProfitRatio,
+      '실투자금 대비 연간수익율': result.investmentProfitRatio,
+      '매각금액': result.expectedSaleAmount,
+    }
+    return JSON.stringify(reportJson);
+  }
+  return '없음';
 }
 
 export class AIReportModel {
@@ -511,8 +541,6 @@ export class AIReportModel {
   static async getAIReport(landId: string, buildingId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
     try {
 
-
-     
       let buildingInfo = null;
       if(buildingId){
         buildingInfo = await db.query<BuildingData>(
@@ -871,15 +899,46 @@ export class AIReportModel {
           expectedSaleAmount: (aiReport.build.annualManagementProfit + aiReport.build.annualRentProfit) / (3.5 / 100),
         } : null,
         analysisMessage: aiReport.analysisMessage,
+        summary: '',
       };
 
-      // const response = await client.responses.create({
-      //   model: "gpt-5-mini",
-      //   instructions: "Write a one-sentence bedtime story about a unicorn.",
-      //   input: "Write a one-sentence bedtime story about a unicorn."
-      // });
+      const input = `"""
+          아래 데이터를 참고해서 설명글 작성해줘 
+          추정가 : ${estimatedPrice.estimatedPrice}
+          주소 : ${land.legDongName + ' ' + land.jibun}
+          주용도 : ${land.usageName}
+          대지면적 : ${land.area}
+          공시지가 : ${land.price}원 / m2
+          최대용적율 : ${land.far} %
+          최대건폐율 : ${land.bcr} %
+          최근거래정보 : ${land.dealPrice ? ('가격 - ' + (land.dealPrice * 10000) + ', 거래일 - ' + land.dealDate + ', 거래유형 - ' + (land.dealType === 'land' ? '토지' : '건물')) : '없음'}
+          현재빌딩정보 : ${building ? '사용승인일 - ' + building.useApprovalDate + ', 지상층수 - ' + building.gndFloorNumber + ', 지하층수 - ' + building.basementFloorNumber : '없음'}
+          신축시 개발 가능 층수 : ${aiReport.buildInfo.upperFloorCount + aiReport.buildInfo.lowerFloorCount}
+          신축정보 : ${reportValueToJsonString(aiReport.build, aiReportResult.build)}
+          리모델링정보 : ${reportValueToJsonString(aiReport.remodel, aiReportResult.remodel)}
+          임대정보 : ${reportValueToJsonString(aiReport.rent, aiReportResult.rent)}
+             """`;
 
-      // console.log(response);
+        // const input = `"""
+        //   아래 데이터를 참고해서 설명글 작성해줘 
+        //   추정가 : ${estimatedPrice.estimatedPrice}
+        //   토지정보 : ${JSON.stringify(land)}
+        //   현재빌딩정보 : ${JSON.stringify(building)}
+        //   계산결과값 : ${JSON.stringify(aiReport)}
+        //   최종결과 : ${JSON.stringify(aiReportResult)}
+        // """`;        
+      // console.log(input);
+      const response = await client.responses.create({
+        model: "gpt-4o-mini",
+        instructions: INSTRUCTION_PROMPT,
+        input: input,
+      });
+          
+
+      console.log(response.output_text);
+      const outputJson = JSON.parse(response.output_text);
+      aiReportResult.analysisMessage = outputJson.answer;
+      aiReportResult.summary = outputJson.summary;
 
       return aiReportResult;
     } catch (error) {

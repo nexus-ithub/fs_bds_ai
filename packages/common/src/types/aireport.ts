@@ -8,6 +8,35 @@ export interface AIReportParam{
   estimatedPrice: EstimatedPrice;
 }
 
+export interface BuildingData{
+  id: string;
+  floorAreaRatio: number; // 건폐율 
+  useApprovalDate: string; // 사용승인일
+  totalFloorArea: number; // 연면적
+  archArea: number; // 건축면적 
+  landArea: number; // 토지면적 
+  gndFloorNumber: number; // 지상층수
+  baseFloorNumber: number; // 지하층수 
+}
+
+export interface LandData{
+  id: string;
+  legDongName: string; // 법정동명 
+  jibun: string; // 지번
+  area: number; // 대지면적 
+  usageName: string; // 주용도 
+  price: number; // 공시지가 
+  far: number; // 최대용적율
+  bcr: number; // 최대건폐율
+  lat: number; 
+  lng: number;
+
+  dealPrice: number; // 최근 거래 가격
+  dealDate: string; // 최근 거래 일
+  dealType: string; // 최근 거래 유형 "building" (= 건물) or "land" (= 토지)
+}
+
+
 // 토지비 
 export interface LandCost {
   // 매입비용
@@ -154,4 +183,8 @@ export interface AIReportResult {
   build: ReportResult; // 신축
 
   analysisMessage: string;
+  summary: string;
 }
+
+
+
