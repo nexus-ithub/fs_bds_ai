@@ -4,10 +4,11 @@ import { useState } from "react";
 import Admin from "./admin/page";
 import Users from "./users/page";
 import Dashboard from "./dashboard/page";
+import { type Menu } from "@repo/common";
 
 export default function Main() {
   const pathname = usePathname();
-  const [activePage, setActivePage] = useState<"admin" | "users" | "dashboard">("dashboard");
+  const [activePage, setActivePage] = useState<Menu>("dashboard");
 
   let content;
   switch (activePage) {
@@ -23,9 +24,9 @@ export default function Main() {
   }
 
   return (
-    <div className="w-full h-screen flex">
+    <div className="w-full h-screen flex overflow-y-auto">
       <Sidebar onSelectPage={setActivePage}/>
-      <div className="flex-1 h-full bg-blue-50">
+      <div className="flex-1 h-full">
         {content}
       </div>
     </div>
