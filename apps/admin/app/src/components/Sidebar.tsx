@@ -2,23 +2,23 @@
 
 import { Avatar } from "@mui/material";
 import { useState } from "react";
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CheckIcon, ChevronDownCustomIcon, HDivider, Button } from "@repo/common";
+import { type Menu } from "@repo/common";
 // import { useQuery } from "@tanstack/react-query";
 // import { QUERY_KEY_USER } from "../../constants";
 // import { getAccessToken } from "../../authutil";
 
 interface MenuItemType {
   label: string;
-  path: string;
+  path: Menu;
 }
 
 interface CustomAccordionProps {
   title: string;
   menuItems: MenuItemType[];
   defaultExpanded?: boolean;
-  onSelectPage: (page: "admin" | "users") => void;
+  onSelectPage: (page: Menu) => void;
 }
 
 const accountMenu: MenuItemType[] = [
@@ -81,7 +81,7 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false, onSelectPa
             return (
               <button
                 key={index}
-                onClick={() => onSelectPage(item.path as "admin" | "users")}
+                onClick={() => onSelectPage(item.path as Menu)}
                 className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                   isActive
                     ? 'bg-primary-010 text-primary'
@@ -99,9 +99,9 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false, onSelectPa
   );
 };
 
-export const Sidebar = ({onSelectPage}: {onSelectPage: (page: "admin" | "users") => void}) => {
+export const Sidebar = ({onSelectPage}: {onSelectPage: (page: Menu) => void}) => {
   return (
-    <div className="w-[320px] h-full flex flex-col gap-[20px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
+    <div className="w-[320px] shrink-0 h-full flex flex-col gap-[20px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
       <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
         <div className="flex flex-col items-center gap-[12px]">
           <Avatar alt="내 프로필" src="" sx={{ width: 72, height: 72 }}/>
@@ -113,7 +113,7 @@ export const Sidebar = ({onSelectPage}: {onSelectPage: (page: "admin" | "users")
         <HDivider className="!bg-line-02"/>
         <button className="font-h5 text-primary">내 계정 관리</button>
       </div>
-      <Button variant="outline" size="medium" fontSize="font-h4">DASHBOARD</Button>
+      <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => onSelectPage("dashboard")}>DASHBOARD</Button>
       <div className="flex flex-col gap-[16px]">
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded onSelectPage={onSelectPage}/>
         <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded onSelectPage={onSelectPage}/>

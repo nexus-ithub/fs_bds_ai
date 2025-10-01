@@ -1,0 +1,1 @@
+export type Menu = "dashboard" | "admin" | "users" | "board" | "faq" | "category" | "bds" | "youtube" | "agent" | "question" | "session";
