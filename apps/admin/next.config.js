@@ -4,7 +4,6 @@ const nextConfig = {
   experimental: {
     appDir: true,
   },
-  dirs: ["src"],
 };
 
 export default nextConfig;

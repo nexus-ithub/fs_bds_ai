@@ -2,7 +2,7 @@
 
 import { Avatar } from "@mui/material";
 import { useState } from "react";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownCustomIcon, HDivider, Button } from "@repo/common";
 import { type Menu } from "@repo/common";
 // import { useQuery } from "@tanstack/react-query";
@@ -11,47 +11,47 @@ import { type Menu } from "@repo/common";
 
 interface MenuItemType {
   label: string;
-  path: Menu;
+  path: string;
 }
 
 interface CustomAccordionProps {
   title: string;
   menuItems: MenuItemType[];
   defaultExpanded?: boolean;
-  onSelectPage: (page: Menu) => void;
 }
 
 const accountMenu: MenuItemType[] = [
-  { label: "관리자 계정", path: "admin" },
-  { label: "회원 관리", path: "users" },
+  { label: "관리자 계정", path: "/admin" },
+  { label: "회원 관리", path: "/users" },
 ];
 
 const boardMenu: MenuItemType[] = [
-  { label: "공지사항 관리", path: "board" },
-  { label: "FAQ 관리", path: "faq" },
+  { label: "공지사항 관리", path: "/board" },
+  { label: "FAQ 관리", path: "/faq" },
 ];
 
 const bdsMenu: MenuItemType[] = [
-  { label: "카테고리 관리", path: "category" },
-  { label: "매물 관리", path: "bds" },
+  { label: "카테고리 관리", path: "/category" },
+  { label: "매물 관리", path: "/bds" },
 ];
 
 const youtubeMenu: MenuItemType[] = [
-  { label: "추천 영상 관리", path: "youtube" },
+  { label: "추천 영상 관리", path: "/youtube" },
 ];
 
 const bdsAIMenu: MenuItemType[] = [
-  { label: "에이전트 정보", path: "agent" },
-  { label: "추천 질문", path: "question" },
-  { label: "세션", path: "session" },
+  { label: "에이전트 정보", path: "/agent" },
+  { label: "추천 질문", path: "/question" },
+  { label: "세션", path: "/session" },
 ];
 
-const CustomAccordion = ({ title, menuItems, defaultExpanded = false, onSelectPage }: CustomAccordionProps) => {
+const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
   // const { data : config } = useQuery<User>({
   //   queryKey: [QUERY_KEY_USER, getAccessToken()]
   // })
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const pathname = usePathname();
+  const router = useRouter();
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -81,8 +81,8 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false, onSelectPa
             return (
               <button
                 key={index}
-                onClick={() => onSelectPage(item.path as Menu)}
-                className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
+                onClick={() => router.push(item.path)}
+                className={`w-full flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                   isActive
                     ? 'bg-primary-010 text-primary'
                     : 'text-text-02'
@@ -99,7 +99,9 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false, onSelectPa
   );
 };
 
-export const Sidebar = ({onSelectPage}: {onSelectPage: (page: Menu) => void}) => {
+export const Sidebar = () => {
+  const router = useRouter();
+  
   return (
     <div className="w-[320px] shrink-0 h-full flex flex-col gap-[20px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
       <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
@@ -113,13 +115,13 @@ export const Sidebar = ({onSelectPage}: {onSelectPage: (page: Menu) => void}) =>
         <HDivider className="!bg-line-02"/>
         <button className="font-h5 text-primary">내 계정 관리</button>
       </div>
-      <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => onSelectPage("dashboard")}>DASHBOARD</Button>
+      <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => router.push("/")}>DASHBOARD</Button>
       <div className="flex flex-col gap-[16px]">
-        <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded onSelectPage={onSelectPage}/>
-        <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded onSelectPage={onSelectPage}/>
-        <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded onSelectPage={onSelectPage}/>
-        <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded onSelectPage={onSelectPage}/>
-        <CustomAccordion title="빌딩샵 AI 관리" menuItems={bdsAIMenu} defaultExpanded onSelectPage={onSelectPage}/>
+        <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
+        <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded />
+        <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
+        <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded />
+        <CustomAccordion title="빌딩샵 AI 관리" menuItems={bdsAIMenu} defaultExpanded />
       </div>
     </div>
   );

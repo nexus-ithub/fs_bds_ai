@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Sidebar } from "./Sidebar";
+import { Header } from "./Header";
 
 // const geistSans = localFont({
 //   src: "./fonts/GeistVF.woff",
@@ -24,7 +26,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        {children}
+        <Header />
+        <div className="flex w-full h-[calc(100vh)] pt-[64px] overflow-y-auto">
+          <Sidebar />
+          <div className="flex-1 h-full overflow-y-auto scrollbar-hover">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );
