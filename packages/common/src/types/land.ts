@@ -168,11 +168,12 @@ export const getRatioStr = (value : any) => {
 
 
 export const getBuildingCreateDate = (date : string) => {
-  if(!date || date.length < 8) {
+  const dateStr = date.replace(' ', '');
+  if(!dateStr || dateStr.length < 8) {
     return null;
   }
   // 문자열에서 연, 월, 일 추출
-  const year = parseInt(date.substring(0, 4), 10);
+  const year = parseInt(dateStr.substring(0, 4), 10);
   const month = parseInt(date.substring(4, 6), 10) - 1; // JS month는 0부터 시작
   const day = parseInt(date.substring(6, 8), 10);
   // console.log('getBuildingCreateDate', date, year, month, day);
