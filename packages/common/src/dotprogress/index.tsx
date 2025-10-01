@@ -1,7 +1,7 @@
 'use client';
 import { useMemo } from 'react';
 import animation from './animation.json';
-import Lottie, { LottieRef } from "lottie-react";
+import Lottie, { type LottieRef } from "lottie-react";
 
 
 interface CompleteProps {

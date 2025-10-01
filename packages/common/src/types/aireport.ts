@@ -1,4 +1,4 @@
-import { EstimatedPrice } from "./land";
+import { type EstimatedPrice } from "./land";
 
 
 
