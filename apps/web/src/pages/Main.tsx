@@ -441,6 +441,7 @@ export default function Main() {
       {
         openAIReport &&
           <AIReport 
+            key={landInfo?.id}
             polygon={polygon}
             landInfo={landInfo}
             buildings={buildingList}
