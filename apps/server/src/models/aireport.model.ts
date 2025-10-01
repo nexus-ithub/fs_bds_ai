@@ -935,7 +935,7 @@ export class AIReportModel {
       });
           
 
-      console.log(response.output_text);
+      // console.log(response.output_text);
       const outputJson = JSON.parse(response.output_text);
       aiReportResult.analysisMessage = outputJson.answer;
       aiReportResult.summary = outputJson.summary;
