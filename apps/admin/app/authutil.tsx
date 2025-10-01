@@ -1,3 +1,4 @@
+"use client";
 
 export function setToken(refreshToken : string | null, accessToken : string | null) {
   const authData = { accessToken, refreshToken };
@@ -13,12 +14,8 @@ export function setToken(refreshToken : string | null, accessToken : string | nu
 }
 
 export function getToken() {
-  if (typeof window !== "undefined") {
-    const authData = localStorage.getItem("auth") || sessionStorage.getItem("auth");
-    return authData ? JSON.parse(authData) : { accessToken: null, refreshToken: null };
-  }
-  // const authData = localStorage.getItem("auth") || sessionStorage.getItem("auth");
-  // return authData ? JSON.parse(authData) : { accessToken: null, refreshToken: null };
+  const authData = localStorage.getItem("auth") || sessionStorage.getItem("auth");
+  return authData ? JSON.parse(authData) : { accessToken: null, refreshToken: null };
 }
 
 export function saveAutoLogin(autoLogin : string) {
