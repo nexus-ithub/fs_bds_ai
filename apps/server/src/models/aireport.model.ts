@@ -333,7 +333,7 @@ function makeProjectCost(projectCost : ProjectCost, currentFloorArea : number, t
     projectCost.demolitionManagementCost = 0;
   }else{
     projectCost.demolitionCost = currentFloorArea * 0.3025 * getDemolitionCostPerPy(currentFloorArea);
-    projectCost.demolitionManagementCost = currentFloorArea * 0.3025 * getDemolitionManagementCost(currentFloorArea);
+    projectCost.demolitionManagementCost = getDemolitionManagementCost(currentFloorArea);
   }
 
   projectCost.constructionDesignCost = totalFloorArea * 0.3025 * getConstructionDesignCostPerPy(totalFloorArea);
@@ -409,10 +409,14 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
   // 현재 건축물 대장에 연면적이 없으면 총 연면적을 archArea로 대체 (1층짜리 건물이라고 생각) 
   let currentBuildingTotalFloorArea = currentBuildingInfo ? (Number(currentBuildingInfo.totalFloorArea) || currentBuildingArchArea) : 0;
  
-  console.log('makeProfit type', type);
-  console.log('current totalFloorArea', currentBuildingTotalFloorArea);
-  console.log('newBuild totalFloorArea ', buildInfo.upperFloorArea + buildInfo.lowerFloorArea);
+  // console.log('makeProfit type', type);
+  // console.log('current totalFloorArea', currentBuildingTotalFloorArea);
+  // console.log('newBuild totalFloorArea ', buildInfo.upperFloorArea + buildInfo.lowerFloorArea);
  
+  // console.log('firstFloorRentProfitPerPy', firstFloorRentProfitPerPy);
+  // console.log('upperFloorRentProfitPerPy', upperFloorRentProfitPerPy);
+  // console.log('baseFloorRentProfitPerPy', baseFloorRentProfitPerPy);
+  
   if(type === 'rent' || (type === 'remodel' && currentBuildingTotalFloorArea > (buildInfo.upperFloorArea + buildInfo.lowerFloorArea))){
 
     // 현재 건축물대장의 연면적 기준으로 수익률 계산 
@@ -429,7 +433,9 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
     // console.log('currentBuilding', currentBuildingInfo);
     // console.log('archArea', currentBuildingArchArea);
     // console.log('publicArea', publicArea);
-    // console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
+    console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
+    console.log('totalUpperFloorArea', totalUpperFloorArea);
+    console.log('baseExclusiveArea', baseExclusiveArea);
     // console.log('totalUpperFloorExclusiveArea', totalUpperFloorExclusiveArea);
     // console.log('baseExclusiveArea', baseExclusiveArea);
     // console.log('currentBuildingInfo.totalFloorArea', currentBuildingInfo.totalFloorArea);
@@ -444,16 +450,16 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
   }else{
 
     // 신축기준으로 수익률 계산 
-    console.log('makeProfit with buildInfo ', type);
+    console.log('makeProfit with buildInfo ', buildInfo);
     // 월 임대료 수익 
-    rentProfit = getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025) + 
-    upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025) + 
-    baseFloorRentProfitPerPy * buildInfo.lowerFloorExclusiveArea * 0.3025) // 임대료 
+    rentProfit = getRentProfitRatio(type) * ((firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025)) + 
+    (upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025)) + 
+    (baseFloorRentProfitPerPy * buildInfo.lowerFloorExclusiveArea * 0.3025)) // 임대료 
 
     // 월 관리비 수익 (1/2 만 수익으로 계산)
     managementProfit = 
-      (getManagementCostPerPy(buildInfo.upperFloorArea + buildInfo.lowerFloorArea, type) 
-      * (buildInfo.upperFloorArea + buildInfo.lowerFloorArea) * 0.3025) / 2;
+      (getManagementCostPerPy(buildInfo.upperFloorArea + buildInfo.lowerFloorArea, type)
+      * ((buildInfo.upperFloorArea + buildInfo.lowerFloorArea) * 0.3025)) / 2;
   }
 
 
@@ -461,13 +467,13 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
   value.annualManagementProfit = managementProfit * 12;
   value.annualDepositProfit = rentProfit * 10;
 
-  
+  console.log('makeProfit ', value);
 }
 
 function calculateInitialCapital(value : ReportValue){
   return (value.landCost.purchaseCost) 
             + value.landCost.acquisitionCost 
-            + value.landCost.agentFee + ((value.landCost.purchaseCost) - (value.loan.loanAmount));
+            + value.landCost.agentFee - ((value.landCost.purchaseCost) * LOAN_RATIO);
 }
 
 function calculateInvestmentCapital(value : ReportValue){
@@ -483,7 +489,8 @@ function calculateInvestmentCapital(value : ReportValue){
     value.landCost.purchaseCost + value.landCost.acquisitionCost + value.landCost.agentFee
 
   return totalProjectCost 
-    - value.loan.loanAmount - value.annualDepositProfit;
+    - value.loan.loanAmount 
+    - value.annualDepositProfit;
 }
 
 
@@ -774,6 +781,10 @@ export class AIReportModel {
       // 지하층 평균 평당 임대료
       let baseFloorRentProfitPerPy = aroundRentInfo.find((info: any) => info.floor_type === '3')?.median_rent_per_py;
 
+      // console.log('firstFloorRentProfitPerPy ', firstFloorRentProfitPerPy)
+      // console.log('upperFloorRentProfitPerPy ', upperFloorRentProfitPerPy)
+      // console.log('baseFloorRentProfitPerPy ', baseFloorRentProfitPerPy)
+      
       firstFloorRentProfitPerPy = (firstFloorRentProfitPerPy || upperFloorRentProfitPerPy || baseFloorRentProfitPerPy || 0) * 10000;
       upperFloorRentProfitPerPy = (upperFloorRentProfitPerPy || firstFloorRentProfitPerPy || baseFloorRentProfitPerPy || 0) * 10000;
       baseFloorRentProfitPerPy = (baseFloorRentProfitPerPy || upperFloorRentProfitPerPy || firstFloorRentProfitPerPy || 0) * 10000;
