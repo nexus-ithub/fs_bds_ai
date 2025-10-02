@@ -36,7 +36,7 @@ export function Button({
 
   return (
     <button
-      className={`${baseStyles} ${variantStyles} ${sizeStyles} ${className}`}
+      className={`focus:outline-none ${baseStyles} ${variantStyles} ${sizeStyles} ${className}`}
       {...props}
     >
       {children}

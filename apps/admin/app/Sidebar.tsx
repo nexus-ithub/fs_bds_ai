@@ -121,7 +121,7 @@ export const Sidebar = () => {
         <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded />
         <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
         <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded />
-        <CustomAccordion title="빌딩샵 AI 관리" menuItems={bdsAIMenu} defaultExpanded />
+        <CustomAccordion title="빌딩샵AI 관리" menuItems={bdsAIMenu} defaultExpanded />
       </div>
     </div>
   );

@@ -1,10 +1,6 @@
-import { Button, HDivider } from "@repo/common";
+import { Button, HDivider, AGES, INTERESTS, ADDITIONAL_INFO } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-const AGES = ['20대 이하', '20대', '30대', '40대', '50대', '60대', '70대', '80대 이상'];
-const INTERESTS = ['상업용', '주거용', '신축', '구축', '리모델링', '재건축'];
-const ADDITIONAL_INFO = ['토지 보유', '건물 보유', '미보유'];
 
 export const AdditionalInfoContent = ({
   gender,
@@ -42,7 +38,7 @@ export const AdditionalInfoContent = ({
         </div>
         <div className="grid grid-cols-2 gap-[12px]">
           {AGES.map((ageItem) => (
-            <Button variant={age === ageItem ? 'outline' : 'outlinegray'} className="flex-1" onClick={() => setAge(ageItem)}>{ageItem}</Button>
+            <Button variant={age === ageItem.value ? 'outline' : 'outlinegray'} className="flex-1" onClick={() => setAge(ageItem.value)}>{ageItem.label}</Button>
           ))}
         </div>
       </div>
