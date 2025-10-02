@@ -1,30 +1,24 @@
 'use client';
 
-import { usePathname } from "next/navigation";
-import Dashboard from "./dashboard/page";
-import Admin from "./admin/page";
-import Users from "./users/page";
-import Session from "./session/page";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  const pathname = usePathname();
-  
-  let content;
-  if (pathname === "/") {
-    content = <Dashboard />;
-  } else if (pathname === "/admin") {
-    content = <Admin />;
-  } else if (pathname === "/users") {
-    content = <Users />;
-  } else if (pathname === "/session") {
-    content = <Session />;
-  }
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth');
+    if (token) {
+      router.push('/main/dashboard');
+    } else {
+      router.push('/login');
+    }
+  }, [router]);
 
   return (
-    <div className="w-full h-full flex overflow-y-auto">
-      <div className="flex-1 h-full overflow-y-auto scrollbar-hover">
-        {content}
-      </div>
+    <div className="flex items-center justify-center h-screen">
+      <p>Loading...</p>
     </div>
   );
 }
