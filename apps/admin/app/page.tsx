@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Dashboard from "./dashboard/page";
 import Admin from "./admin/page";
 import Users from "./users/page";
+import Session from "./session/page";
 
 export default function Home() {
   const pathname = usePathname();
@@ -15,6 +16,8 @@ export default function Home() {
     content = <Admin />;
   } else if (pathname === "/users") {
     content = <Users />;
+  } else if (pathname === "/session") {
+    content = <Session />;
   }
 
   return (

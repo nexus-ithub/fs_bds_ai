@@ -1,7 +1,7 @@
 'use client';
 
-import { DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon } from "@repo/common";
-import { useEffect, useState } from "react";
+import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon } from "@repo/common";
+import { useState } from "react";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
