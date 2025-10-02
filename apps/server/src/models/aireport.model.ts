@@ -320,6 +320,8 @@ function makeBuildInfo(buildInfo : BuildInfo, area : number, far : number, bcr :
   buildInfo.firstFloorExclusiveArea = buildInfo.buildingArea - (buildInfo.publicAreaPerFloor);
   buildInfo.secondFloorExclusiveArea = buildInfo.upperFloorArea - buildInfo.firstFloorExclusiveArea - (buildInfo.publicAreaPerFloor * (buildInfo.upperFloorCount - 1));
   buildInfo.lowerFloorExclusiveArea = buildInfo.lowerFloorArea - (buildInfo.publicAreaPerFloor * buildInfo.lowerFloorCount);
+
+  // console.log('makeBuildInfo ', buildInfo);
 }
 
 
@@ -389,49 +391,60 @@ function makeLoanForOwner(value: ReportValue) { // landCost에 대한 정보를 
   }
 }
 
+function getCurrentBuildingArchArea(currentBuildingInfo : BuildingData, buildInfo : BuildInfo){
+  if(Number(currentBuildingInfo.archArea) > 0){
+    return Number(currentBuildingInfo.archArea);
+  }else if(Number(currentBuildingInfo.totalFloorArea) > 0 && (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)) > 0){
+    return (Number(currentBuildingInfo.totalFloorArea) / (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)));
+  }else {
+    return buildInfo.buildingArea;
+  }
+}
 
-function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, buildInfo : BuildInfo, currentBuilding : BuildingData, firstFloorRentProfitPerPy : number, upperFloorRentProfitPerPy : number, baseFloorRentProfitPerPy : number){
+function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, buildInfo : BuildInfo, currentBuildingInfo : BuildingData, firstFloorRentProfitPerPy : number, upperFloorRentProfitPerPy : number, baseFloorRentProfitPerPy : number){
   
   let rentProfit;
   let managementProfit;
-  
-  if(type === 'rent'){
-    let archArea;
-    if(currentBuilding.archArea > 0){
-      archArea = Number(currentBuilding.archArea);
-    }else if(Number(currentBuilding.totalFloorArea) > 0 && (Number(currentBuilding.gndFloorNumber) + Number(currentBuilding.baseFloorNumber)) > 0){
-      archArea = (Number(currentBuilding.totalFloorArea) / (Number(currentBuilding.gndFloorNumber) + Number(currentBuilding.baseFloorNumber)));
-    }else {
-      // 현재 빌딩의 정보로 계산 할수 없으면 현재기준의 연면적을 건축 면적으로 계산 
-      archArea = buildInfo.buildingArea;
-    }
+  let currentBuildingArchArea = currentBuildingInfo ? getCurrentBuildingArchArea(currentBuildingInfo, buildInfo) : 0;
+  // 현재 건축물 대장에 연면적이 없으면 총 연면적을 archArea로 대체 (1층짜리 건물이라고 생각) 
+  let currentBuildingTotalFloorArea = currentBuildingInfo ? (Number(currentBuildingInfo.totalFloorArea) || currentBuildingArchArea) : 0;
+ 
+  console.log('makeProfit type', type);
+  console.log('current totalFloorArea', currentBuildingTotalFloorArea);
+  console.log('newBuild totalFloorArea ', buildInfo.upperFloorArea + buildInfo.lowerFloorArea);
+ 
+  if(type === 'rent' || (type === 'remodel' && currentBuildingTotalFloorArea > (buildInfo.upperFloorArea + buildInfo.lowerFloorArea))){
 
-    // 연면적이 없으면 archArea로 대체 (1층짜리 건물이라고 생각) 
-    const totalFloorArea = currentBuilding.totalFloorArea ? Number(currentBuilding.totalFloorArea) : archArea;  
-    const publicArea = getDefaultPublicArea(totalFloorArea);
-    const firstFloorExclusiveArea = Number(archArea) - publicArea;
-    const baseExclusiveArea = Number(currentBuilding.gndFloorNumber) > 1 ? 
-      (Number(currentBuilding.landArea) * BASE_FLOOR_AREA_RATIO) - publicArea :
+    // 현재 건축물대장의 연면적 기준으로 수익률 계산 
+    console.log('makeProfit with currentBuilding ', type);
+
+    const publicArea = getDefaultPublicArea(currentBuildingTotalFloorArea);
+    const firstFloorExclusiveArea = Number(currentBuildingArchArea) - publicArea;
+    const baseExclusiveArea = Number(currentBuildingInfo.gndFloorNumber) > 1 ? 
+      (Number(currentBuildingInfo.landArea) * BASE_FLOOR_AREA_RATIO) - publicArea :
       0;
-    const totalUpperFloorArea = Number(currentBuilding.totalFloorArea) - firstFloorExclusiveArea - baseExclusiveArea 
-    const totalUpperFloorExclusiveArea = totalUpperFloorArea - (publicArea * (Number(currentBuilding.gndFloorNumber) - 1));
+    const totalUpperFloorArea = Number(currentBuildingInfo.totalFloorArea) - firstFloorExclusiveArea - baseExclusiveArea 
+    const totalUpperFloorExclusiveArea = totalUpperFloorArea - (publicArea * (Number(currentBuildingInfo.gndFloorNumber) - 1));
 
-    console.log('currentBuilding', currentBuilding);
-    console.log('archArea', archArea);
-    console.log('publicArea', publicArea);
-    console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
-    console.log('totalUpperFloorExclusiveArea', totalUpperFloorExclusiveArea);
-    console.log('baseExclusiveArea', baseExclusiveArea);
-    console.log('currentBuilding.totalFloorArea', currentBuilding.totalFloorArea);
+    // console.log('currentBuilding', currentBuildingInfo);
+    // console.log('archArea', currentBuildingArchArea);
+    // console.log('publicArea', publicArea);
+    // console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
+    // console.log('totalUpperFloorExclusiveArea', totalUpperFloorExclusiveArea);
+    // console.log('baseExclusiveArea', baseExclusiveArea);
+    // console.log('currentBuildingInfo.totalFloorArea', currentBuildingInfo.totalFloorArea);
     
     rentProfit = getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (firstFloorExclusiveArea * 0.3025) + 
       upperFloorRentProfitPerPy * (totalUpperFloorExclusiveArea) * 0.3025 + 
       baseFloorRentProfitPerPy * (baseExclusiveArea * 0.3025));
 
     managementProfit = 
-      (getManagementCostPerPy(currentBuilding.totalFloorArea, type) 
-      * (currentBuilding.totalFloorArea) * 0.3025) / 2;
+      (getManagementCostPerPy(currentBuildingInfo.totalFloorArea, type) 
+      * (currentBuildingInfo.totalFloorArea) * 0.3025) / 2;
   }else{
+
+    // 신축기준으로 수익률 계산 
+    console.log('makeProfit with buildInfo ', type);
     // 월 임대료 수익 
     rentProfit = getRentProfitRatio(type) * (firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025) + 
     upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025) + 
@@ -648,47 +661,10 @@ export class AIReportModel {
       const buildingAge = useApprovalDate ? getBuildingAge(useApprovalDate) : 40; // 준공연도가 없으면 노후 건물(40년)로 설정
       const buildingTotalFloorArea = building?.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00;
       
-      console.log('buildingAge ', buildingAge)
-      console.log('floorAreaRatio ', floorAreaRatio)
-      console.log('buildingTotalFloorArea ', buildingTotalFloorArea)
+      // console.log('buildingAge ', buildingAge)
+      // console.log('floorAreaRatio ', floorAreaRatio)
+      // console.log('buildingTotalFloorArea ', buildingTotalFloorArea)
 
-      const defaultReportValue = {
-        grade: '',  
-        message: '',
-        duration: { 
-          planningDurationMonths: 0,
-          designDurationMonths: 0,
-          constructionDurationMonths: 0,
-        },
-        landCost: {
-          purchaseCost: 0,
-          acquisitionCost: 0,
-          agentFee: 0
-        },
-        projectCost: {
-          demolitionCost: 0,
-          demolitionManagementCost: 0,
-          constructionDesignCost: 0,
-          constructionCost: 0,
-          remodelingCost: 0,
-          managementCost: 0,
-          remodelingManagementCost: 0,
-          pmFee: 0,
-          acquisitionTax: 0,
-          reserveFee: 0
-        },
-        loan: {
-          loanAmount: 0,
-          loanInterest: 0
-        },
-        loanForOwner: {
-          loanAmount: 0,
-          loanInterest: 0
-        },
-        annualRentProfit: 0,
-        annualDepositProfit: 0,
-        annualManagementProfit: 0,
-      };
 
       const aiReport = {
         rent: newReportValue(),
@@ -862,7 +838,7 @@ export class AIReportModel {
       // aiReport.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(taxBase);
       
 
-      console.log(aiReport);
+      // console.log(aiReport);
 
       const aiReportResult: AIReportResult = {
         rent: aiReport.rent ? {
