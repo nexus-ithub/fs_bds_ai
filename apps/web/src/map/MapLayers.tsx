@@ -90,7 +90,7 @@ export const RoadViewOverlay = ({
         onClick={() => {
           setRoadViewCenter(null);
         }}
-        className="absolute top-[8px] right-[8px] bg-white/80 p-[8px] rounded-[4px] z-40"
+        className="absolute top-[72px] right-[8px] bg-white/80 p-[8px] rounded-[4px] z-40"
       >
         <X size={30} />
       </button>
