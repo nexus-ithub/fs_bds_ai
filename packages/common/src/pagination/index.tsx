@@ -136,15 +136,15 @@ export const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange
         type="number"
         value={pageInput}
         onChange={(e) => setPageInput(e.target.value)}
-        className={`w-[50px] p-[5px] text-center font-s2 text-text-4 border rounded-[2px] focus:outline-none
-          ${isEntirelyDisabled ? 'border-line-3 bg-surface-second' : 'border-line-3 focus:border-line-4'}
+        className={`w-[48px] p-[2px] text-center font-s2 text-text-04 border rounded-[2px] focus:outline-none
+          ${isEntirelyDisabled ? 'border-line-03 bg-surface-second' : 'border-line-03 focus:border-line-04'}
         `}
         onKeyDown={(e) => {if (e.key === 'Enter' && e.nativeEvent.isComposing === false) handleGoPage();}}
         disabled={isEntirelyDisabled}
       />
       <button
         onClick={handleGoPage}
-        className={`font-s2 text-text-4 ${isEntirelyDisabled ? 'text-text-4 cursor-not-allowed' : ''}`}
+        className={`font-s2 text-text-04 ${isEntirelyDisabled ? 'cursor-not-allowed' : ''}`}
         disabled={isEntirelyDisabled}
       >
         GO

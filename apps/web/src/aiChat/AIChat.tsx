@@ -341,7 +341,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           <div className="flex items-center justify-between px-[24px] h-[64px] border-b border-line-02 flex-shrink-0">
             <div className="flex items-center h-full gap-[12px]">
               <AILogo/>
-              <p className="font-s2-p text-text-01">빌딩샵 AI</p>
+              <p className="font-s2-p text-text-01">빌딩샵AI</p>
               <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
               <p className="font-s2 text-text-03">부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다.</p>
             </div>
@@ -361,7 +361,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                 {currentChat?.messages.length === 0 || !currentChat ? (
                   <div className="flex flex-col gap-[40px] py-[64px]">
                     <div className="flex flex-col gap-[8px] items-center">
-                      <h2 className="font-h2">안녕하세요! 빌딩샵 AI 입니다.</h2>
+                      <h2 className="font-h2">안녕하세요! 빌딩샵AI 입니다.</h2>
                       <p className="font-b2 text-center">부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.<br/>관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!</p>
                     </div>
                     <div className="flex flex-col gap-[16px]">

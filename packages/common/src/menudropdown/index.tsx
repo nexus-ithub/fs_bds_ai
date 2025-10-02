@@ -1,16 +1,16 @@
 import { FormControl, MenuItem, Select, Typography } from "@mui/material";
 import { ChevronDownCustomIcon } from "../icons";
 
-interface DropdownOption {
-  value: string;
+interface DropdownOption<T extends string = string> {
+  value: T;
   label: string;
   url?: string;
 }
 
-interface MenuDropdownProps {
-  options: DropdownOption[];
-  value: string;
-  onChange: (value: string, option?: DropdownOption) => void;
+interface MenuDropdownProps<T extends string = string> {
+  options: DropdownOption<T>[];
+  value: T;
+  onChange: (value: T, option?: DropdownOption<T>) => void;
   placeholder?: string;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -20,17 +20,17 @@ interface MenuDropdownProps {
   borderStyle?: 'outlined' | 'underline';
 }
 
-export const MenuDropdown: React.FC<MenuDropdownProps> = ({ 
-  options = [], 
-  value = '', 
-  onChange, 
-  placeholder = '선택하세요',
+export const MenuDropdown = <T extends string = string>({
+  options = [],
+  value,
+  onChange,
+  placeholder = "선택하세요",
   disabled = false,
-  padding = 'default',
-  width = 'w-[160px]',
-  font = 'font-b3',
-  borderStyle = 'outlined'
-}) => {
+  padding = "default",
+  width = "w-[160px]",
+  font = "font-b3",
+  borderStyle = "outlined",
+}: MenuDropdownProps<T>) => {
   const paddingClasses = {
     default: "6px 8px 6px 10px",
   };
@@ -77,17 +77,21 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
     };
   };
 
-  const handleChange = (event: { target: { value: string } }) => {
-    const selectedValue = event.target.value;
-    const selectedOption = options.find((o) => o.value === selectedValue);
-    onChange(selectedValue, selectedOption);
-  };
+  // const handleChange = (event: { target: { value: T } }) => {
+  //   const selectedValue = event.target.value as T;
+  //   const selectedOption = options.find((o) => o.value === selectedValue);
+  //   onChange(selectedValue, selectedOption);
+  // };
 
   return (
     <FormControl disabled={disabled} className={`${width}`}>
       <Select
-        value={value || ""}
-        onChange={handleChange}
+        value={value || ("" as T)}
+        onChange={(event) => {
+          const selectedValue = event.target.value as T;
+          const selectedOption = options.find((o) => o.value === selectedValue);
+          onChange(selectedValue, selectedOption);
+        }}
         displayEmpty
         renderValue={(selected) => {
           if (!selected) {

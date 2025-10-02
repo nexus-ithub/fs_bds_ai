@@ -1,46 +1,7 @@
-import { Button, HDivider } from "@repo/common";
+import { Button, FormField, HDivider } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-
-const FormField = ({
-  label,
-  type="text",
-  placeholder,
-  value,
-  onChange,
-  rightElement
-}: {
-  label: string,
-  type?: string,
-  placeholder?: string,
-  value?: string,
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
-  rightElement?: React.ReactNode
-}) => {
-  return (
-    <div className="flex flex-col gap-[12px]">
-      <label htmlFor={label} className="font-s2 text-text-02">{label}</label>
-      <div className="relative">
-        <input
-          type={type}
-          id={label}
-          name={label}
-          required
-          className="w-full rounded-[2px] border border-line-03 px-[14px] py-[12px] pr-[74px] focus:outline-none"
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-        />
-        {rightElement && (
-          <div className="absolute right-[12px] top-1/2 -translate-y-1/2 flex items-center">
-            {rightElement}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 export const SignupInfo = () => {
   const navigate = useNavigate();
@@ -100,7 +61,7 @@ export const SignupInfo = () => {
               className={`font-s2 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 'text-primary'}`}
               disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
             >
-              중복확인
+              {emailValid ? "사용가능" : "중복확인"}
             </button>
           }
           />
