@@ -21,28 +21,28 @@ interface CustomAccordionProps {
 }
 
 const accountMenu: MenuItemType[] = [
-  { label: "관리자 계정", path: "/admin" },
-  { label: "회원 관리", path: "/users" },
+  { label: "관리자 계정", path: "/main/admin" },
+  { label: "회원 관리", path: "/main/users" },
 ];
 
 const boardMenu: MenuItemType[] = [
-  { label: "공지사항 관리", path: "/board" },
-  { label: "FAQ 관리", path: "/faq" },
+  { label: "공지사항 관리", path: "/main/board" },
+  { label: "FAQ 관리", path: "/main/faq" },
 ];
 
 const bdsMenu: MenuItemType[] = [
-  { label: "카테고리 관리", path: "/category" },
-  { label: "매물 관리", path: "/bds" },
+  { label: "카테고리 관리", path: "/main/category" },
+  { label: "매물 관리", path: "/main/bds" },
 ];
 
 const youtubeMenu: MenuItemType[] = [
-  { label: "추천 영상 관리", path: "/youtube" },
+  { label: "추천 영상 관리", path: "/main/youtube" },
 ];
 
 const bdsAIMenu: MenuItemType[] = [
-  { label: "에이전트 정보", path: "/agent" },
-  { label: "추천 질문", path: "/question" },
-  { label: "세션", path: "/session" },
+  { label: "에이전트 정보", path: "/main/agent" },
+  { label: "추천 질문", path: "/main/question" },
+  { label: "세션", path: "/main/session" },
 ];
 
 const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {

@@ -10,7 +10,7 @@ interface CheckboxProps {
   labelOrderLast?: boolean;
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
+export const Checkbox = ({
   checked,
   onChange,
   label,
@@ -18,7 +18,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   className = '',
   labelClassName = '',
   labelOrderLast = false
-}) => {
+}: CheckboxProps) => {
   return (
     <label 
       onClick={(e: React.MouseEvent<HTMLLabelElement>) => {
