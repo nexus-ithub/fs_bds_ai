@@ -1,4 +1,7 @@
+'use client';
+
 import { HDivider, ArrowUpLong, ArrowDownLong, VDivider, MinusIcon, MinusSmallIcon } from "@repo/common";
+import { useSession } from "next-auth/react";
 
 const reportRankingSample = [
   { name: "서울 강남구", value: "34.5", preValue: "34.5" },
@@ -18,6 +21,9 @@ const bdsRankingSample = [
 
 
 export default function Dashboard() {
+  const { data: session, status } = useSession();
+  console.log(session)
+
   return (
     <div className="w-[960px] flex flex-col gap-[32px] p-[40px] overflow-y-auto scrollbar-hover">
       <div className="flex flex-col gap-[4px]">

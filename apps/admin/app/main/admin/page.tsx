@@ -24,7 +24,7 @@ export default function Admin() {
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const [email, setEmail] = useState<string>('');
-  const [emailValid, setEmailValid] = useState<boolean>(false);
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [phoneValid, setPhoneValid] = useState<boolean>(false);
@@ -36,6 +36,13 @@ export default function Admin() {
     const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
     setPhone(onlyNumbers);
   };
+
+  const handleEmailValidation = async () => {
+    const response = await fetch(`/api/admin/check-email?email=${email}`)
+    const data = await response.json()
+    console.log(">>>>>", data)
+    setEmailValid(data.success)
+  }
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
@@ -132,15 +139,21 @@ export default function Admin() {
             placeholder="이메일을 입력하세요." 
             value={email} 
             required
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {setEmail(e.target.value); setEmailValid(null)}}
             rightElement={
               <button
                 type="button"
-                onClick={() => {alert("중복확인 API 호출"); setEmailValid(true)}}
-                className={`font-s2 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 'text-primary'}`}
+                onClick={() => handleEmailValidation()}
+                className={`font-s2 transition-colors ${
+                  emailValid === true
+                    ? "text-primary cursor-pointer"
+                    : emailValid === false
+                    ? "text-secondary-050 cursor-default"
+                    : "text-primary cursor-default"
+                }`}
                 disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
               >
-                {emailValid ? "사용가능" : "중복확인"}
+                {emailValid === null ? "중복확인" : emailValid ? "사용가능" : "사용불가"}
               </button>
             }
             />

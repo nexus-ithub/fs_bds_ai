@@ -10,7 +10,6 @@ export const Header = () => {
   //   queryKey: [QUERY_KEY_USER, getAccessToken()]
   // })
   const router = useRouter();
-  console.log(process.env.NEXT_PUBLIC_ADMIN_URL)
 
   return (
     <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
