@@ -30,7 +30,6 @@ const INSTRUCTION_PROMPT = `"""
 - 매각금액/투자금/순수익등의 설명은 등급이 "A" 인 것을 기준으로 설명
 - 신축 / 리모델링 / 임대중 등급 A, B 까지만 설명 하고 C 에 대해서는 굳이 설명하지 않아도 됨
 
-
 *** 중요 *** 
 - 응답 텍스트는 너무 길지 않게 800자 이내로 작성해줘 
 - 프롬프트의 내용이 작성되지 않도록 주의 
@@ -42,8 +41,6 @@ const INSTRUCTION_PROMPT = `"""
 "즉시 수익 창출이 가능하고 리스크가 낮아 안정적 현금 흐름 확보에 유리한 저위험 투자처입니다."
 * 반드시 다음과 같은 JSON 형식을 지켜줘
 {"answer": "...", "summary": "..."}
-
-
 """`;
 
 const RENT_CANDIDATE_RADIUS = 1000;
@@ -476,7 +473,7 @@ function calculateInitialCapital(value : ReportValue){
             + value.landCost.agentFee - ((value.landCost.purchaseCost) * LOAN_RATIO);
 }
 
-function calculateInvestmentCapital(value : ReportValue){
+function calculateRealInvestmentCapital(value : ReportValue){
 
   const totalProjectCost = value.projectCost.demolitionCost +
     value.projectCost.demolitionManagementCost +
@@ -490,6 +487,22 @@ function calculateInvestmentCapital(value : ReportValue){
 
   return totalProjectCost 
     - value.loan.loanAmount 
+    - value.annualDepositProfit;
+}
+
+function calculateInvestmentCapital(value : ReportValue){
+
+  const totalProjectCost = value.projectCost.demolitionCost +
+    value.projectCost.demolitionManagementCost +
+    value.projectCost.constructionDesignCost +
+    value.projectCost.constructionCost +
+    value.projectCost.managementCost +
+    value.projectCost.pmFee + 
+    value.projectCost.acquisitionTax +
+    value.projectCost.reserveFee +
+    value.landCost.purchaseCost + value.landCost.acquisitionCost + value.landCost.agentFee
+
+  return totalProjectCost 
     - value.annualDepositProfit;
 }
 
@@ -546,8 +559,8 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
       '초기준비자금': result.initialCapital,
       '실투자금': result.investmentCapital,
       '연간 순수익': result.annualProfit,
-      '실투자금 대비 임대수익율': result.rentProfitRatio,
-      '실투자금 대비 연간수익율': result.investmentProfitRatio,
+      '임대수익율': result.rentProfitRatio,
+      '연간수익율': result.investmentProfitRatio,
       '매각금액': result.expectedSaleAmount,
     }
     return JSON.stringify(reportJson);
@@ -856,7 +869,7 @@ export class AIReportModel {
           grade: aiReport.rent.grade,
           message: aiReport.rent.message,
           initialCapital: calculateInitialCapital(aiReport.rent),
-          investmentCapital: calculateInvestmentCapital(aiReport.rent),
+          investmentCapital: calculateRealInvestmentCapital(aiReport.rent),
           annualProfit: calculateaAnnualProfit(aiReport.rent, aiReport.tax),
           rentProfitRatio: calculateaAnnualProfit(aiReport.rent, aiReport.tax) / calculateInvestmentCapital(aiReport.rent),
           // assetGrowthAmount: aiReport.rent.landCost.purchaseCost * 0.045,
@@ -867,7 +880,7 @@ export class AIReportModel {
           grade: aiReport.remodel.grade,
           message: aiReport.remodel.message,
           initialCapital: calculateInitialCapital(aiReport.remodel),
-          investmentCapital: calculateInvestmentCapital(aiReport.remodel),
+          investmentCapital: calculateRealInvestmentCapital(aiReport.remodel),
           annualProfit: calculateaAnnualProfit(aiReport.remodel, aiReport.tax),
           rentProfitRatio: calculateaAnnualProfit(aiReport.remodel, aiReport.tax) / calculateInvestmentCapital(aiReport.remodel),
           // assetGrowthAmount: aiReport.remodel.landCost.purchaseCost * 0.045,
@@ -878,7 +891,7 @@ export class AIReportModel {
           grade: aiReport.build.grade,
           message: aiReport.build.message,
           initialCapital: calculateInitialCapital(aiReport.build),
-          investmentCapital: calculateInvestmentCapital(aiReport.build),
+          investmentCapital: calculateRealInvestmentCapital(aiReport.build),
           annualProfit: calculateaAnnualProfit(aiReport.build, aiReport.tax),
           rentProfitRatio: calculateaAnnualProfit(aiReport.build, aiReport.tax) / calculateInvestmentCapital(aiReport.build),
           // assetGrowthAmount: aiReport.build.landCost.purchaseCost * 0.045,
