@@ -26,7 +26,8 @@ const handler = NextAuth({
         }
     }),
   ],
-  session: { strategy: 'jwt' },
+  // session: { strategy: 'jwt', maxAge: 5 }, // 5초
+  session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 }, // 7일
   secret: process.env.NEXTAUTH_SECRET,
 })
 

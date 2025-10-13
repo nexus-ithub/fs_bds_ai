@@ -3,12 +3,14 @@
 import { BuildingShopBIText, VDivider } from "@repo/common"
 import { IconButton, Avatar } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react"
 
 export const Header = () => {
   // const { data : config } = useQuery<User>({
   //   queryKey: [QUERY_KEY_USER, getAccessToken()]
   // })
   const router = useRouter();
+  console.log(process.env.NEXT_PUBLIC_ADMIN_URL)
 
   return (
     <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
@@ -29,7 +31,7 @@ export const Header = () => {
           </p>
         </div>
         <VDivider colorClassName="bg-line-04"/>
-        <button className="font-s2-p">
+        <button className="font-s2-p" onClick={() => {signOut({ redirect: false }); router.push("/login")}}>
           LOGOUT
         </button>
       </div>
