@@ -2,8 +2,9 @@
 
 import { Sidebar } from "../Sidebar";
 import { Header } from "../Header";
+import { withAuth } from "../utils/withAuth";
 
-export default function MainLayout({
+function MainLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -20,3 +21,5 @@ export default function MainLayout({
     </>
   );
 }
+
+export default withAuth(MainLayout);

@@ -3,6 +3,7 @@
 import { BuildingShopBIText, VDivider } from "@repo/common"
 import { IconButton, Avatar } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react"
 
 export const Header = () => {
   // const { data : config } = useQuery<User>({
@@ -29,7 +30,7 @@ export const Header = () => {
           </p>
         </div>
         <VDivider colorClassName="bg-line-04"/>
-        <button className="font-s2-p">
+        <button className="font-s2-p" onClick={() => {signOut({ redirect: false }); router.push("/login")}}>
           LOGOUT
         </button>
       </div>

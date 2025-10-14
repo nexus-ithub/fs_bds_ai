@@ -2,19 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
-
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('auth');
-    if (token) {
-      router.push('/main/dashboard');
+    if (status === "loading") return;
+    if (session) {
+      router.push("/main/dashboard");
     } else {
-      router.push('/login');
+      router.push("/login");
     }
-  }, [router]);
+  }, [session, status, router]);
 
   return (
     <div className="flex items-center justify-center h-screen">
