@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { AuthRequest, verifyToken } from '../middleware/auth.middleware';
-import { getLandInfo, getPolygonInfo, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked } from '../controllers/land.controller';
+import { getLandInfo, getPolygonInfo, getPolygonWithSub, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked } from '../controllers/land.controller';
 
 
 const router: Router = Router();
 
 router.get('/polygon', verifyToken, getPolygonInfo);
+router.get('/polygon-with-sub', verifyToken, getPolygonWithSub);
 router.get('/info', verifyToken, getLandInfo);
 router.get('/building-list', verifyToken, getBuildingList);
 router.get('/business-district', verifyToken, getBusinessDistrict);

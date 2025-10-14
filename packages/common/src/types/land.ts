@@ -29,6 +29,7 @@ export interface PolygonInfo {
   lat: number;
   lng: number;
   polygon: Coords[] | Coords[][];
+  current: 'Y' | 'N' | null;
 }
 
 export interface LandInfo {

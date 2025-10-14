@@ -508,7 +508,7 @@ function calculateInvestmentCapital(value : ReportValue){
 
 
 function calculateaAnnualProfit(value : ReportValue, tax : TaxInfo){
-  return value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax - value.loan.loanInterest);
+  return value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax + value.loan.loanInterest);
 }
 
 

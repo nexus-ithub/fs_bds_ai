@@ -1,3 +1,4 @@
+
 import { db } from '../utils/database';
 import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
@@ -5,6 +6,220 @@ import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/commo
 
 export class LandModel {
 
+  static async findPolygonWithSub(id : string, lat : number, lng: number): Promise<PolygonInfo[]>{
+
+    
+    let where = ''
+    let params = []
+    if(id){
+      where = 'ap.id = ?'
+      params.push(id)
+    }else if(lat && lng){
+      where = `ST_CONTAINS(ap.polygon, GeomFromText('Point(? ?)'))`
+      params.push(lng, lat)
+    }
+    
+    // 파라미터 배열 생성 (SQL Injection 방지를 위해 파라미터 바인딩은 필수!)
+    // const params = id ? [id] : [lng, lat];
+
+   
+    const polygon = await db.query<PolygonInfo>(
+      `
+        WITH
+        /* 1) 기준 polygon 한 개 선택 */
+        base AS (
+          SELECT
+              ap.id, ap.leg_dong_code, ap.jibun,
+              LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+              LPAD(CAST(IF(LOCATE('-', ap.jibun) > 0, SUBSTRING_INDEX(ap.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
+          FROM address_polygon ap
+          WHERE ${where}
+          LIMIT 1
+        ),
+        cand_building_ids AS (
+          SELECT blh.building_id
+          FROM building_leg_headline blh
+          JOIN base b
+            ON blh.leg_dong_code_val = b.leg_dong_code
+          AND blh.bun = b.bun_pad
+          AND blh.ji  = b.ji_pad
+          UNION
+          SELECT bsa.building_id
+          FROM building_sub_addr bsa
+          JOIN base b
+            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+          AND bsa.sub_bun = b.bun_pad
+          AND bsa.sub_ji  = b.ji_pad
+        ),
+        rows_main AS (
+          SELECT blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
+          FROM building_leg_headline blh
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        rows_sub AS (
+          SELECT bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
+          FROM building_sub_addr bsa
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        /* 여기서 0패딩 제거 → 'bun-ji' 문자열(ji=0이면 하이픈 생략) */
+        row_keys AS (
+          SELECT
+            building_id,
+            leg_code,
+            bun_pad,
+            ji_pad,
+            /* '123-45' 또는 '123' */
+            CONCAT(
+              CAST(bun_pad AS UNSIGNED),
+              CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+                  THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+                  ELSE ''
+              END
+            ) AS jibun_norm
+          FROM (
+            SELECT * FROM rows_main
+            UNION ALL
+            SELECT * FROM rows_sub
+          ) u
+        ),
+        /* 해당 키로 address_polygon을 직접 조인 → DISTINCT로 id만 수집 */
+        related_ap_ids AS (
+          SELECT DISTINCT ap.id AS ap_id
+          FROM row_keys rk
+          JOIN address_polygon ap
+            ON ap.leg_dong_code = rk.leg_code
+          AND ap.jibun         = rk.jibun_norm
+        ),
+        final_ids AS (              -- 비어 있으면 base.id 추가
+          SELECT ap_id FROM related_ap_ids
+          UNION ALL
+          SELECT b.id
+          FROM base b
+          WHERE NOT EXISTS (SELECT 1 FROM related_ap_ids)
+        )
+        SELECT
+          ap.id            AS id,
+          ap.leg_dong_code AS legDongCode,
+          ap.leg_dong_name AS legDongName,
+          ap.jibun         AS jibun,
+          ap.lat           AS lat,
+          ap.lng           AS lng,
+          ap.polygon       AS polygon,
+          CASE WHEN ap.id = (SELECT id FROM base LIMIT 1) THEN 'Y' ELSE 'N' END AS current
+        FROM address_polygon ap
+        JOIN final_ids f ON f.ap_id = ap.id
+        ORDER BY ap.id;
+      `, params
+    )
+
+    console.log(polygon)
+
+
+    console.log('polygon size ', polygon.length)
+    return polygon
+  }
+
+
+  // static async findPolygonWithSub(id: string, lat: number, lng: number): Promise<PolygonInfo[]> {
+  //   // where 절과 파라미터를 안전하게 구성
+  //   let whereSql = '';
+  //   const params: any[] = [];
+  //   if (id) {
+  //     whereSql = `ap.id = ?`;
+  //     params.push(id);
+  //   } else if (lat && lng) {
+  //     // SRID를 사용하지 않는 경우(=0)라면 아래 그대로 사용
+  //     // ST_GeomFromText( CONCAT('POINT(', ?, ' ', ?, ')') ) 형태로 안전하게 바인딩
+  //     whereSql = `ST_Contains(ap.polygon, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')))`;
+  //     params.push(lng, lat);
+  //   } else {
+  //     // 기준이 없으면 빈 배열 반환
+  //     return [];
+  //   }
+
+  //   const sql = `
+  //     WITH
+  //     base AS (
+  //       SELECT
+  //         ap.id,
+  //         ap.leg_dong_code,
+  //         ap.jibun,
+  //         LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+  //         LPAD(CAST(CASE WHEN LOCATE('-', ap.jibun) > 0
+  //                       THEN SUBSTRING_INDEX(ap.jibun,'-',-1)
+  //                       ELSE '0' END AS UNSIGNED), 4, '0') AS ji_pad
+  //       FROM address_polygon ap
+  //       WHERE ${whereSql}
+  //       LIMIT 1
+  //     ),
+  //     cand_building_ids AS (
+  //       SELECT blh.building_id
+  //       FROM building_leg_headline blh
+  //       JOIN base b
+  //         ON blh.leg_dong_code_val = b.leg_dong_code
+  //       AND blh.bun = b.bun_pad
+  //       AND blh.ji  = b.ji_pad
+  //       UNION
+  //       SELECT bsa.building_id
+  //       FROM building_sub_addr bsa
+  //       JOIN base b
+  //         ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+  //       AND bsa.sub_bun = b.bun_pad
+  //       AND bsa.sub_ji  = b.ji_pad
+  //     ),
+  //     rows_main AS (
+  //       SELECT blh.*
+  //       FROM building_leg_headline blh
+  //       JOIN cand_building_ids c USING (building_id)
+  //     ),
+  //     rows_sub AS (
+  //       SELECT bsa.*
+  //       FROM building_sub_addr bsa
+  //       JOIN cand_building_ids c USING (building_id)
+  //     ),
+  //     row_keys AS (
+  //       SELECT building_id, leg_dong_code_val AS leg_code, bun AS bun_pad, ji AS ji_pad
+  //       FROM rows_main
+  //       UNION ALL
+  //       SELECT building_id, sub_leg_dong_code_val AS leg_code, sub_bun AS bun_pad, sub_ji AS ji_pad
+  //       FROM rows_sub
+  //     ),
+  //     ap_keys AS (
+  //       SELECT
+  //         ap.*,
+  //         LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+  //         LPAD(CAST(CASE WHEN LOCATE('-', ap.jibun) > 0
+  //                       THEN SUBSTRING_INDEX(ap.jibun,'-',-1)
+  //                       ELSE '0' END AS UNSIGNED), 4, '0') AS ji_pad
+  //       FROM address_polygon ap
+  //     ),
+  //     /* 여기서 polygon ID만 고유하게 수집 */
+  //     related_ap_ids AS (
+  //       SELECT DISTINCT ap.id AS ap_id
+  //       FROM base b
+  //       JOIN row_keys rk               ON 1=1
+  //       JOIN ap_keys ap
+  //         ON ap.leg_dong_code = rk.leg_code
+  //       AND ap.bun_pad       = rk.bun_pad
+  //       AND ap.ji_pad        = rk.ji_pad
+  //     )
+  //     /* 최종: 고유 ap_id로만 address_polygon 다시 조회 (중복 제거) */
+  //     SELECT
+  //       ap.id                           AS id,
+  //       ap.leg_dong_code                AS legDongCode,
+  //       ap.leg_dong_name                AS legDongName,
+  //       ap.jibun                        AS jibun,
+  //       ap.lat                          AS lat,
+  //       ap.lng                          AS lng,
+  //       ap.polygon                      AS polygon
+  //     FROM address_polygon ap
+  //     JOIN related_ap_ids r ON r.ap_id = ap.id
+  //     ORDER BY ap.id
+  //   `;
+
+  //   const rows = await db.query<PolygonInfo>(sql, params);
+  //   return rows ?? [];
+  // }  
   
   static async findPolygon(id: string, lat: number, lng: number): Promise<PolygonInfo | null> {
 

@@ -16,7 +16,8 @@ import { AIChat } from "../aiChat/AIChat";
 
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
-  const [polygon, setPolygon] = useState<PolygonInfo | null>(null);
+  // const [polygon, setPolygon] = useState<PolygonInfo | null>(null);
+  const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
@@ -64,35 +65,42 @@ export default function Main() {
   const [openVideoMiniPlayer, setOpenVideoMiniPlayer] = useState<boolean>(false);
   const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
 
+
+  const getMainPolygon = (polygon: PolygonInfo[]) => {
+    return polygon.find((p) => p.current === 'Y') || polygon[0];
+  }
   const getPolygon = ({id, lat, lng, changePosition = false}: {id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean}) => {
     setOpenAIReport(false);
 
-    const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
+    // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
+    const url = id ? `/api/land/polygon-with-sub?id=${id}` : `/api/land/polygon-with-sub?lat=${lat}&lng=${lng}`;
+
     axiosInstance.get(url)
       .then((response) => {
         // console.log(response.data);.
-        const polygon = response.data as PolygonInfo;
+        const polygon = response.data as PolygonInfo[];
         // console.log(polygon);
-        setPolygon(polygon);
+        setPolygonList(polygon);
 
-        getLandInfo(polygon.id);
-        getBuildingList(polygon.legDongCode, polygon.jibun);
-        getEstimatedPrice(polygon.id);
-        getBusinessDistrict(polygon.lat, polygon.lng);
-        getPlace(polygon.lat, polygon.lng);
-        console.log('changePosition', changePosition, polygon.lat, polygon.lng);
+        const mainPolygon = getMainPolygon(polygon);
+        getLandInfo(mainPolygon.id);
+        getBuildingList(mainPolygon.legDongCode, mainPolygon.jibun);
+        getEstimatedPrice(mainPolygon.id);
+        getBusinessDistrict(mainPolygon.lat, mainPolygon.lng);
+        getPlace(mainPolygon.lat, mainPolygon.lng);
+        console.log('changePosition', changePosition, mainPolygon.lat, mainPolygon.lng);
         if(changePosition){
-          console.log('setCenter', polygon.lat, polygon.lng);
-          setCenter({ lat: polygon.lat, lng: polygon.lng });
+          console.log('setCenter', mainPolygon.lat, mainPolygon.lng);
+          setCenter({ lat: mainPolygon.lat, lng: mainPolygon.lng });
 
           // 지도 중심좌표가 제대로 이동 안되는 현상이 있어 몇번 더 시도 하는 코드 추가
           setTimeout(() => {
-            console.log('setLevel', polygon.lat, polygon.lng);
-            setCenter({ lat: polygon.lat, lng: polygon.lng });
-            setCenter({ lat: polygon.lat, lng: polygon.lng });
+            console.log('setLevel', mainPolygon.lat, mainPolygon.lng);
+            setCenter({ lat: mainPolygon.lat, lng: mainPolygon.lng });
+            setCenter({ lat: mainPolygon.lat, lng: mainPolygon.lng });
           }, 100);
           setLevel(2);
-          saveMapState(polygon.lat, polygon.lng, 2);
+          saveMapState(mainPolygon.lat, mainPolygon.lng, 2);
         }
       })
       .catch((error) => {
@@ -340,14 +348,16 @@ export default function Main() {
             </>
  
           )}
-          {polygon && (
-            <Polygon
-              fillColor="var(--color-primary)" // Red fill color
-              fillOpacity={0.3} // 70% opacity
-              strokeColor="var(--color-primary)" // Black border
-              strokeOpacity={1}
-              strokeWeight={1.5}
-              path={convertXYtoLatLng(polygon?.polygon || [])} />
+          {polygonList && (
+            polygonList.map((polygon) => (
+              <Polygon
+                fillColor="var(--color-primary)" 
+                fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
+                strokeColor="var(--color-primary)" 
+                strokeOpacity={1}
+                strokeWeight={1.5}
+                path={convertXYtoLatLng(polygon?.polygon || [])} />
+            ))
           )}
           <AreaOverlay
             isDrawingArea={isDrawingArea}
@@ -396,7 +406,7 @@ export default function Main() {
           <RoadViewOverlay
             roadViewCenter={roadViewCenter}
             setRoadViewCenter={setRoadViewCenter}
-            polygon={polygon}
+            polygon={getMainPolygon(polygonList)}
           />
         )}
       </div>
@@ -442,7 +452,7 @@ export default function Main() {
         openAIReport &&
           <AIReport 
             key={landInfo?.id}
-            polygon={polygon}
+            polygon={getMainPolygon(polygonList)}
             landInfo={landInfo}
             buildings={buildingList}
             estimatedPrice={estimatedPrice}

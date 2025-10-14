@@ -61,32 +61,32 @@ export class BuildingModel {
     }
   }
 
-  static async findBuildingListByBuildingId(buildingId: string): Promise<BuildingInfo[] | null> {
-    try {
-      const result = await db.query<BuildingInfo>(
-        `SELECT 
-         building.building_id AS id,
-         building.building_name AS buildingName,
-         building.dong_name AS dongName,
-         building.main_usage_code_name AS mainUsageName,
-         building.etc_usage AS etcUsageName,
-         building.arch_area AS archArea,
-         building.arch_land_ratio AS archLandRatio,
-         building.total_floor_area AS totalFloorArea,
-         building.floor_area_ratio AS floorAreaRatio,
-         building.use_approval_date AS useApprovalDate
-        FROM building_leg_headline AS building WHERE building.building_id = ?`,
-        [buildingId]
-      )
-      // console.log(result);
+  // static async findBuildingListByBuildingId(buildingId: string): Promise<BuildingInfo[] | null> {
+  //   try {
+  //     const result = await db.query<BuildingInfo>(
+  //       `SELECT 
+  //        building.building_id AS id,
+  //        building.building_name AS buildingName,
+  //        building.dong_name AS dongName,
+  //        building.main_usage_code_name AS mainUsageName,
+  //        building.etc_usage AS etcUsageName,
+  //        building.arch_area AS archArea,
+  //        building.arch_land_ratio AS archLandRatio,
+  //        building.total_floor_area AS totalFloorArea,
+  //        building.floor_area_ratio AS floorAreaRatio,
+  //        building.use_approval_date AS useApprovalDate
+  //       FROM building_leg_headline AS building WHERE building.building_id = ?`,
+  //       [buildingId]
+  //     )
+  //     // console.log(result);
      
 
-      return result || [];
-    } catch (error) {
-      console.error('Error finding land by lat and lng:', error);
-      throw error;
-    }
-  }
+  //     return result || [];
+  //   } catch (error) {
+  //     console.error('Error finding land by lat and lng:', error);
+  //     throw error;
+  //   }
+  // }
 
   // static async findLandInfo(legDongCode: string, jibun: string): Promise<LandInfo | null> {
     

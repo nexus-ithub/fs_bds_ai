@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { db } from '../utils/database';
 import { AuthRequest } from 'src/middleware/auth.middleware';
 import { LandModel } from '../models/land.model';
 import { BuildingModel } from '../models/buliding.model';
 import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
 import { getDistance } from 'geolib';
-import { BookmarkedReportType, BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
+import { BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
 import { AIReportModel } from '../models/aireport.model';
 
 
@@ -95,6 +94,27 @@ export const getPolygonInfo = async (req: AuthRequest, res: Response) => {
     }
     
     const polygon = await LandModel.findPolygon(id as string, Number(lat), Number(lng));
+    // const polygon = await LandModel.findPolygonWithSub(id as string, Number(lat), Number(lng));
+    if (!polygon) {
+      return res.status(404).json({ message: '위치를 찾을수 없습니다.' });
+    }
+
+    res.status(200).json(polygon);
+  } catch (err) {
+    console.error('Get polygon info error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const getPolygonWithSub = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id, lat, lng, } = req.query;
+    console.log(req.query)
+    if (!id && (!lat || !lng)) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const polygon = await LandModel.findPolygonWithSub(id as string, Number(lat), Number(lng));
     if (!polygon) {
       return res.status(404).json({ message: '위치를 찾을수 없습니다.' });
     }
@@ -126,6 +146,7 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
 };
 
 
+
 export const getBuildingList = async (req: AuthRequest, res: Response) => {
   try {
     const { legDongCode, jibun, } = req.query;
@@ -151,7 +172,7 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
 
-    console.log('getEstimatedPrice for ', id)
+    // console.log('getEstimatedPrice for ', id)
 
     let summary = null;
     let finalRatio = null;
@@ -162,10 +183,10 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
 
       const estimatedValues = await LandModel.calcuateEstimatedPrice(id as string, distance, year, checkUsage);
 
-      console.log('estimatedValues', estimatedValues)
-      console.log('distance', distance)
-      console.log('year', year)
-      console.log('checkUsage', checkUsage)
+      // console.log('estimatedValues', estimatedValues)
+      // console.log('distance', distance)
+      // console.log('year', year)
+      // console.log('checkUsage', checkUsage)
       
       summary = estimatedValues.filter(r => r.row_type === 'summary')[0]
       if(summary){
@@ -257,7 +278,7 @@ export const getBusinessDistrict = async (req: AuthRequest, res: Response) => {
     
     res.status(200).json(districtList);
   } catch (err) {
-    console.error('Get land info error:', err);
+    console.error('Get business district error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -353,8 +374,8 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
       bus: busList,
     }
     res.status(200).json(placeList);
-  } catch (err) {
-    console.error('Get land info error:', err);
+  } catch (err : any) {
+    console.error('Get place info error:', err.message);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
