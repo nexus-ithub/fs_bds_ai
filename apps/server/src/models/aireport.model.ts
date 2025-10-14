@@ -774,7 +774,7 @@ export class AIReportModel {
           )
           SELECT DISTINCT
               floor_type,
-              PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_py) 
+              PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY rent_per_py) 
                   OVER (PARTITION BY floor_type) AS median_rent_per_py
           FROM filtered
           ORDER BY floor_type;
