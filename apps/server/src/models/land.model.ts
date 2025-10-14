@@ -18,9 +18,6 @@ export class LandModel {
       where = `ST_CONTAINS(ap.polygon, GeomFromText('Point(? ?)'))`
       params.push(lng, lat)
     }
-    
-    // 파라미터 배열 생성 (SQL Injection 방지를 위해 파라미터 바인딩은 필수!)
-    // const params = id ? [id] : [lng, lat];
 
    
     const polygon = await db.query<PolygonInfo>(
@@ -29,10 +26,11 @@ export class LandModel {
         /* 1) 기준 polygon 한 개 선택 */
         base AS (
           SELECT
-              ap.id, ap.leg_dong_code, ap.jibun,
+              ap.id, ap.leg_dong_code, ap.jibun, li.div_code,
               LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
               LPAD(CAST(IF(LOCATE('-', ap.jibun) > 0, SUBSTRING_INDEX(ap.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
           FROM address_polygon ap
+          LEFT JOIN land_info li ON li.id = ap.id
           WHERE ${where}
           LIMIT 1
         ),
@@ -89,6 +87,10 @@ export class LandModel {
           JOIN address_polygon ap
             ON ap.leg_dong_code = rk.leg_code
           AND ap.jibun         = rk.jibun_norm
+          JOIN land_info li2
+            ON li2.id = ap.id
+          JOIN base b
+            ON li2.div_code = b.div_code
         ),
         final_ids AS (              -- 비어 있으면 base.id 추가
           SELECT ap_id FROM related_ap_ids
