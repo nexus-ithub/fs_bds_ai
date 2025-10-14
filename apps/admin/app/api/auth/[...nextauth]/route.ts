@@ -1,13 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import type { NextAuthOptions } from "next-auth";
-import type { User } from "next-auth";
-import type { JWT } from "next-auth/jwt";
 import bcrypt from "bcryptjs";
 import { AuthModel } from "../../../models/auth.model";
 import { generateAccessToken, generateRefreshToken, refreshAccessToken } from "../../../utils/token";
 
-export const authOptions = {
+const options: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -18,6 +15,7 @@ export const authOptions = {
       async authorize(credentials) {
         const user = await AuthModel.findByEmail(credentials!.email);
         if (!user) throw new Error("Invalid credentials");
+
         const valid = await bcrypt.compare(credentials!.password, user.password);
         if (!valid) throw new Error("Invalid credentials");
 
@@ -36,16 +34,15 @@ export const authOptions = {
       },
     }),
   ],
-  session: { strategy: "jwt" as const },
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user: User }) {
+    async jwt({ token, user }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
-        token.accessTokenExpires = Date.now() + 5 * 60 * 1000; // 5분
+        token.accessTokenExpires = Date.now() + 5 * 60 * 1000;
       } else if (Date.now() > token.accessTokenExpires!) {
-        // accessToken 만료 → refresh
         const refreshed = await refreshAccessToken(token);
         if (refreshed.error) {
           return { ...token, error: "RefreshAccessTokenError" };
@@ -54,14 +51,17 @@ export const authOptions = {
       }
       return token;
     },
-
-    async session({ session, token }: { session: any; token: JWT }) {
+    async session({ session, token }) {
       session.user = { id: token.id, email: token.email, name: token.name };
-      session.accessToken = token.accessToken; // 클라이언트는 accessToken만 확인
+      session.accessToken = token.accessToken;
       return session;
     },
-  }
+  },
 };
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+// ✅ authOptions를 export 하지 말고, 내부에서 바로 NextAuth 생성
+const handler = NextAuth(options);
+
+// ✅ 이렇게만 export 해야 함
+export const GET = handler as unknown as (req: Request) => Promise<Response>;
+export const POST = handler as unknown as (req: Request) => Promise<Response>;
