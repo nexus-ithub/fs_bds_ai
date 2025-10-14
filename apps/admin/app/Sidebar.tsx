@@ -5,9 +5,8 @@ import { useState } from "react";
 import { usePathname, useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownCustomIcon, HDivider, Button } from "@repo/common";
 import { type Menu } from "@repo/common";
-// import { useQuery } from "@tanstack/react-query";
-// import { QUERY_KEY_USER } from "../../constants";
-// import { getAccessToken } from "../../authutil";
+import { useLoading } from "./utils/loadingOverlay";
+import { useSession } from "next-auth/react";
 
 interface MenuItemType {
   label: string;
@@ -30,14 +29,14 @@ const boardMenu: MenuItemType[] = [
   { label: "FAQ 관리", path: "/main/faq" },
 ];
 
-const bdsMenu: MenuItemType[] = [
-  { label: "카테고리 관리", path: "/main/category" },
-  { label: "매물 관리", path: "/main/bds" },
-];
+// const bdsMenu: MenuItemType[] = [
+//   { label: "카테고리 관리", path: "/main/category" },
+//   { label: "매물 관리", path: "/main/bds" },
+// ];
 
-const youtubeMenu: MenuItemType[] = [
-  { label: "추천 영상 관리", path: "/main/youtube" },
-];
+// const youtubeMenu: MenuItemType[] = [
+//   { label: "추천 영상 관리", path: "/main/youtube" },
+// ];
 
 const bdsAIMenu: MenuItemType[] = [
   { label: "에이전트 정보", path: "/main/agent" },
@@ -46,12 +45,10 @@ const bdsAIMenu: MenuItemType[] = [
 ];
 
 const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
-  // const { data : config } = useQuery<User>({
-  //   queryKey: [QUERY_KEY_USER, getAccessToken()]
-  // })
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const pathname = usePathname();
   const router = useRouter();
+  const { startLoading } = useLoading();
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -75,13 +72,13 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
           isExpanded ? `max-h-[${menuItems.length * 36}px] opacity-100` : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="">
+        <div>
           {menuItems.map((item, index) => {
             const isActive = pathname === item.path;
             return (
               <button
                 key={index}
-                onClick={() => router.push(item.path)}
+                onClick={() => {startLoading(); router.push(item.path);}}
                 className={`w-full flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                   isActive
                     ? 'bg-primary-010 text-primary'
@@ -101,6 +98,8 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 
 export const Sidebar = () => {
   const router = useRouter();
+  const session = useSession();
+  const { startLoading } = useLoading();
   
   return (
     <div className="w-[320px] shrink-0 h-full flex flex-col gap-[20px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
@@ -108,19 +107,19 @@ export const Sidebar = () => {
         <div className="flex flex-col items-center gap-[12px]">
           <Avatar alt="내 프로필" src="" sx={{ width: 72, height: 72 }}/>
           <div className="flex flex-col items-center gap-[4px]">
-            <p><span className="font-s1 mr-[4px]">{"김이름"}</span><span className="font-s1 text-primary">마스터</span></p>
-            <p className="font-s2">{"이메일@jungin.com"}</p>
+            <p><span className="font-s1 mr-[4px]">{session.data?.user?.name}</span><span className="font-s1 text-primary">마스터</span></p>
+            <p className="font-s2">{session.data?.user?.email}</p>
           </div>
         </div>
         <HDivider className="!bg-line-02"/>
         <button className="font-h5 text-primary">내 계정 관리</button>
       </div>
-      <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => router.push("/")}>DASHBOARD</Button>
+      <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => {startLoading(); router.push("/main/dashboard")}}>DASHBOARD</Button>
       <div className="flex flex-col gap-[16px]">
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
         <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded />
-        <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
-        <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded />
+        {/* <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
+        <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded /> */}
         <CustomAccordion title="빌딩샵AI 관리" menuItems={bdsAIMenu} defaultExpanded />
       </div>
     </div>

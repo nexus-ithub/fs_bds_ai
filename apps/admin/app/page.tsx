@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { DotProgress } from "@repo/common";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -19,7 +20,7 @@ export default function Home() {
 
   return (
     <div className="flex items-center justify-center h-screen">
-      <p>Loading...</p>
+      <DotProgress/>
     </div>
   );
 }

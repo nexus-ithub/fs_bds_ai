@@ -1,4 +1,5 @@
 'use client';
+import { DotProgress } from '@repo/common';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -17,7 +18,7 @@ export function withAuth<P extends object>(Component: React.ComponentType<P>): R
     if (status === 'loading' || !session) {
       return (
         <div className="flex items-center justify-center h-screen">
-          <p>Loading...</p>
+          <DotProgress/>
         </div>
       );
     }
