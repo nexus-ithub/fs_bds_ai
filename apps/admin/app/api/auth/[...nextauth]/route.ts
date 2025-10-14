@@ -1,33 +1,67 @@
-import NextAuth from 'next-auth/next'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs';
-import { AdminModel } from '../../../models/admin.model';
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { AuthModel } from "../../../models/auth.model";
+import { generateAccessToken, generateRefreshToken, refreshAccessToken } from "../../../utils/token";
 
-const handler = NextAuth({
+const options: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-          email: { label: 'Email', type: 'text' },
-          password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials');
-        }
-        const user = await AdminModel.findByEmail(credentials.email);
-        if (!user) throw new Error('Invalid credentials');
+        const user = await AuthModel.findByEmail(credentials!.email);
+        if (!user) throw new Error("Invalid credentials");
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) throw new Error('Invalid credentials');
-        
-        return { id: user.id, email: user.email, name: user.name };
-      }
+        const valid = await bcrypt.compare(credentials!.password, user.password);
+        if (!valid) throw new Error("Invalid credentials");
+
+        const accessToken = generateAccessToken({ id: user.id, email: user.email });
+        const refreshToken = generateRefreshToken({ id: user.id, email: user.email });
+        const expiresAt = new Date(Date.now() + Number(process.env.REFRESH_TOKEN_EXPIRES_IN || 604800) * 1000);
+        await AuthModel.updateRefreshToken(user.id!, refreshToken, expiresAt);
+
+        return {
+          id: user.id!,
+          email: user.email,
+          name: user.name,
+          accessToken,
+          refreshToken,
+        };
+      },
     }),
   ],
-  // session: { strategy: 'jwt', maxAge: 5 }, // 5초
-  session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 }, // 7일
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-})
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.accessTokenExpires = Date.now() + 5 * 60 * 1000;
+      } else if (Date.now() > token.accessTokenExpires!) {
+        const refreshed = await refreshAccessToken(token);
+        if (refreshed.error) {
+          return { ...token, error: "RefreshAccessTokenError" };
+        }
+        return refreshed;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user = { id: token.id, email: token.email, name: token.name };
+      session.accessToken = token.accessToken;
+      return session;
+    },
+  },
+};
 
-export { handler as GET, handler as POST }
+// ✅ authOptions를 export 하지 말고, 내부에서 바로 NextAuth 생성
+const handler = NextAuth(options);
+
+// ✅ 이렇게만 export 해야 함
+export const GET = handler as unknown as (req: Request) => Promise<Response>;
+export const POST = handler as unknown as (req: Request) => Promise<Response>;

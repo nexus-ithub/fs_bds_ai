@@ -1,5 +1,5 @@
 'use client'
-import { BuildingShopBI, Checkbox } from "@repo/common";
+import { BuildingShopBI, Checkbox, DotProgress } from "@repo/common";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from 'next-auth/react';
@@ -19,6 +19,7 @@ export default function Login() {
   });
   const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,7 @@ export default function Login() {
 
     try {
       console.log('credentials', credentials);
+      setLoading(true);
 
       const response = await signIn('credentials', {
         redirect: false,
@@ -40,6 +42,8 @@ export default function Login() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,6 +120,11 @@ export default function Login() {
           </div>
         </div>
       </div>
+      {loading && (
+        <div className="fixed inset-0 bg-black/5 flex items-center justify-center z-50">
+          <DotProgress />
+        </div>
+      )}
     </div>
   );
 }

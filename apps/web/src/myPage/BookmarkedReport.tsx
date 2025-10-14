@@ -280,7 +280,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         openAIReport &&
         <div ref={aiReportRef}>
           <AIReport 
-            polygon={{id: null, legDongCode: selectedItem.legDongCode, legDongName: selectedItem.legDongName, jibun: selectedItem.jibun, lat: selectedItem.lat, lng: selectedItem.lng, polygon: selectedItem.polygon}}
+            polygon={{id: null, legDongCode: selectedItem.legDongCode, legDongName: selectedItem.legDongName, jibun: selectedItem.jibun, lat: selectedItem.lat, lng: selectedItem.lng, polygon: selectedItem.polygon, current: null}}
             landInfo={selectedItem?.landInfo}
             buildings={selectedItem?.buildings}
             estimatedPrice={{estimatedPrice: selectedItem?.estimatedPrice, per: selectedItem?.estimatedPricePer}}

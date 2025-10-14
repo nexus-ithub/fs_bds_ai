@@ -1,8 +1,13 @@
 'use client';
 
-import { Button, CloseIcon, DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, FormField, Radio } from "@repo/common";
+import { Button, CloseIcon, DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, FormField, Radio, Spinner } from "@repo/common";
 import { useState } from "react";
 import { Dialog } from "@mui/material";
+import { useEffect } from "react";
+import { type Admin } from "@repo/common";
+import { format } from "date-fns";
+import postData from "../../utils/postData";
+import useAxiosWithAuth from "../../utils/axiosWithAuth";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -19,18 +24,20 @@ const ACCOUNT_SAMPLES = [
 ]
 
 export default function Admin() {
+  const axiosInstance = useAxiosWithAuth();
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [admins, setAdmins] = useState<Admin[]>([]);
 
   const [email, setEmail] = useState<string>('');
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
-  const [phoneValid, setPhoneValid] = useState<boolean>(false);
-  const [authority, setAuthority] = useState<'M' | 'N'>('M');
+  const [adminType, setAdminType] = useState<'M' | 'N'>('M');
 
   const [openAddAccount, setOpenAddAccount] = useState<boolean>(false);
+  const [emailLoading, setEmailLoading] = useState<boolean>(false);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
@@ -38,11 +45,41 @@ export default function Admin() {
   };
 
   const handleEmailValidation = async () => {
+    if (emailValid !== null) return;
+    setEmailLoading(true);
+
     const response = await fetch(`/api/admin/check-email?email=${email}`)
     const data = await response.json()
-    console.log(">>>>>", data)
+
     setEmailValid(data.success)
+    setEmailLoading(false);
   }
+
+  const handleSubmit = async () => {
+    if (!email || !name || !adminType) return;
+    await postData("/api/admin/register", {email, name, phone, adminType});
+    setOpenAddAccount(false);
+    getUsers();
+  }
+
+  const getUsers = async () => {
+    const response = await axiosInstance.get("?action=list");
+    const data = await response.data;
+    console.log(data)
+    setAdmins(data);
+  }
+
+  useEffect(() => {
+    getUsers();
+  }, [])
+
+  useEffect(() => {
+    setEmail('');
+    setName('');
+    setPhone('');
+    setAdminType('M');
+    setEmailValid(null);
+  }, [openAddAccount])
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
@@ -82,23 +119,23 @@ export default function Admin() {
             <th className="pl-[16px] py-[14px] font-s3">이름</th>
             <th className="pl-[12px] py-[14px] font-s3">이메일</th>
             <th className="pl-[12px] py-[14px] font-s3">연락처</th>
-            <th className="pl-[12px] py-[14px] font-s3">부서</th>
-            <th className="pl-[12px] py-[14px] font-s3">직급</th>
+            {/* <th className="pl-[12px] py-[14px] font-s3">부서</th>
+            <th className="pl-[12px] py-[14px] font-s3">직급</th> */}
             <th className="pl-[12px] py-[14px] font-s3">권한</th>
             <th className="pl-[12px] py-[14px] font-s3">등록일</th>
             <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
           </tr>
         </thead>
         <tbody>
-          {ACCOUNT_SAMPLES.map((account, index) => (
+          {admins.map((account, index) => (
             <tr key={index} className="h-[56px] font-s2 border-b border-line-02">
               <td className="pl-[16px]">{account.name}</td>
               <td className="pl-[12px]">{account.email}</td>
               <td className="pl-[12px]">{account.phone}</td>
-              <td className="pl-[12px]">{account.department}</td>
-              <td className="pl-[12px]">{account.position}</td>
-              <td className="pl-[12px]">{account.permission}</td>
-              <td className="pl-[12px]">{account.registerDate}</td>
+              {/* <td className="pl-[12px]">{account.department}</td>
+              <td className="pl-[12px]">{account.position}</td> */}
+              <td className="pl-[12px]">{account.adminType === 'M' ? '마스터' : '일반'}</td>
+              <td className="pl-[12px]">{format(new Date(account.createdAt), "yyyy.MM.dd")}</td>
               <td className="pl-[12px] pr-[16px] w-[52px]">
                 <div className="flex items-center gap-[12px]">
                   <button><EditIcon/></button>
@@ -146,14 +183,14 @@ export default function Admin() {
                 onClick={() => handleEmailValidation()}
                 className={`font-s2 transition-colors ${
                   emailValid === true
-                    ? "text-primary cursor-pointer"
+                    ? "text-primary cursor-default"
                     : emailValid === false
                     ? "text-secondary-050 cursor-default"
-                    : "text-primary cursor-default"
+                    : "text-primary"
                 }`}
-                disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
+                disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || emailLoading}
               >
-                {emailValid === null ? "중복확인" : emailValid ? "사용가능" : "사용불가"}
+                {emailLoading ? <Spinner/> : emailValid === null ? "중복확인" : emailValid ? "사용가능" : "사용불가"}
               </button>
             }
             />
@@ -177,21 +214,21 @@ export default function Admin() {
               <Radio
                 label="마스터"
                 value="M"
-                checked={authority === 'M'}
-                onChange={() => setAuthority('M')}
+                checked={adminType === 'M'}
+                onChange={() => setAdminType('M')}
               />
               <Radio
                 label="일반"
                 value="N"
-                checked={authority === 'N'}
-                onChange={() => setAuthority('N')}
+                checked={adminType === 'N'}
+                onChange={() => setAdminType('N')}
               />
             </form>
           </div>
           <div className="flex items-center justify-center p-[24px]">
             <div className="w-[400px] flex items-center gap-[10px]">
-              <Button variant="bggray" size="medium" fontSize="font-h4" className="w-[120px]">취소</Button>
-              <Button size="medium" fontSize="font-h4" className="flex-1" disabled={!emailValid || !name }>추가</Button>
+              <Button variant="bggray" size="medium" fontSize="font-h4" className="w-[120px]" onClick={() => setOpenAddAccount(false)}>취소</Button>
+              <Button size="medium" fontSize="font-h4" className="flex-1" disabled={!emailValid || !name } onClick={handleSubmit}>추가</Button>
             </div>
           </div>
         </div>

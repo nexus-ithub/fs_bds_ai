@@ -1,6 +1,7 @@
 'use client';
 
 import { SessionProvider } from "next-auth/react";
+import { LoadingProvider } from "./utils/loadingOverlay";
 import "./globals.css";
 
 // const geistSans = localFont({
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <LoadingProvider>{children}</LoadingProvider>
+        </SessionProvider>
       </body>
     </html>
   );
