@@ -364,216 +364,249 @@ export class LandModel {
 
       const lands = await db.query<LandInfo>(
         `
-        WITH
-        /* 0) 다중 기준 필지 집합 */
-        base AS (
-          SELECT
-              li.id,
-              li.leg_dong_code,
-              li.jibun,
-              li.div_code,
-              LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
-              LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
-          FROM land_info li
-          WHERE li.id IN (?)
-        ),
-        /* 1) 기준 필지와 같은 지번을 가지는 모든 건물 id (메인/보조 주소) */
-        cand_building_ids AS (
-          SELECT b.id AS base_id, blh.building_id
-          FROM building_leg_headline blh
-          JOIN base b
-            ON blh.leg_dong_code_val = b.leg_dong_code
-          AND blh.bun = b.bun_pad
-          AND blh.ji  = b.ji_pad
-          UNION
-          SELECT b.id AS base_id, bsa.building_id
-          FROM building_sub_addr bsa
-          JOIN base b
-            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
-          AND bsa.sub_bun = b.bun_pad
-          AND bsa.sub_ji  = b.ji_pad
-        ),
-        /* 2) 각 건물의 메인/보조 지번 키(0패딩 제거) */
-        rows_main AS (
-          SELECT c.base_id, blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
-          FROM building_leg_headline blh
-          JOIN cand_building_ids c USING (building_id)
-        ),
-        rows_sub AS (
-          SELECT c.base_id, bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
-          FROM building_sub_addr bsa
-          JOIN cand_building_ids c USING (building_id)
-        ),
-        row_keys AS (
-          SELECT
-            base_id,
-            building_id,
-            leg_code,
-            bun_pad,
-            ji_pad,
-            CONCAT(
-              CAST(bun_pad AS UNSIGNED),
-              CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
-                  THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
-                  ELSE ''
-              END
-            ) AS jibun_norm
-          FROM (
-            SELECT * FROM rows_main
-            UNION ALL
-            SELECT * FROM rows_sub
-          ) u
-        ),
-        /* 3) address_polygon 매칭 → 관련 필지 id 추출 */
-        related_ap_ids AS (
-          SELECT DISTINCT rk.base_id, ap.id AS ap_id
-          FROM row_keys rk
-          JOIN address_polygon ap
-            ON ap.leg_dong_code = rk.leg_code
-          AND ap.jibun         = rk.jibun_norm
-          JOIN land_info li2 ON li2.id = ap.id
-          JOIN base b        ON b.id = rk.base_id AND li2.div_code = b.div_code
-        ),
-        /* 4) 기준 필지를 항상 포함 */
-        final_ids AS (
-          SELECT base_id, ap_id AS id FROM related_ap_ids
-          UNION
-          SELECT id AS base_id, id FROM base
-        ),
-        /* 5) land_char_info 최신 1건(전역) */
-        land_char_latest AS (
-          SELECT c.*
-          FROM land_char_info c
-          JOIN (
-            SELECT id, MAX(create_date) AS max_cd
-            FROM land_char_info
-            GROUP BY id
-          ) m
-            ON m.id = c.id
-          AND m.max_cd = c.create_date
-        ),
-        /* 6) 관련(+기준) 필지 집계: 면적 가중 평균 */
-        rel_agg AS (
-          SELECT
-            f.base_id,
-            SUM(li.area) AS relTotalArea,
-            AVG(lc.price) AS relTotalPrice,
-            COUNT(*) AS relParcelCount
-          FROM final_ids f
-          JOIN land_info li       ON li.id = f.id
-          LEFT JOIN land_char_latest lc ON lc.id = li.id
-          LEFT JOIN leg_land_usage_ratio llur
-                ON lc.usage1_name = llur.name
-          GROUP BY f.base_id
-        )
+WITH
+/* 0) 다중 기준 필지 집합 */
+base AS (
+  SELECT
+      li.id,
+      li.leg_dong_code,
+      li.jibun,
+      li.div_code,
+      LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+      LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
+  FROM land_info li
+  WHERE li.id IN (?)
+),
+/* 1) 기준 필지와 같은 지번을 가지는 모든 건물 id (메인/보조 주소) */
+cand_building_ids AS (
+  SELECT b.id AS base_id, blh.building_id
+  FROM building_leg_headline blh
+  JOIN base b
+    ON blh.leg_dong_code_val = b.leg_dong_code
+   AND blh.bun = b.bun_pad
+   AND blh.ji  = b.ji_pad
+  UNION
+  SELECT b.id AS base_id, bsa.building_id
+  FROM building_sub_addr bsa
+  JOIN base b
+    ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+   AND bsa.sub_bun = b.bun_pad
+   AND bsa.sub_ji  = b.ji_pad
+),
+/* 2) 각 건물의 메인/보조 지번 키(0패딩 제거) */
+rows_main AS (
+  SELECT c.base_id, blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
+  FROM building_leg_headline blh
+  JOIN cand_building_ids c USING (building_id)
+),
+rows_sub AS (
+  SELECT c.base_id, bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
+  FROM building_sub_addr bsa
+  JOIN cand_building_ids c USING (building_id)
+),
+row_keys AS (
+  SELECT
+    base_id,
+    building_id,
+    leg_code,
+    bun_pad,
+    ji_pad,
+    CONCAT(
+      CAST(bun_pad AS UNSIGNED),
+      CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+          THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+          ELSE ''
+      END
+    ) AS jibun_norm
+  FROM (
+    SELECT * FROM rows_main
+    UNION ALL
+    SELECT * FROM rows_sub
+  ) u
+),
 
-        SELECT 
-          land_info.id AS id,
-          land_info.leg_dong_code as legDongCode,
-          land_info.leg_dong_name as legDongName,
-          land_info.jibun as jibun,
-          land_info.area AS area,
-          land_char.usage1_name AS usageName,
-          land_char.jimok_name AS jimokName,
-          land_char.cur_use AS curUse,
-          leg_land_usage_ratio.far,
-          leg_land_usage_ratio.bcr,
-          land_char.road_contact AS roadContact,
-          land_char.price AS price,
-          jibun.sido_name AS sidoName,
-          jibun.sigungu_name AS sigunguName,
-          jibun.jibun_main_num AS jibunMainNum,
-          jibun.jibun_sub_num AS jibunSubNum,
-          jibun.leg_eupmyeondong_name AS legEupmyeondongName,
-          jibun.leg_li_name AS legLiName,
-          road_info.road_name AS roadName,
-          addr.building_main_num AS buildingMainNum,
-          addr.building_sub_num AS buildingSubNum,
-          info.local_building_name AS localBuildingName,
-          info.building_leg_name AS buildingLegName,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN bd_latest.deal_date
-            ELSE ld_latest.deal_date
-          END AS dealDate,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN bd_latest.price
-            ELSE ld_latest.price
-          END AS dealPrice,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN 'building'
-            ELSE 'land'
-          END AS dealType,
-          ra.relTotalArea        AS relTotalArea,
-          ra.relTotalPrice       AS relTotalPrice,
-          ra.relParcelCount      AS relParcelCount
+/* (신규) 건축물 중복 제거 + 건축면적 합계/개수 산출용 집계 */
+bld_ids_dedup AS (
+  SELECT base_id, building_id
+  FROM rows_main
+  UNION               /* ← DISTINCT by (base_id, building_id) */
+  SELECT base_id, building_id
+  FROM rows_sub
+),
+blh_area AS (        /* building_id당 arch_area 대표값 (헤드라인 기준) */
+  SELECT building_id, MAX(arch_area) AS arch_area
+  FROM building_leg_headline
+  GROUP BY building_id
+),
+bld_arch_agg AS (    /* 기준(base_id)별 건물 개수/arch_area 합 */
+  SELECT
+    d.base_id,
+    COUNT(*) AS relBuildingCount,
+    SUM(ba.arch_area) AS relArchAreaSum
+  FROM bld_ids_dedup d
+  LEFT JOIN blh_area ba USING (building_id)
+  GROUP BY d.base_id
+),
 
-        FROM land_info AS land_info
-        LEFT JOIN land_char_info AS land_char
-          ON land_char.key = (
-            SELECT c.key 
-            FROM land_char_info AS c 
-            WHERE c.id = land_info.id 
-            ORDER BY c.create_date DESC 
-            LIMIT 1
-          )
-        LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
-          ON land_char.usage1_name = leg_land_usage_ratio.name
-        LEFT JOIN jibun_info AS jibun 
-          ON jibun.leg_dong_code = land_info.leg_dong_code
-          AND jibun.jibun_main_num = SUBSTRING_INDEX(land_info.jibun, '-', 1)
-          AND jibun.jibun_sub_num = CASE 
-                                  WHEN land_info.jibun LIKE '%-%' 
-                                  THEN SUBSTRING_INDEX(land_info.jibun, '-', -1)
-                                  ELSE '0'
-                                END
-        LEFT JOIN address_info AS addr 
-          ON addr.address_id = jibun.address_id
-        LEFT JOIN additional_info AS info 
-          ON addr.address_id = info.address_id
-        LEFT JOIN road_code_info AS road_info 
-          ON addr.road_name_code = road_info.road_name_code 
-          AND addr.eupmyeondong_serial_num = road_info.eupmyeondong_serial_num        
-        LEFT JOIN (
-          SELECT id, deal_date, price
-          FROM (
-            SELECT 
-              id,
-              deal_date,
-              price,
-              ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-            FROM building_deal_list
-          ) t
-          WHERE t.rn = 1
-        ) AS bd_latest
-          ON bd_latest.id = land_info.id
-        LEFT JOIN (
-          SELECT id, deal_date, price
-          FROM (
-            SELECT 
-              id,
-              deal_date,
-              price,
-              ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-            FROM land_deal_list
-          ) t
-          WHERE t.rn = 1
-        ) AS ld_latest
-          ON ld_latest.id = land_info.id
-        /* ★ 기준 id별 집계 결과를 조인 */
-        LEFT JOIN rel_agg ra
-          ON ra.base_id = land_info.id
+/* 3) address_polygon 매칭 → 관련 필지 id 추출 */
+related_ap_ids AS (
+  SELECT DISTINCT rk.base_id, ap.id AS ap_id
+  FROM row_keys rk
+  JOIN address_polygon ap
+    ON ap.leg_dong_code = rk.leg_code
+   AND ap.jibun         = rk.jibun_norm
+  JOIN land_info li2 ON li2.id = ap.id
+  JOIN base b        ON b.id = rk.base_id AND li2.div_code = b.div_code
+),
+/* 4) 기준 필지를 항상 포함 */
+final_ids AS (
+  SELECT base_id, ap_id AS id FROM related_ap_ids
+  UNION
+  SELECT id AS base_id, id FROM base
+),
+/* 5) land_char_info 최신 1건(전역) */
+land_char_latest AS (
+  SELECT c.*
+  FROM land_char_info c
+  JOIN (
+    SELECT id, MAX(create_date) AS max_cd
+    FROM land_char_info
+    GROUP BY id
+  ) m
+    ON m.id = c.id
+   AND m.max_cd = c.create_date
+),
+/* 6) 관련(+기준) 필지 집계: 면적 가중 평균(요청안에서는 단순 AVG price) */
+rel_agg AS (
+  SELECT
+    f.base_id,
+    SUM(li.area) AS relTotalArea,
+    AVG(lc.price) AS relTotalPrice,
+    COUNT(*) AS relParcelCount
+  FROM final_ids f
+  JOIN land_info li       ON li.id = f.id
+  LEFT JOIN land_char_latest lc ON lc.id = li.id
+  LEFT JOIN leg_land_usage_ratio llur
+        ON lc.usage1_name = llur.name
+  GROUP BY f.base_id
+)
 
-        WHERE land_info.id IN (?)
-        GROUP BY land_info.id;
+SELECT 
+  land_info.id AS id,
+  land_info.leg_dong_code as legDongCode,
+  land_info.leg_dong_name as legDongName,
+  land_info.jibun as jibun,
+  land_info.area AS area,
+  land_char.usage1_name AS usageName,
+  land_char.jimok_name AS jimokName,
+  land_char.cur_use AS curUse,
+  leg_land_usage_ratio.far,
+  leg_land_usage_ratio.bcr,
+  land_char.road_contact AS roadContact,
+  land_char.price AS price,
+  jibun.sido_name AS sidoName,
+  jibun.sigungu_name AS sigunguName,
+  jibun.jibun_main_num AS jibunMainNum,
+  jibun.jibun_sub_num AS jibunSubNum,
+  jibun.leg_eupmyeondong_name AS legEupmyeondongName,
+  jibun.leg_li_name AS legLiName,
+  road_info.road_name AS roadName,
+  addr.building_main_num AS buildingMainNum,
+  addr.building_sub_num AS buildingSubNum,
+  info.local_building_name AS localBuildingName,
+  info.building_leg_name AS buildingLegName,
+  CASE
+    WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+    WHEN ld_latest.deal_date IS NULL 
+        OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      THEN bd_latest.deal_date
+    ELSE ld_latest.deal_date
+  END AS dealDate,
+  CASE
+    WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+    WHEN ld_latest.deal_date IS NULL 
+        OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      THEN bd_latest.price
+    ELSE ld_latest.price
+  END AS dealPrice,
+  CASE
+    WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+    WHEN ld_latest.deal_date IS NULL 
+        OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      THEN 'building'
+    ELSE 'land'
+  END AS dealType,
+  ra.relTotalArea        AS relTotalArea,
+  ra.relTotalPrice       AS relTotalPrice,
+  ra.relParcelCount      AS relParcelCount,
+  /* (신규) 연관 건축물 arch_area 합계 및 개수 */
+  baa.relArchAreaSum     AS relArchAreaSum,
+  baa.relBuildingCount   AS relBuildingCount
+
+FROM land_info AS land_info
+LEFT JOIN land_char_info AS land_char
+  ON land_char.key = (
+    SELECT c.key 
+    FROM land_char_info AS c 
+    WHERE c.id = land_info.id 
+    ORDER BY c.create_date DESC 
+    LIMIT 1
+  )
+LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
+  ON land_char.usage1_name = leg_land_usage_ratio.name
+LEFT JOIN jibun_info AS jibun 
+  ON jibun.leg_dong_code = land_info.leg_dong_code
+  AND jibun.jibun_main_num = SUBSTRING_INDEX(land_info.jibun, '-', 1)
+  AND jibun.jibun_sub_num = CASE 
+                          WHEN land_info.jibun LIKE '%-%' 
+                          THEN SUBSTRING_INDEX(land_info.jibun, '-', -1)
+                          ELSE '0'
+                        END
+LEFT JOIN address_info AS addr 
+  ON addr.address_id = jibun.address_id
+LEFT JOIN additional_info AS info 
+  ON addr.address_id = info.address_id
+LEFT JOIN road_code_info AS road_info 
+  ON addr.road_name_code = road_info.road_name_code 
+  AND addr.eupmyeondong_serial_num = road_info.eupmyeondong_serial_num        
+LEFT JOIN (
+  SELECT id, deal_date, price
+  FROM (
+    SELECT 
+      id,
+      deal_date,
+      price,
+      ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+    FROM building_deal_list
+  ) t
+  WHERE t.rn = 1
+) AS bd_latest
+  ON bd_latest.id = land_info.id
+LEFT JOIN (
+  SELECT id, deal_date, price
+  FROM (
+    SELECT 
+      id,
+      deal_date,
+      price,
+      ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+    FROM land_deal_list
+  ) t
+  WHERE t.rn = 1
+) AS ld_latest
+  ON ld_latest.id = land_info.id
+
+/* ★ 기준 id별 집계 결과를 조인 */
+LEFT JOIN rel_agg ra
+  ON ra.base_id = land_info.id
+
+/* ★ (신규) 기준 id별 건축면적 합계/건물개수 조인 */
+LEFT JOIN bld_arch_agg baa
+  ON baa.base_id = land_info.id
+
+WHERE land_info.id IN (?)
+GROUP BY land_info.id;
+        
 
         `,
         [ids, ids]

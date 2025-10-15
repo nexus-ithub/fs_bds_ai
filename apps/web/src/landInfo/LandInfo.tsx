@@ -181,8 +181,8 @@ export const LandInfoCard = ({
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
           </div>
          <div className="flex-1 flex items-center justify-between">
-            <p className="font-s3 text-text-03">건축면적{buildingList && buildingList.length > 1 ? ' (합계)' : ''}</p>
-            <p className="font-s3 text-text-02">{getAreaStrWithPyeong((buildingList && buildingList.length > 0) ? buildingList.reduce((a, b) => a + (Number(b.archArea) || 0.00), 0.00) : null)}</p>
+            <p className="font-s3 text-text-03">건축면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+            <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relArchAreaSum)}</p>
           </div>        
         </div>
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">

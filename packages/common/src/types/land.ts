@@ -69,6 +69,9 @@ export interface LandInfo {
   relTotalArea : number; // 연관된 모든 필지의 대지면적
   relTotalPrice : number; // 연관된 모든 필지의 공시지가
   relParcelCount : number; // 연관된 모든 필지의 개수
+
+  relArchAreaSum : number; // 연관된 모든 건축물의 건축면적 합
+  relBuildingCount : number; // 연관된 모든 건축물의 개수
 }
 
 export interface BuildingInfo {
