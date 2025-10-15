@@ -34,6 +34,13 @@ export interface LandData{
   dealPrice: number; // 최근 거래 가격
   dealDate: string; // 최근 거래 일
   dealType: string; // 최근 거래 유형 "building" (= 건물) or "land" (= 토지)
+
+
+  relTotalArea : number; // 연관된 모든 필지의 대지면적
+  relTotalPrice : number; // 연관된 모든 필지의 공시지가
+  relWeightedFar : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
+  relWeightedBcr : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
+  relParcelCount : number; // 연관된 모든 필지의 개수
 }
 
 

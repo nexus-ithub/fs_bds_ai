@@ -65,6 +65,10 @@ export interface LandInfo {
   dealPrice: number;
   dealDate: string;
   dealType: string;
+
+  relTotalArea : number; // 연관된 모든 필지의 대지면적
+  relTotalPrice : number; // 연관된 모든 필지의 공시지가
+  relParcelCount : number; // 연관된 모든 필지의 개수
 }
 
 export interface BuildingInfo {

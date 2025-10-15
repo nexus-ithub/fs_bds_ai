@@ -164,7 +164,7 @@ export const LandInfoCard = ({
             )
           }        
         </div>
-        <div className="mt-[10px] flex items-center gap-[5px]">
+        {/* <div className="mt-[10px] flex items-center gap-[5px]">
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s4 text-text-03">토지면적</p>
             <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo.area)}</p>
@@ -174,8 +174,17 @@ export const LandInfoCard = ({
             <p className="font-s4 text-text-03">건축면적</p>
             <p className="font-s4 text-text-02">{getAreaStrWithPyeong((buildingList && buildingList.length > 0) ? buildingList[0].archArea : null)}</p>
           </div>        
+        </div> */}
+        <div className="mt-[10px] flex-col space-y-[6px]">
+          <div className="flex-1 flex items-center justify-between">
+            <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
+            <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
+          </div>
+         <div className="flex-1 flex items-center justify-between">
+            <p className="font-s3 text-text-03">건축면적{buildingList && buildingList.length > 1 ? ' (합계)' : ''}</p>
+            <p className="font-s3 text-text-02">{getAreaStrWithPyeong((buildingList && buildingList.length > 0) ? buildingList.reduce((a, b) => a + (Number(b.archArea) || 0.00), 0.00) : null)}</p>
+          </div>        
         </div>
-
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
@@ -184,9 +193,9 @@ export const LandInfoCard = ({
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
-            <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가</p>
-            <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.price * landInfo.area, true) : '-'}</p>
-            <p className="font-c3 text-text-03">{landInfo.price ? krwUnit(landInfo.price, true) : '-'} /㎡</p>
+            <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가(합계)</p>
+            <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
+            <p className="font-c3 text-text-03">{landInfo.relTotalPrice ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
