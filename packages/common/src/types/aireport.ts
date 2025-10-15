@@ -10,11 +10,11 @@ export interface AIReportParam{
 
 export interface BuildingData{
   id: string;
-  floorAreaRatio: number; // 건폐율 
+  floorAreaRatio: string; // 건폐율 
   useApprovalDate: string; // 사용승인일
-  totalFloorArea: number; // 연면적
-  archArea: number; // 건축면적 
-  landArea: number; // 토지면적 
+  totalFloorArea: string; // 연면적
+  archArea: string; // 건축면적 
+  landArea: string; // 토지면적 
   gndFloorNumber: number; // 지상층수
   baseFloorNumber: number; // 지하층수 
 }
@@ -102,7 +102,7 @@ export interface Loan {
 
 export interface ReportValue {
   grade: string;
-  message: string;
+  // message: string;
 
 
   duration: ProjectDuration;
@@ -157,7 +157,7 @@ export interface AIReportInfo {
 
 export interface ReportResult {
   grade: string;
-  message: string;
+  // message: string;
    
   // 초기준비자금 
   initialCapital: number;

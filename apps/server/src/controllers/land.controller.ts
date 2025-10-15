@@ -343,28 +343,28 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
 
     const busList = []
 
-    try{
-      // console.log('PUBLIC_API_KEY', PUBLIC_API_KEY)
-      const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
-      const busData = busResp.data
+    // try{
+    //   // console.log('PUBLIC_API_KEY', PUBLIC_API_KEY)
+    //   const busResp = await axios.get(`https://apis.data.go.kr/1613000/BusSttnInfoInqireService/getCrdntPrxmtSttnList?serviceKey=${PUBLIC_API_KEY}&gpsLati=${lat}&gpsLong=${lng}`)
+    //   const busData = busResp.data
       
-      // console.log('busData', busData)
-      // console.log('busData.response.body.items', busData.response.body.items)
-      if(busData.response.body.items){
-        for(const item of busData.response.body.items.item){
-          // console.log('item', item)
-          const bus = {
-            name: item.nodenm,
-            distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
-            lat: item.gpslati,
-            lng: item.gpslong
-          }
-          busList.push(bus)
-        }
-      }
-    }catch(err){
-      // console.error('Get bus error:', err);
-    }
+    //   // console.log('busData', busData)
+    //   // console.log('busData.response.body.items', busData.response.body.items)
+    //   if(busData.response.body.items){
+    //     for(const item of busData.response.body.items.item){
+    //       // console.log('item', item)
+    //       const bus = {
+    //         name: item.nodenm,
+    //         distance: getDistance({latitude: Number(item.gpslati), longitude: Number(item.gpslong)}, {latitude: Number(lat), longitude: Number(lng)}),
+    //         lat: item.gpslati,
+    //         lng: item.gpslong
+    //       }
+    //       busList.push(bus)
+    //     }
+    //   }
+    // }catch(err){
+    //   // console.error('Get bus error:', err);
+    // }
 
 
     const placeList = {

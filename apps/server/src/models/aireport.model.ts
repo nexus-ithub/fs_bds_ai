@@ -1,4 +1,3 @@
-import { publicDecrypt } from 'crypto';
 import { db } from '../utils/database';
 import { AIReportInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo } from '@repo/common';
 import OpenAI from "openai";
@@ -291,7 +290,7 @@ function getBuildingAge (useApprovalDateStr: string){
 
 function makeReportValue(report : ReportValue, grade : string, type : 'rent' | 'remodel' | 'build'){
   report.grade = grade;
-  report.message = 'AI 메세지 메세지 메세지 메세지.....';
+  // report.message = 'AI 메세지 메세지 메세지 메세지.....';
 }
 
 
@@ -388,27 +387,53 @@ function makeLoanForOwner(value: ReportValue) { // landCost에 대한 정보를 
   }
 }
 
-function getCurrentBuildingArchArea(currentBuildingInfo : BuildingData, buildInfo : BuildInfo){
-  if(Number(currentBuildingInfo.archArea) > 0){
-    return Number(currentBuildingInfo.archArea);
-  }else if(Number(currentBuildingInfo.totalFloorArea) > 0 && (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)) > 0){
-    return (Number(currentBuildingInfo.totalFloorArea) / (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)));
-  }else {
-    return buildInfo.buildingArea;
+function getCurrentBuildingArchArea(buildingList : BuildingData[], buildInfo : BuildInfo){
+  const archArea = buildingList.reduce((acc, building) => acc + ((building.archArea ? Number(building.archArea) : 0)), 0);
+  if(archArea > 0){
+    return archArea;
+  }else{
+    const expectedArchArea = buildingList.reduce((acc, building) => {
+      let value = 0
+      if(Number(building.totalFloorArea) > 0 && (Number(building.gndFloorNumber) + Number(building.baseFloorNumber)) > 0){
+        value = (Number(building.totalFloorArea) / (Number(building.gndFloorNumber) + Number(building.baseFloorNumber)));
+      }
+      return acc + value;
+    }, 0);
+    if(expectedArchArea > 0){
+      return expectedArchArea;
+    }
   }
+
+
+  return buildInfo.buildingArea;
+  // }else if(Number(currentBuildingInfo.totalFloorArea) > 0 && (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)) > 0){
+  //   return (Number(currentBuildingInfo.totalFloorArea) / (Number(currentBuildingInfo.gndFloorNumber) + Number(currentBuildingInfo.baseFloorNumber)));
+  // }else {
+  //   return buildInfo.buildingArea;
+  // }
 }
 
-function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, buildInfo : BuildInfo, currentBuildingInfo : BuildingData, firstFloorRentProfitPerPy : number, upperFloorRentProfitPerPy : number, baseFloorRentProfitPerPy : number){
+
+function makeProfit(
+  type: 'rent' | 'remodel' | 'build',
+  value: ReportValue,
+  buildInfo: BuildInfo,
+  buildingList: BuildingData[],
+  firstFloorRentProfitPerPy: number,
+  upperFloorRentProfitPerPy: number,
+  baseFloorRentProfitPerPy: number
+) {
   
   let rentProfit;
   let managementProfit;
-  let currentBuildingArchArea = currentBuildingInfo ? getCurrentBuildingArchArea(currentBuildingInfo, buildInfo) : 0;
+  let currentBuildingArchArea = (buildingList && buildingList.length > 0) ? getCurrentBuildingArchArea(buildingList, buildInfo) : 0;
   // 현재 건축물 대장에 연면적이 없으면 총 연면적을 archArea로 대체 (1층짜리 건물이라고 생각) 
-  let currentBuildingTotalFloorArea = currentBuildingInfo ? (Number(currentBuildingInfo.totalFloorArea) || currentBuildingArchArea) : 0;
+  const curBuildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
+  let currentBuildingTotalFloorArea = curBuildingTotalFloorArea ? curBuildingTotalFloorArea : currentBuildingArchArea;
  
   // console.log('makeProfit type', type);
-  // console.log('current totalFloorArea', currentBuildingTotalFloorArea);
-  // console.log('newBuild totalFloorArea ', buildInfo.upperFloorArea + buildInfo.lowerFloorArea);
+  console.log('current totalFloorArea', currentBuildingTotalFloorArea);
+  console.log('newBuild totalFloorArea ', buildInfo.upperFloorArea + buildInfo.lowerFloorArea);
  
   // console.log('firstFloorRentProfitPerPy', firstFloorRentProfitPerPy);
   // console.log('upperFloorRentProfitPerPy', upperFloorRentProfitPerPy);
@@ -421,18 +446,20 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
 
     const publicArea = getDefaultPublicArea(currentBuildingTotalFloorArea);
     const firstFloorExclusiveArea = Number(currentBuildingArchArea) - publicArea;
-    const baseExclusiveArea = Number(currentBuildingInfo.gndFloorNumber) > 1 ? 
-      (Number(currentBuildingInfo.landArea) * BASE_FLOOR_AREA_RATIO) - publicArea :
+    const currentBuildingTotalLandArea = buildingList?.reduce((total, building) => total + (building.landArea ? parseFloat(building.landArea) : 0.00), 0.00);
+    const gndFloorNumber = buildingList[0].gndFloorNumber;
+    const baseExclusiveArea = gndFloorNumber > 1 ? 
+      (currentBuildingTotalLandArea * BASE_FLOOR_AREA_RATIO) - publicArea :
       0;
-    const totalUpperFloorArea = Number(currentBuildingInfo.totalFloorArea) - firstFloorExclusiveArea - baseExclusiveArea 
-    const totalUpperFloorExclusiveArea = totalUpperFloorArea - (publicArea * (Number(currentBuildingInfo.gndFloorNumber) - 1));
+    const totalUpperFloorArea = Number(currentBuildingTotalFloorArea) - firstFloorExclusiveArea - baseExclusiveArea 
+    const totalUpperFloorExclusiveArea = totalUpperFloorArea - (publicArea * (gndFloorNumber - 1));
 
     // console.log('currentBuilding', currentBuildingInfo);
     // console.log('archArea', currentBuildingArchArea);
     // console.log('publicArea', publicArea);
-    console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
-    console.log('totalUpperFloorArea', totalUpperFloorArea);
-    console.log('baseExclusiveArea', baseExclusiveArea);
+    // console.log('firstFloorExclusiveArea', firstFloorExclusiveArea);
+    // console.log('totalUpperFloorArea', totalUpperFloorArea);
+    // console.log('baseExclusiveArea', baseExclusiveArea);
     // console.log('totalUpperFloorExclusiveArea', totalUpperFloorExclusiveArea);
     // console.log('baseExclusiveArea', baseExclusiveArea);
     // console.log('currentBuildingInfo.totalFloorArea', currentBuildingInfo.totalFloorArea);
@@ -442,12 +469,12 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
       baseFloorRentProfitPerPy * (baseExclusiveArea * 0.3025));
 
     managementProfit = 
-      (getManagementCostPerPy(currentBuildingInfo.totalFloorArea, type) 
-      * (currentBuildingInfo.totalFloorArea) * 0.3025) / 2;
+      (getManagementCostPerPy(currentBuildingTotalFloorArea, type) 
+      * (currentBuildingTotalFloorArea) * 0.3025) / 2;
   }else{
 
     // 신축기준으로 수익률 계산 
-    console.log('makeProfit with buildInfo ', buildInfo);
+    console.log('makeProfit with buildInfo ', type);
     // 월 임대료 수익 
     rentProfit = getRentProfitRatio(type) * ((firstFloorRentProfitPerPy * (buildInfo.firstFloorExclusiveArea * 0.3025)) + 
     (upperFloorRentProfitPerPy * (buildInfo.secondFloorExclusiveArea * 0.3025)) + 
@@ -464,7 +491,7 @@ function makeProfit(type : 'rent' | 'remodel' | 'build', value : ReportValue, bu
   value.annualManagementProfit = managementProfit * 12;
   value.annualDepositProfit = rentProfit * 10;
 
-  console.log('makeProfit ', value);
+  // console.log('makeProfit result', type, value);
 }
 
 function calculateInitialCapital(value : ReportValue){
@@ -515,7 +542,7 @@ function calculateaAnnualProfit(value : ReportValue, tax : TaxInfo){
 function newReportValue(): ReportValue {
   return {
     grade: '',  
-    message: '',
+    // message: '',
     duration: { 
       planningDurationMonths: 0,
       designDurationMonths: 0,
@@ -574,71 +601,305 @@ export class AIReportModel {
   static async getAIReport(landId: string, buildingId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
     try {
 
-      let buildingInfo = null;
-      if(buildingId){
-        buildingInfo = await db.query<BuildingData>(
-          `SELECT 
-            building_id AS id,
-            floor_area_ratio AS floorAreaRatio,
-            use_approval_date AS useApprovalDate,
-            total_floor_area AS totalFloorArea,
-            arch_area AS archArea,
-            land_area AS landArea,
-            gnd_floor_number AS gndFloorNumber,
-            base_floor_number AS baseFloorNumber
-            FROM building_leg_headline
-            WHERE building_id = ?`,
-          [buildingId]
-        )        
-      }
+      // let buildingInfo = null;
+      // if(buildingId){
+      //   buildingInfo = await db.query<BuildingData>(
+      //     `SELECT 
+      //       building_id AS id,
+      //       floor_area_ratio AS floorAreaRatio,
+      //       use_approval_date AS useApprovalDate,
+      //       total_floor_area AS totalFloorArea,
+      //       arch_area AS archArea,
+      //       land_area AS landArea,
+      //       gnd_floor_number AS gndFloorNumber,
+      //       base_floor_number AS baseFloorNumber
+      //       FROM building_leg_headline
+      //       WHERE building_id = ?`,
+      //     [buildingId]
+      //   )        
+      // }
 
+      const buildingList = await db.query<BuildingData>(
+        `
+        WITH
+        /* 1) 기준 토지 한 개 선택 */
+        base AS (
+          SELECT
+              li.id,
+              li.leg_dong_code,
+              li.jibun,
+              li.div_code,
+              LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+              LPAD(
+                CAST(
+                  IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0'
+                ) AS UNSIGNED), 4, '0'
+              ) AS ji_pad
+          FROM land_info li
+          WHERE li.id = ?
+          LIMIT 1
+        ),
+
+        /* 2) 토지 지번과 매칭되는 건물 ID 수집 (메인주소 + 보조주소) */
+        cand_building_ids AS (
+          SELECT blh.building_id
+          FROM building_leg_headline blh
+          JOIN base b
+            ON blh.leg_dong_code_val = b.leg_dong_code
+          AND blh.bun = b.bun_pad
+          AND blh.ji  = b.ji_pad
+          UNION   -- 중복 제거를 위해 UNION 사용
+          SELECT bsa.building_id
+          FROM building_sub_addr bsa
+          JOIN base b
+            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+          AND bsa.sub_bun = b.bun_pad
+          AND bsa.sub_ji  = b.ji_pad
+        )
+
+        /* 3) 최종 건물 정보 리스트 */
+        SELECT 
+          blh.building_id       AS id,
+          blh.floor_area_ratio  AS floorAreaRatio,
+          blh.use_approval_date AS useApprovalDate,
+          blh.total_floor_area  AS totalFloorArea,
+          blh.arch_area         AS archArea,
+          blh.land_area         AS landArea,
+          blh.gnd_floor_number  AS gndFloorNumber,
+          blh.base_floor_number AS baseFloorNumber
+        FROM building_leg_headline blh
+        JOIN cand_building_ids c
+          ON c.building_id = blh.building_id
+        ORDER BY blh.floor_area_ratio DESC;
+        `,
+        [landId]
+      )
       
+
+      // const landInfo = await db.query<LandData>(
+      //   `SELECT 
+      //     land_info.id AS id,
+      //     land_info.leg_dong_name as legDongName,
+      //     land_info.jibun as jibun,
+      //     land_info.area AS area,
+      //     land_char.usage1_name AS usageName,
+      //     land_char.price AS price,
+      //     leg_land_usage_ratio.far,
+      //     leg_land_usage_ratio.bcr,
+      //     polygon.lat,
+      //     polygon.lng,
+      //     CASE
+      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+      //       WHEN ld_latest.deal_date IS NULL 
+      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      //         THEN bd_latest.deal_date
+      //       ELSE ld_latest.deal_date
+      //     END AS dealDate,
+      //     CASE
+      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+      //       WHEN ld_latest.deal_date IS NULL 
+      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      //         THEN bd_latest.price
+      //       ELSE ld_latest.price
+      //     END AS dealPrice,
+      //     CASE
+      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+      //       WHEN ld_latest.deal_date IS NULL 
+      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+      //         THEN 'building'
+      //       ELSE 'land'
+      //     END AS dealType          
+      //     FROM land_info AS land_info
+      //     LEFT JOIN land_char_info AS land_char
+      //       ON land_char.key = (
+      //         SELECT c.key 
+      //         FROM land_char_info AS c 
+      //         WHERE c.id = land_info.id 
+      //         ORDER BY c.create_date DESC 
+      //         LIMIT 1
+      //       )
+      //     LEFT JOIN address_polygon AS polygon
+      //       ON polygon.id = land_info.id
+      //     LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
+      //       ON land_char.usage1_name = leg_land_usage_ratio.name
+      //     LEFT JOIN (
+      //       SELECT id, deal_date, price
+      //       FROM (
+      //         SELECT 
+      //           id,
+      //           deal_date,
+      //           price,
+      //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+      //         FROM building_deal_list
+      //       ) t
+      //       WHERE t.rn = 1
+      //     ) AS bd_latest
+      //       ON bd_latest.id = land_info.id
+      //     LEFT JOIN (
+      //       SELECT id, deal_date, price
+      //       FROM (
+      //         SELECT 
+      //           id,
+      //           deal_date,
+      //           price,
+      //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+      //         FROM land_deal_list
+      //       ) t
+      //       WHERE t.rn = 1
+      //     ) AS ld_latest
+      //       ON ld_latest.id = land_info.id              
+      //     WHERE land_info.id = ?`,
+      //   [landId]
+      // )   
       const landInfo = await db.query<LandData>(
-        `SELECT 
-          land_info.id AS id,
-          land_info.leg_dong_name as legDongName,
-          land_info.jibun as jibun,
-          land_info.area AS area,
-          land_char.usage1_name AS usageName,
-          land_char.price AS price,
-          leg_land_usage_ratio.far,
-          leg_land_usage_ratio.bcr,
-          polygon.lat,
-          polygon.lng,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN bd_latest.deal_date
-            ELSE ld_latest.deal_date
-          END AS dealDate,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN bd_latest.price
-            ELSE ld_latest.price
-          END AS dealPrice,
-          CASE
-            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-            WHEN ld_latest.deal_date IS NULL 
-                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-              THEN 'building'
-            ELSE 'land'
-          END AS dealType          
-          FROM land_info AS land_info
-          LEFT JOIN land_char_info AS land_char
-            ON land_char.key = (
-              SELECT c.key 
-              FROM land_char_info AS c 
-              WHERE c.id = land_info.id 
-              ORDER BY c.create_date DESC 
-              LIMIT 1
-            )
-          LEFT JOIN address_polygon AS polygon
-            ON polygon.id = land_info.id
-          LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
-            ON land_char.usage1_name = leg_land_usage_ratio.name
+        `
+          WITH
+          /* 1) 기준 land_info 한 개 선택 */
+          base AS (
+            SELECT
+                li.id, li.leg_dong_code, li.jibun, li.div_code,
+                LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+                LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
+            FROM land_info li
+            WHERE li.id = ?
+            LIMIT 1
+          ),
+          cand_building_ids AS (
+            SELECT blh.building_id
+            FROM building_leg_headline blh
+            JOIN base b
+              ON blh.leg_dong_code_val = b.leg_dong_code
+            AND blh.bun = b.bun_pad
+            AND blh.ji  = b.ji_pad
+            UNION
+            SELECT bsa.building_id
+            FROM building_sub_addr bsa
+            JOIN base b
+              ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+            AND bsa.sub_bun = b.bun_pad
+            AND bsa.sub_ji  = b.ji_pad
+          ),
+          rows_main AS (
+            SELECT blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
+            FROM building_leg_headline blh
+            JOIN cand_building_ids c USING (building_id)
+          ),
+          rows_sub AS (
+            SELECT bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
+            FROM building_sub_addr bsa
+            JOIN cand_building_ids c USING (building_id)
+          ),
+          /* 0패딩 제거 후 'bun[-ji]' 정규 지번 키 생성 */
+          row_keys AS (
+            SELECT
+              building_id,
+              leg_code,
+              bun_pad,
+              ji_pad,
+              CONCAT(
+                CAST(bun_pad AS UNSIGNED),
+                CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+                    THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+                    ELSE ''
+                END
+              ) AS jibun_norm
+            FROM (
+              SELECT * FROM rows_main
+              UNION ALL
+              SELECT * FROM rows_sub
+            ) u
+          ),
+          /* land_info 매칭으로 관련 필지 id 수집 */
+          related_li_ids AS (
+            SELECT DISTINCT li2.id AS li_id
+            FROM row_keys rk
+            JOIN land_info li2
+              ON li2.leg_dong_code = rk.leg_code
+            AND li2.jibun         = rk.jibun_norm
+            JOIN base b        ON li2.div_code = b.div_code
+          ),
+          /* 기준 필지 항상 포함 */
+          final_ids AS (
+            SELECT li_id AS id FROM related_li_ids
+            UNION
+            SELECT id FROM base
+          ),
+          /* land_char_info의 id별 최신 1건을 파생 테이블로 준비 (LATERAL 미사용) */
+          land_char_latest AS (
+            SELECT c.*
+            FROM land_char_info c
+            JOIN (
+              SELECT id, MAX(create_date) AS max_cd
+              FROM land_char_info
+              GROUP BY id
+            ) m
+              ON m.id = c.id
+            AND m.max_cd = c.create_date
+          ),
+          /* 관련(+기준) 모든 필지 집계 */
+          rel_agg AS (
+            SELECT
+              SUM(li.area)                        AS relTotalArea,     -- 1) area 합
+              SUM(lc.price)                       AS relTotalPrice,    -- 2) price 합(최신 land_char 기준)
+              /* 3) FAR 면적 가중 평균 */
+              SUM(CASE WHEN llur.far IS NOT NULL THEN llur.far * li.area ELSE 0 END)
+                / NULLIF(SUM(CASE WHEN llur.far IS NOT NULL THEN li.area END), 0) AS relWeightedFar,
+              /* 4) BCR 면적 가중 평균 */
+              SUM(CASE WHEN llur.bcr IS NOT NULL THEN llur.bcr * li.area ELSE 0 END)
+                / NULLIF(SUM(CASE WHEN llur.bcr IS NOT NULL THEN li.area END), 0) AS relWeightedBcr,
+              COUNT(*)                            AS relParcelCount    -- 5) 필지 개수
+            FROM final_ids f
+            JOIN land_info li       ON li.id = f.id
+            LEFT JOIN land_char_latest lc ON lc.id = li.id
+            LEFT JOIN leg_land_usage_ratio llur
+                  ON lc.usage1_name = llur.name
+          )
+          /* ===== 메인 상세 조회 + 집계치 ===== */
+          SELECT 
+            li.id AS id,
+            li.leg_dong_name AS legDongName,
+            li.jibun AS jibun,
+            li.area AS area,
+            lc.usage1_name AS usageName,
+            lc.price AS price,
+            llur.far,
+            llur.bcr,
+            ap.lat,
+            ap.lng,
+            CASE
+              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+              WHEN ld_latest.deal_date IS NULL 
+                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+                THEN bd_latest.deal_date
+              ELSE ld_latest.deal_date
+            END AS dealDate,
+            CASE
+              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+              WHEN ld_latest.deal_date IS NULL 
+                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+                THEN bd_latest.price
+              ELSE ld_latest.price
+            END AS dealPrice,
+            CASE
+              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+              WHEN ld_latest.deal_date IS NULL 
+                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+                THEN 'building'
+              ELSE 'land'
+            END AS dealType,
+            ra.relTotalArea   AS relTotalArea,
+            ra.relTotalPrice  AS relTotalPrice,
+            ra.relWeightedFar      AS relWeightedFar,
+            ra.relWeightedBcr      AS relWeightedBcr,
+            ra.relParcelCount AS relParcelCount
+          FROM land_info li
+          LEFT JOIN land_char_latest lc
+            ON lc.id = li.id
+          LEFT JOIN leg_land_usage_ratio llur
+            ON lc.usage1_name = llur.name
+          LEFT JOIN address_polygon ap
+            ON ap.id = li.id
+          /* 최신 거래가 1행씩 되도록 윈도우 사용 (필요시 아래 주석의 대안 참고) */
           LEFT JOIN (
             SELECT id, deal_date, price
             FROM (
@@ -651,7 +912,7 @@ export class AIReportModel {
             ) t
             WHERE t.rn = 1
           ) AS bd_latest
-            ON bd_latest.id = land_info.id
+            ON bd_latest.id = li.id
           LEFT JOIN (
             SELECT id, deal_date, price
             FROM (
@@ -664,23 +925,25 @@ export class AIReportModel {
             ) t
             WHERE t.rn = 1
           ) AS ld_latest
-            ON ld_latest.id = land_info.id              
-          WHERE land_info.id = ?`,
-        [landId]
-      )   
-
-
+            ON ld_latest.id = li.id
+          CROSS JOIN rel_agg ra
+          WHERE li.id = ?;
+        `,
+        [landId, landId]
+      )
       console.log('landInfo ', landInfo)
-      console.log('buildingInfo ', buildingInfo)
+      console.log('currBuildingList ', buildingList)
 
-      const land = landInfo[0];
-      const building = (buildingInfo && buildingInfo.length > 0) ? buildingInfo[0] : null;
-      const floorAreaRatio = building?.floorAreaRatio ? parseFloat(building.floorAreaRatio) : 0.00; // 용적률
-
-      const useApprovalDate = building?.useApprovalDate.trim(); // 준공연도 
-      const buildingAge = useApprovalDate ? getBuildingAge(useApprovalDate) : 40; // 준공연도가 없으면 노후 건물(40년)로 설정
-      const buildingTotalFloorArea = building?.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00;
+      const curLandInfo = landInfo[0];
       
+      const curBuildingInfo = (buildingList && buildingList.length > 0) ? buildingList[0] : null;
+      const curBuildingFar = curBuildingInfo?.floorAreaRatio ? parseFloat(curBuildingInfo.floorAreaRatio) : 0.00; // 용적률
+
+      const curBuildingUseApprovalDate = curBuildingInfo?.useApprovalDate.trim(); // 준공연도 
+      const curBuildingAge = curBuildingUseApprovalDate ? getBuildingAge(curBuildingUseApprovalDate) : 40; // 준공연도가 없으면 노후 건물(40년)로 설정
+
+      // const curBuildingTotalFloorArea = curBuildingInfo?.totalFloorArea ? parseFloat(curBuildingInfo.totalFloorArea) : 0.00;
+      const curBuildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
       // console.log('buildingAge ', buildingAge)
       // console.log('floorAreaRatio ', floorAreaRatio)
       // console.log('buildingTotalFloorArea ', buildingTotalFloorArea)
@@ -710,9 +973,9 @@ export class AIReportModel {
       } as AIReportInfo;
 
 
-      if(building){
-        if(buildingAge < 10){
-          if(floorAreaRatio < (land.far * 0.5)){
+      if(curBuildingInfo){
+        if(curBuildingAge < 10){
+          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
             console.log('10년 미만 신축 !!')
             makeReportValue(aiReport.build, 'A', 'build');
             makeReportValue(aiReport.remodel, 'C', 'remodel');
@@ -723,8 +986,8 @@ export class AIReportModel {
             makeReportValue(aiReport.remodel, 'C', 'remodel');
             makeReportValue(aiReport.rent, 'A', 'rent');
           }
-        }else if(buildingAge < 20){
-          if(floorAreaRatio < (land.far * 0.5)){
+        }else if(curBuildingAge < 20){
+          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
             console.log('20년 미만 신축 !!')
             makeReportValue(aiReport.build, 'A', 'build');
             makeReportValue(aiReport.remodel, 'B', 'remodel');
@@ -735,8 +998,8 @@ export class AIReportModel {
             makeReportValue(aiReport.remodel, 'A', 'remodel');
             makeReportValue(aiReport.rent, 'C', 'rent');
           }
-        }else if(buildingAge < 30){
-          if(floorAreaRatio < (land.far * 0.8)){
+        }else if(curBuildingAge < 30){
+          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.8)){
             console.log('30년 미만 신축 !!')
             makeReportValue(aiReport.build, 'A', 'build');
             makeReportValue(aiReport.remodel, 'B', 'remodel');
@@ -779,12 +1042,12 @@ export class AIReportModel {
           FROM filtered
           ORDER BY floor_type;
           `,
-        [land.lng, land.lat, land.lng, land.lat, RENT_CANDIDATE_RADIUS]
+        [curLandInfo.lng, curLandInfo.lat, curLandInfo.lng, curLandInfo.lat, RENT_CANDIDATE_RADIUS]
       )
 
       console.log('aroundRentInfo ', aroundRentInfo)
 
-      makeBuildInfo(aiReport.buildInfo, land.area, land.far, land.bcr);
+      makeBuildInfo(aiReport.buildInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr);
       // console.log('aiReport.buildInfo ', aiReport.buildInfo);
       
       // 1층 평균 평당 임대료
@@ -809,14 +1072,14 @@ export class AIReportModel {
         makeLandCost(aiReport.build.landCost, estimatedPrice);
         makeProjectCost(
           aiReport.build.projectCost,
-          buildingTotalFloorArea,
+          curBuildingTotalFloorArea,
           aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
           aiReport.build.duration,
           false
         );
         aiReport.build.loan = makeLoan(aiReport.build);
         aiReport.build.loanForOwner = makeLoanForOwner(aiReport.build);
-        makeProfit('build', aiReport.build, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        makeProfit('build', aiReport.build, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
       // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
@@ -827,14 +1090,14 @@ export class AIReportModel {
         makeLandCost(aiReport.remodel.landCost, estimatedPrice);
         makeProjectCost(
           aiReport.remodel.projectCost,
-          buildingTotalFloorArea,
+          curBuildingTotalFloorArea,
           aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
           aiReport.remodel.duration,
           true
         );
         aiReport.remodel.loan = makeLoan(aiReport.remodel);
         aiReport.remodel.loanForOwner = makeLoanForOwner(aiReport.remodel);
-        makeProfit('remodel', aiReport.remodel, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        makeProfit('remodel', aiReport.remodel, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
       ////////////////////////////////////////////////////////////////
       // 임대
@@ -850,10 +1113,10 @@ export class AIReportModel {
         // );
         aiReport.rent.loan = makeLoan(aiReport.rent);
         aiReport.rent.loanForOwner = makeLoanForOwner(aiReport.rent);
-        makeProfit('rent', aiReport.rent, aiReport.buildInfo, building, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        makeProfit('rent', aiReport.rent, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
 
-      const taxBase = land.price * land.area * FAIR_MARKET_RATIO; // 과세표준 공정시장가 비율 공시지가 * 70%  
+      const taxBase = curLandInfo.relTotalPrice * curLandInfo.relTotalArea * FAIR_MARKET_RATIO; // 과세표준 공정시장가 비율 공시지가 * 70%  
       aiReport.tax.propertyTax = getPropertyTax(taxBase);
 
       // TODO : 건물과세는 건축물 시가표준액으로 계산해야 함 
@@ -862,12 +1125,12 @@ export class AIReportModel {
       // aiReport.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(taxBase);
       
 
-      // console.log(aiReport);
+      // console.log('aiReport', aiReport);
 
       const aiReportResult: AIReportResult = {
         rent: aiReport.rent ? {
           grade: aiReport.rent.grade,
-          message: aiReport.rent.message,
+          // message: aiReport.rent.message,
           initialCapital: calculateInitialCapital(aiReport.rent),
           investmentCapital: calculateRealInvestmentCapital(aiReport.rent),
           annualProfit: calculateaAnnualProfit(aiReport.rent, aiReport.tax),
@@ -878,7 +1141,7 @@ export class AIReportModel {
         } : null,
         remodel: aiReport.remodel ? {
           grade: aiReport.remodel.grade,
-          message: aiReport.remodel.message,
+          // message: aiReport.remodel.message,
           initialCapital: calculateInitialCapital(aiReport.remodel),
           investmentCapital: calculateRealInvestmentCapital(aiReport.remodel),
           annualProfit: calculateaAnnualProfit(aiReport.remodel, aiReport.tax),
@@ -889,7 +1152,7 @@ export class AIReportModel {
         } : null,
         build: aiReport.build ? {
           grade: aiReport.build.grade,
-          message: aiReport.build.message,
+          // message: aiReport.build.message,
           initialCapital: calculateInitialCapital(aiReport.build),
           investmentCapital: calculateRealInvestmentCapital(aiReport.build),
           annualProfit: calculateaAnnualProfit(aiReport.build, aiReport.tax),
@@ -905,14 +1168,14 @@ export class AIReportModel {
       const input = `"""
           아래 데이터를 참고해서 설명글 작성해줘 
           추정가 : ${estimatedPrice.estimatedPrice}
-          주소 : ${land.legDongName + ' ' + land.jibun}
-          주용도 : ${land.usageName}
-          대지면적 : ${land.area}
-          공시지가 : ${land.price}원 / m2
-          최대용적율 : ${land.far} %
-          최대건폐율 : ${land.bcr} %
-          최근거래정보 : ${land.dealPrice ? ('가격 - ' + (land.dealPrice * 10000) + ', 거래일 - ' + land.dealDate + ', 거래유형 - ' + (land.dealType === 'land' ? '토지' : '건물')) : '없음'}
-          현재빌딩정보 : ${building ? '사용승인일 - ' + building.useApprovalDate + ', 지상층수 - ' + building.gndFloorNumber + ', 지하층수 - ' + building.basementFloorNumber : '없음'}
+          주소 : ${curLandInfo.legDongName + ' ' + curLandInfo.jibun}
+          주용도 : ${curLandInfo.usageName}
+          대지면적 : ${curLandInfo.area}
+          공시지가 : ${curLandInfo.price}원 / m2
+          최대용적율 : ${curLandInfo.far} %
+          최대건폐율 : ${curLandInfo.bcr} %
+          최근거래정보 : ${curLandInfo.dealPrice ? ('가격 - ' + (curLandInfo.dealPrice * 10000) + ', 거래일 - ' + curLandInfo.dealDate + ', 거래유형 - ' + (curLandInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
+          현재빌딩정보 : ${curBuildingInfo ? '사용승인일 - ' + curBuildingInfo.useApprovalDate + ', 지상층수 - ' + curBuildingInfo.gndFloorNumber + ', 지하층수 - ' + curBuildingInfo.baseFloorNumber : '없음'}
           신축시 개발 가능 층수 : ${aiReport.buildInfo.upperFloorCount + aiReport.buildInfo.lowerFloorCount}
           신축정보 : ${reportValueToJsonString(aiReport.build, aiReportResult.build)}
           리모델링정보 : ${reportValueToJsonString(aiReport.remodel, aiReportResult.remodel)}
@@ -928,6 +1191,9 @@ export class AIReportModel {
         //   최종결과 : ${JSON.stringify(aiReportResult)}
         // """`;        
       // console.log(input);
+
+
+
       const response = await client.responses.create({
         model: "gpt-4o-mini",
         instructions: INSTRUCTION_PROMPT,
