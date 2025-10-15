@@ -2,7 +2,7 @@
 import jwt from "jsonwebtoken";
 import { AuthModel } from "../models/auth.model";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
 const ACCESS_TOKEN_EXPIRES_IN = Number(process.env.ACCESS_TOKEN_EXPIRES_IN || "300");
 const REFRESH_TOKEN_EXPIRES_IN = Number(process.env.REFRESH_TOKEN_EXPIRES_IN || "604800");
 
@@ -17,13 +17,16 @@ export const generateRefreshToken = (payload: object) => {
 export const verifyToken = (token: string) => {
   try {
     return jwt.verify(token, JWT_SECRET);
-  } catch (err) {
+  } catch (err: any) {
+    console.error("verifyToken error:", err?.name, err?.message);
+    if (!JWT_SECRET) console.error("verifyToken warning: NEXTAUTH_SECRET is undefined at runtime");
     return null;
   }
 };
 
 
 export async function refreshAccessToken(token: any) {
+
   try {
     if (!token.refreshToken) throw new Error("No refresh token");
 
@@ -31,14 +34,19 @@ export async function refreshAccessToken(token: any) {
     if (!decoded) throw new Error("Invalid refresh token");
 
     // DB에서 refresh token 확인
-    const dbTokenData = await AuthModel.findRefreshToken(decoded.id);
+    const dbTokenData = await AuthModel.findByToken(token.refreshToken);
 
-    if (!dbTokenData || dbTokenData.token !== token.refreshToken) {
-      throw new Error("Refresh token invalid or revoked");
-    }
+    // if (!dbTokenData || dbTokenData.token !== token.refreshToken) {
+    //   console.log("dbTokenData:", dbTokenData);
+    //   console.log("token.refreshToken:", token.refreshToken);
+    //   throw new Error("Refresh token invalid or revoked");
+    // }
 
-    if (dbTokenData.expiresAt.getTime() < Date.now()) {
-      throw new Error("Refresh token expired"); // 로그아웃 처리
+    // if (dbTokenData.expiresAt.getTime() < Date.now()) {
+    //   throw new Error("Refresh token expired"); // 로그아웃 처리
+    // }
+    if (!dbTokenData) {
+      throw new Error("Refresh token not found in DB, invalid, or expired");
     }
 
     // 새 토큰 발급

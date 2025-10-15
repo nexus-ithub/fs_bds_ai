@@ -1,16 +1,26 @@
 // /api/bff/admin/route.ts
+export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
 import { AdminModel } from "../../../models/admin.model";
 import { AuthModel } from "../../../models/auth.model";
 import bcrypt from "bcryptjs";
 import { verifyToken, refreshAccessToken } from "../../../utils/token";
 
-// BFF는 모든 요청에서 accessToken 검증 후 필요한 경우 refresh
 async function handleAuth(req: Request) {
-  const tokenCookie = req.headers.get("cookie")?.split("accessToken=")?.[1];
-  if (!tokenCookie) return null;
+  const rawHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+  const token = rawHeader?.startsWith("Bearer ") ? rawHeader.split(" ")[1] : null;
 
-  const decoded = verifyToken(tokenCookie);
+  console.log("auth header:", rawHeader);
+  console.log("token:", token);
+  console.log("NEXTAUTH_SECRET defined:", Boolean(process.env.NEXTAUTH_SECRET));
+
+  console.log("token preview:", token ? `${token.slice(0, 16)}...${token.slice(-8)}` : token);
+
+
+  if (!token) return null;
+
+  const decoded = verifyToken(token);
+  console.log("decoded:", decoded);
   if (!decoded) return null;
 
   return decoded;

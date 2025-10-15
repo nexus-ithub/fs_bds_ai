@@ -41,7 +41,7 @@ const options: NextAuthOptions = {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
-        token.accessTokenExpires = Date.now() + 5 * 60 * 1000;
+        token.accessTokenExpires = Date.now() + Number(process.env.ACCESS_TOKEN_EXPIRES_IN || 300) * 1000;
       } else if (Date.now() > token.accessTokenExpires!) {
         const refreshed = await refreshAccessToken(token);
         if (refreshed.error) {
@@ -59,9 +59,7 @@ const options: NextAuthOptions = {
   },
 };
 
-// ✅ authOptions를 export 하지 말고, 내부에서 바로 NextAuth 생성
 const handler = NextAuth(options);
 
-// ✅ 이렇게만 export 해야 함
 export const GET = handler as unknown as (req: Request) => Promise<Response>;
 export const POST = handler as unknown as (req: Request) => Promise<Response>;

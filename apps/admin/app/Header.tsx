@@ -50,7 +50,7 @@ export const Header = () => {
 
           <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
             <Button variant="bggray" className="w-[60px]" onClick={() => {setOpenLogoutConfirm(false)}}>취소</Button>
-            <Button className="w-[100px]" onClick={() => {signOut({ redirect: false }); router.push("/login");}}>확인</Button>
+            <Button className="w-[100px]" onClick={() => {signOut();}}>확인</Button>
           </div>
         </div>
       </Dialog>

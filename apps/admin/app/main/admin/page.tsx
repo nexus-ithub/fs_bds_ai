@@ -4,6 +4,7 @@ import { Button, CloseIcon, DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagina
 import { useState } from "react";
 import { Dialog } from "@mui/material";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { type Admin } from "@repo/common";
 import { format } from "date-fns";
 import postData from "../../utils/postData";
@@ -25,6 +26,7 @@ const ACCOUNT_SAMPLES = [
 
 export default function Admin() {
   const axiosInstance = useAxiosWithAuth();
+  const { data: session, status } = useSession();
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -63,15 +65,19 @@ export default function Admin() {
   }
 
   const getUsers = async () => {
-    const response = await axiosInstance.get("?action=list");
+    // const response = await axiosInstance.get("?action=list", {withCredentials: true});
+    const response = await axiosInstance.get("/", { params: { action: "list" } });
+
     const data = await response.data;
     console.log(data)
     setAdmins(data);
   }
 
   useEffect(() => {
-    getUsers();
-  }, [])
+    if (status === 'authenticated' && session?.accessToken) {
+      getUsers();
+    }
+  }, [status, session?.accessToken])
 
   useEffect(() => {
     setEmail('');
