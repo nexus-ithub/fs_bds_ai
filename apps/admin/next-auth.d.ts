@@ -8,6 +8,7 @@ declare module "next-auth" {
       name?: string | null;
     };
     accessToken?: string; // 클라이언트에 보내는 토큰
+    error?: string;
   }
 
   interface User {
