@@ -457,7 +457,7 @@ export class LandModel {
           SELECT
             f.base_id,
             SUM(li.area) AS relTotalArea,
-            SUM(lc.price) AS relTotalPrice,
+            AVG(lc.price) AS relTotalPrice,
             COUNT(*) AS relParcelCount
           FROM final_ids f
           JOIN land_info li       ON li.id = f.id

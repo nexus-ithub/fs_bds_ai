@@ -840,7 +840,7 @@ export class AIReportModel {
           rel_agg AS (
             SELECT
               SUM(li.area)                        AS relTotalArea,     -- 1) area 합
-              SUM(lc.price)                       AS relTotalPrice,    -- 2) price 합(최신 land_char 기준)
+              AVG(lc.price)                       AS relTotalPrice,    -- 2) price 평균
               /* 3) FAR 면적 가중 평균 */
               SUM(CASE WHEN llur.far IS NOT NULL THEN llur.far * li.area ELSE 0 END)
                 / NULLIF(SUM(CASE WHEN llur.far IS NOT NULL THEN li.area END), 0) AS relWeightedFar,

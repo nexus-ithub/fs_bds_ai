@@ -193,7 +193,7 @@ export const LandInfoCard = ({
           </div>
           <VDivider className="h-[56px]"/>
           <div className="flex-1 flex flex-col items-center gap-[6px]">
-            <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가(합계)</p>
+            <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가(평균)</p>
             <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
             <p className="font-c3 text-text-03">{landInfo.relTotalPrice ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
           </div>
