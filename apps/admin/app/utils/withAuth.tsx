@@ -12,8 +12,10 @@ export function withAuth<P extends object>(Component: React.ComponentType<P>): R
 
     useEffect(() => {
       if (status === 'loading') return;
-      if (!session) router.push('/login');
-    }, [session, status, router]);
+      if (status === 'unauthenticated' && !session) {
+          router.replace('/login');
+      }
+    }, [status, router, session]);
 
     if (status === 'loading' || !session) {
       return (
