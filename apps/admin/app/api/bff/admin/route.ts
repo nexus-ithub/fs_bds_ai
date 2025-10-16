@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
 
-  // 토큰 검증 (list는 로그인 필요)
+  // 관리자 계정 목록
   if (action === "list") {
     const user = await handleAuth(req);
     if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
@@ -39,16 +39,17 @@ export async function GET(req: Request) {
     return NextResponse.json(users);
   }
 
-  // 이메일 체크는 토큰 필요 없음
-  if (action === "check-email") {
-    const email = searchParams.get("email");
-    if (!email) return NextResponse.json({ success: false, message: "이메일이 없습니다." }, { status: 400 });
+  // 이메일 체크
+  // if (action === "check-email") {
+  //   const email = searchParams.get("email");
+  //   console.log("email:", email);
+  //   if (!email) return NextResponse.json({ success: false, message: "이메일이 없습니다." }, { status: 400 });
 
-    const existing = await AuthModel.findByEmail(email);
-    if (existing) return NextResponse.json({ success: false, message: "이미 존재하는 이메일입니다." }, { status: 400 });
+  //   const existing = await AuthModel.findByEmail(email);
+  //   if (existing) return NextResponse.json({ success: false, message: "이미 존재하는 이메일입니다." }, { status: 400 });
 
-    return NextResponse.json({ success: true, message: "사용 가능한 이메일입니다." });
-  }
+  //   return NextResponse.json({ success: true, message: "사용 가능한 이메일입니다." });
+  // }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
 }
@@ -56,7 +57,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const { action, email, name, phone, adminType } = await req.json();
 
-  // admin 등록은 로그인 필요
+  // admin 등록
   const user = await handleAuth(req);
   if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
@@ -65,13 +66,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "필수 값이 누락되었습니다." }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash("admin123", 10); // 임시 비밀번호
+    const hashedPassword = await bcrypt.hash("admin123", 10); // TODO: 임시 비밀번호
     const result = await AdminModel.register(email, hashedPassword, name, phone, adminType);
 
     if (result) {
       return NextResponse.json({ success: true, message: "관리자 계정이 생성되었습니다." });
     }
     return NextResponse.json({ success: false, message: "관리자 계정 생성에 실패했습니다." }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
+}
+
+export async function PUT(req: Request) {
+  const { action, id, email, name, phone, adminType, deleteYn } = await req.json();
+
+  const user = await handleAuth(req);
+  if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+
+  if (action === "update") {
+    const result = await AdminModel.update(id, email, name, phone, adminType);
+    return result
+      ? NextResponse.json({ success: true, message: "관리자 계정이 수정되었습니다." })
+      : NextResponse.json({ success: false, message: "수정 실패" }, { status: 400 });
+  }
+
+  if (action === "delete") {
+    const result = await AdminModel.delete(id);
+    return result
+      ? NextResponse.json({ success: true, message: "관리자 계정이 삭제되었습니다." })
+      : NextResponse.json({ success: false, message: "삭제 실패" }, { status: 400 });
   }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });

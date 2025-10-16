@@ -24,26 +24,6 @@ class Database {
     return Database.instance;
   }
 
-  // public async connect(): Promise<void> {
-  //   try {
-  //     console.log('🔥Connecting to database...');
-  //     // Create MySQL Pool
-  //     this.pool = mysql.createPool({
-  //       ...dbConfig.mysql,
-  //       waitForConnections: true,
-  //       connectionLimit: 10,
-  //       queueLimit: 0,
-  //     });
-
-  //     // Test the connection
-  //     await this.pool.getConnection();
-  //     console.log('🔥Database connection established');
-  //   } catch (error) {
-  //     console.error('🔥Failed to connect to database:', error);
-  //     throw error;
-  //   }
-  // }
-
   public async getConnection(): Promise<PoolConnection> {
     if (!this.pool) {
       throw new Error('🔥Database pool not initialized');

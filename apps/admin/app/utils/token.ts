@@ -49,11 +49,9 @@ export async function refreshAccessToken(token: any) {
       throw new Error("Refresh token not found in DB, invalid, or expired");
     }
 
-    // 새 토큰 발급
     const newAccessToken = generateAccessToken({ id: decoded.id, email: decoded.email });
     const newRefreshToken = generateRefreshToken({ id: decoded.id, email: decoded.email });
 
-    // DB에 새 refreshToken 저장 (Rotation)
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN * 1000);
     await AuthModel.updateRefreshToken(decoded.id, newRefreshToken, expiresAt);
 

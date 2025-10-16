@@ -6,7 +6,7 @@ export class AdminModel {
   static async findAll(): Promise<Admin[] | null> {
     try {
       const users = await db.query<(RowDataPacket & Admin)[]>(
-        'SELECT id, name, email, phone, admin_type as adminType, created_at as createdAt FROM admins'
+        'SELECT id, name, email, phone, admin_type as adminType, created_at as createdAt FROM admins WHERE delete_yn = "N"'
       );
       return users || null;
     } catch (error) {
@@ -28,5 +28,29 @@ export class AdminModel {
     }
   } 
 
-  
+  static async update(id: string, email: string, name: string, phone: string, adminType: string): Promise<boolean> {
+    try {
+      const users = await db.query<(RowDataPacket & Admin)[]>(
+        'UPDATE admins SET email = ?, name = ?, phone = ?, admin_type = ? WHERE id = ?',
+        [email, name, phone, adminType, id]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return false; 
+    }
+  }
+
+  static async delete(id: string): Promise<boolean> {
+    try {
+      const users = await db.query<(RowDataPacket & Admin)[]>(
+        'UPDATE admins SET delete_yn = ? WHERE id = ?',
+        ["Y", id]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return false; 
+    }
+  }
 }
