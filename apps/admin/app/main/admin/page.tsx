@@ -4,7 +4,7 @@ import { Button, CloseIcon, DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagina
 import { useState } from "react";
 import { Dialog } from "@mui/material";
 import { useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { type Admin } from "@repo/common";
 import { format } from "date-fns";
 import postData from "../../utils/postData";
@@ -65,9 +65,10 @@ export default function Admin() {
   }
 
   const getUsers = async () => {
+    console.log("이게 실행될거아냐")
     // const response = await axiosInstance.get("?action=list", {withCredentials: true});
     const response = await axiosInstance.get("/", { params: { action: "list" } });
-
+    console.log("&&&&&&&&&&", response)
     const data = await response.data;
     console.log(data)
     setAdmins(data);

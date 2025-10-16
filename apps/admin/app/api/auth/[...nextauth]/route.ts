@@ -54,6 +54,7 @@ const options: NextAuthOptions = {
     async session({ session, token }) {
       session.user = { id: token.id, email: token.email, name: token.name };
       session.accessToken = token.accessToken;
+      session.error = token.error as string | undefined;
       return session;
     },
   },
