@@ -10,3 +10,13 @@ export interface Admin {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface Question {
+  id: number;
+  icon: string;
+  question: string;
+  seq?: number;
+  selectedYn: 'Y' | 'N';
+  deleteYn: 'Y' | 'N';
+  createdAt: Date;
+}
