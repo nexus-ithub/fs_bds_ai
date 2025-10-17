@@ -61,9 +61,9 @@ export default function Admin() {
     if (!email || !name || !adminType) return;
     setLoading(true);
     if (selectedAdmin) {
-      await axiosInstance.put("/", {action: "update", id: selectedAdmin.id, email, name, phone, adminType});
+      await axiosInstance.put("/admin", {action: "update", id: selectedAdmin.id, email, name, phone, adminType});
     } else {
-      await axiosInstance.post("/", {action: "register", email, name, phone, adminType});
+      await axiosInstance.post("/admin", {action: "register", email, name, phone, adminType});
     }
     setOpenAddAccount(false);
     getUsers();
@@ -73,14 +73,14 @@ export default function Admin() {
   const handleDelete = async () => {
     if (!selectedAdmin) return;
     setLoading(true);
-    await axiosInstance.put("/", { action: "delete", id: selectedAdmin.id });
+    await axiosInstance.put("/admin", { action: "delete", id: selectedAdmin.id });
     setOpenDeleteConfirm(false);
     getUsers();
     setLoading(false);
   }
 
   const getUsers = async () => {
-    const response = await axiosInstance.get("/", { params: { action: "list" } });
+    const response = await axiosInstance.get("/admin", { params: { action: "list" } });
     const data = await response.data;
     console.log("data", data);
     setAdmins(data);

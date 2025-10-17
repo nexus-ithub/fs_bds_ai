@@ -15,8 +15,19 @@ export interface Question {
   id: number;
   icon: string;
   question: string;
-  seq?: number;
+  seq?: number | null;
   selectedYn: 'Y' | 'N';
   deleteYn: 'Y' | 'N';
   createdAt: Date;
+}
+
+export interface Agent {
+  agentName: string;
+  nameDesc: string;
+  newchatLabel: string;
+  chatTitle: string;
+  chatSubtitle: string;
+  placeholder: string;
+  warningMsg: string;
+  questions: Question[];
 }
