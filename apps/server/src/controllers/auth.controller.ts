@@ -116,8 +116,7 @@ export const refresh = async (req: Request, res: Response) => {
       console.error('new access token:', newAccessToken);
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        // secure: process.env.NODE_ENV === 'production',
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: keepLoggedIn 
           ? 14 * 24 * 60 * 60 * 1000 // 14일
@@ -145,10 +144,9 @@ export const logout = async (req: Request, res: Response) => {
       await RefreshTokenModel.deleteByToken(refreshToken);
     }
     res.clearCookie('refreshToken', {
-      path: '/api/auth/refresh-token',
+      path: '/',
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production',
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict'
     });
 

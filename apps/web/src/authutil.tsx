@@ -10,6 +10,9 @@
 //     localStorage.removeItem("auth")
 //   }
 
+import axios from "axios";
+import { API_HOST } from "./constants";
+
 // }
 export function setToken(accessToken : string | null) {
   const authData = { accessToken };
@@ -56,10 +59,12 @@ export const getRefreshToken = () => {
   return refreshToken;
 }
 
-export const logout = () => {
+export const logout = async() => {
   localStorage.removeItem("auth");
   sessionStorage.removeItem("auth");
   localStorage.removeItem("autoLogin");
-  localStorage.removeItem("holidays");
+  await axios.post(`${API_HOST}/api/auth/logout`, {}, {
+    withCredentials: true,
+  });
   return Promise.resolve();
 };
