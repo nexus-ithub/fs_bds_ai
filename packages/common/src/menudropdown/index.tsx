@@ -14,10 +14,11 @@ interface MenuDropdownProps<T extends string = string> {
   placeholder?: string;
   disabled?: boolean;
   fullWidth?: boolean;
-  padding?: 'default';
+  padding?: 'default' | 'minimum';
   width?: string;
-  font?: 'font-b3';
-  borderStyle?: 'outlined' | 'underline';
+  font?: 'font-b3' | 'font-s3';
+  borderStyle?: 'outlined' | 'underline' | 'none';
+  optionPadding?: string;
 }
 
 export const MenuDropdown = <T extends string = string>({
@@ -30,9 +31,11 @@ export const MenuDropdown = <T extends string = string>({
   width = "w-[160px]",
   font = "font-b3",
   borderStyle = "outlined",
+  optionPadding = "4px 10px",
 }: MenuDropdownProps<T>) => {
   const paddingClasses = {
     default: "6px 8px 6px 10px",
+    minimum: "0px 4px",
   };
 
   const fontClasses = {
@@ -41,9 +44,30 @@ export const MenuDropdown = <T extends string = string>({
       fontWeight: "var(--font-weight-regular)",
       lineHeight: "20px",
     },
+    'font-s3': {
+      fontSize: "13px",
+      fontWeight: "var(--font-weight-regular)",
+      lineHeight: "16px",
+    },
   };
 
   const getBorderStyles = () => {
+    if (borderStyle === 'none') {
+      return {
+        '& fieldset': {
+          border: 'none',
+        },
+        '& .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          border: 'none',
+        },
+      };
+    }
     if (borderStyle === 'underline') {
       return {
         '& fieldset': {
@@ -106,6 +130,7 @@ export const MenuDropdown = <T extends string = string>({
             autoFocus: false,
             autoFocusItem: true,
             disablePadding: true,
+            onMouseDown: (e) => e.stopPropagation(),
           },
           PaperProps: {
             sx: {
@@ -143,7 +168,7 @@ export const MenuDropdown = <T extends string = string>({
             key={option.value} 
             value={option.value}
             sx={{
-              ...fontClasses[font],
+              padding: optionPadding,
               '&:hover': {
                 backgroundColor: '#f5f5f5',
               },
@@ -156,7 +181,14 @@ export const MenuDropdown = <T extends string = string>({
               },
             }}
           >
-            {option.label}
+            <Typography
+              sx={{
+                ...fontClasses[font],
+                color: 'inherit', // 선택 상태에서 흰색 유지
+              }}
+            >
+              {option.label}
+            </Typography>
           </MenuItem>
         ))}
       </Select>

@@ -5,7 +5,7 @@ import { signOut, getSession } from "next-auth/react";
 
 const useAxiosWithAuth = () => {
   const axiosInstance = axios.create({
-    baseURL: "/api/bff/admin",
+    baseURL: "/api/bff",
     withCredentials: true,
   });
 

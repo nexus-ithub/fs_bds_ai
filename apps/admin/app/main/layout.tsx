@@ -12,7 +12,7 @@ function MainLayout({
   return (
     <>
       <Header />
-      <div className="flex w-full h-[calc(100vh)] pt-[64px] overflow-y-auto">
+      <div className="flex w-full h-[calc(100vh-48px)] pt-[40px]">
         <Sidebar />
         <div className="flex-1 h-full overflow-y-auto scrollbar-hover">
           {children}

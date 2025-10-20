@@ -1,0 +1,56 @@
+{
+  "agentName": "빌딩샵AI",
+  "nameDesc": "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다.",
+  "newchatLabel": "NEW CHAT",
+  "chatTitle": "안녕하세요! 빌딩샵AI 입니다.",
+  "chatSubtitle": "부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.\n관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!",
+  "placeholder": "궁금하신 점을 물어보세요.",
+  "warningMsg": "빌딩샵은 AI 모델입니다. 제공된 정보를 항상 검증하시기 바랍니다.",
+  "questions": [
+    {
+      "id": 1,
+      "icon": "💸",
+      "question": "부동산 매매 시 사용가능한 금융상품 추천해 주세요.",
+      "seq": 1,
+      "selectedYn": "Y",
+      "deleteYn": "N",
+      "createdAt": "2025-10-17T09:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "icon": "🏠",
+      "question": "매매 후 재건축 프로세스가 궁금합니다.",
+      "seq": 2,
+      "selectedYn": "Y",
+      "deleteYn": "N",
+      "createdAt": "2025-10-17T09:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "icon": "🏗",
+      "question": "빌딩 신축 시 평균 건축비가 궁금해요.",
+      "seq": null,
+      "selectedYn": "N",
+      "deleteYn": "N",
+      "createdAt": "2025-10-17T09:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "icon": "🏢",
+      "question": "토지를 매입하고 신축을 할 경우 프로세스가 궁금해요.",
+      "seq": 3,
+      "selectedYn": "Y",
+      "deleteYn": "N",
+      "createdAt": "2025-10-17T09:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "icon": "🏛",
+      "question": "추천질문입니다. 일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십",
+      "seq": null,
+      "selectedYn": "N",
+      "deleteYn": "N",
+      "createdAt": "2025-10-17T09:00:00.000Z"
+    }
+  ]
+}

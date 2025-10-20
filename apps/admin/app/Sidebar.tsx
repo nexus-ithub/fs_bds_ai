@@ -24,10 +24,10 @@ const accountMenu: MenuItemType[] = [
   { label: "회원 관리", path: "/main/users" },
 ];
 
-const boardMenu: MenuItemType[] = [
-  { label: "공지사항 관리", path: "/main/board" },
-  { label: "FAQ 관리", path: "/main/faq" },
-];
+// const boardMenu: MenuItemType[] = [
+//   { label: "공지사항 관리", path: "/main/board" },
+//   { label: "FAQ 관리", path: "/main/faq" },
+// ];
 
 // const bdsMenu: MenuItemType[] = [
 //   { label: "카테고리 관리", path: "/main/category" },
@@ -39,8 +39,8 @@ const boardMenu: MenuItemType[] = [
 // ];
 
 const bdsAIMenu: MenuItemType[] = [
-  { label: "에이전트 정보", path: "/main/agent" },
-  { label: "추천 질문", path: "/main/question" },
+  { label: "에이전트 화면 설정", path: "/main/agent" },
+  // { label: "추천 질문", path: "/main/question" },
   { label: "세션", path: "/main/session" },
 ];
 
@@ -117,7 +117,7 @@ export const Sidebar = () => {
       <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => {startLoading(); router.push("/main/dashboard")}}>DASHBOARD</Button>
       <div className="flex flex-col gap-[16px]">
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
-        <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded />
+        {/* <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded /> */}
         {/* <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
         <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded /> */}
         <CustomAccordion title="빌딩샵AI 관리" menuItems={bdsAIMenu} defaultExpanded />
