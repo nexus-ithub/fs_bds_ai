@@ -2,7 +2,9 @@
 import { db } from '../utils/database';
 import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
-
+const ESTIMATE_REFERENCE_DISTANCE = 300;
+const ESTIMATE_REFERENCE_YEAR = 2;
+const MAX_CHECK = 4;
 
 export class LandModel {
 
@@ -735,6 +737,523 @@ export class LandModel {
   // }
 
 
+  static async calculateEstimatedPrice(id: string): Promise<EstimatedPrice | null> {
+   
+    try {
+
+      const lands = await db.query<any>(
+        `
+        WITH
+        /* 0) 다중 기준 필지 집합 */
+        base AS (
+          SELECT
+              li.id,
+              li.leg_dong_code,
+              li.jibun,
+              li.div_code,
+              LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+              LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
+          FROM land_info li
+          WHERE li.id = ?
+        ),
+
+        /* 1) 기준 필지와 같은 지번을 가지는 모든 건물 id (메인/보조 주소) */
+        cand_building_ids AS (
+          SELECT b.id AS base_id, blh.building_id
+          FROM building_leg_headline blh
+          JOIN base b
+            ON blh.leg_dong_code_val = b.leg_dong_code
+          AND blh.bun = b.bun_pad
+          AND blh.ji  = b.ji_pad
+          UNION
+          SELECT b.id AS base_id, bsa.building_id
+          FROM building_sub_addr bsa
+          JOIN base b
+            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+          AND bsa.sub_bun = b.bun_pad
+          AND bsa.sub_ji  = b.ji_pad
+        ),
+
+        /* 2) 각 건물의 메인/보조 지번 키(0패딩 제거) */
+        rows_main AS (
+          SELECT c.base_id, blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
+          FROM building_leg_headline blh
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        rows_sub AS (
+          SELECT c.base_id, bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
+          FROM building_sub_addr bsa
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        row_keys AS (
+          SELECT
+            base_id,
+            building_id,
+            leg_code,
+            bun_pad,
+            ji_pad,
+            CONCAT(
+              CAST(bun_pad AS UNSIGNED),
+              CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+                  THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+                  ELSE ''
+              END
+            ) AS jibun_norm
+          FROM (
+            SELECT * FROM rows_main
+            UNION ALL
+            SELECT * FROM rows_sub
+          ) u
+        ),
+
+        /* (신규) 대표필지 산출용: 메인 지번만으로 후보 land_id 추출 */
+        main_row_keys AS (
+          SELECT
+            base_id,
+            building_id,
+            leg_code,
+            bun_pad,
+            ji_pad,
+            CONCAT(
+              CAST(bun_pad AS UNSIGNED),
+              CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+                  THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+                  ELSE ''
+              END
+            ) AS jibun_norm
+          FROM rows_main
+        ),
+        main_related_land_ids AS (   /* rows_main(메인 지번) 기준 land_info 매칭 */
+          SELECT DISTINCT mrk.base_id, li2.id AS land_id
+          FROM main_row_keys mrk
+          JOIN land_info li2
+            ON li2.leg_dong_code = mrk.leg_code
+          AND li2.jibun         = mrk.jibun_norm
+          JOIN base b
+            ON b.id = mrk.base_id
+          AND li2.div_code = b.div_code
+        ),
+        rep_land AS (                /* 기준(base_id)별 대표 land_id 하나 선택 */
+          SELECT base_id, MIN(land_id) AS rep_land_id
+          FROM main_related_land_ids
+          GROUP BY base_id
+        ),
+
+        /* (신규) 건축물 중복 제거 + 건축면적 합계/개수 산출용 집계 */
+        bld_ids_dedup AS (
+          SELECT base_id, building_id
+          FROM rows_main
+          UNION
+          SELECT base_id, building_id
+          FROM rows_sub
+        ),
+        blh_area AS (
+          SELECT building_id, MAX(arch_area) AS arch_area
+          FROM building_leg_headline
+          GROUP BY building_id
+        ),
+        bld_arch_agg AS (
+          SELECT
+            d.base_id,
+            COUNT(ba.building_id) AS relBuildingCount,
+            SUM(ba.arch_area)     AS relArchAreaSum
+          FROM bld_ids_dedup d
+          LEFT JOIN blh_area ba USING (building_id)
+          GROUP BY d.base_id
+        ),
+
+        /* 3) land_info 매칭 → 관련 필지 id 추출 (메인/보조 모두) */
+        related_land_ids AS (
+          SELECT DISTINCT rk.base_id, li2.id AS id
+          FROM row_keys rk
+          JOIN land_info li2
+            ON li2.leg_dong_code = rk.leg_code
+          AND li2.jibun         = rk.jibun_norm
+          JOIN base b
+            ON b.id = rk.base_id
+          AND li2.div_code = b.div_code
+        ),
+
+        /* 4) 기준 필지를 항상 포함 */
+        final_ids AS (
+          SELECT base_id, id FROM related_land_ids
+          UNION
+          SELECT id AS base_id, id FROM base
+        ),
+
+        /* 5) land_char_info 최신 1건(전역) */
+        land_char_latest AS (
+          SELECT c.*
+          FROM land_char_info c
+          JOIN (
+            SELECT id, MAX(create_date) AS max_cd
+            FROM land_char_info
+            WHERE id IN (SELECT id FROM final_ids)
+            GROUP BY id
+          ) m
+            ON m.id = c.id
+          AND m.max_cd = c.create_date
+        ),
+
+        /* 6) 관련(+기준) 필지 집계 */
+        rel_agg AS (
+          SELECT
+            f.base_id,
+            SUM(li.area) AS relTotalArea,
+            AVG(lc.price) AS relTotalPrice,
+            COUNT(*) AS relParcelCount
+          FROM final_ids f
+          JOIN land_info li        ON li.id = f.id
+          LEFT JOIN land_char_latest lc ON lc.id = li.id
+          LEFT JOIN leg_land_usage_ratio llur
+                ON lc.usage1_name = llur.name
+          GROUP BY f.base_id
+        )
+
+        SELECT 
+          land_info.id AS id,
+          /* 집계 결과 */
+          ra.relTotalArea        AS relTotalArea,
+          ra.relTotalPrice       AS relTotalPrice,
+          ra.relParcelCount      AS relParcelCount,
+          baa.relArchAreaSum     AS relArchAreaSum,
+          baa.relBuildingCount   AS relBuildingCount,
+
+          /* (신규) 대표필지: 없으면 land_info.id 로 대체 */
+          COALESCE(rl.rep_land_id, land_info.id) AS repLandId
+
+        FROM land_info AS land_info
+      
+        /* 기준 id별 집계 결과 */
+        LEFT JOIN rel_agg ra
+          ON ra.base_id = land_info.id
+
+        /* 기준 id별 건축면적 합계/건물개수 */
+        LEFT JOIN bld_arch_agg baa
+          ON baa.base_id = land_info.id
+
+        /* (신규) 대표필지 조인 */
+        LEFT JOIN rep_land rl
+          ON rl.base_id = land_info.id
+
+        WHERE land_info.id = ?
+        GROUP BY land_info.id;
+        `, [id, id]
+      )
+      
+      console.log('land', lands)
+      
+      if (!lands || lands.length === 0) {
+        return null;
+      }
+      const land = lands[0];
+
+      let summary = null;
+      let finalRatio = null;
+      for(let i = 0; i < MAX_CHECK; i++) {
+        const distance = ESTIMATE_REFERENCE_DISTANCE * (i + 1);
+        const year = ESTIMATE_REFERENCE_YEAR + Math.min(i, 2);
+        const checkUsage = (i !== (MAX_CHECK - 1));
+  
+        // const estimatedValues = await this.calcuateEstimatedPrice(id as string, distance, year, checkUsage);
+
+        console.log('estimate ', distance, year, checkUsage)
+        const results = await db.query<any>(`
+          -- 조회할 대상 id
+          WITH
+          /* 0) 대상 필지 좌표 + 최신 공시지가(원/㎡) + 면적(㎡) */
+          base AS (
+            SELECT
+              ap.id,
+              ap.lat,
+              ap.lng,
+              x.usage1_name,
+              ${land.relTotalPrice} AS official_price_per_m2,
+              ${land.relTotalArea} AS area_m2
+            FROM address_polygon ap
+            JOIN (
+              SELECT
+                id,
+                price,
+                usage1_name,
+                ROW_NUMBER() OVER (
+                  PARTITION BY id
+                  ORDER BY STR_TO_DATE(create_date, '%Y-%m-%d') DESC
+                ) AS rn
+              FROM land_char_info
+              WHERE id = ?
+            ) x
+              ON x.id = ap.id AND x.rn = 1
+            WHERE ap.id = ?
+          ),
+          
+          /* 1) 반경 300m 내 최근 3년 건물 실거래 → 원/㎡ + 총액(원) + 면적 + 거리(m) */
+          near_building AS (
+            SELECT
+              b.key,
+              b.id,
+              b.leg_dong_code,
+              b.leg_dong_name,
+              b.jibun,
+              b.deal_date,
+              b.usage_name,
+              CAST(b.land_area AS DECIMAL(20,4)) AS area_m2,
+              (CAST(REPLACE(b.price, ',', '') AS DECIMAL(20,0)) * 10000) AS deal_total_price_won,
+              (CAST(REPLACE(b.price, ',', '') AS DECIMAL(20,0)) * 10000) / NULLIF(b.land_area, 0) AS deal_price_per_m2,
+              ST_Distance_Sphere(POINT(base.lng, base.lat), b.position) AS distance_m
+            FROM building_deal_list b
+            CROSS JOIN base
+            WHERE b.position IS NOT NULL
+              AND ST_Distance_Sphere(POINT(base.lng, base.lat), b.position) <= ${distance}
+              AND b.price IS NOT NULL AND b.price <> ''
+              ${checkUsage ? 'AND b.usage_name = base.usage1_name' : ''}
+              AND b.land_area IS NOT NULL AND b.land_area > 0
+              AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${year} YEAR)
+              AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
+          ),
+          
+          /* 2) 반경 300m 내 최근 3년 토지 실거래 → 원/㎡ + 총액(원) + 면적 + 거리(m) */
+          near_land AS (
+            SELECT
+              l.key,
+              l.id,
+              l.leg_dong_code,
+              l.leg_dong_name,
+              l.jibun,
+              l.deal_date,
+              l.usage_name,
+              CAST(l.area AS DECIMAL(20,4)) AS area_m2,
+              (CAST(REPLACE(l.price, ',', '') AS DECIMAL(20,0)) * 10000) AS deal_total_price_won,
+              (CAST(REPLACE(l.price, ',', '') AS DECIMAL(20,0)) * 10000) / NULLIF(l.area, 0) AS deal_price_per_m2,
+              ST_Distance_Sphere(POINT(base.lng, base.lat), l.position) AS distance_m
+            FROM land_deal_list l
+            CROSS JOIN base
+            WHERE l.position IS NOT NULL
+              AND ST_Distance_Sphere(POINT(base.lng, base.lat), l.position) <= ${distance}
+              AND l.price IS NOT NULL AND l.price <> ''
+              ${checkUsage ? 'AND l.usage_name = base.usage1_name' : ''}
+              AND l.area IS NOT NULL AND l.area > 0
+              AND l.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${year} YEAR)
+              AND (l.cancel_yn != 'O' OR l.cancel_yn IS NULL)
+          ),
+          /* 3) 거래필지 최신 공시지가(원/㎡) – 반경 내 필요한 키만 */
+          near_keys AS (
+            SELECT DISTINCT id FROM near_building
+            UNION
+            SELECT DISTINCT id FROM near_land
+          ),
+          latest_official_per_parcel AS (
+            SELECT
+              lci.id,
+              lci.key,
+              lci.leg_dong_code,
+              lci.jibun,
+              CAST(REPLACE(lci.price, ',', '') AS DECIMAL(20,2)) AS official_price_per_m2,
+              ROW_NUMBER() OVER (
+                PARTITION BY lci.leg_dong_code, lci.jibun
+                ORDER BY STR_TO_DATE(lci.create_date, '%Y-%m-%d') DESC
+              ) AS rn
+            FROM land_char_info lci
+            JOIN near_keys nk
+              ON nk.id = lci.id
+            WHERE lci.price IS NOT NULL AND lci.price <> ''
+          ),
+          
+          /* 4) 건물/토지 거래 각각 공시지가 붙이기 + 총액(원) 계산 */
+          building_with_official AS (
+            SELECT
+              lo.key,
+              'building' AS deal_kind,
+              nb.id, nb.leg_dong_code, nb.leg_dong_name, nb.jibun, nb.deal_date,
+              nb.usage_name,
+              nb.area_m2,
+              nb.deal_total_price_won,
+              nb.deal_price_per_m2,
+              nb.distance_m,
+              lo.official_price_per_m2,
+              (lo.official_price_per_m2 * nb.area_m2) AS official_total_price_won,
+              nb.deal_price_per_m2 / lo.official_price_per_m2 AS ratio_to_official,
+              (nb.deal_price_per_m2 / lo.official_price_per_m2 - 1) * 100 AS premium_pct
+            FROM near_building nb
+            JOIN latest_official_per_parcel lo
+              ON lo.id = nb.id
+            AND lo.rn = 1
+            WHERE lo.official_price_per_m2 > 0
+          ),
+          land_with_official AS (
+            SELECT
+              lo.key,
+              'land' AS deal_kind,
+              nl.id, nl.leg_dong_code, nl.leg_dong_name, nl.jibun, nl.deal_date,
+              nl.usage_name,
+              nl.area_m2,
+              nl.deal_total_price_won,
+              nl.deal_price_per_m2,
+              nl.distance_m,
+              lo.official_price_per_m2,
+              (lo.official_price_per_m2 * nl.area_m2) AS official_total_price_won,
+              nl.deal_price_per_m2 / lo.official_price_per_m2 AS ratio_to_official,
+              (nl.deal_price_per_m2 / lo.official_price_per_m2 - 1) * 100 AS premium_pct
+            FROM near_land nl
+            JOIN latest_official_per_parcel lo
+              ON lo.leg_dong_code = nl.leg_dong_code
+            AND lo.jibun         = nl.jibun
+            AND lo.rn = 1
+            WHERE lo.official_price_per_m2 > 0
+          ),
+          
+          /* 5) 통합 → 배수 상위 20건만 선별 */
+          nearby_deals_raw AS (
+            SELECT * FROM building_with_official
+            UNION ALL
+            SELECT * FROM land_with_official
+          ),
+          nearby_deals AS (
+            SELECT *
+            FROM nearby_deals_raw
+            WHERE ratio_to_official IS NOT NULL
+            ORDER BY ratio_to_official DESC
+            LIMIT 20
+          ),
+          
+          /* 6) 집계(상위 20건 기준) */
+          agg AS (
+            SELECT
+              COUNT(*) AS deal_count,                -- 상위 20건(또는 그 이하) 개수
+              AVG(ratio_to_official) AS avg_ratio_to_official,
+              AVG(premium_pct) AS avg_premium_pct
+            FROM nearby_deals
+          )
+          
+          /* 7) 최종 출력: summary + (상위 20건) detail */
+          SELECT
+            'summary' AS row_type,
+            base.id AS target_id,
+            base.usage1_name,
+            base.area_m2 AS target_area_m2,
+            base.official_price_per_m2 AS target_official_price_per_m2,
+            (base.official_price_per_m2 * base.area_m2) AS target_official_total_price_won,
+            a.deal_count,
+            a.avg_ratio_to_official,
+            a.avg_premium_pct,
+            CASE
+              WHEN a.avg_ratio_to_official IS NOT NULL
+                THEN ROUND(base.official_price_per_m2 * a.avg_ratio_to_official)
+              ELSE base.official_price_per_m2
+            END AS estimated_deal_price_per_m2,
+            CASE
+              WHEN a.avg_ratio_to_official IS NOT NULL
+                THEN ROUND(base.area_m2 * base.official_price_per_m2 * a.avg_ratio_to_official)
+              ELSE ROUND(base.area_m2 * base.official_price_per_m2)
+            END AS estimated_deal_total_price_won,
+            NULL AS ref_key,
+            NULL AS deal_kind,
+            NULL AS ref_id,
+            NULL AS ref_leg_dong_code,
+            NULL AS ref_leg_dong_name,
+            NULL AS ref_jibun,
+            NULL AS ref_date,
+            NULL AS ref_usage_name,
+            NULL AS ref_area_m2,
+            NULL AS ref_deal_total_price_won,
+            NULL AS ref_official_total_price_won,
+            NULL AS ref_deal_price_per_m2,
+            NULL AS ref_official_price_per_m2,
+            NULL AS ref_ratio_to_official,
+            NULL AS ref_premium_pct,
+            NULL AS ref_distance_m
+          FROM base
+          LEFT JOIN agg a ON TRUE
+          
+          UNION ALL
+          
+          SELECT
+            'detail' AS row_type,
+            NULL AS target_id,
+            NULL AS usage1_name,
+            NULL AS target_area_m2,
+            NULL AS target_official_price_per_m2,
+            NULL AS target_official_total_price_won,
+            NULL AS deal_count,
+            NULL AS avg_ratio_to_official,
+            NULL AS avg_premium_pct,
+            NULL AS estimated_deal_price_per_m2,
+            NULL AS estimated_deal_total_price_won,
+            d.key AS ref_key,
+            d.deal_kind,
+            d.id AS ref_id,
+            d.leg_dong_code AS ref_leg_dong_code,
+            d.leg_dong_name AS ref_leg_dong_name,
+            d.jibun AS ref_jibun,
+            d.deal_date AS ref_date,
+            d.usage_name AS ref_usage_name,
+            d.area_m2 AS ref_area_m2,
+            d.deal_total_price_won AS ref_deal_total_price_won,
+            d.official_total_price_won AS ref_official_total_price_won,
+            d.deal_price_per_m2 AS ref_deal_price_per_m2,
+            d.official_price_per_m2 AS ref_official_price_per_m2,
+            d.ratio_to_official AS ref_ratio_to_official,
+            d.premium_pct AS ref_premium_pct,
+            d.distance_m AS ref_distance_m
+          FROM nearby_deals d;
+              `, [land.repLandId, land.repLandId])  
+        
+        summary = results.filter(r => r.row_type === 'summary')[0]
+        if(summary){
+          if(summary.avg_ratio_to_official){
+            finalRatio = summary.avg_ratio_to_official
+            break;
+          }
+        }
+      }
+      
+      let per = 3.0;
+      let estimatedPrice = 0;
+      if(finalRatio){
+        let adjustFactor = 1
+        if(finalRatio <= 1.8){
+          adjustFactor = 1.5
+        }else if(finalRatio <= 2.0){
+          adjustFactor = 1.3
+        }else if(finalRatio <= 2.3){
+          adjustFactor = 1.25
+        }else if(finalRatio <= 2.5){
+          adjustFactor = 1.1
+        }else if(finalRatio <= 3.0){
+          adjustFactor = 1	
+        }else if(finalRatio <= 3.5){
+          adjustFactor = 0.9				
+        }else if(finalRatio <= 4.0){
+          adjustFactor = 0.8				
+        }else{
+          adjustFactor = 0.7
+        }
+        const adjusted = summary.avg_ratio_to_official * adjustFactor
+        per = Math.floor(adjusted * 10) / 10;
+        estimatedPrice = Math.floor(summary.target_official_price_per_m2 * per * summary.target_area_m2)
+      }else{
+        if(summary){
+          estimatedPrice = summary.target_official_price_per_m2 * 3.0 * summary.target_area_m2;
+          per = 3.0;
+        }else{
+          estimatedPrice = null;
+          per = null
+        }
+      }        
+
+      const result = {
+        estimatedPrice,
+        per,
+      } as EstimatedPrice;
+
+      return result;
+      
+    } catch (error) {
+      
+    }
+  }
+
+
   static async calcuateEstimatedPrice(id: string, referenceDistance: number, referenceYear: number, checkUsage: boolean = true): Promise<any | null> {
 
 
@@ -1416,7 +1935,7 @@ export class LandModel {
 //       , [id, id, id])
 
 
-        console.log('calculateEstimatedPrice results', results);
+        // console.log('calculateEstimatedPrice results', results);
 
 
         return results

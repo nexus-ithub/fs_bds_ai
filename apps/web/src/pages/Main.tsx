@@ -328,9 +328,7 @@ export default function Main() {
                 draggable={true}
                 onDragEnd={(marker) => {
                   setRoadViewCenter({
-                    // @ts-ignore
                     lat: marker.getPosition().getLat(),
-                    // @ts-ignore
                     lng: marker.getPosition().getLng(),
                     pan: 0,
                   })
