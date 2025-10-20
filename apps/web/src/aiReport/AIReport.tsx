@@ -10,10 +10,7 @@ import { type User } from "@repo/common";
 
 
 export interface AIReportProps {
-  polygon: PolygonInfo;
-  landInfo: LandInfo;
-  buildings: BuildingInfo[];
-  estimatedPrice: EstimatedPrice;
+  landId: string;
   onClose: () => void;
 }
 
@@ -26,7 +23,7 @@ const ReportItem = ({title, value}: {title: string, value: string}) => {
   )
 }
 
-export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose }: AIReportProps) => {
+export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
     queryKey: [QUERY_KEY_USER, getAccessToken()]
@@ -35,7 +32,10 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
+  const [polygon, setPolygon] = useState<PolygonInfo | null>(null);
   const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
+  const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const didRunRef = useRef(false);
   
@@ -61,13 +61,11 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
 
   const getAIReport = async () => {
     
-    console.log('request ai report ', landInfo, buildings, estimatedPrice);
-    const buildingId = buildings?.[0]?.id ?? null;
+    console.log('request ai report ', landId);
+    // const buildingId = buildings?.[0]?.id ?? null;
     
     const aiReport = {
-      landId: landInfo.id,
-      buildingId,
-      estimatedPrice
+      landId: landId,
     }
     
     setLoading(true);
@@ -81,26 +79,62 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
     });
   }
 
+
+  const getLandInfo = async () => {
+    try {
+      const res = await axiosWithAuth.get('/api/land/info', {
+        params: {id: landId}});
+      console.log(res.data[0]);
+      setLandInfo(res.data[0]);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const getPolygonInfo = async () => {
+    try {
+      const res = await axiosWithAuth.get('/api/land/polygon', {
+        params: {id: landId}});
+      console.log(res.data);
+      setPolygon(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
+
+  const getEstimatedPrice = async () => {
+    try {
+      const res = await axiosWithAuth.get('/api/land/estimated-price', {
+        params: {id: landId}});
+      console.log(res.data);
+      setEstimatedPrice(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
 
-    if (!landInfo?.id || !estimatedPrice) return;
+    if (!landId) return;
     
   
     if(didRunRef.current) return;
     didRunRef.current = true;
     
+    getLandInfo();
+    getPolygonInfo();
+    getEstimatedPrice();
     getAIReport();
-
-
-  }, [landInfo, buildings, estimatedPrice]);
+  }, [landId]);
 
   
   const addBookmark = async () => {
     try {
       await axiosWithAuth.post('/api/land/bookmark', {
         userId: config?.id, 
-        landId: landInfo.id, 
-        buildingId: buildings.length > 0 ? buildings[0].id : null, 
+        landId: landId, 
         estimatedPrice: estimatedPrice?.estimatedPrice,
         estimatedPricePer: estimatedPrice?.per,
         deleteYn: isBookmarked ? 'Y' : 'N'});
@@ -113,7 +147,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
   const getIdBookmarked = async () => {
     try {
       const res = await axiosWithAuth.get('/api/land/is-bookmarked', {
-        params: {userId: config?.id, landId: landInfo.id}});
+        params: {userId: config?.id, landId: landId}});
       setIsBookmarked(res.data);
     } catch (error) {
       console.error(error);
@@ -193,11 +227,11 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                 // })
               }}
               // pan={roadViewCenter.pan}
-              position={{ lat: polygon.lat, lng: polygon.lng, radius: 50 }}
+              position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 50 }}
               
-              className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+              className="w-[340px] h-[240px] object-cover rounded-l-[8px]"
             >
-              <RoadviewMarker position={{ lat: polygon.lat, lng: polygon.lng }} />
+              <RoadviewMarker position={{ lat: polygon?.lat, lng: polygon?.lng }} />
             </Roadview>
             {/* <img
               className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
@@ -207,7 +241,7 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                 <p className="font-s1-p">{getJibunAddress(landInfo)}</p>
               </div>
               {
-                landInfo.roadName && (
+                landInfo?.roadName && (
                   <div className="mt-[4px] flex gap-[6px] items-center">
                     <p className="flex-shrink-0 font-c3-p px-[4px] py-[1px] text-text-03 bg-surface-third">도로명</p>
                     <p className="font-s4 flex items-center text-text-03">{getRoadAddress(landInfo)}</p>
@@ -216,17 +250,17 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
               } 
               <div className="mt-[8px] flex items-center gap-[6px]">
                 {
-                  landInfo.usageName && (
-                    <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
+                  landInfo?.usageName && (
+                    <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
                   )
                 }
                 {
-                  (buildings && buildings.length > 0) && (
-                    <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{buildings[0].mainUsageName}</p>
+                  (landInfo?.relMainUsageName) && (
+                    <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
                   )
                 }        
               </div>            
-              <div className="mt-[8px] flex items-center gap-[5px]">
+              {/* <div className="mt-[8px] flex items-center gap-[5px]">
                 <div className="flex-1 flex items-center justify-between">
                   <p className="font-s4 text-text-03">대지면적</p>
                   <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.area)}</p>
@@ -234,9 +268,20 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                 <VDivider colorClassName="bg-line-03"/>
                 <div className="flex-1 flex items-center justify-between">
                   <p className="font-s4 text-text-03">건축면적</p>
-                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(buildings?.[0]?.archArea)}</p>
+                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relArchAreaSum)}</p>
                 </div>        
               </div>
+               */}
+              <div className="mt-[8px] flex-col space-y-[5px]">
+                <div className="flex-1 flex items-center justify-between">
+                  <p className="font-s4 text-text-03">토지면적{landInfo?.relParcelCount > 1 ? ' (합계)' : ''}</p>
+                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relTotalArea)}</p>
+                </div>
+              <div className="flex-1 flex items-center justify-between">
+                  <p className="font-s4 text-text-03">건축면적{landInfo?.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relArchAreaSum)}</p>
+                </div>        
+              </div>               
               <div className="mt-[12px] flex border border-line-02 rounded-[4px] flex-1 items-center">
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
                   <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
@@ -245,15 +290,15 @@ export const AIReport = ({ polygon, landInfo, buildings, estimatedPrice, onClose
                 </div>
                 <VDivider className="h-[56px]"/>
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가</p>
-                  <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.price * landInfo.area, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{landInfo.price ? krwUnit(landInfo.price, true) : '-'} /㎡</p>
+                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
+                  <p className="font-h2-p">{landInfo?.price ? krwUnit(landInfo.price * landInfo.area, true) : '-'}</p>
+                  <p className="font-c3 text-text-03">{landInfo?.price ? krwUnit(landInfo.price, true) : '-'} /㎡</p>
                 </div>
                 <VDivider className="h-[56px]"/>
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
                   <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
-                  <p className="font-h2-p">{landInfo.dealPrice ? krwUnit(landInfo.dealPrice * 10000, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{landInfo.dealDate ? format(landInfo.dealDate, 'yyyy.MM.dd') : '-'}</p>
+                  <p className="font-h2-p">{landInfo?.dealPrice ? krwUnit(landInfo.dealPrice * 10000, true) : '-'}</p>
+                  <p className="font-c3 text-text-03">{landInfo?.dealDate ? format(landInfo.dealDate, 'yyyy.MM.dd') : '-'}</p>
                 </div>        
               </div>
 

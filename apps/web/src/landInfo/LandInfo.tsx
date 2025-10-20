@@ -163,10 +163,15 @@ export const LandInfoCard = ({
             )
           }
           {
-            (buildingList && buildingList.length > 0) && (
-              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{buildingList[0].mainUsageName}</p>
+            landInfo.relMainUsageName && (
+              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
             )
-          }        
+          }               
+          {/* {
+            (buildingList && buildingList.length > 0) && (
+              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
+            )
+          }         */}
         </div>
         {/* <div className="mt-[10px] flex items-center gap-[5px]">
           <div className="flex-1 flex items-center justify-between">

@@ -450,10 +450,7 @@ export default function Main() {
         openAIReport &&
           <AIReport 
             key={landInfo?.id}
-            polygon={getMainPolygon(polygonList)}
-            landInfo={landInfo}
-            buildings={buildingList}
-            estimatedPrice={estimatedPrice}
+            landId={landInfo?.id}
             onClose={() => setOpenAIReport(false)}/>
       }
       {openAIChat && (

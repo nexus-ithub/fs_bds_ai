@@ -598,26 +598,10 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
 export class AIReportModel {
 
   
-  static async getAIReport(landId: string, buildingId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
+  static async getAIReport(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
     try {
-
-      // let buildingInfo = null;
-      // if(buildingId){
-      //   buildingInfo = await db.query<BuildingData>(
-      //     `SELECT 
-      //       building_id AS id,
-      //       floor_area_ratio AS floorAreaRatio,
-      //       use_approval_date AS useApprovalDate,
-      //       total_floor_area AS totalFloorArea,
-      //       arch_area AS archArea,
-      //       land_area AS landArea,
-      //       gnd_floor_number AS gndFloorNumber,
-      //       base_floor_number AS baseFloorNumber
-      //       FROM building_leg_headline
-      //       WHERE building_id = ?`,
-      //     [buildingId]
-      //   )        
-      // }
+      console.log('landId', landId)
+      console.log('estimatedPrice', estimatedPrice)
 
       const buildingList = await db.query<BuildingData>(
         `

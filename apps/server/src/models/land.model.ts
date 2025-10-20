@@ -427,7 +427,7 @@ export class LandModel {
             ) u
           ),
 
-          /* (신규) 건축물 중복 제거 + 건축면적 합계/개수 산출용 집계 */
+          /* 건축물 중복 제거 + 건축면적 합계/개수 산출용 집계 */
           bld_ids_dedup AS (
             SELECT base_id, building_id
             FROM rows_main
@@ -449,6 +449,26 @@ export class LandModel {
             LEFT JOIN blh_area ba USING (building_id)
             GROUP BY d.base_id
           ),
+          max_far_usage AS (
+            SELECT base_id, main_usage_code_name
+            FROM (
+              SELECT
+                d.base_id,
+                blh.main_usage_code_name,
+                blh.floor_area_ratio,
+                ROW_NUMBER() OVER (
+                  PARTITION BY d.base_id
+                  ORDER BY
+                    /* NULL 용적률은 뒤로 밀기 */
+                    CASE WHEN blh.floor_area_ratio IS NULL THEN 1 ELSE 0 END,
+                    blh.floor_area_ratio DESC
+                ) AS rn
+              FROM bld_ids_dedup d
+              JOIN building_leg_headline blh
+                ON blh.building_id = d.building_id
+            ) t
+            WHERE t.rn = 1
+          ),          
           /* 3) land_info 매칭 → 관련 필지 id 추출 */
           related_land_ids AS (
             SELECT DISTINCT rk.base_id, li2.id AS id
@@ -542,7 +562,8 @@ export class LandModel {
             ra.relTotalPrice       AS relTotalPrice,
             ra.relParcelCount      AS relParcelCount,
             baa.relArchAreaSum     AS relArchAreaSum,
-            baa.relBuildingCount   AS relBuildingCount
+            baa.relBuildingCount   AS relBuildingCount,
+            mfu.main_usage_code_name AS relMainUsageName
 
           FROM land_info AS land_info
           LEFT JOIN land_char_info AS land_char
@@ -601,14 +622,16 @@ export class LandModel {
           LEFT JOIN rel_agg ra
             ON ra.base_id = land_info.id
 
-          /* ★ (신규) 기준 id별 건축면적 합계/건물개수 조인 */
+          /* ★ 기준 id별 건축면적 합계/건물개수 조인 */
           LEFT JOIN bld_arch_agg baa
             ON baa.base_id = land_info.id
 
+          /* ★ 용적률 최대 주용도명 조인 */   
+          LEFT JOIN max_far_usage mfu
+            ON mfu.base_id = land_info.id
+
           WHERE land_info.id IN (?)
           GROUP BY land_info.id;
-        
-
         `,
         [ids, ids]
       )
@@ -2048,21 +2071,21 @@ export class LandModel {
     }
   }
 
-  static async addBookmark(userId: string, landId: string, buildingId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
+  static async addBookmark(userId: string, landId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
     try {
       const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? LIMIT 1`, 
         [userId, landId])
 
       if(!!rows) {
         await db.query(
-          `UPDATE bookmarked_report SET delete_yn = ?, estimated_price = ?, estimated_price_per = ?, building_id = ? WHERE user_id = ? AND land_id = ?`,
-          [deleteYn, estimatedPrice, estimatedPricePer, buildingId, userId, landId]
+          `UPDATE bookmarked_report SET delete_yn = ?, estimated_price = ?, estimated_price_per = ? WHERE user_id = ? AND land_id = ?`,
+          [deleteYn, estimatedPrice, estimatedPricePer, userId, landId]
         );
       } else{
         await db.query(
-          `INSERT INTO bookmarked_report (user_id, land_id, building_id, estimated_price, estimated_price_per, delete_yn)
-            VALUES (?, ?, ?, ?, ?, ?)`,
-          [userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn]
+          `INSERT INTO bookmarked_report (user_id, land_id, estimated_price, estimated_price_per, delete_yn)
+            VALUES (?, ?, ?, ?, ?)`,
+          [userId, landId, estimatedPrice, estimatedPricePer, deleteYn]
         );
       }
     } catch (err) {
@@ -2090,7 +2113,7 @@ export class LandModel {
       const total = await this.getTotalBookmarked(userId);
       
       const response = await db.query(
-        `SELECT br.land_id as landId, br.building_id as buildingId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
+        `SELECT br.land_id as landId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
         ap.leg_dong_code as legDongCode, ap.leg_dong_name as legDongName, ap.jibun, ap.lat, ap.lng, ap.polygon 
         FROM bookmarked_report br 
         LEFT JOIN address_polygon ap ON br.land_id = ap.id

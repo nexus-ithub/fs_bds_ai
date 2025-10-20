@@ -235,7 +235,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                     )
                   }        
                 </div>
-                <div className="flex items-center gap-[12px]">
+                {/* <div className="flex items-center gap-[12px]">
                   <div className="flex-1 flex items-center justify-between gap-[6px]">
                     <p className="w-[44px] font-s4 text-text-03">대지면적</p>
                     <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.landInfo.area)}</p>
@@ -245,7 +245,17 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                     <p className="w-[44px] font-s4 text-text-03">건축면적</p>
                     <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.buildings?.[0]?.archArea)}</p>
                   </div>        
-                </div>
+                </div> */}
+                <div className="flex-col space-y-[6px]">
+                  <div className="flex-1 flex items-center justify-between">
+                    <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
+                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
+                  </div>
+                <div className="flex-1 flex items-center justify-between">
+                    <p className="font-s4 text-text-03">건축면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relArchAreaSum)}</p>
+                  </div>        
+                </div>                
               </div>
               <div className="flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
                 <div className="flex-1 flex flex-col items-center gap-[6px]">
@@ -255,7 +265,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                 </div>
                 <VDivider className="h-[58px]"/>
                 <div className="flex-1 flex flex-col items-center gap-[6px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가</p>
+                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(item.landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
                   <p className="font-h2-p">{item.landInfo.price ? krwUnit(item.landInfo.price * item.landInfo.area, true) : '-'}</p>
                   <p className="font-c3 text-text-03">{item.landInfo.price ? krwUnit(item.landInfo.price, true) : '-'} /㎡</p>
                 </div>
@@ -280,10 +290,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         openAIReport &&
         <div ref={aiReportRef}>
           <AIReport 
-            polygon={{id: null, legDongCode: selectedItem.legDongCode, legDongName: selectedItem.legDongName, jibun: selectedItem.jibun, lat: selectedItem.lat, lng: selectedItem.lng, polygon: selectedItem.polygon, current: null}}
-            landInfo={selectedItem?.landInfo}
-            buildings={selectedItem?.buildings}
-            estimatedPrice={{estimatedPrice: selectedItem?.estimatedPrice, per: selectedItem?.estimatedPricePer}}
+            landId={selectedItem.landId}
             onClose={() => {setOpenAIReport(false); setSelectedItem(null)}}/>
         </div>
       }

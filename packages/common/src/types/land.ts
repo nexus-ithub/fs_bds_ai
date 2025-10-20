@@ -72,6 +72,8 @@ export interface LandInfo {
 
   relArchAreaSum : number; // 연관된 모든 건축물의 건축면적 합
   relBuildingCount : number; // 연관된 모든 건축물의 개수
+
+  relMainUsageName : string; // (연면적이 제일큰) 대표 건축물의 주용도명
 }
 
 export interface BuildingInfo {
@@ -138,11 +140,11 @@ export interface BookmarkedReportType {
 }
 
 export const getJibunAddress = (landInfo: LandInfo) => {
-  return `${landInfo.legDongName} ${landInfo.jibun}`;
+  return `${landInfo?.legDongName} ${landInfo?.jibun}`;
 }
 
 export const getRoadAddress  = (landInfo: LandInfo) => {
-  if(!landInfo.roadName) {
+  if(!landInfo?.roadName) {
     return "";
   }
   const subName =

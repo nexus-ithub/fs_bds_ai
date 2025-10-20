@@ -172,7 +172,6 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
 
-
     const result = await LandModel.calculateEstimatedPrice(id as string);
 
 
@@ -253,15 +252,15 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
 
 export const getAIReport = async (req: AuthRequest, res: Response) => {
   try {
-    const { landId, buildingId, estimatedPrice } = req.body;
+    const { landId } = req.body;
     console.log('landId', landId)
-    console.log('buildingId', buildingId)
-    console.log('estimatedPrice', estimatedPrice)
     if (!landId) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
+
+    const estimatedPrice = await LandModel.calculateEstimatedPrice(landId as string);
     
-    const aiReportResult = await AIReportModel.getAIReport(landId as string, buildingId as string, estimatedPrice);
+    const aiReportResult = await AIReportModel.getAIReport(landId as string, estimatedPrice);
     
     res.status(200).json(aiReportResult);
   } catch (err) {
@@ -406,7 +405,7 @@ export const addBookmark = async (req: AuthRequest, res: Response) => {
       estimatedPricePer: number;
       deleteYn: string;
     };
-    await LandModel.addBookmark(userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn);
+    await LandModel.addBookmark(userId, landId, estimatedPrice, estimatedPricePer, deleteYn);
     res.status(200).json({ message: '즐겨찾기 ' + (deleteYn === 'Y' ? '삭제' : '추가') + ' 성공' });
   } catch (err) {
     console.error('Add bookmark error:', err);
