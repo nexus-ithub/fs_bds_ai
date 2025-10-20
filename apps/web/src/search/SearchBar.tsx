@@ -9,6 +9,16 @@ const DEBOUNCE_DELAY = 300
 const STORAGE_KEY = "recentSelectedSearch";
 const MAX_ITEMS = 30;
 
+const STORAGE_KEY_FILTER = "recentSelectedFilter";
+
+interface SelectedFilter {
+  areaRange : number[];
+  farRange : number[];
+  buildingAgeRange : number[];
+  usageList : string[];
+}
+
+
 const AREA_MARKS = [
   { value: 0, label: '0m²' },
   { value: 2500, label: '2,500m²' },
@@ -64,6 +74,24 @@ function loadRecent(): SearchResult[] {
   } catch {
     return [];
   }
+}
+
+function loadRecentFilter(): SelectedFilter {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_FILTER);
+    console.log('raw', raw);
+    if(raw) {
+      return JSON.parse(raw) as SelectedFilter;
+    }
+  } catch {
+    console.error('Failed to load recent filter');
+  }
+  return {
+    areaRange: [0, 10000],
+    farRange: [0, 1500],
+    buildingAgeRange: [0, 40],
+    usageList: USAGE_LIST.map((usage) => usage.value),
+  };    
 }
 
 // 맨 앞 삽입(중복 제거), 최대 개수 제한
@@ -153,7 +181,8 @@ function StyledSlider({
             opacity: 0.3,
             backgroundColor: '#aaa',
           },
-        }}                    
+        }}           
+        defaultValue={range}         
         value={range}
         onChange={(e, value) => setRange(value as number[])}
         valueLabelDisplay="auto"
@@ -214,14 +243,36 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
   const [buildingAgeRange, setBuildingAgeRange] = useState([0, 40]);
 
   const [usageList, setUsageList] = useState(new Set<string>());
+  const loadedFilter = useRef(false);
 
   useEffect(() => {
     console.log('usageList', usageList);
 
-    resetUsageList();
+    // resetUsageList();
+    const recentFilter = loadRecentFilter();
 
+    console.log('recentFilter', recentFilter);
+    setAreaRange(recentFilter.areaRange);
+    setFarRange(recentFilter.farRange);
+    setBuildingAgeRange(recentFilter.buildingAgeRange);
+    setUsageList(new Set(recentFilter.usageList));
+
+    setTimeout(() => {
+      loadedFilter.current = true;
+    }, 100);
   }, []);
 
+  useEffect(() => {
+    if(loadedFilter.current) {
+      localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
+    }
+  }, [areaRange, farRange, buildingAgeRange, usageList]);
+
+
+  // const saveRecentFilter = () => {
+  //   localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
+  // }
+  
 
   const resetUsageList = () => {
     setUsageList(new Set<string>(USAGE_LIST.map((usage) => usage.value)));
@@ -239,75 +290,9 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-
-    // if(query) {
-    //   if (containerRef.current && highlightedIndex >= 0) {
-    //     const element = containerRef.current.querySelector(
-    //       `[data-index="${highlightedIndex}"]`
-    //     );
-    //     if (element) {
-    //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    //     }
-    //   }
-    // }else{
-    //   if (recentContainerRef.current && highlightedIndex >= 0) {
-    //     const element = recentContainerRef.current.querySelector(
-    //       `[data-index="${highlightedIndex}"]`
-    //     );
-    //     if (element) {
-    //       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    //     }
-    //   }
-    // }
   };
 
 
-  // const [openSearchResult, setOpenSearchResult] = useState(false)
-  // 실제 API 호출 함수
-  // const fetchResults = async (searchTerm: string) => {
-
-  //   setResults([]);
-  //   if (!searchTerm.trim()) {
-  //     activeControllerRef.current?.abort();
-  //     setResults([]);
-  //     setLoading(false);
-  //     return;
-  //   }
-  //   // 내 요청 번호 할당
-  //   const mySeq = ++requestSeqRef.current;
-  //   latestQueryRef.current = searchTerm;
-
-  //   // 이전 요청 취소
-  //   activeControllerRef.current?.abort();
-  //   const controller = new AbortController();
-  //   activeControllerRef.current = controller;
-
-
-  //   try {
-  //     setLoading(true)
-  //     console.log('request ', searchTerm)
-  //     const res = await axiosInstance.get(`/api/search?q=${encodeURIComponent(searchTerm)}`, { signal: controller.signal });
-  //     console.log(res.data)
-      
-  //     // ⛑️ 최신성 확인: 내가 마지막으로 보낸 요청이 아니면 버림
-  //     if (mySeq !== requestSeqRef.current || latestQueryRef.current !== searchTerm) {
-  //       return;
-  //     }
-
-  //     setResults(res.data);
-  //   } catch (error) {
-
-  //     if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
-  //       return;
-  //     }
-
-  //     console.error("API error:", error);
-  //   } finally{
-  //     if (mySeq === requestSeqRef.current) {
-  //       setLoading(false)
-  //     }
-  //   }
-  // };
   const fetchResults = useCallback(async (searchTerm: string) => {
     // 비어있으면 정리만
     if (!searchTerm.trim() || !validPattern.test(searchTerm)) {
@@ -354,7 +339,7 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
     }
   }, [axiosInstance]);
 
-  // debounce 래핑 (500ms 대기)
+  // debounce 래핑 
   const debouncedSearch = useMemo(
     () => debounce(fetchResults, DEBOUNCE_DELAY),
     []
@@ -651,13 +636,11 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
               <div className="flex flex-wrap gap-[12px]">
                 {USAGE_LIST.map((usage) => (
                   <button 
+                    key={usage.value}
                     onClick={() => {
                       if(usageList.size === USAGE_LIST.length) {
-                        setUsageList(new Set([usage.value]));
-                        return;
-                      }
-
-                      if (usageList.has(usage.value)) {
+                        setUsageList(new Set([usage.value])); 
+                      }else if (usageList.has(usage.value)) {
                         usageList.delete(usage.value);
                         setUsageList(new Set(usageList));
                       } else {
