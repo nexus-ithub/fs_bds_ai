@@ -6,8 +6,8 @@ export interface DividerProps {
 }
 
 
-export const HDivider = ({ className, dashed }: DividerProps) => {
-  return <div className={`flex items-center w-full h-[1px] bg-line-03 ${className} ${dashed ? 'border-dashed' : ''}`}/>;
+export const HDivider = ({ className, colorClassName = 'bg-line-03', dashed }: DividerProps) => {
+  return <div className={`flex items-center w-full h-[1px] ${colorClassName} ${className} ${dashed ? 'border-dashed' : ''}`}/>;
 };
 
 
