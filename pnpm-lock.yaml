@@ -59,6 +59,9 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.6.1
+      emoji-picker-react:
+        specifier: ^4.14.2
+        version: 4.14.2(react@19.1.1)
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -157,6 +160,9 @@ importers:
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
+      cookie-parser:
+        specifier: ^1.4.7
+        version: 1.4.7
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -1917,6 +1923,10 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
+  cookie-parser@1.4.7:
+    resolution: {integrity: sha512-nGUvgXnotP3BsjiLX2ypbQnWoGUPIIfHQNZkkC668ntrzGWEZVW70HDEB1qnNGMicPje6EttlIgzo51YSwNQGw==}
+    engines: {node: '>= 0.8.0'}
+
   cookie-signature@1.0.6:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
 
@@ -2136,6 +2146,12 @@ packages:
 
   electron-to-chromium@1.5.215:
     resolution: {integrity: sha512-TIvGp57UpeNetj/wV/xpFNpWGb0b/ROw372lHPx5Aafx02gjTBtWnEEcaSX3W2dLM3OSdGGyHX/cHl01JQsLaQ==}
+
+  emoji-picker-react@4.14.2:
+    resolution: {integrity: sha512-tQfuZ5pqZnaqh/aGtgjp5iFqEKC2SoFOSs7YxbnSignstlIwNRS/Peh/Y1pFSMoODwS1DH4i0tdnod5/B/LwBw==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16'
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -2433,6 +2449,9 @@ packages:
 
   fix-dts-default-cjs-exports@1.0.1:
     resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
+
+  flairup@1.0.0:
+    resolution: {integrity: sha512-IKlE+pNvL2R+kVL1kEhUYqRxVqeFnjiIvHWDMLFXNaqyUdFXQM2wte44EfMYJNHkW16X991t2Zg8apKkhv7OBA==}
 
   flat-cache@4.0.1:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
@@ -5977,6 +5996,11 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
+  cookie-parser@1.4.7:
+    dependencies:
+      cookie: 0.7.2
+      cookie-signature: 1.0.6
+
   cookie-signature@1.0.6: {}
 
   cookie@0.7.1: {}
@@ -6182,6 +6206,11 @@ snapshots:
       jake: 10.9.4
 
   electron-to-chromium@1.5.215: {}
+
+  emoji-picker-react@4.14.2(react@19.1.1):
+    dependencies:
+      flairup: 1.0.0
+      react: 19.1.1
 
   emoji-regex@8.0.0: {}
 
@@ -6707,6 +6736,8 @@ snapshots:
       magic-string: 0.30.19
       mlly: 1.8.0
       rollup: 4.50.1
+
+  flairup@1.0.0: {}
 
   flat-cache@4.0.1:
     dependencies:

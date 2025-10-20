@@ -6,6 +6,8 @@ import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } 
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
+import { Dialog } from "@mui/material";
+import EmojiPicker from "emoji-picker-react";
 
 const SortableQuestionItem = ({ question }: { question: Question }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id });
@@ -33,7 +35,7 @@ const SortableQuestionItem = ({ question }: { question: Question }) => {
         <DotGridIcon/>
       </div>
       <div className="flex-1 flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-        <span className="w-[40px] h-[40px] flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
+        <span className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
         <p className="font-s2">{question.question}</p>
       </div>
     </div>
@@ -49,22 +51,14 @@ export default function Agent() {
   const [chatSubtitle, setChatSubtitle] = useState<string>("");
   const [placeholder, setPlaceholder] = useState<string>("");
   const [warningMsg, setWarningMsg] = useState<string>("");
-  // const [questionRecommends, setQuestionRecommends] = useState<Question[]>(QUESTIONS_RECOMMENDS_SAMPLE);
-  const questions: Question[] = [];
-  // const questions: Question[] = setting.questions.map((q) => ({
-  //   ...q,
-  //   seq: q.seq ?? undefined,
-  //   selectedYn: q.selectedYn as "Y" | "N",
-  //   deleteYn: q.deleteYn as "Y" | "N",
-  //   createdAt: new Date(q.createdAt),
-  // }));
-  // const [questionRecommends, setQuestionRecommends] = useState<Question[]>([...questions]);
   const [setting, setSetting] = useState<Agent | null>(null);
   const [isCheckedRecommends, setIsCheckedRecommends] = useState<boolean>(false);
-  // const [questionEdit, setQuestionEdit] = useState<Question[]>(questions.map(q => ({ ...q })));
   const [questionEdit, setQuestionEdit] = useState<Question[]>([]);
+  const [selectedEmoji, setSelectedEmoji] = useState<string>("🏢")
 
   const [openQuestionSetting, setOpenQuestionSetting] = useState<boolean>(false);
+  const [openAddQuestion, setOpenAddQuestion] = useState<boolean>(false);
+  const [openEmojiSelector, setOpenEmojiSelector] = useState<boolean>(false);
   const [getSettingLoading, setGetSettingLoading] = useState<boolean>(false);
   const [saveSettingLoading, setSaveSettingLoading] = useState<boolean>(false);
 
@@ -74,6 +68,7 @@ export default function Agent() {
   const subTitleRef = useRef<HTMLTextAreaElement>(null);
   const dragConstraintRef = useRef<HTMLDivElement>(null);
   const questionSettingRef = useRef<HTMLDivElement>(null);
+  const emojiDropdownRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -385,7 +380,7 @@ export default function Agent() {
             <p className="font-h4">추천질문 목록 {questionEdit.length}/50</p>
             <div className="flex items-center justify-between gap-[12px]">
               <p className="font-s4 text-text-02">추천질문을 작성하고 관리할 수 있습니다. 4개까지 설정이 가능합니다.</p>
-              <button className="flex items-center gap-[4px]">
+              <button className="flex items-center gap-[4px]" onClick={() => setOpenAddQuestion(!openAddQuestion)}>
                 <span className="font-s3 text-primary">추천질문 추가하기</span>
                 <PlusIcon color="var(--primary-050)"/>
               </button>
@@ -444,14 +439,15 @@ export default function Agent() {
                   />
                 </div>
                 <div className="flex-1 h-[64px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02 bg-white" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-                  <span className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
+                  <span 
+                    className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
                   <p className="font-s2">{question.question}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <div className="flex items-center justify-center gap-[10px] p-[24px]">
+        {/* <div className="flex items-center justify-center gap-[10px] p-[24px]">
           <Button 
             variant="bggray" 
             size="medium"
@@ -460,8 +456,35 @@ export default function Agent() {
           <Button 
             size="medium"
             className="w-[270px]">저장</Button>
-        </div>
+        </div> */}
       </div>
+      <Dialog open={openAddQuestion} onClose={() => setOpenAddQuestion(false)}>
+        <div className="flex flex-col gap-[16px] p-[24px]">
+          <div className="flex items-center justify-between pb-[12px] border-b border-line-02">
+            <p className="font-h4">추천질문 추가</p>
+            <button onClick={() => setOpenAddQuestion(false)}><CloseIcon color="#1A1C20"/></button>
+          </div>
+          <div className="relative inline-block" ref={emojiDropdownRef}>
+            <button
+              onClick={() => setOpenEmojiSelector(!openEmojiSelector)}
+              className="text-2xl bg-white border border-gray-300 rounded-full w-12 h-12 flex items-center justify-center hover:bg-gray-50"
+            >
+              {selectedEmoji}
+            </button>
+
+            {openEmojiSelector && (
+              <div className="absolute z-50 mt-2">
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => setSelectedEmoji(emojiData.emoji)}
+                  lazyLoadEmojis
+                  searchDisabled={false}
+                  previewConfig={{ showPreview: false }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

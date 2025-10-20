@@ -5,25 +5,27 @@ import { authConfig } from '../config/auth.config';
 import { UserModel } from '../models/user.model';
 import { RefreshTokenModel } from '../models/refresh-token.model';
 
-const generateAccessToken = (userId: number): string => {
+const generateAccessToken = (userId: number, auto: boolean): string => {
+  const expiresIn = auto ? authConfig.expires.auto.accessToken : authConfig.expires.normal.accessToken;
   return jwt.sign(
     { id: userId },
     authConfig.secret as string,
-    { expiresIn: authConfig.accessToken.expiresIn } as jwt.SignOptions
+    { expiresIn } as jwt.SignOptions
   );
 };
 
-const generateRefreshToken = (userId: number): string => {
+const generateRefreshToken = (userId: number, auto: boolean): string => {
+  const expiresIn = auto ? authConfig.expires.auto.refreshToken : authConfig.expires.normal.refreshToken;
   return jwt.sign(
     { id: userId },
     authConfig.refreshToken.secret as string,
-    { expiresIn: authConfig.refreshToken.expiresIn } as jwt.SignOptions
+    { expiresIn } as jwt.SignOptions
   );
 };
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, keepLoggedIn } = req.body;
 
     const user = await UserModel.findByEmail(email);
     if (!user) {
@@ -36,22 +38,37 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Generate tokens
-    const accessToken = generateAccessToken(Number(user.id));
-    const refreshToken = generateRefreshToken(Number(user.id));
+    const accessToken = generateAccessToken(Number(user.id), keepLoggedIn); 
+    const refreshToken = generateRefreshToken(Number(user.id), keepLoggedIn);
 
     // Calculate refresh token expiry
     const refreshExpiry = new Date();
-    refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now
+    // refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now
+    if (keepLoggedIn) {
+      refreshExpiry.setDate(refreshExpiry.getDate() + 14); // 14일
+    } else {
+      refreshExpiry.setHours(refreshExpiry.getHours() + 1); // 1시간
+    }
 
     // Save refresh token to database
     await RefreshTokenModel.create(Number(user.id), refreshToken, refreshExpiry);
+
+    // RefreshToken을 HttpOnly 쿠키에 저장
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: keepLoggedIn 
+        ? 14 * 24 * 60 * 60 * 1000 // 14일
+        : 1 * 60 * 60 * 1000,       // 1시간
+    });
 
     res.status(200).json({
       id: user.id,
       email: user.email,
       name: user.name,
       accessToken,
-      refreshToken
+      // refreshToken
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -61,8 +78,9 @@ export const login = async (req: Request, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   try {
-    console.log('refresh token', req.body)
-    const { refreshToken } = req.body;
+    console.log('refresh token', req.cookies.refreshToken)
+    const refreshToken = req.cookies.refreshToken;
+    const { keepLoggedIn } = req.body;
 
     if (!refreshToken) {
       return res.status(400).json({ message: 'Refresh token이 제공되지 않았습니다.' });
@@ -80,18 +98,33 @@ export const refresh = async (req: Request, res: Response) => {
       const decoded = jwt.verify(refreshToken, authConfig.refreshToken.secret as string) as { id: number };
       console.log('Decoded token:', decoded);
       // Generate new access token
-      const accessToken = generateAccessToken(decoded.id);
+      const newAccessToken = generateAccessToken(decoded.id, keepLoggedIn);
       // Generate new refresh token
-      const newRefreshToken = generateRefreshToken(decoded.id);
+      const newRefreshToken = generateRefreshToken(decoded.id, keepLoggedIn);
 
-     // Calculate refresh token expiry
-     const refreshExpiry = new Date();
-     refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now     
+      // Calculate refresh token expiry
+      const refreshExpiry = new Date();
+      //  refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now 
+      if (keepLoggedIn) {
+        refreshExpiry.setDate(refreshExpiry.getDate() + 14); // 14일
+      } else {
+        refreshExpiry.setHours(refreshExpiry.getHours() + 1); // 1시간
+      }
       // Save new refresh token to database
       await RefreshTokenModel.create(decoded.id, newRefreshToken, refreshExpiry);
 
-      console.error('new access token:', accessToken);
-      res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+      console.error('new access token:', newAccessToken);
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        // secure: process.env.NODE_ENV === 'production',
+        secure: false,
+        sameSite: 'strict',
+        maxAge: keepLoggedIn 
+          ? 14 * 24 * 60 * 60 * 1000 // 14일
+          : 1 * 60 * 60 * 1000,       // 1시간
+          // : 1 * 60 * 1000,
+      });
+      res.status(200).json({ accessToken: newAccessToken });
     } catch (error) {
       console.error('Invalid refresh token:', error);
       await RefreshTokenModel.deleteByToken(refreshToken);
@@ -105,12 +138,19 @@ export const refresh = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
       // Delete refresh token from database
       await RefreshTokenModel.deleteByToken(refreshToken);
     }
+    res.clearCookie('refreshToken', {
+      path: '/api/auth/refresh-token',
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      secure: false,
+      sameSite: 'strict'
+    });
 
     res.status(200).json({ message: '로그아웃되었습니다.' });
   } catch (err) {

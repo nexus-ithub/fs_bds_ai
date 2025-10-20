@@ -9,15 +9,15 @@ interface LoginResponse {
   id: string;
   email: string;
   accessToken: string;
-  refreshToken: string;
+  // refreshToken: string;
 }
 
 export default function Login() {
   const [credentials, setCredentials] = useState({
     email: '',
     password: '',
+    keepLoggedIn: true,
   });
-  const [keepLoggedIn, setKeepLoggedIn] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
@@ -27,7 +27,9 @@ export default function Login() {
 
     try {
       console.log('credentials', credentials);
-      const response = await axios.post(`${API_HOST}/api/auth/login`, credentials);
+      const response = await axios.post(`${API_HOST}/api/auth/login`, credentials, {
+        withCredentials: true,
+      });
 
       if (!response.data) {
         throw new Error('로그인에 실패했습니다.');
@@ -35,7 +37,8 @@ export default function Login() {
 
       const data: LoginResponse = response.data;
 
-      setToken(data.refreshToken, data.accessToken)
+      localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false");
+      setToken(data.accessToken)
       navigate('/');
     } catch (err) {
       alert('로그인 중 오류가 발생했습니다.');
@@ -101,8 +104,8 @@ export default function Login() {
                   />
                 </div>
                 <Checkbox
-                  checked={keepLoggedIn}
-                  onChange={() => setKeepLoggedIn(!keepLoggedIn)}
+                  checked={credentials.keepLoggedIn}
+                  onChange={() => setCredentials({ ...credentials, keepLoggedIn: !credentials.keepLoggedIn })}
                   label="로그인 상태 유지"
                   labelOrderLast={true}
                   labelClassName="font-s2 text-text-04"
