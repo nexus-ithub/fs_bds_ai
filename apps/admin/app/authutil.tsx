@@ -1,7 +1,7 @@
 "use client";
 
-export function setToken(refreshToken : string | null, accessToken : string | null) {
-  const authData = { accessToken, refreshToken };
+export function setToken(accessToken : string | null) {
+  const authData = { accessToken };
   const autoLogin = localStorage.getItem("autoLogin");
   if(autoLogin === null || autoLogin === 'true'){
     localStorage.setItem("auth", JSON.stringify(authData));
@@ -15,7 +15,7 @@ export function setToken(refreshToken : string | null, accessToken : string | nu
 
 export function getToken() {
   const authData = localStorage.getItem("auth") || sessionStorage.getItem("auth");
-  return authData ? JSON.parse(authData) : { accessToken: null, refreshToken: null };
+  return authData ? JSON.parse(authData) : { accessToken: null };
 }
 
 export function saveAutoLogin(autoLogin : string) {
@@ -27,10 +27,10 @@ export const getAccessToken = () => {
   return accessToken;
 }
 
-export const getRefreshToken = () => {
-  const { refreshToken } = getToken();
-  return refreshToken;
-}
+// export const getRefreshToken = () => {
+//   const { refreshToken } = getToken();
+//   return refreshToken;
+// }
 
 export const logout = () => {
   localStorage.removeItem("auth");

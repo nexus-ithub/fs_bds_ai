@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
 import https from 'https';
+import cookieParser from 'cookie-parser';
 import { Server } from 'socket.io'; 
 import authRoutes from './routes/auth.routes';
 import { db } from './utils/database';
@@ -48,9 +49,15 @@ const io = new Server(httpServer, {
 
 export { io };
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://your-production-frontend-domain.com'
+    : 'http://localhost:3000',
+  credentials: true,
+}));
 app.use(express.json());
-
+app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);

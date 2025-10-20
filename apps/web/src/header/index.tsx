@@ -1,11 +1,11 @@
-import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown } from "@repo/common"
+import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown, Button } from "@repo/common"
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, MenuItem, IconButton, Avatar } from "@mui/material";
+import { Menu, MenuItem, IconButton, Avatar, Dialog } from "@mui/material";
 import { useQuery } from "react-query";
 import { BUILDINGSHOP_URL, INSTAGRAM_URL, JUNGIN_URL, KAKAO_CHANNEL_URL, NAVER_BLOG_URL, QUERY_KEY_USER, YOUTUBE_CHANNEL_URL } from "../constants";
 import type { User } from "@repo/common";
-import { getAccessToken } from "../authutil";
+import { getAccessToken, logout } from "../authutil";
 
 const SUPPORT_MENU = [
   {
@@ -35,6 +35,7 @@ export const Header = () => {
   const isSupportPage = location.pathname.startsWith("/support");
 
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
+  const [logoutConfirm, setLogoutConfirm] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const ProfileRef = useRef<HTMLButtonElement | null>(null);
 
@@ -133,7 +134,7 @@ export const Header = () => {
           고객센터
         </a>
         <VDivider colorClassName="bg-line-04"/>
-        <button className="font-s2-p">
+        <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
           LOGOUT
         </button>
         <VDivider colorClassName="bg-line-04"/>
@@ -159,6 +160,21 @@ export const Header = () => {
           placeholder="빌딩샵 관련 사이트"
         />
       </div>
+      <Dialog
+        open={logoutConfirm}
+        onClose={() => {setLogoutConfirm(false)}}
+        disableScrollLock={true}
+      >
+        <div className="flex flex-col gap-[20px] min-w-[300px]">
+          <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">로그아웃</h3>
+          <p className="font-s1 px-[20px]">로그아웃 하시겠습니까?</p>
+
+          <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
+            <Button variant="bggray" className="w-[60px]" onClick={() => {setLogoutConfirm(false)}}>취소</Button>
+            <Button className="w-[100px]" onClick={() => {logout(); setLogoutConfirm(false); navigate("/login")}}>확인</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   )
 }

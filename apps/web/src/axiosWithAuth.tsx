@@ -9,6 +9,7 @@ const useAxiosWithAuth = () => {
   const navigate = useNavigate();
   const axiosInstance = axios.create({
     baseURL: API_HOST,
+    withCredentials: true,
     // headers: {
     //   authorization: `Bearer ${accessToken}`,
     // },
@@ -29,13 +30,15 @@ const useAxiosWithAuth = () => {
 
         try {
           const refreshResp = await axios.post(`${API_HOST}/api/auth/refresh-token`, {
-            refreshToken : getRefreshToken(),
+            keepLoggedIn : localStorage.getItem("autoLogin") === "true",
+          }, {
+            withCredentials: true,
           });
 
           if (refreshResp.data) {
-            const { accessToken: newAccessToken, refreshToken: newRefreshToken } = refreshResp.data;
+            const { accessToken: newAccessToken } = refreshResp.data;
             console.log('new access token:', newAccessToken);
-            setToken(newRefreshToken, newAccessToken);
+            setToken(newAccessToken);
             originalRequest.headers.authorization = `Bearer ${newAccessToken}`;
             axiosInstance.defaults.headers.authorization = `Bearer ${newAccessToken}`;
 
@@ -43,7 +46,7 @@ const useAxiosWithAuth = () => {
           }
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
-          setToken(null, null);
+          setToken(null);
           navigate('/login');
         }
       }else if(statusCode === 403){
