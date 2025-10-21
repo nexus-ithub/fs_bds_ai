@@ -8,6 +8,181 @@ const MAX_CHECK = 4;
 
 export class LandModel {
 
+  static async findFilteredPolygon(
+    neLat: number,
+    neLng: number,
+    swLat: number,
+    swLng: number,
+    startArea: number,
+    endArea: number,   // -1 = upper bound off
+    startFar: number,
+    endFar: number,    // -1 = upper bound off
+    startBdAge: number,
+    endBdAge: number,  // -1 = upper bound off
+    usages: string
+  ): Promise<PolygonInfo[]> {
+    console.log(
+      'findFilteredPolygon',
+      neLat, neLng, swLat, swLng, startArea, endArea, startFar, endFar, startBdAge, endBdAge, usages
+    );
+
+    // 동적 WHERE 구성
+    const where: string[] = [];
+    const params: any[] = [];
+
+    // // 1) BBox
+    // where.push(`ap.lat BETWEEN ? AND ?`);
+    // params.push(swLat, neLat);
+    // where.push(`ap.lng BETWEEN ? AND ?`);
+    // params.push(swLng, neLng);
+    where.push(`
+      MBRIntersects(
+        ap.polygon,
+        ST_GeomFromText(
+          CONCAT(
+            'POLYGON((',
+            ?, ' ', ?, ',',  -- swLng swLat
+            ?, ' ', ?, ',',  -- neLng swLat
+            ?, ' ', ?, ',',  -- neLng neLat
+            ?, ' ', ?, ',',  -- swLng neLat
+            ?, ' ', ?,       -- swLng swLat (닫기)
+            '))'
+          )
+        )
+      )
+    `);
+    params.push(swLng, swLat, neLng, swLat, neLng, neLat, swLng, neLat, swLng, swLat);    
+
+    // 2) land_char_info 최신본 조인 (area, usage 필터는 lc에 걸림)
+    // area: startArea ~ endArea(or no upper if -1)
+
+    if(!(startArea === 0 && endArea === -1)){
+      if (startArea != null && !Number.isNaN(startArea)) {
+        where.push(`(lc.area IS NULL OR lc.area >= ?)`); // lc 없으면 면적필터 bypass (원하시면 STRICT로 바꿔도 됨)
+        params.push(startArea);
+      }
+      if (endArea !== -1) {
+        where.push(`(lc.area IS NULL OR lc.area <= ?)`); // 동일하게 널 bypass
+        params.push(endArea);
+      }
+    }
+
+    // 3) usage 필터
+    if (usages && usages.length > 0) {
+      console.log('usages', usages);
+      // IN (?, ?, ...) 안전 바인딩
+      where.push(`lc.usage1_name IN (${usages.split(',').map((usage) => `'${usage.trim()}'`).join(',')})`);
+      // console.log('usages', usages.split(',').map((usage) => `"${usage.trim()}"`).join(','));
+      // params.push(usages.split(',').map((usage) => `'${usage.trim()}'`).join(','));
+    }
+
+    // 4) FAR 필터 (EXISTS 서브쿼리)
+    if(!(startFar === 0 && endFar === -1)){
+      if ((startFar != null && !Number.isNaN(startFar)) || endFar !== -1) {
+        const farConds: string[] = [];
+        const farParams: any[] = [];
+
+        if (startFar != null && !Number.isNaN(startFar)) {
+          farConds.push(`blh.floor_area_ratio >= ?`);
+          farParams.push(startFar);
+        }
+        if (endFar !== -1) {
+          farConds.push(`blh.floor_area_ratio <= ?`);
+          farParams.push(endFar);
+        }
+
+        // bun/ji pad: address jibun에서 추출
+        where.push(
+          `EXISTS (
+            SELECT 1
+            FROM building_leg_headline blh
+            WHERE blh.leg_dong_code_val = ap.leg_dong_code
+              AND blh.bun = LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0')
+              AND blh.ji  = LPAD(CAST(IF(LOCATE('-', ap.jibun) > 0, SUBSTRING_INDEX(ap.jibun,'-',-1), '0') AS UNSIGNED), 4, '0')
+              ${farConds.length ? 'AND ' + farConds.join(' AND ') : ''}
+          )`
+        );
+        params.push(...farParams);
+      }      
+    }
+
+    // 5) 건물 노후(연식) 필터 (EXISTS 서브쿼리)
+    if(!(startBdAge === 0 && endBdAge === -1)){
+      if ((startBdAge != null && !Number.isNaN(startBdAge)) || endBdAge !== -1) {
+        console.log('bd age filter', startBdAge, endBdAge);
+        const ageConds: string[] = [];
+        const ageParams: any[] = [];
+
+        // age = 현재년도 - 사용승인(혹은 create_date) 년도
+        // create_date 포맷 'YYYYMMDD'
+        // TIMESTAMPDIFF(YEAR, date, CURDATE())
+        if (startBdAge != null && !Number.isNaN(startBdAge)) {
+          ageConds.push(`TIMESTAMPDIFF(
+            YEAR,
+            STR_TO_DATE(blh.use_approval_date, '%Y%m%d'),
+            CURDATE()
+          ) >= ?`);
+          ageParams.push(startBdAge);
+        }
+        if (endBdAge !== -1) {
+          ageConds.push(`TIMESTAMPDIFF(
+            YEAR,
+            STR_TO_DATE(blh.use_approval_date, '%Y%m%d'),
+            CURDATE()
+          ) <= ?`);
+          ageParams.push(endBdAge);
+        }
+
+        where.push(
+          `EXISTS (
+            SELECT 1
+            FROM building_leg_headline blh
+            WHERE blh.leg_dong_code_val = ap.leg_dong_code
+              AND blh.bun = LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0')
+              AND blh.ji  = LPAD(CAST(IF(LOCATE('-', ap.jibun) > 0, SUBSTRING_INDEX(ap.jibun,'-',-1), '0') AS UNSIGNED), 4, '0')
+              AND blh.use_approval_date IS NOT NULL
+              ${ageConds.length ? 'AND ' + ageConds.join(' AND ') : ''}
+          )`
+        );
+        params.push(...ageParams);
+      }
+    }
+
+    // 최종 SQL
+    const sql = `
+      /* 필터된 지번 polygon 조회 */
+      WITH latest_land AS (
+        SELECT lc1.*
+        FROM land_char_info lc1
+        JOIN (
+          SELECT id, MAX(created_at) AS max_created
+          FROM land_char_info
+          GROUP BY id
+        ) mx
+          ON lc1.id = mx.id AND lc1.created_at = mx.max_created
+      )
+      SELECT
+        ap.id                                        AS id,
+        ap.leg_dong_code                             AS legDongCode,
+        ap.leg_dong_name                             AS legDongName,
+        ap.jibun                                     AS jibun,
+        ap.lat                                       AS lat,
+        ap.lng                                       AS lng,
+        ap.polygon                                   AS polygon
+      FROM address_polygon ap
+      LEFT JOIN latest_land lc
+        ON lc.id = ap.id
+      ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    `;
+
+    const polygons = await db.query<PolygonInfo>(sql, params);
+
+    console.log('polygons', polygons.length);
+  
+
+    return polygons;
+  }
+
   static async findPolygonWithSub(id : string, lat : number, lng: number): Promise<PolygonInfo[]>{
 
     

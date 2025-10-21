@@ -14,10 +14,13 @@ import { SearchBar } from "../search/SearchBar";
 import { AIReport } from "../aiReport/AIReport";
 import { AIChat } from "../aiChat/AIChat";
 
+const MAX_FILTER_DIFF = 0.0065; // 720m 정도
+
 export default function Main() {  
   const axiosInstance = useAxiosWithAuth();
-  // const [polygon, setPolygon] = useState<PolygonInfo | null>(null);
   const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
+  const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
+
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
@@ -49,6 +52,87 @@ export default function Main() {
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
   const [openAIChat, setOpenAIChat] = useState<boolean>(false);
   
+  const [filter, setFilter] = useState({
+    on: false,
+    areaRange: [0, 10000],
+    farRange: [0, 1000],
+    buildingAgeRange: [0, 100],
+    usageList: [],
+  });
+
+  const [filterCenter, setFilterCenter] = useState<LatLng>({ lat: 0, lng: 0 });
+  const [showFilterSetting, setShowFilterSetting] = useState<boolean>(false);
+  const [rangeLatDiff, setRangeLatDiff] = useState<number>(0);
+  useEffect(() => {
+    if(filter.on) {
+        const bounds = mapRef.current?.getBounds();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      
+      const neLat = ne.getLat();
+      const swLat = sw.getLat();
+      
+      console.log('neLat', neLat);
+      console.log('swLat', swLat);
+      console.log('diff ', neLat - swLat);
+
+      const diff = neLat - swLat;
+      setRangeLatDiff(diff);    
+      console.log('diff ', diff);
+      // console.log('filter', filter);
+      // console.log('mapRef.current', mapRef.current?.getBounds().getNorthEast().getLat(), mapRef.current?.getBounds().getNorthEast().getLng());
+      // console.log('mapRef.current', mapRef.current?.getBounds().getSouthWest().getLat(), mapRef.current?.getBounds().getSouthWest().getLng());
+      if(diff > MAX_FILTER_DIFF) {
+        setFilteredPolygonList([]);
+        return;
+      }
+
+      getFilteredPolygon();
+    }else{
+      setFilteredPolygonList([]);
+    }
+  }, [filter, filterCenter, level]);
+
+  const getFilteredPolygon = () => {
+    const bounds = mapRef.current?.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    
+    // const neLat = ne.getLat();
+    // const swLat = sw.getLat();
+    
+    // console.log('neLat', neLat);
+    // console.log('swLat', swLat);
+    // console.log('diff ', neLat - swLat);
+    
+
+    axiosInstance.get(`/api/land/polygon-filtered`, {
+      params: {
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+        startArea: filter.areaRange[0],
+        endArea: filter.areaRange[1],
+        startFar: filter.farRange[0],
+        endFar: filter.farRange[1],
+        startBdAge: filter.buildingAgeRange[0],
+        endBdAge: filter.buildingAgeRange[1],
+        usages: filter?.usageList?.join(',') || null,
+      },
+    })
+      .then((response) => {
+        // console.log(response.data);
+        const polygon = response.data as PolygonInfo[];
+        console.log('polygon', polygon);
+        setFilteredPolygonList(polygon);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+     
+  }
+
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
     if(type === 'use_district') {
@@ -271,9 +355,11 @@ export default function Main() {
             // console.log(map.getCenter().getLat(), map.getCenter().getLng());
             saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
           }}
-          // onDragEnd={(map) => {
-          //   console.log(map.getCenter().getLat(), map.getCenter().getLng());
-          // }}
+          onDragEnd={(map) => {
+            console.log('onDragEnd')
+            console.log(map.getCenter().getLat(), map.getCenter().getLng());
+            setFilterCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
+          }}
           onZoomChanged={(map) => {
             // console.log(map.getLevel());
             saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
@@ -349,6 +435,7 @@ export default function Main() {
           {polygonList && (
             polygonList.map((polygon) => (
               <Polygon
+                key={polygon.id}
                 fillColor="var(--color-primary)" 
                 fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
                 strokeColor="var(--color-primary)" 
@@ -357,6 +444,18 @@ export default function Main() {
                 path={convertXYtoLatLng(polygon?.polygon || [])} />
             ))
           )}
+          {filteredPolygonList && (
+            filteredPolygonList.map((polygon) => (
+              <Polygon
+                key={polygon.id}
+                fillColor="var(--color-secondary)" 
+                fillOpacity={0.3} // 70% opacity
+                strokeColor="var(--color-secondary)" 
+                strokeOpacity={1}
+                strokeWeight={1.5}
+                path={convertXYtoLatLng(polygon?.polygon || [])} />
+            ))
+          )}          
           <AreaOverlay
             isDrawingArea={isDrawingArea}
             areaPaths={areaPaths}
@@ -386,11 +485,37 @@ export default function Main() {
           setCenter={setCenter}
         />
         <SearchBar 
+          onShowFilterSetting={(on) => {
+            console.log('onShowFilterSetting', on);
+            setShowFilterSetting(on);
+          }}
+          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+            setFilter({
+              on,
+              areaRange,
+              farRange,
+              buildingAgeRange,
+              usageList,
+            });
+          }}
           onSelect={(id) => {
             console.log('onSelect', id);
             getPolygon({id, changePosition: true});
           }}
         />
+        {
+          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[145px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+                TIP
+              </p>
+              <p className="font-s3 text-text-02">
+                필터 결과를 보려면 지도를 더 확대 해주세요. 
+              </p>
+            </div>
+          )
+        }
         <Button
           onClick={() => {
             setOpenAIChat(true);
@@ -400,6 +525,8 @@ export default function Main() {
           <BuildingShopBITextSmall />
           <AIShineLogo/>
         </Button>
+
+
         {roadViewCenter && (
           <RoadViewOverlay
             roadViewCenter={roadViewCenter}

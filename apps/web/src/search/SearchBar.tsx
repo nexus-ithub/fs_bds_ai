@@ -44,11 +44,11 @@ const BUILDING_AGE_MARKS = [
 ]
 
 const USAGE_LIST = [
-  { value: '1종전용주거지역', label: '1종전용' },
-  { value: '2종전용주거지역', label: '2종전용' },
-  { value: '1종일반주거지역', label: '1종일반' },
-  { value: '2종일반주거지역', label: '2종일반' },
-  { value: '3종일반주거지역', label: '3종일반' },
+  { value: '제1종전용주거지역', label: '1종전용' },
+  { value: '제2종전용주거지역', label: '2종전용' },
+  { value: '제1종일반주거지역', label: '1종일반' },
+  { value: '제2종일반주거지역', label: '2종일반' },
+  { value: '제3종일반주거지역', label: '3종일반' },
   { value: '준주거지역', label: '준주거' },
   { value: '중심상업지역', label: '중심상업' },
   { value: '일반상업지역', label: '일반상업' },
@@ -143,6 +143,8 @@ function StyledSlider({
   marks?: readonly { value: number; label: string }[];
   step?: number;
 }) {
+  const [tmpRange, setTmpRange] = useState(range);
+
   return (
     <div className="px-[20px] relative">
       <Slider
@@ -182,18 +184,22 @@ function StyledSlider({
             backgroundColor: '#aaa',
           },
         }}           
-        defaultValue={range}         
-        value={range}
-        onChange={(e, value) => setRange(value as number[])}
+        defaultValue={tmpRange}         
+        value={tmpRange}
+        onChange={(e, value) => {
+          e.preventDefault();
+          // console.log('e', e);
+          setTmpRange(value as number[]);
+        }}
+        onChangeCommitted={(e, value) => {
+          e.preventDefault();
+          // console.log('e', e);
+          setTmpRange(value as number[]);
+          setRange(value as number[]);
+        }}
+        // onChangeCommitted={(e, value) => setRange(value as number[])}
         valueLabelDisplay="auto"
         step={step}
-        // marks={[
-        //   { value: 0, label: '0m²' },
-        //   { value: 2500, label: '2,500m²' },
-        //   { value: 5000, label: '5,000m²' },
-        //   { value: 7500, label: '7,500m²' },
-        //   { value: 10000, label: '10,000m²+' },
-        // ]}
         min={marks?.[0].value}
         max={marks?.[marks.length - 1].value}
       />
@@ -213,15 +219,17 @@ function StyledSlider({
 
 export interface SearchBarProps {
   onSelect: (id: string) => void;
+  onFilterChange: (on: boolean, areaRange: number[], farRange: number[], buildingAgeRange: number[], usageList: string[]) => void;
+  onShowFilterSetting: (on: boolean) => void;
 }
 
 const validPattern = /^[가-힣0-9a-zA-Z\s-]+$/;
 
-export const SearchBar = ({onSelect}: SearchBarProps) => {
+export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: SearchBarProps) => {
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const { recent, push, clear, removeById } = useRecentSelections();
+  const {recent, push, clear, removeById } = useRecentSelections();
   const axiosInstance = useAxiosWithAuth()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false)
@@ -236,6 +244,8 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
   const requestSeqRef = useRef(0);           // 발사된 요청 번호
   const latestQueryRef = useRef("");         // 마지막으로 요청한 쿼리
 
+  const [filterOn, setFilterOn] = useState(false);
+  
   const [showFilterSetting, setShowFilterSetting] = useState(false);
 
   const [areaRange, setAreaRange] = useState([0, 10000]);
@@ -245,6 +255,10 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
   const [usageList, setUsageList] = useState(new Set<string>());
   const loadedFilter = useRef(false);
 
+  useEffect(() => {
+    onShowFilterSetting?.(showFilterSetting);
+  }, [showFilterSetting]);
+  
   useEffect(() => {
     console.log('usageList', usageList);
 
@@ -266,7 +280,14 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
     if(loadedFilter.current) {
       localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
     }
-  }, [areaRange, farRange, buildingAgeRange, usageList]);
+    const resultAreaRange = [areaRange[0], areaRange[1] === AREA_MARKS[AREA_MARKS.length - 1].value ? -1 : areaRange[1]];
+    const resultFarRange = [farRange[0], farRange[1] === FAR_MARKS[FAR_MARKS.length - 1].value ? -1 : farRange[1]];
+    const resultBuildingAgeRange = [buildingAgeRange[0], buildingAgeRange[1] === BUILDING_AGE_MARKS[BUILDING_AGE_MARKS.length - 1].value ? -1 : buildingAgeRange[1]];
+    onFilterChange?.(
+      filterOn, resultAreaRange, resultFarRange, resultBuildingAgeRange, 
+      usageList.size === USAGE_LIST.length ? null : Array.from(usageList)
+    );
+  }, [filterOn, areaRange, farRange, buildingAgeRange, usageList]);
 
 
   // const saveRecentFilter = () => {
@@ -432,8 +453,8 @@ export const SearchBar = ({onSelect}: SearchBarProps) => {
         </button>
         <VDivider/>
         <Switch
-          checked={false}
-          onChange={() => {}}
+          checked={filterOn}
+          onChange={() => {setFilterOn(!filterOn)}}
           isLabel={true}
         />
         <VDivider className="h-full"/>

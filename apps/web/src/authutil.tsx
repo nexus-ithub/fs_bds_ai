@@ -13,7 +13,7 @@
 import axios from "axios";
 import { API_HOST } from "./constants";
 
-// }
+
 export function setToken(accessToken : string | null) {
   const authData = { accessToken };
   const autoLogin = localStorage.getItem("autoLogin");

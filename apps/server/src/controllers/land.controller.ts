@@ -9,8 +9,8 @@ import { BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
 import { AIReportModel } from '../models/aireport.model';
 
 
-const ESTIMATE_REFERENCE_DISTANCE = 300;
-const ESTIMATE_REFERENCE_YEAR = 2;
+// const ESTIMATE_REFERENCE_DISTANCE = 300;
+// const ESTIMATE_REFERENCE_YEAR = 2;
 
 // export const getLandInfo = async (req: AuthRequest, res: Response) => {
 //   try {
@@ -122,6 +122,35 @@ export const getPolygonWithSub = async (req: AuthRequest, res: Response) => {
     res.status(200).json(polygon);
   } catch (err) {
     console.error('Get polygon info error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const getFilteredPolygon = async (req: AuthRequest, res: Response) => {
+  try {
+    const { neLat, neLng, swLat, swLng, startArea, endArea, startFar, endFar, startBdAge, endBdAge, usages } = req.query;
+    console.log(req.query)
+    if (!neLat || !neLng || !swLat || !swLng) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const polygon = await LandModel.findFilteredPolygon(
+      Number(neLat),
+      Number(neLng),
+      Number(swLat),
+      Number(swLng),
+      Number(startArea),
+      Number(endArea),
+      Number(startFar),
+      Number(endFar),
+      Number(startBdAge),
+      Number(endBdAge),
+      usages as string
+    );
+
+    res.status(200).json(polygon);
+  } catch (err) {
+    console.error('Get filtered polygon info error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
