@@ -12,6 +12,7 @@ const MAX_ITEMS = 30;
 const STORAGE_KEY_FILTER = "recentSelectedFilter";
 
 interface SelectedFilter {
+  textAsArea : boolean;
   areaRange : number[];
   farRange : number[];
   buildingAgeRange : number[];
@@ -25,6 +26,14 @@ const AREA_MARKS = [
   { value: 5000, label: '5,000m²' },
   { value: 7500, label: '7,500m²' },
   { value: 10000, label: '10,000m²+' },
+]
+
+const AREA_PY_MARKS = [
+  { value: 0, label: '0평' },
+  { value: 750, label: '750평' },
+  { value: 1500, label: '1500평' },
+  { value: 2250, label: '2250평' },
+  { value: 3000, label: '3000평+' },
 ]
 
 const FAR_MARKS = [
@@ -76,23 +85,7 @@ function loadRecent(): SearchResult[] {
   }
 }
 
-function loadRecentFilter(): SelectedFilter {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_FILTER);
-    console.log('raw', raw);
-    if(raw) {
-      return JSON.parse(raw) as SelectedFilter;
-    }
-  } catch {
-    console.error('Failed to load recent filter');
-  }
-  return {
-    areaRange: [0, 10000],
-    farRange: [0, 1500],
-    buildingAgeRange: [0, 40],
-    usageList: USAGE_LIST.map((usage) => usage.value),
-  };    
-}
+
 
 // 맨 앞 삽입(중복 제거), 최대 개수 제한
 function upsertFront(list: SearchResult[], item: SearchResult): SearchResult[] {
@@ -143,8 +136,15 @@ function StyledSlider({
   marks?: readonly { value: number; label: string }[];
   step?: number;
 }) {
+
+  console.log('StyledSlider areaRange', range);
+  
   const [tmpRange, setTmpRange] = useState(range);
 
+  useEffect(() => {
+    setTmpRange(range);
+  }, [range]);
+  
   return (
     <div className="px-[20px] relative">
       <Slider
@@ -248,24 +248,45 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
   
   const [showFilterSetting, setShowFilterSetting] = useState(false);
 
-  const [areaRange, setAreaRange] = useState([0, 10000]);
-  const [farRange, setFarRange] = useState([0, 1500]);
-  const [buildingAgeRange, setBuildingAgeRange] = useState([0, 40]);
+  const [areaRange, setAreaRange] = useState<number[]>([]);
+  const [farRange, setFarRange] = useState<number[]>([]);
+  const [buildingAgeRange, setBuildingAgeRange] = useState<number[]>([]);
 
   const [usageList, setUsageList] = useState(new Set<string>());
   const loadedFilter = useRef(false);
+  const [textAsArea, setTextAsArea] = useState(true);
 
   useEffect(() => {
     onShowFilterSetting?.(showFilterSetting);
   }, [showFilterSetting]);
   
+  const loadRecentFilter = (): SelectedFilter => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_FILTER);
+      console.log('raw', raw);
+      if(raw) {
+        return JSON.parse(raw) as SelectedFilter;
+      }
+    } catch {
+      console.error('Failed to load recent filter');
+    }
+    return {
+      textAsArea,
+      areaRange: [0, textAsArea ? AREA_MARKS[AREA_MARKS.length - 1].value : AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value],
+      farRange: [0, 1500],
+      buildingAgeRange: [0, 40],
+      usageList: USAGE_LIST.map((usage) => usage.value),
+    };    
+  }
+
   useEffect(() => {
-    console.log('usageList', usageList);
+    console.log('load recent filter', usageList);
 
     // resetUsageList();
     const recentFilter = loadRecentFilter();
 
     console.log('recentFilter', recentFilter);
+    setTextAsArea(recentFilter.textAsArea);
     setAreaRange(recentFilter.areaRange);
     setFarRange(recentFilter.farRange);
     setBuildingAgeRange(recentFilter.buildingAgeRange);
@@ -277,17 +298,36 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
   }, []);
 
   useEffect(() => {
+
+
+    // console.log('filterOn', filterOn);
+    // console.log('areaRange', areaRange);
+    // console.log('farRange', farRange);
+    // console.log('buildingAgeRange', buildingAgeRange);
+    // console.log('usageList', usageList);
+    // console.log('textAsArea', textAsArea);
+
+    console.log('areaRange', areaRange);
+
     if(loadedFilter.current) {
-      localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
+      localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ textAsArea, areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
     }
-    const resultAreaRange = [areaRange[0], areaRange[1] === AREA_MARKS[AREA_MARKS.length - 1].value ? -1 : areaRange[1]];
+
+    const maxArea = textAsArea ? AREA_MARKS[AREA_MARKS.length - 1].value : AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value;
+    const resultAreaRange = [areaRange[0], areaRange[1] === maxArea ? -1 : areaRange[1]];
+    if(!textAsArea) {
+      resultAreaRange[0] = resultAreaRange[0] * 0.3025;
+      if(resultAreaRange[1] >= 0 ) {
+        resultAreaRange[1] = resultAreaRange[1] * 0.3025;
+      }
+    }
     const resultFarRange = [farRange[0], farRange[1] === FAR_MARKS[FAR_MARKS.length - 1].value ? -1 : farRange[1]];
     const resultBuildingAgeRange = [buildingAgeRange[0], buildingAgeRange[1] === BUILDING_AGE_MARKS[BUILDING_AGE_MARKS.length - 1].value ? -1 : buildingAgeRange[1]];
     onFilterChange?.(
       filterOn, resultAreaRange, resultFarRange, resultBuildingAgeRange, 
       usageList.size === USAGE_LIST.length ? null : Array.from(usageList)
     );
-  }, [filterOn, areaRange, farRange, buildingAgeRange, usageList]);
+  }, [textAsArea, filterOn, areaRange, farRange, buildingAgeRange, usageList]);
 
 
   // const saveRecentFilter = () => {
@@ -346,7 +386,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
       }
 
       setResults(res.data);
-    } catch (err: any) {
+    } catch (err) {
       // 취소는 에러로 오니 조용히 무시
       if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
         return;
@@ -608,9 +648,20 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
           <div className="fixed top-[144px] w-[400px] p-[20px] min-h-[480px] bg-white left-[424px] z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
-              <button className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]">
+              <button onClick={(e) => {
+                  // e.stopPropagation();
+                  const textAsAreaM2 = !textAsArea;
+                  if(textAsAreaM2) {
+                    setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value])
+                  } else {
+                    setAreaRange([0, AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value])
+                  }                
+                  setTextAsArea(textAsAreaM2); 
+
+                }} 
+                className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]">
                 <ChangeIcon/>
-                평
+                {textAsArea ? '평' : '㎡' }
               </button>
             </div>
             <p className="mt-[4px] font-s2 text-text-03">
@@ -622,8 +673,8 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
                 <StyledSlider
                   range={areaRange}
                   setRange={setAreaRange}
-                  marks={AREA_MARKS}
-                  step={100}
+                  marks={textAsArea ? AREA_MARKS : AREA_PY_MARKS}
+                  step={textAsArea ? 100 : 10}
                 />
               </div>
               <div>
