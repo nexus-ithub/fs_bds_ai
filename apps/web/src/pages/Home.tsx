@@ -13,15 +13,17 @@ export const Home = () => {
 
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
+  const accessToken = getAccessToken();
   const {
     isLoading: checkingConfig,
-    // data: config,
+    data: config,
   } = useQuery({
-    queryKey: [QUERY_KEY_USER, getAccessToken()],
+    queryKey: [QUERY_KEY_USER, accessToken],
     queryFn: async () => {
       const response = await axiosInstance.get("/api/user/info");
       return response.data;
     },
+    enabled: !!accessToken,
     onSuccess: (data) => {
       console.log("config onSuccess ", data);
     },
@@ -47,7 +49,7 @@ export const Home = () => {
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <Header />
+      <Header user={config}/>
       <div className="min-h-0 flex-1 mt-[64px]">
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />

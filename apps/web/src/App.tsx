@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Home } from './pages/Home'
 import Login from './pages/Login'
 import { Signup } from './pages/Signup'
-
+import { OAuthCallback } from './auth/callback/OAuthCallback'
 
 function App() {
   
@@ -22,6 +22,9 @@ function App() {
           path="/signup/*"
           element={<Signup />}
         />
+        <Route 
+          path="/oauth/callback/*" 
+          element={<OAuthCallback />} />
       </Routes>
 
     </Router>

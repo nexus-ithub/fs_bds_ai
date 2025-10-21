@@ -21,6 +21,11 @@ export default function Login() {
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
+  const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
+  const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
+  const kakaoToken = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -158,9 +163,13 @@ export default function Login() {
               <HDivider/>
             </div>
             <div className="flex items-center justify-center gap-[36px]">
-              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FEE502] rounded-full"><KakaoLogo/></button>
+              <button 
+                onClick={() => window.location.href = kakaoToken}
+                className="flex items-center justify-center w-[48px] h-[48px] bg-[#FEE502] rounded-full"
+              >
+                <KakaoLogo/>
+              </button>
               <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#04C73C] rounded-full"><NaverLogo/></button>
-              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#1977F3] rounded-full"><FacebookLogo/></button>
               <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"><GoogleLogo/></button>
             </div>
           </div>

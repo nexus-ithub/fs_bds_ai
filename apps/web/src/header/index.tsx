@@ -26,12 +26,9 @@ const SUPPORT_MENU = [
   },
 ]
 
-export const Header = () => {
+export const Header = ({user} : {user : User}) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()]
-  })
   const isSupportPage = location.pathname.startsWith("/support");
 
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
@@ -63,16 +60,18 @@ export const Header = () => {
         )}
       </div>
       <div className="flex items-center gap-[16px]">
-        <div className="flex items-center gap-[8px]">
-          {/* <button ref={ProfileRef} className="w-[24px] h-[24px] bg-purple-300 rounded-full" onClick={() => {setAnchorEl(ProfileRef.current)}}>😁</button> */}
-          <IconButton ref={ProfileRef} onClick={() => {setAnchorEl(ProfileRef.current)}} className="!p-0">
-            <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 24, height: 24 }}/>
-          </IconButton>
-          <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
-            <span className="font-s2-p">{config?.name}</span>
-            <span className="font-s2 text-text-02">고객님</span>
-          </p>
-        </div>
+        {user && (
+          <div className="flex items-center gap-[8px]">
+            {/* <button ref={ProfileRef} className="w-[24px] h-[24px] bg-purple-300 rounded-full" onClick={() => {setAnchorEl(ProfileRef.current)}}>😁</button> */}
+            <IconButton ref={ProfileRef} onClick={() => {setAnchorEl(ProfileRef.current)}} className="!p-0">
+              <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 24, height: 24 }}/>
+            </IconButton>
+            <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
+              <span className="font-s2-p">{user?.name}</span>
+              <span className="font-s2 text-text-02">고객님</span>
+            </p>
+          </div>
+        )}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
@@ -91,8 +90,8 @@ export const Header = () => {
             <div className="flex items-center gap-[12px]">
               <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 48, height: 48 }}/>
               <div className="flex flex-col gap-[2px]">
-                <p><span className="font-s1 mr-[4px]">김이름</span><span className="font-s1 text-text-02">고객님</span></p>
-                <p className="font-s1">admin@jungin.com</p>
+                <p><span className="font-s1 mr-[4px]">{user?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
+                <p className="font-s1">{user?.email}</p>
               </div>
             </div>
             <HDivider/>
@@ -125,7 +124,7 @@ export const Header = () => {
         <button>
           <AlarmIcon/>
         </button> */}
-        <VDivider colorClassName="bg-line-04"/>
+        {user && <VDivider colorClassName="bg-line-04"/>}
         <a 
           href="/support"
           target="_blank"
@@ -134,9 +133,14 @@ export const Header = () => {
           고객센터
         </a>
         <VDivider colorClassName="bg-line-04"/>
-        <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
-          LOGOUT
-        </button>
+        {user ? 
+          <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
+            LOGOUT
+          </button> 
+        : <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
+            LOGIN
+          </button>
+        }
         <VDivider colorClassName="bg-line-04"/>
         {/* <div className="w-[160px] h-full font-b3 text-text-04 rounded-[2px] border border-line-03">
           빌딩샵 관련 사이트 (TODO)
