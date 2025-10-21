@@ -7,6 +7,8 @@ import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { v4 as uuidv4 } from 'uuid';
+import useAxiosWithAuth from "../axiosWithAuth";
+import setting from "../../../admin/app/main/agent/setting.json"
 
 interface AIChatProps {
   open: boolean;
@@ -37,8 +39,14 @@ interface ChatHistory {
 }
 
 export const AIChat = ({open, onClose}: AIChatProps) => {
+  const axiosInstance = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()]
+      queryKey: [QUERY_KEY_USER, getAccessToken()],
+      queryFn: async () => {
+        const response = await axiosInstance.get("/api/user/info");
+        return response.data;
+      },
+      enabled: !!getAccessToken(),
     })
   const [mounted, setMounted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -216,7 +224,6 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     try {
       if (!config?.id) return;
       const response = await axios.get(`${API_HOST}/api/chat/getChatHistory`, { params: { userId: config?.id } });
-      console.log("*******", response.data);
       const raw = response.data;
 
       const grouped: Record<string, ChatHistory & { latestCreatedAt: string }> = {};
@@ -249,7 +256,6 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         .sort((a, b) => new Date(b.latestCreatedAt).getTime() - new Date(a.latestCreatedAt).getTime())
         .map(({ latestCreatedAt, ...rest }) => rest);
 
-      console.log("******* parsed chat history", chatHistories);
       setChatHistory(chatHistories);
     } catch (error) {
       console.error(error);
@@ -341,12 +347,12 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           <div className="flex items-center justify-between px-[24px] h-[64px] border-b border-line-02 flex-shrink-0">
             <div className="flex items-center h-full gap-[12px]">
               <AILogo/>
-              <p className="font-s2-p text-text-01">빌딩샵AI</p>
+              <p className="font-s2-p text-text-01">{setting?.agentName || "빌딩샵AI"}</p>
               <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
-              <p className="font-s2 text-text-03">부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다.</p>
+              <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
             </div>
             <div className="flex items-center gap-[12px]">
-              <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null);}}>NEW CHAT</Button>
+              <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null);}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
               <button onClick={onClose}><CloseIcon/></button>
             </div>
           </div>    
@@ -361,28 +367,26 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                 {currentChat?.messages.length === 0 || !currentChat ? (
                   <div className="flex flex-col gap-[40px] py-[64px]">
                     <div className="flex flex-col gap-[8px] items-center">
-                      <h2 className="font-h2">안녕하세요! 빌딩샵AI 입니다.</h2>
-                      <p className="font-b2 text-center">부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.<br/>관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!</p>
+                      <h2 className="font-h2">{setting?.chatTitle || "안녕하세요! 빌딩샵AI 입니다."}</h2>
+                      <p className="font-b2 text-center whitespace-pre-line">{setting?.chatSubtitle || "부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.\n관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!"}</p>
                     </div>
-                    <div className="flex flex-col gap-[16px]">
-                      <button 
-                        onClick={() => handleAskChat("부동산 매매 시 사용가능한 금융상품 추천해 주세요.")}
-                        className="flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02">
-                        <h2 className="w-[40px] h-[40px] flex items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">💸</h2>
-                        <p className="font-s2">부동산 매매 시 사용가능한 금융상품 추천해 주세요.</p>
-                      </button>
-                      <button 
-                        onClick={() => handleAskChat("매매 후 재건축 프로세스가 궁금합니다.")}
-                        className="flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02">
-                        <h2 className="w-[40px] h-[40px] flex items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">🏠</h2>
-                        <p className="font-s2">매매 후 재건축 프로세스가 궁금합니다.</p>
-                      </button>
-                      <button 
-                        onClick={() => handleAskChat("토지를 매입하고 신축을 할 경우 프로세스가 궁금해요.")}
-                        className="flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02">
-                        <h2 className="w-[40px] h-[40px] flex items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">🏢</h2>
-                        <p className="font-s2">토지를 매입하고 신축을 할 경우 프로세스가 궁금해요.</p>
-                      </button>
+                    <div className="flex flex-col items-center gap-[16px]">
+                      {setting?.questions
+                        ?.filter(q => q.selectedYn === "Y")
+                        ?.sort((a, b) => (a.seq ?? 9999) - (b.seq ?? 9999))
+                        ?.map((q) => (
+                          <button
+                            key={q.id}
+                            onClick={() => handleAskChat(q.question)}
+                            className="w-[500px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02"
+                            style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
+                          >
+                            <h2 className="w-[40px] h-[40px] flex shrink-0 items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">
+                              {q.icon}
+                            </h2>
+                            <p className="font-s2">{q.question}</p>
+                          </button>
+                        ))}
                     </div>
                   </div>
                 ) : (
@@ -407,7 +411,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   <textarea
                     rows={1}
                     className="w-full font-b1 focus:outline-none resize-none overflow-y-auto max-h-[120px] scrollbar-hover"
-                    placeholder="궁금하신 점을 물어보세요."
+                    placeholder={setting?.placeholder || "궁금하신 점을 물어보세요."}
                     value={questionInput}
                     onChange={(e) => setQuestionInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -435,7 +439,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   </button>
                 </div>
                 <div className="flex h-[56px] items-center font-c2 text-text-04">
-                  <p>빌딩샵은 AI 모델입니다. 제공된 정보를 항상 검증하시기 바랍니다.</p>
+                  <p>{setting?.warningMsg || "빌딩샵은 AI 모델입니다. 제공된 정보를 항상 검증하시기 바랍니다."}</p>
                 </div>
               </div> 
             </div>
