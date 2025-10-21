@@ -3,7 +3,7 @@ import React from 'react';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?: 'default' | 'outline' | 'bggray' | 'outlinegray';
-  size?: 'default' | 'medium' | 'small';
+  size?: 'default' | 'medium' | 'semiMedium' | 'small';
   fontSize?: string;
 }
 
@@ -28,6 +28,7 @@ export function Button({
   const sizes = {
     default: 'py-[8px] px-[12px]',
     medium: 'py-[14px] px-[12px]',
+    semiMedium: 'py-[11px] px-[12px]',
     small: 'py-[4px] px-[10px]',
   };
 

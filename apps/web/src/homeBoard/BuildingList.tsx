@@ -5,6 +5,8 @@ import React from "react";
 import { CircularProgress, Dialog, DialogContent } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
 import { BuildingDetailDialog } from "./BuildingDetail";
+import axios from "axios";
+import { API_HOST } from "../constants";
 
 
 const FILTER_TABS = [
@@ -55,7 +57,8 @@ export const BuildingList = () => {
     try {
       setLoading(true);
       setIsError(false);
-      const res = await axiosWithAuth.get('/api/bds/list', {params: {filter: order}});
+      // const res = await axiosWithAuth.get('/api/bds/list', {params: {filter: order}});
+      const res = await axios.get(`${API_HOST}/api/bds/list`, {params: {filter: order}});
       setBuildings(res.data as BdsSale[]);
     } catch (error) {
       console.error(error);

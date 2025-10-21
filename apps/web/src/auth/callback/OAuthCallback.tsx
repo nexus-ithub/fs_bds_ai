@@ -2,6 +2,7 @@ import { DotProgress } from "@repo/common";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_HOST } from "../../constants";
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -24,14 +25,14 @@ export const OAuthCallback = () => {
       try {
         // 서버에 provider와 code 전달 → 서버가 token 발급 처리
         const res = await axios.post(
-          `${import.meta.env.VITE_API_HOST}/api/auth/oauth`,
+          `${API_HOST}/api/auth/oauth`,
           { provider, code }
         );
 
         console.log("로그인 완료:", res.data);
 
         // 로그인 상태 저장 후 메인 페이지 이동
-        navigate("/");
+        navigate("/main");
       } catch (err) {
         console.error("OAuth 로그인 실패:", err);
         alert("OAuth 로그인 실패");

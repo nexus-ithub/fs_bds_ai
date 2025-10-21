@@ -137,7 +137,7 @@ export const Header = ({user} : {user : User}) => {
           <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
             LOGOUT
           </button> 
-        : <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
+        : <button className="font-s2-p" onClick={() => {navigate('/login')}}>
             LOGIN
           </button>
         }
@@ -175,7 +175,7 @@ export const Header = ({user} : {user : User}) => {
 
           <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
             <Button variant="bggray" className="w-[60px]" onClick={() => {setLogoutConfirm(false)}}>취소</Button>
-            <Button className="w-[100px]" onClick={() => {logout(); setLogoutConfirm(false); navigate("/login")}}>확인</Button>
+            <Button className="w-[100px]" onClick={() => {logout(); setLogoutConfirm(false); navigate("/main")}}>확인</Button>
           </div>
         </div>
       </Dialog>

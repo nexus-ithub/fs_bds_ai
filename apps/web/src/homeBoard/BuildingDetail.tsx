@@ -6,6 +6,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { useEffect, useState } from "react";
+import { NeedLoginDialog } from "../auth/NeedLoginDialog";
 
 export const BuildingDetailDialog = ({
   open,
@@ -18,12 +19,22 @@ export const BuildingDetailDialog = ({
 }) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()]
+    queryKey: [QUERY_KEY_USER, getAccessToken()],
+    queryFn: async () => {
+      const response = await axiosWithAuth.get("/api/user/info");
+      return response.data;
+    },
+    enabled: !!getAccessToken(),
   })
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [openNeedLogin, setOpenNeedLogin] = useState<boolean>(false);
 
   const addBookmark = async () => {
     try {
+      if (!config) {
+        setOpenNeedLogin(true);
+        return;
+      }
       await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building, deleteYn: isBookmarked ? 'Y' : 'N'});
       setIsBookmarked(!isBookmarked);
     } catch (error) {
@@ -33,6 +44,7 @@ export const BuildingDetailDialog = ({
 
   const getIdBookmarked = async () => {
     try {
+      if (!config) return;
       const res = await axiosWithAuth.get('/api/bds/is-bookmarked', {params: {userId: config?.id, bdsId: building.idx}});
       setIsBookmarked(res.data);
     } catch (error) {
@@ -124,6 +136,7 @@ export const BuildingDetailDialog = ({
         <Button className="w-full h-[48px]" variant="outline" fontSize="font-h4">매입 상담 요청</Button>
         <Button className="w-full h-[48px]" fontSize="font-h4">AI 설계 • 임대 분석 리포트</Button>
       </div>
+      <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
     </Dialog>  
   )
 }

@@ -159,8 +159,7 @@ export const logout = async (req: Request, res: Response) => {
 
 export const oauth = async (req: Request, res: Response) => {
   try {
-    const { provider } = req.params;
-    const { code } = req.query;
+    const { provider, code } = req.body;
     console.log('provider:', provider);
     console.log('code:', code);
     res.status(200).json({ message: 'OAuth 로그인 성공' });
