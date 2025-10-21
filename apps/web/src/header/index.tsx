@@ -137,7 +137,7 @@ export const Header = ({user} : {user : User}) => {
           <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
             LOGOUT
           </button> 
-        : <button className="font-s2-p" onClick={() => {setLogoutConfirm(!logoutConfirm)}}>
+        : <button className="font-s2-p" onClick={() => {navigate('/login')}}>
             LOGIN
           </button>
         }
