@@ -156,3 +156,16 @@ export const logout = async (req: Request, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+export const oauth = async (req: Request, res: Response) => {
+  try {
+    const { provider } = req.params;
+    const { code } = req.query;
+    console.log('provider:', provider);
+    console.log('code:', code);
+    res.status(200).json({ message: 'OAuth 로그인 성공' });
+  } catch (err) {
+    console.error('OAuth 로그인 실패:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
