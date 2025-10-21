@@ -5,14 +5,14 @@ import { getLandInfo, getPolygonInfo, getPolygonWithSub, getBusinessDistrict, ge
 
 const router: Router = Router();
 
-router.get('/polygon', verifyToken, getPolygonInfo);
-router.get('/polygon-with-sub', verifyToken, getPolygonWithSub);
-router.get('/info', verifyToken, getLandInfo);
-router.get('/building-list', verifyToken, getBuildingList);
-router.get('/business-district', verifyToken, getBusinessDistrict);
-router.get('/place', verifyToken, getPlace);
-router.get('/estimated-price', verifyToken, getEstimatedPrice);
-router.post('/ai-report', verifyToken, getAIReport);
+router.get('/polygon', getPolygonInfo);
+router.get('/polygon-with-sub', getPolygonWithSub);
+router.get('/info', getLandInfo);
+router.get('/building-list', getBuildingList);
+router.get('/business-district', getBusinessDistrict);
+router.get('/place', getPlace);
+router.get('/estimated-price', getEstimatedPrice);
+router.post('/ai-report', getAIReport);
 router.get('/is-bookmarked', verifyToken, isBookmarked);
 router.post('/bookmark', verifyToken, addBookmark);
 router.get('/bookmark', verifyToken, getBookmarkList);

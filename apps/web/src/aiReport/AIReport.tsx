@@ -7,6 +7,7 @@ import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
+import { NeedLoginDialog } from "../auth/NeedLoginDialog";
 
 
 export interface AIReportProps {
@@ -26,7 +27,12 @@ const ReportItem = ({title, value}: {title: string, value: string}) => {
 export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const axiosWithAuth = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()]
+    queryKey: [QUERY_KEY_USER, getAccessToken()],
+    queryFn: async () => {
+      const response = await axiosWithAuth.get("/api/user/info");
+      return response.data;
+    },
+    enabled: !!getAccessToken(),
   })
   
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -37,6 +43,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
   const [selectedTab, setSelectedTab] = useState<number>(0);
+  const [openNeedLogin, setOpenNeedLogin] = useState<boolean>(false);
   const didRunRef = useRef(false);
   
   const getGrade = (grade: string) => {
@@ -132,6 +139,10 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   
   const addBookmark = async () => {
     try {
+      if (!config) {
+        setOpenNeedLogin(true);
+        return;
+      }
       await axiosWithAuth.post('/api/land/bookmark', {
         userId: config?.id, 
         landId: landId, 
@@ -146,6 +157,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
 
   const getIdBookmarked = async () => {
     try {
+      if (!config) return;
       const res = await axiosWithAuth.get('/api/land/is-bookmarked', {
         params: {userId: config?.id, landId: landId}});
       setIsBookmarked(res.data);
@@ -157,6 +169,14 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   useEffect(() => {
     getIdBookmarked();
   }, [])
+
+  const handleDetailReport = () => {
+    if (!config) {
+      setOpenNeedLogin(true);
+      return;
+    }
+    
+  }
 
   const sortedItems = useMemo(() => {
     if(aiReportResult){
@@ -423,11 +443,16 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         <div className="">
           <HDivider/>
           <div className="mx-[16px]">
-            <Button className="my-[12px] py-[12px] w-full" fontSize="font-h4">추천 항목 상세 리포트 보기</Button>  
+            <Button 
+            className="my-[12px] py-[12px] w-full" 
+            fontSize="font-h4"
+            onClick={() => handleDetailReport()}>
+              추천 항목 상세 리포트 보기
+            </Button>  
           </div>
         </div>        
       </div>
-     
+      <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
     </div>
   );
 };

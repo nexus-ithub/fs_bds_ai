@@ -56,7 +56,9 @@ export default function Login() {
       <div className="flex flex-col items-center w-full max-w-[664px] h-[820px] flex-shrink-0 rounded">
         <div className="flex flex-col w-[320px] my-[75px] pb-[40px] gap-[40px]">
           <div className="flex flex-col gap-[24px] items-center">
-            <BuildingShopBI/>
+            <button onClick={() => navigate('/main')}> 
+              <BuildingShopBI/>
+            </button>
             <div className='flex flex-col gap-[6px]'>
               <p className="text-center font-h3">
                 NO.1 빌딩 매매 전문

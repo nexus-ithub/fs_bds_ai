@@ -6,6 +6,6 @@ const router: Router = Router();
 router.post('/login', login);
 router.post('/refresh-token', refresh);
 router.post('/logout', logout);
-router.get('/oauth/:provider', oauth);
+router.post('/oauth', oauth);
 
 export default router;
