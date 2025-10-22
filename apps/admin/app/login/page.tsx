@@ -53,6 +53,14 @@ export default function Login() {
     }
   }, [status, router]);
 
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <DotProgress />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center w-full max-w-[664px] flex-shrink-0 rounded">

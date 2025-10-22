@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface User extends RowDataPacket {
   id: string;
@@ -56,7 +56,7 @@ export class UserModel {
 
   static async create (user: User): Promise<User> {
     try {
-      const [result] = await db.query<User>(
+      const result = await db.query(
         `
         INSERT INTO users (email, password, name, phone, profile, provider)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -69,7 +69,12 @@ export class UserModel {
         `,
         [user.email, user.password, user.name, user.phone, user.profile, user.provider]
       );
-      return result;
+
+      const newUser: User = {
+        ...user,
+        id: (result as any).insertId,
+      };
+      return newUser;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;

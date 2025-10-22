@@ -132,7 +132,7 @@ export const MyPage = () => {
       <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
         <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
-            <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 64, height: 64 }}/>
+            <Avatar alt="내 프로필" src={config?.profile || "/support_header.jpg"} sx={{ width: 64, height: 64 }}/>
             <div className="flex flex-col items-center gap-[4px]">
               <p className="font-s2-p"><span className="font-s1-p mr-[4px]">{config?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
               <p className="font-s2-p">{config?.email}</p>
