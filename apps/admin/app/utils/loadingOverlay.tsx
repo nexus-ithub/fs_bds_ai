@@ -29,28 +29,27 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
   };
 
-  useEffect(() => {
+  useEffect(() => {
     if (!isLoading || pathname === loadingPathnameRef.current) {
         return;
     }
 
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      setIsLoading(false);
       loadingPathnameRef.current = null;
-    }, 0);
-    return () => clearTimeout(timer);
+    }, 0);
+    return () => clearTimeout(timer);
     
-  }, [pathname, isLoading]);
+  }, [pathname, isLoading]);
 
-  return (
-    <LoadingContext.Provider value={{ isLoading, startLoading }}>
-      {children}
-      
-      {isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999]">
-          <DotProgress />
-        </div>
-      )}
-    </LoadingContext.Provider>
-  );
+  return (
+    <LoadingContext.Provider value={{ isLoading, startLoading }}>
+      {children}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999]">
+          <DotProgress />
+        </div>
+      )}
+    </LoadingContext.Provider>
+  );
 }
