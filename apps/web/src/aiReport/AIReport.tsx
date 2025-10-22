@@ -1,5 +1,5 @@
 import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
@@ -8,12 +8,16 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
+import { bearingFromTo } from "../utils";
 
 
 export interface AIReportProps {
   landId: string;
   onClose: () => void;
 }
+
+
+
 
 const ReportItem = ({title, value}: {title: string, value: string}) => {
   return (
@@ -191,7 +195,16 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
     return []
   }, [aiReportResult])
 
+  const handleLoad = useCallback((rv: kakao.maps.Roadview) => {
+    const pos = rv.getPosition(); // kakao.maps.LatLng
+    const currentLat = pos.getLat();
+    const currentLng = pos.getLng();
+    const pan = bearingFromTo(currentLat, currentLng, polygon?.lat, polygon?.lng);
+    rv.setViewpoint({ pan, tilt: 0, zoom: -3 });
+  }, [polygon?.lat, polygon?.lng]);
 
+
+  
   return (
     <div className="fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end">
       <div className={`
@@ -231,6 +244,9 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         <div className="flex-1 px-[24px] pb-[24px] space-y-[24px] overflow-y-auto">
           <div className="flex rounded-[8px] border border-line-02">
             <Roadview
+              zoom={-3}
+              onInit={handleLoad}
+              // onLoad={handleLoad}
               onViewpointChange={(viewpoint) => {
                 console.log(viewpoint);
                 // setRoadViewCenter({
@@ -246,9 +262,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                 //   lng: position.getPosition().getLng(),
                 // })
               }}
-              // pan={roadViewCenter.pan}
-              position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 50 }}
-              
+              position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 200 }}
               className="w-[340px] h-[240px] object-cover rounded-l-[8px]"
             >
               <RoadviewMarker position={{ lat: polygon?.lat, lng: polygon?.lng }} />

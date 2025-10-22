@@ -1,5 +1,5 @@
 import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType } from "@repo/common";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
@@ -8,6 +8,7 @@ import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 import { format } from "date-fns";
 import { AIReport } from "../aiReport/AIReport";
 import debounce from "lodash/debounce";
+import { bearingFromTo } from "../utils";
 
 const DEBOUNCE_DELAY = 300;
 const COUNT_BUTTON = [
@@ -15,6 +16,27 @@ const COUNT_BUTTON = [
   { value: 20, label: '20' },
   { value: 50, label: '50' },
 ]
+
+
+const RoadviewComponent = ({lat, lng}: {lat: number, lng: number}) => {
+  const handleLoad = useCallback((rv: kakao.maps.Roadview) => {
+    const pos = rv.getPosition(); // kakao.maps.LatLng
+    const currentLat = pos.getLat();
+    const currentLng = pos.getLng();
+    const pan = bearingFromTo(currentLat, currentLng, lat, lng);
+    rv.setViewpoint({ pan, tilt: 0, zoom: -3 });
+  }, [lat, lng]);
+  
+  return (
+    <Roadview
+      position={{ lat, lng, radius: 200 }}
+      onInit={handleLoad}
+      className="w-[320px] min-h-[220px] object-cover rounded-l-[8px]"
+    >
+      <RoadviewMarker position={{ lat, lng }} />
+    </Roadview>
+  )
+}
 
 export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
@@ -176,7 +198,8 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       <div className="flex flex-col gap-[16px]">
         { bookmarkList?.length > 0 ? bookmarkList.map((item) => (
           <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`} className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
-            <Roadview
+            <RoadviewComponent lat={Number(item.lat)} lng={Number(item.lng)} />
+            {/* <Roadview
               onViewpointChange={(viewpoint) => {
                 // setRoadViewCenter({
                 //   ...roadViewCenter,
@@ -192,11 +215,10 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
               }}
               // pan={roadViewCenter.pan}
               position={{ lat: Number(item.lat), lng: Number(item.lng), radius: 50 }}
-              
               className="w-[320px] min-h-[220px] object-cover rounded-l-[8px]"
             >
               <RoadviewMarker position={{ lat: Number(item.lat), lng: Number(item.lng) }} />
-            </Roadview>
+            </Roadview> */}
             <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
               <div className="flex flex-col gap-[8px]">
                 <div className="flex flex-col gap-[4px]">

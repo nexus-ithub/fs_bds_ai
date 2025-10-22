@@ -137,7 +137,7 @@ function StyledSlider({
   step?: number;
 }) {
 
-  console.log('StyledSlider areaRange', range);
+  // console.log('StyledSlider areaRange', range);
   
   const [tmpRange, setTmpRange] = useState(range);
 
@@ -506,7 +506,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
           onTouchStart={(e) => e.stopPropagation()}
           // onDoubleClick={(e) => e.currentTarget.focus()}
           onClick={(e) => {
-            console.log('onClick  ', e.currentTarget)
+            // console.log('onClick  ', e.currentTarget)
             // setMenuAnchorEl(e.currentTarget);
             setMenuAnchorEl(e.currentTarget);
             // e.stopPropagation();
@@ -515,7 +515,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
             
           }}
           onFocus={(e) => {
-            console.log('onFocus  ', e.currentTarget)
+            // console.log('onFocus  ', e.currentTarget)
           }}
           onBlur={() => {
             console.log('onBlur')
