@@ -47,15 +47,31 @@ const io = new Server(httpServer, {
   },
 });
 
+
 export { io };
+
+// 허용할 도메인 목록
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://nexusnas.iptime.org:7500'
+];
+
 
 // app.use(cors());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? 'https://your-production-frontend-domain.com'
-    : 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // origin이 없는 경우 (예: Postman, 서버 내부 요청 등)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 // Routes
