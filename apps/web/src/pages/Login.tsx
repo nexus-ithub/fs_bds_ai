@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
 import { BuildingShopBI, Checkbox, FacebookLogo, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
@@ -18,8 +18,10 @@ export default function Login() {
     password: '',
     keepLoggedIn: true,
   });
-  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const [error, setError] = useState<string>('');
+  console.log("error : ", error)
 
   const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
   const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
@@ -46,10 +48,18 @@ export default function Login() {
       setToken(data.accessToken)
       navigate('/');
     } catch (err) {
-      alert('로그인 중 오류가 발생했습니다.');
-      // setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+      // alert('로그인 중 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
     }
   };
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setError(location.state.message);
+      // 상태 초기화
+      window.history.replaceState({}, document.title); 
+    }
+  }, [location.state]);
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -68,11 +78,11 @@ export default function Login() {
               </p>
             </div>
           </div>
-          {/* {error && (
+          {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
             </div>
-          )} */}
+          )}
           <div className="flex flex-col gap-[20px]">
             <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-[20px]">

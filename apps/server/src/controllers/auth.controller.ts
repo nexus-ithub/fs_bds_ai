@@ -227,39 +227,48 @@ export const oauth = async (req: Request, res: Response) => {
       const existingUser = await UserModel.findByEmail(user.email);
       console.log('existingUser:', existingUser);
       if (!existingUser) { // 완전 신규회원 -> 추가 정보 입력 필요
-        await UserModel.create(user);
-        res.status(200).json({ message: '회원가입 성공' });
-      } else if(!existingUser.provider) {  // 일반가입 했던 회원 -> 추가 정보 입력 필요
-        await UserModel.create({...existingUser, provider: user.provider, profile: user.profile});
-        res.status(200).json({ message: '소셜연동 성공' });
-      } else {  // 이미 소셜로그인 했던 회원 -> 로그인
+        console.log("완전 신규회원")
+        user = await UserModel.create(user);
+        // res.status(201).json({ message: '회원가입이 완료되었습니다.' });
+      } else if(!existingUser.provider) {  // 일반가입 했던 회원
+        console.log("일반가입 했던 회원")
+        res.status(409).json({ message: '이미 가입된 계정입니다. 다른 방법으로 로그인하세요.' });
+      } else {
+        console.log("이미 소셜회원가입 했던 회원")
         await UserModel.create({...existingUser, profile: user.profile});
-        const accessToken = generateAccessToken(Number(existingUser.id), keepLoggedIn);
-        const refreshToken = generateRefreshToken(Number(existingUser.id), keepLoggedIn);
-
-        const refreshExpiry = new Date();
-        if (keepLoggedIn) {
-          refreshExpiry.setDate(refreshExpiry.getDate() + 14);
-        } else {
-          refreshExpiry.setHours(refreshExpiry.getHours() + 1);
-        }
-
-        await RefreshTokenModel.create(Number(existingUser.id), refreshToken, refreshExpiry);
-
-        res.cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: keepLoggedIn 
-            ? 14 * 24 * 60 * 60 * 1000 // 14일
-            : 1 * 60 * 60 * 1000,       // 1시간
-        });
-
-        res.status(200).json({
-          id: user.id,
-          accessToken,
-        });
       }
+      console.log("로그인 과정 시작")
+      console.log("existingUser.id:", existingUser?.id);
+      console.log("user >>> ", user)
+      console.log("user.id:", user.id);
+      const accessToken = generateAccessToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
+      const refreshToken = generateRefreshToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
+      console.log("accessToken:", accessToken);
+      console.log("refreshToken:", refreshToken);
+
+      const refreshExpiry = new Date();
+      if (keepLoggedIn) {
+        refreshExpiry.setDate(refreshExpiry.getDate() + 14);
+      } else {
+        refreshExpiry.setHours(refreshExpiry.getHours() + 1);
+      }
+
+      await RefreshTokenModel.create(Number(existingUser?.id ?? user.id), refreshToken, refreshExpiry);
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: keepLoggedIn 
+          ? 14 * 24 * 60 * 60 * 1000 // 14일
+          : 1 * 60 * 60 * 1000,       // 1시간
+      });
+
+      res.status(!existingUser ? 201 : 200).json({
+        id: user.id,
+        accessToken,
+      });
+      
     }
   } catch (err) {
     console.error('회원가입 실패');
