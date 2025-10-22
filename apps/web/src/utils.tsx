@@ -49,3 +49,18 @@ export function bearingFromTo(fromLat: number, fromLng: number, toLat: number, t
   const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
   return toDeg360(Math.atan2(y, x));
 }
+
+
+
+export const getGradeChip = (grade: string) => {
+    switch (grade) {
+      case 'A':
+        return <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>;
+      case 'B':
+        return <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>;
+      case 'C':
+        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
+      default:
+        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
+    }
+  }

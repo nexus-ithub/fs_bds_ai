@@ -10,7 +10,7 @@ const theme = createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: '12px', // ✅ 원하는 radius 값
+          borderRadius: '12px', 
         },
       },
     },

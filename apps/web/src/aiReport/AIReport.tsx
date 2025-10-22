@@ -8,7 +8,8 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
-import { bearingFromTo } from "../utils";
+import { bearingFromTo, getGradeChip } from "../utils";
+import { AIReportDetailDialog } from "./AIReportDetailDialog";
 
 
 export interface AIReportProps {
@@ -48,20 +49,21 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [openNeedLogin, setOpenNeedLogin] = useState<boolean>(false);
+  const [openAIReportDetailDialog, setOpenAIReportDetailDialog] = useState<boolean>(false);
   const didRunRef = useRef(false);
   
-  const getGrade = (grade: string) => {
-    switch (grade) {
-      case 'A':
-        return <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>;
-      case 'B':
-        return <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>;
-      case 'C':
-        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
-      default:
-        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
-    }
-  }
+  // const getGrade = (grade: string) => {
+  //   switch (grade) {
+  //     case 'A':
+  //       return <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>;
+  //     case 'B':
+  //       return <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>;
+  //     case 'C':
+  //       return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
+  //     default:
+  //       return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
+  //   }
+  // }
 
   useEffect(() => {
     // mount 후 한 프레임 뒤에 translate-x-0 적용
@@ -175,10 +177,13 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   }, [])
 
   const handleDetailReport = () => {
+    console.log('handleDetailReport ', config);
     if (!config) {
       setOpenNeedLogin(true);
       return;
     }
+
+    setOpenAIReportDetailDialog(true);
     
   }
 
@@ -360,7 +365,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                         sortedItems?.map((item, index) => (
                           <div key={index} className="flex items-center gap-[8px] justify-between">
                             <p className="font-s2 text-text-02">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}{item.title}</p>
-                            {getGrade(item.value.grade)}
+                            {getGradeChip(item.value.grade)}
                           </div>  
                         ))
                       }
@@ -384,7 +389,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                       <p className="font-h4">추천항목</p>
                       <VDivider/>
                       <p className="font-h4">{sortedItems?.[0]?.title}</p>
-                      {getGrade(sortedItems?.[0]?.value.grade)}
+                      {getGradeChip(sortedItems?.[0]?.value.grade)}
                     </div>
                     <p className="flex-1 w-full items-center flex justify-center text-[34px] text-primary font-[var(--font-weight-bold)]">
                       {sortedItems?.[0]?.value.grade}
@@ -467,6 +472,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         </div>        
       </div>
       <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
+      <AIReportDetailDialog open={openAIReportDetailDialog} onClose={() => setOpenAIReportDetailDialog(false)}/>
     </div>
   );
 };
