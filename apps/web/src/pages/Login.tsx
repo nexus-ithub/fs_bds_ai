@@ -166,7 +166,7 @@ export default function Login() {
             </div>
             <div className="flex items-center justify-center gap-[36px]">
               <button 
-                onClick={() => window.location.href = kakaoToken}
+                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); window.location.href = kakaoToken;}}
                 className="flex items-center justify-center w-[48px] h-[48px] bg-[#FEE502] rounded-full"
               >
                 <KakaoLogo/>

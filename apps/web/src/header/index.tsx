@@ -27,6 +27,7 @@ const SUPPORT_MENU = [
 ]
 
 export const Header = ({user} : {user : User}) => {
+  console.log(">>>>>user :", user)
   const location = useLocation();
   const navigate = useNavigate();
   const isSupportPage = location.pathname.startsWith("/support");
@@ -64,7 +65,7 @@ export const Header = ({user} : {user : User}) => {
           <div className="flex items-center gap-[8px]">
             {/* <button ref={ProfileRef} className="w-[24px] h-[24px] bg-purple-300 rounded-full" onClick={() => {setAnchorEl(ProfileRef.current)}}>😁</button> */}
             <IconButton ref={ProfileRef} onClick={() => {setAnchorEl(ProfileRef.current)}} className="!p-0">
-              <Avatar alt="내 프로필" src="/support_header.jpg" sx={{ width: 24, height: 24 }}/>
+              <Avatar alt="내 프로필" src={user?.profile || "/support_header.jpg"} sx={{ width: 24, height: 24 }}/>
             </IconButton>
             <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
               <span className="font-s2-p">{user?.name}</span>

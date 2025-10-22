@@ -1,7 +1,9 @@
 export interface User {
   id: number;
   email: string;
-  name: string;
+  name?: string;
+  phone: string;
+  profile?: string;
 }
 
 export const AGES = [

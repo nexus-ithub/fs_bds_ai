@@ -1,14 +1,19 @@
 import { DotProgress } from "@repo/common";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../../constants";
+import { setToken } from "../../authutil";
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    console.log("이거 실행됨")
+    if (handledRef.current) return;
+    handledRef.current = true;
     const pathParts = location.pathname.split("/"); // ['/oauth','callback','kakao']
     const provider = pathParts[3]; // 'kakao', 'google', 'naver' 등
     const code = new URLSearchParams(location.search).get("code");
@@ -26,20 +31,17 @@ export const OAuthCallback = () => {
         // 서버에 provider와 code 전달 → 서버가 token 발급 처리
         const res = await axios.post(
           `${API_HOST}/api/auth/oauth`,
-          { provider, code }
+          { provider, code, keepLoggedIn: localStorage.getItem("autoLogin") === "true" }
         );
-
-        console.log("로그인 완료:", res.data);
-
-        // 로그인 상태 저장 후 메인 페이지 이동
-        navigate("/main");
+        setToken(res.data.accessToken)
+        navigate('/');
       } catch (err) {
         console.error("OAuth 로그인 실패:", err);
         alert("OAuth 로그인 실패");
         navigate("/login");
       }
     })();
-  }, [location]);
+  }, []);
 
   return (
     <div className="flex items-center justify-center h-screen">
