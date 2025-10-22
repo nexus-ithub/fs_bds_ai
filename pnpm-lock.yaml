@@ -49,7 +49,7 @@ importers:
         version: 4.1.13
       axios:
         specifier: ^1.8.4
-        version: 1.11.0(debug@4.4.1)
+        version: 1.11.0
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
@@ -59,9 +59,6 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.6.1
-      emoji-picker-react:
-        specifier: ^4.14.2
-        version: 4.14.2(react@19.1.1)
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -2147,12 +2144,6 @@ packages:
   electron-to-chromium@1.5.215:
     resolution: {integrity: sha512-TIvGp57UpeNetj/wV/xpFNpWGb0b/ROw372lHPx5Aafx02gjTBtWnEEcaSX3W2dLM3OSdGGyHX/cHl01JQsLaQ==}
 
-  emoji-picker-react@4.14.2:
-    resolution: {integrity: sha512-tQfuZ5pqZnaqh/aGtgjp5iFqEKC2SoFOSs7YxbnSignstlIwNRS/Peh/Y1pFSMoODwS1DH4i0tdnod5/B/LwBw==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      react: '>=16'
-
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
@@ -2449,9 +2440,6 @@ packages:
 
   fix-dts-default-cjs-exports@1.0.1:
     resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
-
-  flairup@1.0.0:
-    resolution: {integrity: sha512-IKlE+pNvL2R+kVL1kEhUYqRxVqeFnjiIvHWDMLFXNaqyUdFXQM2wte44EfMYJNHkW16X991t2Zg8apKkhv7OBA==}
 
   flat-cache@4.0.1:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
@@ -4466,7 +4454,7 @@ snapshots:
       '@babel/parser': 7.28.4
       '@babel/template': 7.27.2
       '@babel/types': 7.28.4
-      debug: 4.4.1(supports-color@5.5.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -4718,7 +4706,7 @@ snapshots:
   '@eslint/config-array@0.21.0':
     dependencies:
       '@eslint/object-schema': 2.1.6
-      debug: 4.4.1(supports-color@5.5.0)
+      debug: 4.4.1
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -4732,7 +4720,7 @@ snapshots:
   '@eslint/eslintrc@3.3.1':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.1(supports-color@5.5.0)
+      debug: 4.4.1
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -5782,6 +5770,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  axios@1.11.0:
+    dependencies:
+      follow-redirects: 1.15.11
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
   axios@1.11.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.15.11(debug@4.4.1)
@@ -6086,6 +6082,10 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  debug@4.4.1:
+    dependencies:
+      ms: 2.1.3
+
   debug@4.4.1(supports-color@5.5.0):
     dependencies:
       ms: 2.1.3
@@ -6206,11 +6206,6 @@ snapshots:
       jake: 10.9.4
 
   electron-to-chromium@1.5.215: {}
-
-  emoji-picker-react@4.14.2(react@19.1.1):
-    dependencies:
-      flairup: 1.0.0
-      react: 19.1.1
 
   emoji-regex@8.0.0: {}
 
@@ -6588,7 +6583,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.1(supports-color@5.5.0)
+      debug: 4.4.1
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -6737,14 +6732,14 @@ snapshots:
       mlly: 1.8.0
       rollup: 4.50.1
 
-  flairup@1.0.0: {}
-
   flat-cache@4.0.1:
     dependencies:
       flatted: 3.3.3
       keyv: 4.5.4
 
   flatted@3.3.3: {}
+
+  follow-redirects@1.15.11: {}
 
   follow-redirects@1.15.11(debug@4.4.1):
     optionalDependencies:

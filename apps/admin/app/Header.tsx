@@ -14,7 +14,7 @@ export const Header = () => {
   const [openLogoutConfirm, setOpenLogoutConfirm] = useState<boolean>(false);
 
   return (
-    <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] border-b border-line-03`}>
+    <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] border-b border-line-03 bg-white`}>
       <div className="flex items-center gap-[16px] h-[64px]">
         <button onClick={() => router.push("/")}>
           <BuildingShopBIText />
