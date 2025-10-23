@@ -115,11 +115,16 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
                   </div>
                   <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{aiReportDetail?.result?.grade}</p>
                 </div>
-                <div className="flex-1 space-y-[12px] pl-[16px]">
-                  <ItemRow title="건축면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.buildingArea) || ""}/>
-                  <ItemRow title="연면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.upperFloorArea + aiReportDetail?.buildInfo?.lowerFloorArea) || ""}/>
-                  <ItemRow title="설계 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.landInfo?.far)} / ${getRatioStr(aiReportDetail?.landInfo?.bcr)}`}/>
-                </div>
+                {
+                  aiReportDetail?.type !== 'rent' ? (
+                    <div className="flex-1 space-y-[12px] pl-[16px]">
+                      <ItemRow title="건축면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.buildingArea) || ""}/>
+                      <ItemRow title="연면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.upperFloorArea + aiReportDetail?.buildInfo?.lowerFloorArea) || ""}/>
+                      <ItemRow title="설계 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.landInfo?.far)} / ${getRatioStr(aiReportDetail?.landInfo?.bcr)}`}/>
+                    </div>                    
+                  ) : null
+                }
+
               </div>
             </div>  
             <div className="space-y-[16px]">
