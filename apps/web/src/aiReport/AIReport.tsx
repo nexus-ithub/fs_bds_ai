@@ -462,9 +462,10 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
           <HDivider/>
           <div className="mx-[16px]">
             <Button 
-            className="my-[12px] py-[12px] w-full" 
-            fontSize="font-h4"
-            onClick={() => handleDetailReport()}>
+              disabled={aiReportResult === null}
+              className="my-[12px] py-[12px] w-full" 
+              fontSize="font-h4"
+              onClick={() => handleDetailReport()}>
               추천 항목 상세 리포트 보기
             </Button>  
           </div>

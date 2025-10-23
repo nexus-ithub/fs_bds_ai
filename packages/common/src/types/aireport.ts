@@ -11,7 +11,8 @@ export interface AIReportParam{
 
 export interface BuildingData{
   id: string;
-  floorAreaRatio: string; // 건폐율 
+  floorAreaRatio: string; // 용적률 
+  archLandRatio: string; // 건폐율
   useApprovalDate: string; // 사용승인일
   totalFloorArea: string; // 연면적
   archArea: string; // 건축면적 
@@ -195,7 +196,7 @@ export interface AIReportResult {
 export interface AIReportDetail {
   type: 'rent' | 'remodel' | 'build';
   landInfo: LandData;
-  buildingInfo: BuildingData;
+  buildingList: BuildingData[];
   buildInfo: BuildInfo;
   tax: TaxInfo;
   value: ReportValue; // 계선 결과 / 정보

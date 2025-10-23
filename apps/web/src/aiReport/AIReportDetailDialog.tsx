@@ -88,14 +88,16 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
               <p className="font-h3">부동산 개요</p>
               <div className="p-[16px] flex rounded-[8px] border-[1px] border-line-03 divide-x-[1px] divide-line-02">
                 <div className="flex-1 space-y-[12px] pr-[16px]">
+                  <ItemRow title="주소" value={aiReportDetail?.landInfo?.legDongName + ' ' + aiReportDetail?.landInfo?.jibun}/>
                   <ItemRow title="용도지역" value={aiReportDetail?.landInfo?.usageName || ""}/>
                   <ItemRow title="대지면적" value={getAreaStrWithPyeong(aiReportDetail?.landInfo?.relTotalArea) || ""}/>
-                  <ItemRow title="법정 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.landInfo?.far)} / ${getRatioStr(aiReportDetail?.landInfo?.bcr)}`}/>
+                  <ItemRow title="법정 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`}/>
                 </div>
                 <div className="flex-1 space-y-[12px] pl-[16px]">
-                  <ItemRow title="건축면적" value={getAreaStrWithPyeong(aiReportDetail?.buildingInfo?.archArea) || ""}/>
-                  <ItemRow title="연면적" value={getAreaStrWithPyeong(aiReportDetail?.buildingInfo?.totalFloorArea) || ""}/>
-                  <ItemRow title="설계 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.buildingInfo?.floorAreaRatio)} / ${getRatioStr(aiReportDetail?.buildingInfo?.archArea)}`}/>
+                  <ItemRow title="건축물/토지개수" value={`${aiReportDetail?.buildingList?.length > 0 ? aiReportDetail?.buildingList?.length + '개' : "없음"} / ${aiReportDetail?.landInfo?.relParcelCount}개`}/>
+                  <ItemRow title="건축면적" value={aiReportDetail?.buildingList?.length > 0 ? getAreaStrWithPyeong(aiReportDetail?.buildingList[0]?.archArea) : "-"}/>
+                  <ItemRow title="연면적" value={aiReportDetail?.buildingList?.length > 0 ? getAreaStrWithPyeong(aiReportDetail?.buildingList[0]?.totalFloorArea) : "-"}/>
+                  <ItemRow title="설계 용적률/건폐율" value={aiReportDetail?.buildingList?.length > 0 ? `${getRatioStr(aiReportDetail?.buildingList?.[0]?.floorAreaRatio)} / ${getRatioStr(aiReportDetail?.buildingList?.[0]?.archLandRatio)}` : "-"}/>
                 </div>
               </div>
             </div>
