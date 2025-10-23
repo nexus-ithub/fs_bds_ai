@@ -13,39 +13,6 @@ const emojis = [
   "📐", "💰", "💸", "🧱", "🌳", "🔍", "⭐", "🔔", "❗", "👀", "📅", "✅", "✨", "📌", "📍", "🧭"
 ];
 
-const SortableQuestionItem = ({ question }: { question: Question }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 0,
-    opacity: isDragging ? 0.8 : 1,
-    cursor: 'grab',
-  };
-
-  return (
-    <div 
-      ref={setNodeRef} 
-      style={style} 
-      {...attributes} 
-      {...listeners}
-      className="flex items-center gap-[6px]"
-    >
-      <div 
-        className="flex items-center justify-center w-[32px] h-[64px] rounded-[4px] border border-line-02" 
-        style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
-      >
-        <DotGridIcon/>
-      </div>
-      <div className="flex-1 flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-        <span className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
-        <p className="font-s2">{question.question}</p>
-      </div>
-    </div>
-  );
-};
-
 export default function Agent() {
   const axiosInstance = useAxiosWithAuth();
   const [agentName, setAgentName] = useState<string>("");
@@ -87,10 +54,82 @@ export default function Agent() {
 
   const modifiers = [restrictToParentElement];
 
+  const SortableQuestionItem = ({ question, isStatic=false }: { question: Question, isStatic?: boolean }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      zIndex: isDragging ? 10 : 0,
+      opacity: isDragging ? 0.8 : 1,
+      cursor: isStatic ? 'default' : 'grab',
+    };
+
+    return (
+      <div 
+        ref={setNodeRef} 
+        style={style} 
+        // {...attributes} 
+        // {...listeners}
+        {...(isStatic ? {} : attributes)} 
+        {...(isStatic ? {} : listeners)}
+        className="flex items-center gap-[6px] relative"
+        onMouseEnter={() => setHoveredQuestionId(question.id)}
+        onMouseLeave={() => setHoveredQuestionId(null)}
+      >
+        <div 
+          className="flex items-center justify-center w-[32px] h-[64px] rounded-[4px] border border-line-02 bg-white" 
+          style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
+        >
+          {/* <DotGridIcon/> */}
+          <Checkbox
+            checked={question.selectedYn === "Y"}
+            onChange={() => handleQuestionSelect(question)}
+          />
+        </div>
+        <div className="flex-1 flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-white" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
+          <span className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
+          <p className="font-s2">{question.question}</p>
+        </div>
+        {hoveredQuestionId === question.id && (
+          <div className="flex items-center gap-[6px] absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white h-full px-[6px]">
+            <button 
+              onClick={() => {
+                setSelectedEmoji(question.icon); 
+                setNewQuestion(question.question); 
+                setSelectedQuestion(question);
+                setOpenAddQuestion(!openAddQuestion); 
+                setAddQuestionLoading(false)}}>
+              <EditIcon />
+            </button>
+            <VDivider colorClassName="bg-line-04"/>
+            <button 
+              onClick={() => {
+                setSelectedQuestion(question);
+                setOpenDeleteConfirm(true)}}>
+              <DeleteIcon color="#585C64"/>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // 렌더링을 위해 선택된 질문 목록만 준비하고 seq를 기준으로 정렬합니다.
   const selectedQuestions = questionEdit
     .filter(q => q.selectedYn === "Y")
     .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999));
+
+  const displayedQuestions = isCheckedRecommends
+    ? questionEdit
+        .filter(q => q.selectedYn === "Y")
+        .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999))
+    : questionEdit;
+
+  const dndItems = questionEdit
+    .filter(q => q.selectedYn === "Y")
+    .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999))
+    .map(q => q.id);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -419,30 +458,14 @@ export default function Agent() {
                   onChange={(e) => setChatSubtitle(e.target.value)}
                   />
               </div>
-              <div className="flex flex-col gap-[20px]">
-                <DndContext 
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  modifiers={modifiers}>
-                  <div 
-                    ref={dragConstraintRef}
-                    className="flex flex-col gap-[16px] p-[24px] rounded-[8px] border border-dashed border-line-03">
-                    <SortableContext items={selectedQuestions.map(q => q.id)} strategy={verticalListSortingStrategy}>
-                      {selectedQuestions.map((question) => (<SortableQuestionItem key={question.id} question={question} />))}
-                    </SortableContext>
-                    <div className="flex items-center gap-[6px] cursor-pointer" onClick={() => setOpenQuestionSetting(true)}> 
-                      <div className="flex items-center justify-center w-[32px] h-[64px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-                        <span className="opacity-30"><DotGridIcon/></span>
-                      </div>
-                      <div className="flex-1 flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-                        <span className="w-[40px] h-[40px] py-[5px] rounded-[4px] border border-line-02 bg-grayscale-005"></span>
-                        <p className="font-s2 text-text-05">추천질문을 선택해 주세요.</p>
-                      </div>
-                    </div>
+              <div className="flex flex-col items-center gap-[20px]">
+                {selectedQuestions.map((question) => (
+                  <div key={question.id} className="w-[500px] bg-white flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
+                    <span className="w-[40px] h-[40px] flex items-center justify-center py-[5px] rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
+                    <p className="font-s2">{question.question}</p>
                   </div>
-                </DndContext>
-                <Button variant="outline" onClick={() => setOpenQuestionSetting(!openQuestionSetting)}>추천질문 관리</Button>
+                ))}
+                <Button variant="outline" className="w-[500px]" onClick={() => setOpenQuestionSetting(!openQuestionSetting)}>추천질문 관리</Button>
               </div>
             </div>
           </div>
@@ -528,52 +551,25 @@ export default function Agent() {
             />
           </div>
           <div className="h-full flex flex-col gap-[16px] p-[24px] rounded-[8px] bg-surface-third overflow-y-auto scrollbar-hover">
-            {(isCheckedRecommends
-              ? questionEdit?.filter(q => q.selectedYn === "Y")
-              : questionEdit
-            ).map((question) => (
-              <div 
-                key={question.id} 
-                className="flex items-center gap-[6px] relative"
-                onMouseEnter={() => setHoveredQuestionId(question.id)}
-                onMouseLeave={() => setHoveredQuestionId(null)}
-                >
-                <div className="w-[32px] h-[64px] flex items-center justify-center rounded-[4px] border border-line-02 bg-white" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-                  <Checkbox
-                    checked={question.selectedYn === "Y"}
-                    onChange={() => handleQuestionSelect(question)}
-                  />
-                </div>
-                <div 
-                  className="flex-1 h-[64px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02 bg-white" 
-                  style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
-                  onClick={() => handleQuestionSelect(question)}>
-                  <span 
-                    className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
-                  <p className="font-s2">{question.question}</p>
-                </div>
-                {hoveredQuestionId === question.id && (
-                  <div className="flex items-center gap-[6px] absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white h-full px-[6px]">
-                    <button 
-                      onClick={() => {
-                        setSelectedEmoji(question.icon); 
-                        setNewQuestion(question.question); 
-                        setSelectedQuestion(question);
-                        setOpenAddQuestion(!openAddQuestion); 
-                        setAddQuestionLoading(false)}}>
-                      <EditIcon />
-                    </button>
-                    <VDivider colorClassName="bg-line-04"/>
-                    <button 
-                      onClick={() => {
-                        setSelectedQuestion(question);
-                        setOpenDeleteConfirm(true)}}>
-                      <DeleteIcon color="#585C64"/>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              modifiers={modifiers}>
+              <SortableContext items={dndItems} strategy={verticalListSortingStrategy}>
+                {displayedQuestions.map((question) => {
+                  const isDragDisabled = question.selectedYn === "N"; 
+                  
+                  return (
+                    <SortableQuestionItem 
+                      key={question.id} 
+                      question={question}
+                      isStatic={isDragDisabled && !isCheckedRecommends}
+                    />
+                  );
+                })}
+              </SortableContext>
+            </DndContext>
           </div>
         </div>
         <div className="flex items-center justify-center gap-[10px] p-[24px]">
