@@ -213,6 +213,7 @@ export const oauth = async (req: Request, res: Response) => {
     const { provider, code, keepLoggedIn } = req.body;
     console.log('provider:', provider);
     console.log('code:', code);
+    console.log('keepLoggedIn:', keepLoggedIn);
     let user;
 
     switch (provider) {
