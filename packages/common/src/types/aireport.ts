@@ -1,3 +1,4 @@
+
 import { type EstimatedPrice } from "./land";
 
 
@@ -109,8 +110,6 @@ export interface Loan {
 
 export interface ReportValue {
   grade: string;
-  // message: string;
-
 
   duration: ProjectDuration;
   // 토지비
@@ -148,7 +147,7 @@ export interface TaxInfo {
   comprehensiveRealEstateTax: number;
 }
 
-export interface AIReportInfo {
+export interface DevDetailInfo {
 
   // 건축정보
   buildInfo: BuildInfo;
@@ -193,5 +192,14 @@ export interface AIReportResult {
   summary: string;
 }
 
+export interface AIReportDetail {
+  type: 'rent' | 'remodel' | 'build';
+  landInfo: LandData;
+  buildingInfo: BuildingData;
+  buildInfo: BuildInfo;
+  tax: TaxInfo;
+  value: ReportValue; // 계선 결과 / 정보
+  result: ReportResult | null; // 최종 결과
+}
 
 

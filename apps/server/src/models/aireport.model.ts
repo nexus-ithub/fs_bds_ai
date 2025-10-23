@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { AIReportInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo } from '@repo/common';
+import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail } from '@repo/common';
 import OpenAI from "openai";
 const client = new OpenAI({
   timeout: 20 * 1000, 
@@ -597,9 +597,7 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
 
 export class AIReportModel {
 
-  
-  static async getAIReport(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
-    try {
+  static async makeDevDetailInfo(landId: string, estimatedPrice: EstimatedPrice): Promise<{landInfo: LandData, buildingInfo: BuildingData, devDetailInfo: DevDetailInfo} | null> {
       console.log('landId', landId)
       console.log('estimatedPrice', estimatedPrice)
 
@@ -659,82 +657,6 @@ export class AIReportModel {
         [landId]
       )
       
-
-      // const landInfo = await db.query<LandData>(
-      //   `SELECT 
-      //     land_info.id AS id,
-      //     land_info.leg_dong_name as legDongName,
-      //     land_info.jibun as jibun,
-      //     land_info.area AS area,
-      //     land_char.usage1_name AS usageName,
-      //     land_char.price AS price,
-      //     leg_land_usage_ratio.far,
-      //     leg_land_usage_ratio.bcr,
-      //     polygon.lat,
-      //     polygon.lng,
-      //     CASE
-      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-      //       WHEN ld_latest.deal_date IS NULL 
-      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-      //         THEN bd_latest.deal_date
-      //       ELSE ld_latest.deal_date
-      //     END AS dealDate,
-      //     CASE
-      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-      //       WHEN ld_latest.deal_date IS NULL 
-      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-      //         THEN bd_latest.price
-      //       ELSE ld_latest.price
-      //     END AS dealPrice,
-      //     CASE
-      //       WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-      //       WHEN ld_latest.deal_date IS NULL 
-      //           OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-      //         THEN 'building'
-      //       ELSE 'land'
-      //     END AS dealType          
-      //     FROM land_info AS land_info
-      //     LEFT JOIN land_char_info AS land_char
-      //       ON land_char.key = (
-      //         SELECT c.key 
-      //         FROM land_char_info AS c 
-      //         WHERE c.id = land_info.id 
-      //         ORDER BY c.create_date DESC 
-      //         LIMIT 1
-      //       )
-      //     LEFT JOIN address_polygon AS polygon
-      //       ON polygon.id = land_info.id
-      //     LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
-      //       ON land_char.usage1_name = leg_land_usage_ratio.name
-      //     LEFT JOIN (
-      //       SELECT id, deal_date, price
-      //       FROM (
-      //         SELECT 
-      //           id,
-      //           deal_date,
-      //           price,
-      //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-      //         FROM building_deal_list
-      //       ) t
-      //       WHERE t.rn = 1
-      //     ) AS bd_latest
-      //       ON bd_latest.id = land_info.id
-      //     LEFT JOIN (
-      //       SELECT id, deal_date, price
-      //       FROM (
-      //         SELECT 
-      //           id,
-      //           deal_date,
-      //           price,
-      //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-      //         FROM land_deal_list
-      //       ) t
-      //       WHERE t.rn = 1
-      //     ) AS ld_latest
-      //       ON ld_latest.id = land_info.id              
-      //     WHERE land_info.id = ?`,
-      //   [landId]
-      // )   
       const landInfo = await db.query<LandData>(
         `
           WITH
@@ -933,7 +855,7 @@ export class AIReportModel {
       // console.log('buildingTotalFloorArea ', buildingTotalFloorArea)
 
 
-      const aiReport = {
+      const devDetailInfo = {
         rent: newReportValue(),
         remodel: newReportValue(),
         build: newReportValue(),
@@ -954,57 +876,57 @@ export class AIReportModel {
           comprehensiveRealEstateTax: 0,
         },
         analysisMessage: ''
-      } as AIReportInfo;
+      } as DevDetailInfo;
 
 
       if(curBuildingInfo){
         if(curBuildingAge < 10){
           if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
             console.log('10년 미만 신축 !!')
-            makeReportValue(aiReport.build, 'A', 'build');
-            makeReportValue(aiReport.remodel, 'C', 'remodel');
-            makeReportValue(aiReport.rent, 'B', 'rent');
+            makeReportValue(devDetailInfo.build, 'A', 'build');
+            makeReportValue(devDetailInfo.remodel, 'C', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'B', 'rent');
           }else{
             console.log('10년 미만 미개발 !!')
-            makeReportValue(aiReport.build, 'B', 'build');
-            makeReportValue(aiReport.remodel, 'C', 'remodel');
-            makeReportValue(aiReport.rent, 'A', 'rent');
+            makeReportValue(devDetailInfo.build, 'B', 'build');
+            makeReportValue(devDetailInfo.remodel, 'C', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'A', 'rent');
           }
         }else if(curBuildingAge < 20){
           if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
             console.log('20년 미만 신축 !!')
-            makeReportValue(aiReport.build, 'A', 'build');
-            makeReportValue(aiReport.remodel, 'B', 'remodel');
-            makeReportValue(aiReport.rent, 'C', 'rent');
+            makeReportValue(devDetailInfo.build, 'A', 'build');
+            makeReportValue(devDetailInfo.remodel, 'B', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'C', 'rent');
           }else{
             console.log('20년 미만 리모델링 !!')
-            makeReportValue(aiReport.build, 'B', 'build');
-            makeReportValue(aiReport.remodel, 'A', 'remodel');
-            makeReportValue(aiReport.rent, 'C', 'rent');
+            makeReportValue(devDetailInfo.build, 'B', 'build');
+            makeReportValue(devDetailInfo.remodel, 'A', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'C', 'rent');
           }
         }else if(curBuildingAge < 30){
           if(curBuildingFar < (curLandInfo.relWeightedFar * 0.8)){
             console.log('30년 미만 신축 !!')
-            makeReportValue(aiReport.build, 'A', 'build');
-            makeReportValue(aiReport.remodel, 'B', 'remodel');
-            makeReportValue(aiReport.rent, 'C', 'rent');
+            makeReportValue(devDetailInfo.build, 'A', 'build');
+            makeReportValue(devDetailInfo.remodel, 'B', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'C', 'rent');
           }else{
             console.log('30년 미만 리모델링 !!')
-            makeReportValue(aiReport.build, 'B', 'build');
-            makeReportValue(aiReport.remodel, 'A', 'remodel');
-            makeReportValue(aiReport.rent, 'C', 'rent');
+            makeReportValue(devDetailInfo.build, 'B', 'build');
+            makeReportValue(devDetailInfo.remodel, 'A', 'remodel');
+            makeReportValue(devDetailInfo.rent, 'C', 'rent');
           }
         }else{
           // 30년 이상
           console.log('30년 이상 신축 !!')
-          makeReportValue(aiReport.build, 'A', 'build');
-          makeReportValue(aiReport.remodel, 'C', 'remodel');
-          makeReportValue(aiReport.rent, 'C', 'rent');
+          makeReportValue(devDetailInfo.build, 'A', 'build');
+          makeReportValue(devDetailInfo.remodel, 'C', 'remodel');
+          makeReportValue(devDetailInfo.rent, 'C', 'rent');
         }          
       }else{
-        makeReportValue(aiReport.build, 'A', 'build');
-        aiReport.remodel = null;
-        aiReport.rent = null;
+        makeReportValue(devDetailInfo.build, 'A', 'build');
+        devDetailInfo.remodel = null;
+        devDetailInfo.rent = null;
         // makeReportValue(aiReport.remodel, 'C', 'remodel');
         // makeReportValue(aiReport.rent, 'C', 'rent');
       }
@@ -1031,7 +953,7 @@ export class AIReportModel {
 
       console.log('aroundRentInfo ', aroundRentInfo)
 
-      makeBuildInfo(aiReport.buildInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr);
+      makeBuildInfo(devDetailInfo.buildInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr);
       // console.log('aiReport.buildInfo ', aiReport.buildInfo);
       
       // 1층 평균 평당 임대료
@@ -1051,43 +973,43 @@ export class AIReportModel {
       
       ////////////////////////////////////////////////////////////////
       // 신축 
-      if(aiReport.build){
-        aiReport.build.duration = getBuildProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-        makeLandCost(aiReport.build.landCost, estimatedPrice);
+      if(devDetailInfo.build){
+        devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea);
+        makeLandCost(devDetailInfo.build.landCost, estimatedPrice);
         makeProjectCost(
-          aiReport.build.projectCost,
+          devDetailInfo.build.projectCost,
           curBuildingTotalFloorArea,
-          aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-          aiReport.build.duration,
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+          devDetailInfo.build.duration,
           false
         );
-        aiReport.build.loan = makeLoan(aiReport.build);
-        aiReport.build.loanForOwner = makeLoanForOwner(aiReport.build);
-        makeProfit('build', aiReport.build, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        devDetailInfo.build.loan = makeLoan(devDetailInfo.build);
+        devDetailInfo.build.loanForOwner = makeLoanForOwner(devDetailInfo.build);
+        makeProfit('build', devDetailInfo.build, devDetailInfo.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
       // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
       ////////////////////////////////////////////////////////////////
       // 리모델링   
-      if(aiReport.remodel){
-        aiReport.remodel.duration = getRemodelProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-        makeLandCost(aiReport.remodel.landCost, estimatedPrice);
+      if(devDetailInfo.remodel){
+        devDetailInfo.remodel.duration = getRemodelProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea);
+        makeLandCost(devDetailInfo.remodel.landCost, estimatedPrice);
         makeProjectCost(
-          aiReport.remodel.projectCost,
+          devDetailInfo.remodel.projectCost,
           curBuildingTotalFloorArea,
-          aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-          aiReport.remodel.duration,
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+          devDetailInfo.remodel.duration,
           true
         );
-        aiReport.remodel.loan = makeLoan(aiReport.remodel);
-        aiReport.remodel.loanForOwner = makeLoanForOwner(aiReport.remodel);
-        makeProfit('remodel', aiReport.remodel, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        devDetailInfo.remodel.loan = makeLoan(devDetailInfo.remodel);
+        devDetailInfo.remodel.loanForOwner = makeLoanForOwner(devDetailInfo.remodel);
+        makeProfit('remodel', devDetailInfo.remodel, devDetailInfo.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
       ////////////////////////////////////////////////////////////////
       // 임대
-      if(aiReport.rent){
+      if(devDetailInfo.rent){
         // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-        makeLandCost(aiReport.rent.landCost, estimatedPrice);
+        makeLandCost(devDetailInfo.rent.landCost, estimatedPrice);
         // makeProjectCost(
         //   aiReport.rent.projectCost,
         //   building?.totalFloorArea || 0,
@@ -1095,13 +1017,13 @@ export class AIReportModel {
         //   aiReport.rent.duration,
         //   false
         // );
-        aiReport.rent.loan = makeLoan(aiReport.rent);
-        aiReport.rent.loanForOwner = makeLoanForOwner(aiReport.rent);
-        makeProfit('rent', aiReport.rent, aiReport.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
+        devDetailInfo.rent.loan = makeLoan(devDetailInfo.rent);
+        devDetailInfo.rent.loanForOwner = makeLoanForOwner(devDetailInfo.rent);
+        makeProfit('rent', devDetailInfo.rent, devDetailInfo.buildInfo, buildingList, firstFloorRentProfitPerPy, upperFloorRentProfitPerPy, baseFloorRentProfitPerPy);
       }
 
       const taxBase = curLandInfo.relTotalPrice * curLandInfo.relTotalArea * FAIR_MARKET_RATIO; // 과세표준 공정시장가 비율 공시지가 * 70%  
-      aiReport.tax.propertyTax = getPropertyTax(taxBase);
+      devDetailInfo.tax.propertyTax = getPropertyTax(taxBase);
 
       // TODO : 건물과세는 건축물 시가표준액으로 계산해야 함 
       // aiReport.tax.propertyTaxForBuilding = getPropertyTax(taxBase);
@@ -1111,59 +1033,79 @@ export class AIReportModel {
 
       // console.log('aiReport', aiReport);
 
+      
+      return {
+        landInfo : curLandInfo,
+        buildingInfo : curBuildingInfo,
+        devDetailInfo,
+      };
+        
+  }
+  
+  static async getAIReport(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
+    try {
+      console.log('getAIReport ', landId, estimatedPrice)
+
+      const {
+        landInfo,
+        buildingInfo,
+        devDetailInfo
+      } = await this.makeDevDetailInfo(landId, estimatedPrice);
+
+      console.log('devDetailInfo', devDetailInfo)
       const aiReportResult: AIReportResult = {
-        rent: aiReport.rent ? {
-          grade: aiReport.rent.grade,
+        rent: devDetailInfo.rent ? {
+          grade: devDetailInfo.rent.grade,
           // message: aiReport.rent.message,
-          initialCapital: calculateInitialCapital(aiReport.rent),
-          investmentCapital: calculateRealInvestmentCapital(aiReport.rent),
-          annualProfit: calculateaAnnualProfit(aiReport.rent, aiReport.tax),
-          rentProfitRatio: calculateaAnnualProfit(aiReport.rent, aiReport.tax) / calculateInvestmentCapital(aiReport.rent),
+          initialCapital: calculateInitialCapital(devDetailInfo.rent),
+          investmentCapital: calculateRealInvestmentCapital(devDetailInfo.rent),
+          annualProfit: calculateaAnnualProfit(devDetailInfo.rent, devDetailInfo.tax),
+          rentProfitRatio: calculateaAnnualProfit(devDetailInfo.rent, devDetailInfo.tax) / calculateInvestmentCapital(devDetailInfo.rent),
           // assetGrowthAmount: aiReport.rent.landCost.purchaseCost * 0.045,
-          investmentProfitRatio: (calculateaAnnualProfit(aiReport.rent, aiReport.tax) + (aiReport.rent.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.rent),
-          expectedSaleAmount: (aiReport.rent.annualManagementProfit + aiReport.rent.annualRentProfit) / (3.5 / 100)
+          investmentProfitRatio: (calculateaAnnualProfit(devDetailInfo.rent, devDetailInfo.tax) + (devDetailInfo.rent.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(devDetailInfo.rent),
+          expectedSaleAmount: (devDetailInfo.rent.annualManagementProfit + devDetailInfo.rent.annualRentProfit) / (3.5 / 100)
         } : null,
-        remodel: aiReport.remodel ? {
-          grade: aiReport.remodel.grade,
+        remodel: devDetailInfo.remodel ? {
+          grade: devDetailInfo.remodel.grade,
           // message: aiReport.remodel.message,
-          initialCapital: calculateInitialCapital(aiReport.remodel),
-          investmentCapital: calculateRealInvestmentCapital(aiReport.remodel),
-          annualProfit: calculateaAnnualProfit(aiReport.remodel, aiReport.tax),
-          rentProfitRatio: calculateaAnnualProfit(aiReport.remodel, aiReport.tax) / calculateInvestmentCapital(aiReport.remodel),
+          initialCapital: calculateInitialCapital(devDetailInfo.remodel),
+          investmentCapital: calculateRealInvestmentCapital(devDetailInfo.remodel),
+          annualProfit: calculateaAnnualProfit(devDetailInfo.remodel, devDetailInfo.tax),
+          rentProfitRatio: calculateaAnnualProfit(devDetailInfo.remodel, devDetailInfo.tax) / calculateInvestmentCapital(devDetailInfo.remodel),
           // assetGrowthAmount: aiReport.remodel.landCost.purchaseCost * 0.045,
-          investmentProfitRatio: (calculateaAnnualProfit(aiReport.remodel, aiReport.tax) + (aiReport.remodel.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.remodel),
-          expectedSaleAmount: (aiReport.remodel.annualManagementProfit + aiReport.remodel.annualRentProfit) / (3.5 / 100),
+          investmentProfitRatio: (calculateaAnnualProfit(devDetailInfo.remodel, devDetailInfo.tax) + (devDetailInfo.remodel.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(devDetailInfo.remodel),
+          expectedSaleAmount: (devDetailInfo.remodel.annualManagementProfit + devDetailInfo.remodel.annualRentProfit) / (3.5 / 100),
         } : null,
-        build: aiReport.build ? {
-          grade: aiReport.build.grade,
+        build: devDetailInfo.build ? {
+          grade: devDetailInfo.build.grade,
           // message: aiReport.build.message,
-          initialCapital: calculateInitialCapital(aiReport.build),
-          investmentCapital: calculateRealInvestmentCapital(aiReport.build),
-          annualProfit: calculateaAnnualProfit(aiReport.build, aiReport.tax),
-          rentProfitRatio: calculateaAnnualProfit(aiReport.build, aiReport.tax) / calculateInvestmentCapital(aiReport.build),
+          initialCapital: calculateInitialCapital(devDetailInfo.build),
+          investmentCapital: calculateRealInvestmentCapital(devDetailInfo.build),
+          annualProfit: calculateaAnnualProfit(devDetailInfo.build, devDetailInfo.tax),
+          rentProfitRatio: calculateaAnnualProfit(devDetailInfo.build, devDetailInfo.tax) / calculateInvestmentCapital(devDetailInfo.build),
           // assetGrowthAmount: aiReport.build.landCost.purchaseCost * 0.045,
-          investmentProfitRatio: (calculateaAnnualProfit(aiReport.build, aiReport.tax) + (aiReport.build.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(aiReport.build),
-          expectedSaleAmount: (aiReport.build.annualManagementProfit + aiReport.build.annualRentProfit) / (3.5 / 100),
+          investmentProfitRatio: (calculateaAnnualProfit(devDetailInfo.build, devDetailInfo.tax) + (devDetailInfo.build.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(devDetailInfo.build),
+          expectedSaleAmount: (devDetailInfo.build.annualManagementProfit + devDetailInfo.build.annualRentProfit) / (3.5 / 100),
         } : null,
-        analysisMessage: aiReport.analysisMessage,
+        analysisMessage: devDetailInfo.analysisMessage,
         summary: '',
       };
 
       const input = `"""
           아래 데이터를 참고해서 설명글 작성해줘 
           추정가 : ${estimatedPrice.estimatedPrice}
-          주소 : ${curLandInfo.legDongName + ' ' + curLandInfo.jibun}
-          주용도 : ${curLandInfo.usageName}
-          대지면적 : ${curLandInfo.area}
-          공시지가 : ${curLandInfo.price}원 / m2
-          최대용적율 : ${curLandInfo.far} %
-          최대건폐율 : ${curLandInfo.bcr} %
-          최근거래정보 : ${curLandInfo.dealPrice ? ('가격 - ' + (curLandInfo.dealPrice * 10000) + ', 거래일 - ' + curLandInfo.dealDate + ', 거래유형 - ' + (curLandInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
-          현재빌딩정보 : ${curBuildingInfo ? '사용승인일 - ' + curBuildingInfo.useApprovalDate + ', 지상층수 - ' + curBuildingInfo.gndFloorNumber + ', 지하층수 - ' + curBuildingInfo.baseFloorNumber : '없음'}
-          신축시 개발 가능 층수 : ${aiReport.buildInfo.upperFloorCount + aiReport.buildInfo.lowerFloorCount}
-          신축정보 : ${reportValueToJsonString(aiReport.build, aiReportResult.build)}
-          리모델링정보 : ${reportValueToJsonString(aiReport.remodel, aiReportResult.remodel)}
-          임대정보 : ${reportValueToJsonString(aiReport.rent, aiReportResult.rent)}
+          주소 : ${landInfo.legDongName + ' ' + landInfo.jibun}
+          주용도 : ${landInfo.usageName}
+          대지면적 : ${landInfo.area}
+          공시지가 : ${landInfo.price}원 / m2
+          최대용적율 : ${landInfo.far} %
+          최대건폐율 : ${landInfo.bcr} %
+          최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (landInfo.dealPrice * 10000) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
+          현재빌딩정보 : ${buildingInfo ? '사용승인일 - ' + buildingInfo.useApprovalDate + ', 지상층수 - ' + buildingInfo.gndFloorNumber + ', 지하층수 - ' + buildingInfo.baseFloorNumber : '없음'}
+          신축시 개발 가능 층수 : ${devDetailInfo.buildInfo.upperFloorCount + devDetailInfo.buildInfo.lowerFloorCount}
+          신축정보 : ${reportValueToJsonString(devDetailInfo.build, aiReportResult.build)}
+          리모델링정보 : ${reportValueToJsonString(devDetailInfo.remodel, aiReportResult.remodel)}
+          임대정보 : ${reportValueToJsonString(devDetailInfo.rent, aiReportResult.rent)}
              """`;
 
         // const input = `"""
@@ -1197,6 +1139,45 @@ export class AIReportModel {
     }
   }
  
+  static async getAIReportDetail(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportDetail | null> {
+    try {
 
+      console.log('getAIReportDetail', landId, estimatedPrice)
+
+      const {
+        landInfo,
+        buildingInfo,
+        devDetailInfo
+      } = await this.makeDevDetailInfo(landId, estimatedPrice);
+      const {remodel, build, rent} = devDetailInfo;
+      const valueArray = [remodel, build, rent].sort((a, b) => b.grade > a.grade ? -1 : 1);
+      const resultType = valueArray[0] === remodel ? 'remodel' : valueArray[0] === build ? 'build' : 'rent';
+      const resultValue = valueArray[0];
+      const result = {
+        type: resultType,
+        landInfo,
+        buildingInfo,
+        value: resultValue,
+        tax : devDetailInfo.tax,
+        result: {
+          grade: resultValue.grade,
+          initialCapital: calculateInitialCapital(resultValue),
+          investmentCapital: calculateRealInvestmentCapital(resultValue),
+          annualProfit: calculateaAnnualProfit(resultValue, devDetailInfo.tax),
+          rentProfitRatio: calculateaAnnualProfit(resultValue, devDetailInfo.tax) / calculateInvestmentCapital(resultValue),
+          investmentProfitRatio: (calculateaAnnualProfit(resultValue, devDetailInfo.tax) + (resultValue.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(resultValue),
+          expectedSaleAmount: (resultValue.annualManagementProfit + resultValue.annualRentProfit) / (3.5 / 100)
+        },
+        buildInfo: devDetailInfo.buildInfo,
+      } as AIReportDetail;
+
+      console.log('getAIReportDetail result', result)
+
+      return result;
+    } catch (error) {
+      // console.error('Error getting AI report:', error);
+      throw error;
+    }
+  }
 
 }

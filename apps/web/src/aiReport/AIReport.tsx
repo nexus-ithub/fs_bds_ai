@@ -1,4 +1,4 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
@@ -398,7 +398,6 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                       {aiReportResult?.summary}
                     </p>
                   </div>
-                  
                 </div>
               </div>
               <div className="space-y-[16px]">
@@ -472,7 +471,10 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         </div>        
       </div>
       <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
-      <AIReportDetailDialog open={openAIReportDetailDialog} onClose={() => setOpenAIReportDetailDialog(false)}/>
+      {
+        openAIReportDetailDialog &&
+        <AIReportDetailDialog open={openAIReportDetailDialog} landId={landId} estimatedPrice={estimatedPrice} onClose={() => setOpenAIReportDetailDialog(false)}/>
+      }
     </div>
   );
 };

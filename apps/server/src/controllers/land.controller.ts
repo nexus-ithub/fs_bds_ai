@@ -298,6 +298,25 @@ export const getAIReport = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getAIReportDetail = async (req: AuthRequest, res: Response) => {
+  try {
+    const { landId } = req.body;
+    console.log('landId', landId)
+    if (!landId) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const estimatedPrice = await LandModel.calculateEstimatedPrice(landId as string);
+    
+    const aiReportResult = await AIReportModel.getAIReportDetail(landId as string, estimatedPrice);
+    
+    res.status(200).json(aiReportResult);
+  } catch (err) {
+    console.error('Get AI report detail error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 
 export const getBusinessDistrict = async (req: AuthRequest, res: Response) => {
   try {
