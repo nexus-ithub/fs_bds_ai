@@ -9,7 +9,7 @@ import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { Dialog, Menu } from "@mui/material";
 
 const emojis = [
-  "🏠", "🏢", "🏣", "🏛️", "🏦", "🏗️", "🏭", "🏗", "🏙", "🏛", "🪜", "🛠", 
+  "🏠", "🏢", "🏣", "🏛️", "🏦", "🏗️", "🏭", "🪜", "🛠", 
   "📐", "💰", "💸", "🧱", "🌳", "🔍", "⭐", "🔔", "❗", "👀", "📅", "✅", "✨", "📌", "📍", "🧭"
 ];
 
@@ -130,7 +130,59 @@ export default function Agent() {
     }
   };
 
+  const handleQuestionSelect = (question: Question) => {
+    const isCurrentlySelected = question.selectedYn === "Y";
+    const currentSelectedCount = questionEdit.filter(q => q.selectedYn === "Y").length;
+    
+    if (!isCurrentlySelected && currentSelectedCount >= 5) {
+      alert("추천 질문은 최대 5개까지만 선택 가능합니다.");
+      return;
+    }
+
+    setQuestionEdit(prev => {
+      const newSelectedYn = isCurrentlySelected ? "N" : "Y";
+      let newSeq = question.seq; 
+
+      if (newSelectedYn === "Y") {
+        const maxSeq = prev
+          .filter(q => q.selectedYn === "Y")
+          .reduce((max, q) => Math.max(max, q.seq ?? 0), 0);
+        newSeq = maxSeq + 1;
+      } else {
+        newSeq = undefined; 
+      }
+        
+      return prev.map(q => 
+        q.id === question.id ? 
+        { 
+          ...q, 
+          selectedYn: newSelectedYn,
+          seq: newSeq
+        } : 
+          q
+      );
+    });
+  };
+
   const handleSave = async () => {
+    const currentlySelected = questionEdit
+        .filter(q => q.selectedYn === "Y")
+        .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999));
+    const reorderedSelectedMap = new Map(
+        currentlySelected.map((item, index) => [
+            item.id, 
+            { ...item, seq: index + 1 } 
+        ])
+    );
+    const finalQuestions = questionEdit.map(item => {
+      if (reorderedSelectedMap.has(item.id)) {
+        return reorderedSelectedMap.get(item.id)!;
+      }
+      if (item.selectedYn === "N") {
+        return { ...item, seq: undefined };
+      }
+      return item;
+    });
     const newSetting = {
       ...setting,
       agentName,
@@ -140,12 +192,13 @@ export default function Agent() {
       chatSubtitle,
       placeholder,
       warningMsg,
-      questions: questionEdit,
+      questions: finalQuestions,
     }
     setSaveSettingLoading(true);
     const response = await axiosInstance.put("/agent", newSetting);
     if (response.data.success) {
       setSetting(newSetting);
+      setQuestionEdit(finalQuestions);
     } else {
       alert("저장 실패");
     }
@@ -432,7 +485,14 @@ export default function Agent() {
             <p className="font-h4">추천질문 목록 {questionEdit.length}/50</p>
             <div className="flex items-center justify-between gap-[12px]">
               <p className="font-s4 text-text-02">추천질문을 작성하고 관리할 수 있습니다. 4개까지 설정이 가능합니다.</p>
-              <button className="flex items-center gap-[4px]" onClick={() => {setOpenAddQuestion(!openAddQuestion); setAddQuestionLoading(false)}}>
+              <button className="flex items-center gap-[4px]" 
+                onClick={() => {
+                  setOpenAddQuestion(!openAddQuestion); 
+                  setAddQuestionLoading(false);
+                  setSelectedQuestion(null);
+                  setSelectedEmoji('🏢');
+                  setNewQuestion('');
+                }}>
                 <span className="font-s3 text-primary">추천질문 추가하기</span>
                 <PlusIcon color="var(--primary-050)"/>
               </button>
@@ -478,30 +538,19 @@ export default function Agent() {
                 <div className="w-[32px] h-[64px] flex items-center justify-center rounded-[4px] border border-line-02 bg-white" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
                   <Checkbox
                     checked={question.selectedYn === "Y"}
-                    onChange={() => {
-                      const isCurrentlySelected = question.selectedYn === "Y";
-                      const currentSelectedCount = questionEdit.filter(q => q.selectedYn === "Y").length;
-                      
-                      if (!isCurrentlySelected && currentSelectedCount >= 5) {
-                          alert("추천 질문은 최대 5개까지만 선택 가능합니다.");
-                          return;
-                      }
-
-                      setQuestionEdit(prev => prev.map(q => 
-                          q.id === question.id ? 
-                          { ...q, selectedYn: isCurrentlySelected ? "N" : "Y" } : 
-                          q
-                      ));
-                  }}
+                    onChange={() => handleQuestionSelect(question)}
                   />
                 </div>
-                <div className="flex-1 h-[64px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02 bg-white" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
+                <div 
+                  className="flex-1 h-[64px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02 bg-white" 
+                  style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
+                  onClick={() => handleQuestionSelect(question)}>
                   <span 
                     className="w-[40px] h-[40px] font-h2 flex shrink-0 items-center justify-center rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
                   <p className="font-s2">{question.question}</p>
                 </div>
                 {hoveredQuestionId === question.id && (
-                  <div className="flex items-center gap-[6px]">
+                  <div className="flex items-center gap-[6px] absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white h-full px-[6px]">
                     <button 
                       onClick={() => {
                         setSelectedEmoji(question.icon); 
@@ -542,6 +591,7 @@ export default function Agent() {
               type="text"
               placeholder="질문 내용을 입력하세요"
               value={newQuestion}
+              maxLength={100}
               onChange={(e) => setNewQuestion(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
