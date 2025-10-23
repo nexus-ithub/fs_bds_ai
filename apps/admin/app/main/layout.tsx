@@ -10,15 +10,15 @@ function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div className="h-screen">
       <Header />
-      <div className="flex w-full h-[calc(100vh-48px)] pt-[40px]">
+      <div className="flex w-full h-full pt-[64px]">
         <Sidebar />
         <div className="flex-1 h-full overflow-y-auto scrollbar-hover">
           {children}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

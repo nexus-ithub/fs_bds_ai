@@ -30,4 +30,5 @@ export interface Agent {
   placeholder: string;
   warningMsg: string;
   questions: Question[];
+  // selectedQuestions: {id: number, seq: number}[];
 }
