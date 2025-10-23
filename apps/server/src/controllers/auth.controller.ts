@@ -271,7 +271,7 @@ export const oauth = async (req: Request, res: Response) => {
       
     }
   } catch (err) {
-    console.error('회원가입 실패');
+    console.error('회원가입 실패', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
