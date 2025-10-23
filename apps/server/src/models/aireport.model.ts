@@ -361,11 +361,14 @@ function makeLoan(value : ReportValue){
     value.projectCost.pmFee + 
     (value.landCost.purchaseCost + value.landCost.acquisitionCost + value.landCost.agentFee)
   ) * LOAN_RATIO;
+  // const totalDuration = value.duration.planningDurationMonths + value.duration.designDurationMonths + value.duration.constructionDurationMonths;
   const loanInterest = loanAmount * ((value.duration.planningDurationMonths + value.duration.designDurationMonths + value.duration.constructionDurationMonths) / 12) * LOAN_INTEREST_RATIO;
+  const loanInterestPerYear = loanAmount * LOAN_INTEREST_RATIO;
 
   return {
     loanAmount,
-    loanInterest
+    loanInterest,
+    loanInterestPerYear
   }
 }
 
@@ -380,10 +383,12 @@ function makeLoanForOwner(value: ReportValue) { // landCost에 대한 정보를 
     value.projectCost.pmFee
   ) * LOAN_RATIO_FOR_OWNER;
   const loanInterest = value.loan.loanAmount * ((value.duration.planningDurationMonths + value.duration.designDurationMonths + value.duration.constructionDurationMonths) / 12) * LOAN_INTEREST_RATIO_FOR_OWNER;
+  const loanInterestPerYear = loanAmount * LOAN_INTEREST_RATIO_FOR_OWNER;
 
   return {
     loanAmount,
-    loanInterest
+    loanInterest,
+    loanInterestPerYear
   }
 }
 
@@ -535,7 +540,7 @@ function calculateInvestmentCapital(value : ReportValue){
 
 
 function calculateaAnnualProfit(value : ReportValue, tax : TaxInfo){
-  return value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax + value.loan.loanInterest);
+  return value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax + value.loan.loanInterestPerYear);
 }
 
 
@@ -565,11 +570,13 @@ function newReportValue(): ReportValue {
     },
     loan: {
       loanAmount: 0,
-      loanInterest: 0
+      loanInterest: 0,
+      loanInterestPerYear: 0
     },
     loanForOwner: {
       loanAmount: 0,
-      loanInterest: 0
+      loanInterest: 0,
+      loanInterestPerYear: 0
     },
     annualRentProfit: 0,
     annualDepositProfit: 0,

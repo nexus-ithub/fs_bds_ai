@@ -105,8 +105,10 @@ export interface BuildInfo {
 export interface Loan {
   // 차입비
   loanAmount: number;
-  // 차입이자
+  // 총차입이자
   loanInterest: number;
+  // 연간 차입이자
+  loanInterestPerYear: number;
 }
 
 export interface ReportValue {
