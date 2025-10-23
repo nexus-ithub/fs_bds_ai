@@ -207,8 +207,11 @@ export default function Agent() {
 
   const handleAddQuestion = async () => {
     if (newQuestion.trim() === '') return;
+    const maxId = questionEdit.length > 0 
+    ? Math.max(...questionEdit.map(q => q.id)) 
+    : 0;
     const newQuestionObj = {
-      id: selectedQuestion?.id || questionEdit.length + 1,
+      id: selectedQuestion?.id || maxId + 1,
       icon: selectedEmoji,
       question: newQuestion,
       selectedYn: selectedQuestion?.selectedYn || "N" as "Y" | "N",
