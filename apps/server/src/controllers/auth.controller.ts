@@ -7,6 +7,7 @@ import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
+  console.log(`userId: ${userId}, auto: ${auto}`);
   const expiresIn = auto ? authConfig.expires.auto.accessToken : authConfig.expires.normal.accessToken;
   return jwt.sign(
     { id: userId },
@@ -241,6 +242,7 @@ export const oauth = async (req: Request, res: Response) => {
       console.log("existingUser.id:", existingUser?.id);
       console.log("user >>> ", user)
       console.log("user.id:", user.id);
+      console.log("keepLoggedIn:", keepLoggedIn)
       const accessToken = generateAccessToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
       const refreshToken = generateRefreshToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
       console.log("accessToken:", accessToken);

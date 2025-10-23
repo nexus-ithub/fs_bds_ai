@@ -576,6 +576,16 @@ export default function Agent() {
             ))}
           </div>
         </div>
+        <div className="flex items-center justify-center gap-[10px] p-[24px]">
+          <Button 
+            variant="bggray" 
+            size="medium"
+            onClick={() => setOpenQuestionSetting(!openQuestionSetting)}
+            className="w-[120px]">취소</Button>
+          <Button 
+            size="medium"
+            className="w-[270px]">저장</Button>
+        </div>
       </div>
       <Dialog open={openAddQuestion} onClose={() => setOpenAddQuestion(false)}>
         <div className="flex flex-col gap-[16px] py-[24px]">
