@@ -139,6 +139,24 @@ export default function Agent() {
     setSaveSettingLoading(false);
   }
 
+  const handleSaveQuestions = async () => {
+    setSaveSettingLoading(true);
+    try {
+      await axiosInstance.put("/agent", {
+        ...setting,
+        questions: questionEdit,
+      });
+      setSetting({
+        ...setting,
+        questions: questionEdit,
+      } as Agent);
+    } catch (error) {
+      console.log("저장 실패", error);
+    } finally {
+      setSaveSettingLoading(false);
+    }
+  }
+
   const handleAddQuestion = () => {
     if (newQuestion.trim() === '') return;
     const maxId = questionEdit.length > 0 
@@ -321,9 +339,16 @@ export default function Agent() {
   }, [isCheckedRecommends, questionEdit]);
 
   useEffect(() => {
+    if (!openQuestionSetting) {
+      setQuestionEdit(setting?.questions ?? []);
+    }
+  }, [openQuestionSetting]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+      const target = event.target as HTMLElement;
       if (openAddQuestion || openDeleteConfirm || anchorEl) return;
+      if (target.closest('.MuiPopover-root') || target.closest('.MuiMenu-root')) return;
       if (
         openQuestionSetting && 
         questionSettingRef.current && 
@@ -465,7 +490,7 @@ export default function Agent() {
           <div className="flex flex-col gap-[4px]">
             <p className="font-h4">추천질문 목록 {questionEdit.length}/50</p>
             <div className="flex items-center justify-between gap-[12px]">
-              <p className="font-s4 text-text-02">추천질문을 작성하고 관리할 수 있습니다. 4개까지 설정이 가능합니다.</p>
+              <p className="font-s4 text-text-02">추천질문을 작성하고 관리할 수 있습니다. 5개까지 설정이 가능합니다.</p>
               <button className="flex items-center gap-[4px]" 
                 onClick={() => {
                   setOpenAddQuestion(!openAddQuestion); 
@@ -539,8 +564,9 @@ export default function Agent() {
           <Button 
             size="medium"
             className="w-[270px]"
+            onClick={() => handleSaveQuestions()}
             disabled={JSON.stringify(setting?.questions) === JSON.stringify(questionEdit)}>
-              저장
+              {saveSettingLoading ? <Spinner /> : "저장"}
           </Button>
         </div>
       </div>

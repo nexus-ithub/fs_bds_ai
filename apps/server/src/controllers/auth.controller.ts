@@ -170,6 +170,31 @@ const formatPhoneNumber = (phone: string | null) => {
   return digits;
 };
 
+export const oAuthCallback = (req: Request, res: Response) => {
+  const {provider} = req.params;
+  console.log("provider : ", provider)
+  let redirectUrl: string | null = null;
+  switch (provider) {
+    case 'kakao':
+      redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_REST_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+      break;
+    case 'naver':
+      const state = crypto.randomUUID();
+      res.cookie("oauth_state", state, {
+        httpOnly: true,      
+        secure: true,     
+        sameSite: "lax",  
+        maxAge: 10 * 60 * 1000, // 유효기간 10분
+      });
+      redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${state}`;
+      break;
+    default:
+      return null;
+  }
+
+  res.json({ url: redirectUrl });
+}
+
 const handleKakao = async (code: string) => {
   console.log("KAKAO_REST_API_KEY:", process.env.KAKAO_REST_API_KEY);
   console.log("KAKAO_REDIRECT_URI:", process.env.KAKAO_REDIRECT_URI);
@@ -207,6 +232,42 @@ const handleKakao = async (code: string) => {
   };
 };
 
+const handleNaver = async (code: string, state: string) => {
+  const tokenRes = await axios.post(
+    "https://nid.naver.com/oauth2.0/token",
+    null,
+    {
+      params: {
+        grant_type: "authorization_code",
+        client_id: process.env.NAVER_CLIENT_ID,
+        client_secret: process.env.NAVER_CLIENT_SECRET,
+        code,
+        state,
+      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+    }
+  );
+
+  const access_token = tokenRes.data.access_token;
+  console.log('access_token:', access_token);
+  if (!access_token) { console.log("access_token is null"); return null; }
+
+  const userRes = await axios.get("https://openapi.naver.com/v1/nid/me", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+
+  const account = userRes.data.response;
+  console.log('account:', account);
+  return {
+    id: account.id,
+    email: account.email,
+    name: account.name,
+    phone: formatPhoneNumber(account.mobile),
+    profile: account.profile_image,
+    provider: "n",
+  };
+}
+
 
 export const oauth = async (req: Request, res: Response) => {
   try {
@@ -219,6 +280,10 @@ export const oauth = async (req: Request, res: Response) => {
     switch (provider) {
       case 'kakao':
         user = await handleKakao(code);
+        console.log('user:', user);
+        break;
+      case 'naver':
+        user = await handleNaver(code, req.cookies.oauth_state);
         console.log('user:', user);
         break;
       default:
