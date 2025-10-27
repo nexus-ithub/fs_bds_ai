@@ -170,6 +170,41 @@ const formatPhoneNumber = (phone: string | null) => {
   return digits;
 };
 
+export const oAuthCallback = (req: Request, res: Response) => {
+  const {provider} = req.params;
+  console.log("provider : ", provider)
+  let redirectUrl: string | null = null;
+  switch (provider) {
+    case 'kakao':
+      redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_REST_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+      break;
+    case 'naver':
+      const stateNaver = crypto.randomUUID();
+      res.cookie("oauth_state", stateNaver, {
+        httpOnly: true,      
+        secure: true,     
+        sameSite: "lax",  
+        maxAge: 10 * 60 * 1000, // 유효기간 10분
+      });
+      redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
+      break;
+    case 'google':
+      const stateGoogle = crypto.randomUUID();
+      res.cookie("oauth_state", stateGoogle, {
+        httpOnly: true,      
+        secure: true,     
+        sameSite: "lax",  
+        maxAge: 10 * 60 * 1000, // 유효기간 10분
+      });
+      redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=openid%20email%20profile&state=${stateGoogle}`;
+      break;
+    default:
+      return null;
+  }
+
+  res.json({ url: redirectUrl });
+}
+
 const handleKakao = async (code: string) => {
   console.log("KAKAO_REST_API_KEY:", process.env.KAKAO_REST_API_KEY);
   console.log("KAKAO_REDIRECT_URI:", process.env.KAKAO_REDIRECT_URI);
@@ -198,7 +233,7 @@ const handleKakao = async (code: string) => {
   const account = userRes.data.kakao_account;
   console.log('account:', account);
   return {
-    id: userRes.data.id,
+    password: userRes.data.id,
     email: account.email,
     name: account.name,
     phone: formatPhoneNumber(account.phone_number),
@@ -207,18 +242,107 @@ const handleKakao = async (code: string) => {
   };
 };
 
+const handleNaver = async (code: string) => {
+  const tokenRes = await axios.post(
+    "https://nid.naver.com/oauth2.0/token",
+    null,
+    {
+      params: {
+        grant_type: "authorization_code",
+        client_id: process.env.NAVER_CLIENT_ID,
+        client_secret: process.env.NAVER_CLIENT_SECRET,
+        code,
+      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+    }
+  );
+
+  const access_token = tokenRes.data.access_token;
+  console.log('access_token:', access_token);
+  if (!access_token) { console.log("access_token is null"); return null; }
+
+  const userRes = await axios.get("https://openapi.naver.com/v1/nid/me", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+
+  const account = userRes.data.response;
+  console.log('account:', account);
+  return {
+    password: account.id,
+    email: account.email,
+    name: account.name,
+    phone: formatPhoneNumber(account.mobile),
+    profile: account.profile_image,
+    provider: "n",
+  };
+}
+
+const handleGoogle = async(code: string) => {
+  const tokenRes = await axios.post(
+    "https://oauth2.googleapis.com/token",
+    null,
+    {
+      params: {
+        grant_type: "authorization_code",
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        code,
+      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+    }
+  );
+
+  const access_token = tokenRes.data.access_token;
+  console.log('access_token:', access_token);
+  if (!access_token) { console.log("access_token is null"); return null; }
+
+  const userRes = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+
+  const account = userRes.data;
+  console.log('account:', account);
+  return {
+    password: account.id,
+    email: account.email,
+    name: account.name,
+    phone: null,
+    profile: account.picture,
+    provider: "g",
+  };
+}
+
 
 export const oauth = async (req: Request, res: Response) => {
   try {
-    const { provider, code, keepLoggedIn } = req.body;
+    const { provider, code, state, keepLoggedIn } = req.body;
+    const cookieState = req.cookies.oauth_state;
     console.log('provider:', provider);
     console.log('code:', code);
+    console.log('state:', state);
     console.log('keepLoggedIn:', keepLoggedIn);
     let user;
 
     switch (provider) {
       case 'kakao':
         user = await handleKakao(code);
+        console.log('user:', user);
+        break;
+      case 'naver':
+        console.log('cookieState:', cookieState);
+        console.log('state:', state);
+        if (cookieState !== state) {
+          return res.status(400).json({ message: 'Invalid state' });
+        }
+        user = await handleNaver(code);
+        console.log('user:', user);
+        break;
+      case 'google':
+        if (cookieState !== state) {
+          return res.status(400).json({ message: 'Invalid state' });
+        }
+        user = await handleGoogle(code);
         console.log('user:', user);
         break;
       default:
@@ -230,11 +354,12 @@ export const oauth = async (req: Request, res: Response) => {
       console.log('existingUser:', existingUser);
       if (!existingUser) { // 완전 신규회원 -> 추가 정보 입력 필요
         console.log("완전 신규회원")
-        user = await UserModel.create(user);
+        // user = await UserModel.create(user);
+        return res.status(206).json(user);
         // res.status(201).json({ message: '회원가입이 완료되었습니다.' });
-      } else if(!existingUser.provider) {  // 일반가입 했던 회원
-        console.log("일반가입 했던 회원")
-        res.status(409).json({ message: '이미 가입된 계정입니다. 다른 방법으로 로그인하세요.' });
+      } else if(existingUser.provider !== provider.slice(0, 1)) {  // 일반가입 했던 회원
+        console.log("이미 가입된 회원")
+        return res.status(409).json({ message: '이미 가입된 이메일 계정입니다. 다른 방법으로 로그인하세요.' });
       } else {
         console.log("이미 소셜회원가입 했던 회원")
         await UserModel.create({...existingUser, profile: user.profile});

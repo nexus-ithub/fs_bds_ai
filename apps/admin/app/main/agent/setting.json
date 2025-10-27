@@ -11,15 +11,16 @@
       "id": 1,
       "icon": "💸",
       "question": "부동산 매매 시 사용가능한 금융상품 추천해 주세요!!!",
-      "selectedYn": "N",
+      "selectedYn": "Y",
       "deleteYn": "N",
-      "createdAt": "2025-10-22T08:20:29.542Z"
+      "createdAt": "2025-10-22T08:20:29.542Z",
+      "seq": 3
     },
     {
       "id": 2,
       "icon": "🏠",
       "question": "매매 후 재건축 프로세스가 궁금합니다.",
-      "seq": 3,
+      "seq": 5,
       "selectedYn": "Y",
       "deleteYn": "N",
       "createdAt": "2025-10-17T09:00:00.000Z"
@@ -40,15 +41,16 @@
       "selectedYn": "Y",
       "deleteYn": "N",
       "createdAt": "2025-10-22T08:22:21.830Z",
-      "seq": 2
+      "seq": 4
     },
     {
       "id": 11,
       "icon": "📅",
       "question": "일정을 잘 지킵니다.",
-      "selectedYn": "N",
+      "selectedYn": "Y",
       "deleteYn": "N",
-      "createdAt": "2025-10-22T07:01:50.045Z"
+      "createdAt": "2025-10-22T07:01:50.045Z",
+      "seq": 2
     },
     {
       "id": 12,

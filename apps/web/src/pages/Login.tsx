@@ -23,11 +23,6 @@ export default function Login() {
   const [error, setError] = useState<string>('');
   console.log("error : ", error)
 
-  const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
-  const REDIRECT_URI = import.meta.env.VITE_KAKAO_REDIRECT_URI;
-  const kakaoToken = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -50,6 +45,18 @@ export default function Login() {
     } catch (err) {
       // alert('로그인 중 오류가 발생했습니다.');
       setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleOAuth = async(provider: string) => {
+    console.log(API_HOST)
+    console.log(provider)
+    const url = await axios.post(`${API_HOST}/api/auth/oauth/callback/${provider}`, {}, { withCredentials: true });
+    console.log(url)
+    if (url) {
+      window.location.href = url.data.url;
+    } else {
+      setError('지원하지 않는 OAuth 제공자입니다.');
     }
   };
 
@@ -176,13 +183,23 @@ export default function Login() {
             </div>
             <div className="flex items-center justify-center gap-[36px]">
               <button 
-                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); window.location.href = kakaoToken;}}
+                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('kakao')}}
                 className="flex items-center justify-center w-[48px] h-[48px] bg-[#FEE502] rounded-full"
               >
                 <KakaoLogo/>
               </button>
-              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#04C73C] rounded-full"><NaverLogo/></button>
-              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"><GoogleLogo/></button>
+              <button 
+                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('naver')}}
+                className="flex items-center justify-center w-[48px] h-[48px] bg-[#04C73C] rounded-full"
+              >
+                <NaverLogo/>
+              </button>
+              <button 
+                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('google')}}
+                className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"
+              >
+                <GoogleLogo/>
+              </button>
             </div>
           </div>
         </div>

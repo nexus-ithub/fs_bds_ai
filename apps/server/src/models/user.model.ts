@@ -2,16 +2,18 @@ import { db } from '../utils/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface User extends RowDataPacket {
-  id: string;
+  id?: string;
   email: string;
   password: string;
   name: string;
   phone: string;
   profile?: string;
   provider?: string;
-  delete_yn?: string;
-  created_at: Date;
-  updated_at: Date;
+  marketingEmail?: string;
+  marketingSms?: string;
+  deleteYn?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class UserModel {
@@ -58,16 +60,18 @@ export class UserModel {
     try {
       const result = await db.query(
         `
-        INSERT INTO users (email, password, name, phone, profile, provider)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password, name, phone, profile, provider, marketing_email, marketing_sms)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           password = VALUES(password),
           name = VALUES(name),
           phone = VALUES(phone),
           profile = VALUES(profile),
-          provider = VALUES(provider)
+          provider = VALUES(provider),
+          marketing_email = VALUES(marketing_email),
+          marketing_sms = VALUES(marketing_sms)
         `,
-        [user.email, user.password, user.name, user.phone, user.profile, user.provider]
+        [user.email, user.password, user.name, user.phone, user.profile, user.provider, user.marketingEmail, user.marketingSms]
       );
 
       const newUser: User = {

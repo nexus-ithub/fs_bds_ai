@@ -18,6 +18,7 @@ export const OAuthCallback = () => {
     const pathParts = location.pathname.split("/"); // ['/oauth','callback','kakao']
     const provider = pathParts[3]; // 'kakao', 'google', 'naver' 등
     const code = new URLSearchParams(location.search).get("code");
+    const state = new URLSearchParams(location.search).get("state");
 
     if (!code || !provider) {
       alert("OAuth 인증 정보가 없습니다.");
@@ -29,12 +30,18 @@ export const OAuthCallback = () => {
       try {
         const res = await axios.post(
           `${API_HOST}/api/auth/oauth`,
-          { provider, code, keepLoggedIn: localStorage.getItem("autoLogin") === "true" }
+          { provider, code, state, keepLoggedIn: localStorage.getItem("autoLogin") === "true" },
+          { withCredentials: true },
         );
         console.log("res : ", res)
         if (res.status === 201) {
           setToken(res.data.accessToken)
           setOpenDialog(true);
+          return;
+        } else if (res.status === 206) {
+          // navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})
+          console.log("res.data : ", res.data)
+          navigate('/signup', {state: {email: res.data.email, name: res.data.name, password: res.data.password, phone: res.data.phone, profile: res.data.profile, provider: res.data.provider}})
           return;
         }
         setToken(res.data.accessToken)

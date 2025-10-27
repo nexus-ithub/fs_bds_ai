@@ -5,23 +5,33 @@ import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import type { User } from "@repo/common";
 import { getAccessToken } from "../authutil";
+import useAxiosWithAuth from "../axiosWithAuth";
 
 export const Profile = () => {
+  const axiosInstance = useAxiosWithAuth();
   const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()]
-  })
+      queryKey: [QUERY_KEY_USER, getAccessToken()],
+      queryFn: async () => {
+        const response = await axiosInstance.get("/api/user/info");
+        return response.data;
+      },
+      enabled: !!getAccessToken(),
+    })
   const [email, setEmail] = useState<string>(config?.email ?? "");
   const [name, setName] = useState<string>(config?.name ?? "");
-  const [phone, setPhone] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(config?.phone ?? null);
   const [login, setLogin] = useState(null);
   const [alarm, setAlarm] = useState<boolean>(false);
+
+  console.log(">>>config ", config)
+
   
   return (
     <div className="w-full flex justify-center">
       <div className="w-[480px] flex flex-col gap-[24px] px-[32px] py-[48px]">
         <div className="flex flex-col gap-[24px] p-[32px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
-            <Avatar alt="내 프로필" src={config?.profile || "/support_header.jpg"} sx={{ width: 64, height: 64 }}/>
+            <Avatar alt="" src={config?.profile} sx={{ width: 64, height: 64 }}/>
             <div className="flex flex-col items-center gap-[4px]">
               <p><span className="font-s1-p mr-[4px]">{name}</span><span className="font-s1 text-text-02">고객님</span></p>
               <p className="font-s1-p">{email}</p>

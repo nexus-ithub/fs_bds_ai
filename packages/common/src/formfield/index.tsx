@@ -6,6 +6,7 @@ export const FormField = ({
   onChange,
   rightElement,
   required=false,
+  disabled=false,
 }: {
   label: string,
   type?: string,
@@ -14,6 +15,7 @@ export const FormField = ({
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
   rightElement?: React.ReactNode,
   required?: boolean,
+  disabled?: boolean,
 }) => {
   return (
     <div className="flex flex-col gap-[12px]">
@@ -24,6 +26,7 @@ export const FormField = ({
           id={label}
           name={label}
           required={required}
+          disabled={disabled}
           className="w-full rounded-[2px] border border-line-03 px-[14px] py-[12px] pr-[74px] focus:outline-none appearance-none"
           placeholder={placeholder}
           value={value}
