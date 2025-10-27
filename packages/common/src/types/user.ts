@@ -1,10 +1,18 @@
 export interface User {
-  id: number;
+  id?: number;
   email: string;
-  name?: string;
+  name: string;
   phone: string;
   profile?: string;
+  provider?: string;
+  marketingEmail?: string;
+  marketingSms?: string;
+  password?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+export type UserCreationData = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 
 export const AGES = [
   { value: '20대 이하', label: '20대 이하' },

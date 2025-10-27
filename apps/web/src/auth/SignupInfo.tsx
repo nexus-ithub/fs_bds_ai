@@ -8,14 +8,14 @@ export const SignupInfo = () => {
   const location = useLocation();
   const hasAlerted = useRef(false);
 
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [name, setName] = useState<string>('');
-  const [phone, setPhone] = useState<string>('');
+  const [email, setEmail] = useState<string>(location.state?.email ?? '');
+  const [password, setPassword] = useState<string>(location.state?.password ?? '');
+  const [name, setName] = useState<string>(location.state?.name ?? '');
+  const [phone, setPhone] = useState<string>(location.state?.phone ?? '');
 
-  const [emailValid, setEmailValid] = useState<boolean>(false);
-  const [phoneValid, setPhoneValid] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [emailValid, setEmailValid] = useState<boolean>(location.state?.email ? true : false);
+  const [phoneValid, setPhoneValid] = useState<boolean>(location.state?.phone ? true : false);
+  const [showPassword, setShowPassword] = useState<boolean>(location.state?.password ? true : false);
 
   useEffect(() => {
     if (!location.state || !location.state.serviceAgree || !location.state.privacyAgree) {
@@ -26,13 +26,30 @@ export const SignupInfo = () => {
       }
       return;
     }
+    if (location.state?.email && location.state?.phone && location.state?.name ) {
+      navigate('/signup/additional-info', {
+        state: {
+          serviceAgree: location.state.serviceAgree,
+          privacyAgree: location.state.privacyAgree,
+          marketingEmailAgree: location.state.marketingEmailAgree,
+          marketingSmsAgree: location.state.marketingSmsAgree,
+          email: location.state.email,
+          password: location.state.password,
+          name: location.state.name,
+          phone: location.state.phone,
+          profile: location.state.profile,
+          provider: location.state.provider
+        }
+      });
+    }
   }, [location.state, navigate]);
 
   if (!location.state) {
     return null;
   }
+  console.log("SignupInfo state >>>>> ", location.state)
 
-  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree } = location.state;
+  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, profile="", provider="" } = location.state;
 
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,41 +66,45 @@ export const SignupInfo = () => {
         </div>
         <div className="w-full flex flex-col gap-[20px]">
           <FormField 
-          label="이메일" 
-          type="email" 
-          placeholder="이메일을 입력하세요." 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)}
-          rightElement={
-            <button
-              type="button"
-              onClick={() => {alert("중복확인 API 호출"); setEmailValid(true)}}
-              className={`font-s2 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 'text-primary'}`}
-              disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)}
-            >
-              {emailValid ? "사용가능" : "중복확인"}
-            </button>
-          }
+            label="이메일" 
+            type="email" 
+            placeholder="이메일을 입력하세요." 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => {alert("중복확인 API 호출"); setEmailValid(true)}}
+                className={`font-s2 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 'text-primary'}`}
+                disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || location.state?.email}
+              >
+                {emailValid ? "사용가능" : "중복확인"}
+              </button>
+            }
+            disabled={!!location.state?.email}
           />
-          <FormField 
-          label="비밀번호" 
-          type={showPassword ? 'text' : 'password'} 
-          placeholder="비밀번호를 입력하세요." 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)}
-          rightElement={
-            <button type="button" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
-            </button>
-          }
-          />
+          {!location.state?.password && (
+            <FormField 
+              label="비밀번호" 
+              type={showPassword ? 'text' : 'password'} 
+              placeholder="비밀번호를 입력하세요." 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              rightElement={
+                <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
+                </button>
+              }
+              />
+          )}
           <HDivider className="!border-b-line-02"/>
           <FormField 
           label="고객명" 
           type="text" 
           placeholder="이름을 입력하세요." 
           value={name} 
-          onChange={(e) => setName(e.target.value)}/>
+          onChange={(e) => setName(e.target.value)}
+          disabled={!!location.state?.name}/>
           <FormField 
           label="휴대폰번호" 
           type="tel" 
@@ -100,6 +121,7 @@ export const SignupInfo = () => {
               본인인증
             </button>
           }
+          disabled={!!location.state?.phone}
           />
         </div>
         <HDivider className="!border-b-line-02"/>
@@ -122,7 +144,9 @@ export const SignupInfo = () => {
                   email,
                   password,
                   name,
-                  phone
+                  phone,
+                  profile,
+                  provider
                 }
               })}
             size="medium"

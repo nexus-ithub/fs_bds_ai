@@ -49,7 +49,10 @@ export default function Login() {
   };
 
   const handleOAuth = async(provider: string) => {
+    console.log(API_HOST)
+    console.log(provider)
     const url = await axios.post(`${API_HOST}/api/auth/oauth/callback/${provider}`, {}, { withCredentials: true });
+    console.log(url)
     if (url) {
       window.location.href = url.data.url;
     } else {
@@ -191,7 +194,12 @@ export default function Login() {
               >
                 <NaverLogo/>
               </button>
-              <button className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"><GoogleLogo/></button>
+              <button 
+                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('google')}}
+                className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"
+              >
+                <GoogleLogo/>
+              </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { Button, HDivider, AGES, INTERESTS, ADDITIONAL_INFO } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { API_HOST } from "../constants";
+import axios from "axios";
 
 export const AdditionalInfoContent = ({
   gender,
@@ -12,6 +14,8 @@ export const AdditionalInfoContent = ({
   additionalInfo,
   setAdditionalInfo,
 }) => {
+  const location = useLocation();
+  console.log("AdditionalInfo state >>>>> ", location.state)
   return (
     <>
       <div className="flex flex-col items-center gap-[6px]">
@@ -38,7 +42,7 @@ export const AdditionalInfoContent = ({
         </div>
         <div className="grid grid-cols-2 gap-[12px]">
           {AGES.map((ageItem) => (
-            <Button variant={age === ageItem.value ? 'outline' : 'outlinegray'} className="flex-1" onClick={() => setAge(ageItem.value)}>{ageItem.label}</Button>
+            <Button key={ageItem.value} variant={age === ageItem.value ? 'outline' : 'outlinegray'} className="flex-1" onClick={() => setAge(ageItem.value)}>{ageItem.label}</Button>
           ))}
         </div>
       </div>
@@ -50,6 +54,7 @@ export const AdditionalInfoContent = ({
         <div className="grid grid-cols-2 gap-[12px]">
           {INTERESTS.map((interest) => (
             <Button 
+            key={interest}
             variant={interests.includes(interest) ? 'outline' : 'outlinegray'} 
             className="flex-1"
             onClick={() => {
@@ -69,6 +74,7 @@ export const AdditionalInfoContent = ({
         <div className="flex flex-col gap-[12px]">
           {ADDITIONAL_INFO.map((info) => (
             <Button 
+            key={info}
             variant={additionalInfo.includes(info) ? 'outline' : 'outlinegray'} 
             className="flex-1"
             onClick={() => {
@@ -109,7 +115,13 @@ export const AdditionalInfo = () => {
     return null;
   }
 
-  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, password, name, phone } = location.state;
+  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, password, name, phone, profile, provider } = location.state;
+  
+  const handleSignup = async() => {
+    try{
+      await axios.post(`${API_HOST}/auth`)
+    }
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center">

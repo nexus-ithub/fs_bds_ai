@@ -1,16 +1,18 @@
 import { Dialog } from "@mui/material";
 import { Button, Checkbox, ChevronDownCustomIcon, ChevronRightCustomIcon, CloseIcon, HDivider } from "@repo/common"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { TermsContent } from "../support/Terms";
 
 export const SignupTerms = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [serviceAgree, setServiceAgree] = useState<boolean>(false);
   const [privacyAgree, setPrivacyAgree] = useState<boolean>(false);
   const [marketingEmailAgree, setMarketingEmailAgree] = useState<boolean>(false);
   const [marketingSmsAgree, setMarketingSmsAgree] = useState<boolean>(false);
   const [openMarketingAgree, setOpenMarketingAgree] = useState<boolean>(false);
+  const { email = "", name = "", password = "", phone = "", profile = "", provider = ""} = location.state ?? {};
 
   const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
 
@@ -103,7 +105,7 @@ export const SignupTerms = () => {
             className="w-[80px]"
           >취소</Button>
           <Button
-            onClick={() => navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})}
+            onClick={() => navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})}
             variant="default"
             size="medium"
             fontSize="font-h4"
