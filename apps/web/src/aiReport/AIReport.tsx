@@ -1,4 +1,4 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportDebugInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
@@ -10,6 +10,7 @@ import { type User } from "@repo/common";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
 import { bearingFromTo, getGradeChip } from "../utils";
 import { AIReportDetailDialog } from "./AIReportDetailDialog";
+import { Dialog } from "@mui/material";
 
 
 export interface AIReportProps {
@@ -50,6 +51,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [openNeedLogin, setOpenNeedLogin] = useState<boolean>(false);
   const [openAIReportDetailDialog, setOpenAIReportDetailDialog] = useState<boolean>(false);
+  const [aiReportDebugInfo, setAiReportDebugInfo] = useState<AIReportDebugInfo | null>(null);
+  const [openDebugInfo, setOpenDebugInfo] = useState<boolean>(false);
   const didRunRef = useRef(false);
   
   // const getGrade = (grade: string) => {
@@ -128,6 +131,17 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
     }
   }
 
+  const getAIReportDebugInfo = async () => {
+    try {
+      const res = await axiosWithAuth.post('/api/land/ai-report-debug-info', {
+        landId: landId});
+      console.log(res.data);
+      setAiReportDebugInfo(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
 
     if (!landId) return;
@@ -140,6 +154,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
     getPolygonInfo();
     getEstimatedPrice();
     getAIReport();
+
+    getAIReportDebugInfo();
   }, [landId]);
 
   
@@ -230,6 +246,17 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                 공유하기
                 <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
               </button> */}
+              {
+                aiReportDebugInfo &&
+                  <button 
+                  className="flex items-center px-[16px] gap-[4px]"
+                  onClick={()=>{
+                    setOpenDebugInfo(true);
+                  }}
+                  >
+                    확인 (개발용)
+                  </button>   
+              }
               <button 
                 className="flex items-center px-[16px] gap-[4px]"
                 onClick={addBookmark}
@@ -330,8 +357,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                 <VDivider className="h-[56px]"/>
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
                   <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
-                  <p className="font-h2-p">{landInfo?.price ? krwUnit(landInfo.price * landInfo.area, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{landInfo?.price ? krwUnit(landInfo.price, true) : '-'} /㎡</p>
+                  <p className="font-h2-p">{landInfo?.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
+                  <p className="font-c3 text-text-03">{landInfo?.price ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
                 </div>
                 <VDivider className="h-[56px]"/>
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
@@ -424,36 +451,25 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                     {/* <ReportItem title="연간 자산상승" value={krwUnit(sortedItems?.[selectedTab]?.value.assetGrowthAmount || 0, true)}/> */}
                     {/* <ReportItem title="실투자금대비 연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/> */}
                     <ReportItem title="연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/>
-                    
-                    {/* <div className="flex justify-between">
-                      <p className="font-s2 text-text-03">매입 가능 금액</p>
-                      <p className="font-s1-p">219.7억원</p>
-                    </div>
-                    <div className="flex justify-between">
-                      <p className="font-s2 text-text-03">금융 가능 비율</p>
-                      <p className="font-s1-p">25%</p>
-                    </div>
-                    <div className="flex justify-between">
-                      <p className="font-s2 text-text-03">연간수익</p>
-                      <p className="font-s1-p">7.03억원</p>
-                    </div>
-                    <div className="flex justify-between">
-                      <p className="font-s2 text-text-03">연간수익률</p>
-                      <p className="font-s1-p">3.2%</p>
-                    </div>
-                    <div className="flex justify-between">
-                      <p className="font-s2 text-text-03">리모델링후 예상 수익률</p>
-                      <p className="font-s1-p">3.5~3.8%</p>
-                    </div> */}
+                  
                   </div>
                   <div className="w-[1px] bg-line-02"/>
                   <div className="flex-1 flex flex-col items-center gap-[12px]">
-                    <p className="font-s2">N년후 예상 매각금액</p>
+                    <p className="font-s2">5년후 예상 매각금액</p>
                     <HDivider/>
                     <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
                   </div>
                 </div>
-              </div> 
+              </div>
+              {/* {
+                aiReportDebugInfo &&
+                <div className="space-y-[16px]">
+                  <p className="font-h3">사업계획서 확인(개발용)</p>
+                  <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo.devDetailInfo.debugExtraInfo.map((item, index) => (
+                    <p key={index}>{item}</p>
+                  ))}</p>
+                </div>
+              }  */}
               </>
           }
          
@@ -476,6 +492,42 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         openAIReportDetailDialog &&
         <AIReportDetailDialog open={openAIReportDetailDialog} landId={landId} estimatedPrice={estimatedPrice} onClose={() => setOpenAIReportDetailDialog(false)}/>
       }
+      <Dialog
+        maxWidth="xl"
+        open={openDebugInfo} onClose={() => setOpenDebugInfo(false)}>
+
+        <p className="px-[20px] pt-[20px] font-h3">사업계획서 확인(개발용)</p>
+        <div className="p-[20px] h-[100vh] space-y-[16px] overflow-y-auto">
+          <div className="flex-1">
+            <p className="font-s2 space-y-[4px] bg-gray-200 p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugExtraInfo.map((item, index) => (
+              <p key={index}>{item}</p>
+            ))}</p>
+          </div>          
+          <div className="flex gap-[16px]">
+            <div className="flex-1">
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugBuildInfo.map((item, index) => (
+                <p key={index}>{item}</p>
+              ))}</p>
+            </div>
+            <div className="flex-1">
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRemodelInfo.map((item, index) => (
+                <p key={index}>{item}</p>
+              ))}</p>
+            </div>
+            <div className="flex-1">
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRentInfo.map((item, index) => (
+                <p key={index}>{item}</p>
+              ))}</p>
+            </div>
+          </div>
+        </div>
+          <Button 
+            className="my-[12px] py-[12px] w-full" 
+            fontSize="font-h4"
+            onClick={() => setOpenDebugInfo(false)}>
+            확인
+          </Button>          
+      </Dialog>
     </div>
   );
 };

@@ -122,7 +122,7 @@ export interface ReportValue {
   // 금융차입
   loan: Loan;
   // 금융차입 (소유자)
-  loanForOwner: Loan;
+  // loanForOwner: Loan;
 
   // 연간임대수익
   annualRentProfit: number;
@@ -130,6 +130,9 @@ export interface ReportValue {
   annualManagementProfit: number;
   // 연간보증금수익
   annualDepositProfit: number;
+
+
+  result: ReportResult;
 }
 
 export interface ProjectDuration {
@@ -139,6 +142,8 @@ export interface ProjectDuration {
   designDurationMonths: number;
   // 공사 (months)
   constructionDurationMonths: number;
+
+
 }
 
 export interface TaxInfo {
@@ -162,7 +167,14 @@ export interface DevDetailInfo {
   tax: TaxInfo;
 
   analysisMessage: string;
+
+
+  debugExtraInfo: string[];
+  debugBuildInfo: string[];
+  debugRemodelInfo: string[];
+  debugRentInfo: string[];
 }
+
 
 export interface ReportResult {
   grade: string;
@@ -206,3 +218,8 @@ export interface AIReportDetail {
 }
 
 
+export interface AIReportDebugInfo {
+  landInfo: LandData;
+  buildingList: BuildingData[];
+  devDetailInfo: DevDetailInfo;
+}
