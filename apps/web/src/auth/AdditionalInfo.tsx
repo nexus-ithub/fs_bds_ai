@@ -117,11 +117,11 @@ export const AdditionalInfo = () => {
 
   const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, password, name, phone, profile, provider } = location.state;
   
-  const handleSignup = async() => {
-    try{
-      await axios.post(`${API_HOST}/auth`)
-    }
-  }
+  // const handleSignup = async() => {
+  //   try{
+  //     await axios.post(`${API_HOST}/auth`)
+  //   }
+  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center">
