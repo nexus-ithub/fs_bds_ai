@@ -134,13 +134,6 @@ export const AdditionalInfo = () => {
     }
   }
 
-  useEffect(() => {
-    console.log("gender >>>>> ", gender)
-    console.log("age >>>>> ", age)
-    console.log("interests >>>>> ", interests)
-    console.log("additionalInfo >>>>> ", additionalInfo)
-  }, [gender, age, interests, additionalInfo]);
-
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-[360px] flex flex-col gap-[32px] p-[32px] my-[40px] rounded-[8px] border border-line-02 shadow-[0_20px_40px_0_rgba(0,0,0,0.06)]">
@@ -157,7 +150,7 @@ export const AdditionalInfo = () => {
         <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px]">
           {/* <Button variant="bggray" size="medium" className="w-[80px]" fontSize="font-h4">취소</Button> */}
-          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {alert('가입api 호출'); navigate('/login')}}>입력 완료</Button>
+          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {alert('가입api 호출'); navigate('/')}}>입력 완료</Button>
         </div>
       </div>
     </div>

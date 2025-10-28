@@ -25,3 +25,4 @@ export * from './dotprogress';
 export * from './types/admin';
 export * from './radio';
 export * from './formfield';
+export * from './complete';

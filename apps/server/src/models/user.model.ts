@@ -1,5 +1,6 @@
 import { db } from '../utils/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import bcrypt from 'bcryptjs';
 
 export interface User extends RowDataPacket {
   id?: string;
@@ -58,6 +59,8 @@ export class UserModel {
 
   static async create (user: User): Promise<User> {
     try {
+      const salt = bcrypt.genSaltSync(8);
+      const hashedPassword = bcrypt.hashSync(user.password, salt);
       const result = await db.query(
         `
         INSERT INTO users (email, password, name, phone, profile, provider, marketing_email, marketing_sms)
@@ -71,7 +74,7 @@ export class UserModel {
           marketing_email = VALUES(marketing_email),
           marketing_sms = VALUES(marketing_sms)
         `,
-        [user.email, user.password, user.name, user.phone, user.profile, user.provider, user.marketingEmail, user.marketingSms]
+        [user.email, hashedPassword, user.name, user.phone, user.profile, user.provider, user.marketingEmail, user.marketingSms]
       );
 
       const newUser: User = {
@@ -85,17 +88,17 @@ export class UserModel {
     }
   }
 
-  // static async update (user: User): Promise<User> {
-  //   console.log('user:', user);
-  //   try {
-  //     const [result] = await db.query<User>(
-  //       'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ?',
-  //       [user.password, user.name, user.phone, user.profile, user.provider, user.id]
-  //     );
-  //     return result;
-  //   } catch (error) {
-  //     console.error('Error updating user:', error);
-  //     throw error;
-  //   }
-  // }
+  static async update (user: User): Promise<User> {
+    console.log('user:', user);
+    try {
+      const [result] = await db.query<User>(
+        'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ?',
+        [user.password, user.name, user.phone, user.profile, user.provider, user.id]
+      );
+      return result;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
 }

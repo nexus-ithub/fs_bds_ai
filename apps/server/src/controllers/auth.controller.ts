@@ -25,6 +25,37 @@ const generateRefreshToken = (userId: number, auto: boolean): string => {
   );
 };
 
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const { user } = req.body;
+    const response = await UserModel.create(user);
+    const accessToken = generateAccessToken(Number(response?.id ?? user.id), false);
+    const refreshToken = generateRefreshToken(Number(response?.id ?? user.id), false);
+    console.log("accessToken:", accessToken);
+    console.log("refreshToken:", refreshToken);
+
+    const refreshExpiry = new Date();
+    refreshExpiry.setHours(refreshExpiry.getHours() + 1);
+    await RefreshTokenModel.create(Number(response?.id ?? user.id), refreshToken, refreshExpiry);
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 1 * 60 * 60 * 1000,       // 1시간
+    });
+
+    res.status(200).json({
+      id: response.id,
+      accessToken,
+    });
+    // res.status(201).json(response);
+  } catch (err) {
+    console.error('Create user error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password, keepLoggedIn } = req.body;
@@ -362,41 +393,35 @@ export const oauth = async (req: Request, res: Response) => {
         return res.status(409).json({ message: '이미 가입된 이메일 계정입니다. 다른 방법으로 로그인하세요.' });
       } else {
         console.log("이미 소셜회원가입 했던 회원")
-        await UserModel.create({...existingUser, profile: user.profile});
+        await UserModel.update({...existingUser, profile: user.profile});
+        console.log("existingUser.id:", existingUser?.id);
+        const accessToken = generateAccessToken(Number(existingUser?.id), keepLoggedIn);
+        const refreshToken = generateRefreshToken(Number(existingUser?.id), keepLoggedIn);
+        console.log("accessToken:", accessToken);
+        console.log("refreshToken:", refreshToken);
+
+        const refreshExpiry = new Date();
+        if (keepLoggedIn) {
+          refreshExpiry.setDate(refreshExpiry.getDate() + 14);
+        } else {
+          refreshExpiry.setHours(refreshExpiry.getHours() + 1);
+        }
+        await RefreshTokenModel.create(Number(existingUser?.id), refreshToken, refreshExpiry);
+
+        res.cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: keepLoggedIn 
+            ? 14 * 24 * 60 * 60 * 1000 // 14일
+            : 1 * 60 * 60 * 1000,       // 1시간
+        });
+
+        res.status(!existingUser ? 201 : 200).json({
+          id: existingUser.id,
+          accessToken,
+        });
       }
-      console.log("로그인 과정 시작")
-      console.log("existingUser.id:", existingUser?.id);
-      console.log("user >>> ", user)
-      console.log("user.id:", user.id);
-      console.log("keepLoggedIn:", keepLoggedIn)
-      const accessToken = generateAccessToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
-      const refreshToken = generateRefreshToken(Number(existingUser?.id ?? user.id), keepLoggedIn);
-      console.log("accessToken:", accessToken);
-      console.log("refreshToken:", refreshToken);
-
-      const refreshExpiry = new Date();
-      if (keepLoggedIn) {
-        refreshExpiry.setDate(refreshExpiry.getDate() + 14);
-      } else {
-        refreshExpiry.setHours(refreshExpiry.getHours() + 1);
-      }
-
-      await RefreshTokenModel.create(Number(existingUser?.id ?? user.id), refreshToken, refreshExpiry);
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: keepLoggedIn 
-          ? 14 * 24 * 60 * 60 * 1000 // 14일
-          : 1 * 60 * 60 * 1000,       // 1시간
-      });
-
-      res.status(!existingUser ? 201 : 200).json({
-        id: user.id,
-        accessToken,
-      });
-      
     }
   } catch (err) {
     console.error('회원가입 실패', err);

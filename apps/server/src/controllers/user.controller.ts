@@ -33,14 +33,3 @@ export const checkEmail = async (req: Request, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
-
-export const createUser = async (req: Request, res: Response) => {
-  try {
-    const { user } = req.body;
-    const response = await UserModel.create(user);
-    res.status(201).json(response);
-  } catch (err) {
-    console.error('Create user error:', err);
-    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
-  }
-};

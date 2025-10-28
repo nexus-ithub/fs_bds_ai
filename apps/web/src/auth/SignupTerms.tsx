@@ -1,8 +1,12 @@
 import { Dialog } from "@mui/material";
 import { Button, Checkbox, ChevronDownCustomIcon, ChevronRightCustomIcon, CloseIcon, HDivider } from "@repo/common"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { TermsContent } from "../support/Terms";
+import axios from "axios";
+import { API_HOST } from "../constants";
+import { SignupConfirmDialog } from "./SignupConfirmDialog";
+import { setToken } from "../authutil";
 
 export const SignupTerms = () => {
   const navigate = useNavigate();
@@ -12,9 +16,41 @@ export const SignupTerms = () => {
   const [marketingEmailAgree, setMarketingEmailAgree] = useState<boolean>(false);
   const [marketingSmsAgree, setMarketingSmsAgree] = useState<boolean>(false);
   const [openMarketingAgree, setOpenMarketingAgree] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string>("");
   const { email = "", name = "", password = "", phone = "", profile = "", provider = ""} = location.state ?? {};
 
   const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
+  const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
+
+  const handleSignup = async() => {
+    if (!serviceAgree || !privacyAgree) {
+      return;
+    }
+    if (email && name && phone) {
+      const response = await axios.post(`${API_HOST}/api/auth/signup`, {
+        user: {
+          email,
+          password,
+          name,
+          phone,
+          profile,
+          provider,
+          marketingEmail: marketingEmailAgree ? "Y" : "N",
+          marketingSms: marketingSmsAgree ? "Y" : "N"
+        }
+      })
+      if (response.data) {
+        setUserId(response.data.id);
+        setToken(response.data.accessToken);
+        setOpenCompleteDialog(true);
+      } else {
+        alert("회원가입 중 오류 발생");
+      }
+    } else {
+      navigate('/signup/info', {
+        state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})
+    }
+  }
 
   return (
     <div className="flex h-screen items-center justify-center">
@@ -105,7 +141,7 @@ export const SignupTerms = () => {
             className="w-[80px]"
           >취소</Button>
           <Button
-            onClick={() => navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})}
+            onClick={() => {handleSignup();}}
             variant="default"
             size="medium"
             fontSize="font-h4"
@@ -119,6 +155,7 @@ export const SignupTerms = () => {
           <button className="font-s2 text-primary" onClick={() => navigate('/login')}>로그인</button>
         </div>
       </div>
+      <SignupConfirmDialog open={openCompleteDialog} onClose={() => setOpenCompleteDialog(false)} userId={userId}/>
       {openServiceTerms && (
         <Dialog
           maxWidth="md"
