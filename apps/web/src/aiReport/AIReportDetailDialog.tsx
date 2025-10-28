@@ -275,12 +275,16 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
 
               </div>
             </div>  
-            <div className="space-y-[16px]">
-              <p className="font-h3">사업기간</p>
-              <div className="p-[16px] flex rounded-[8px] border-[1px] border-line-03 divide-x-[1px] divide-line-02">
-                {renderDuration()}
-              </div>
-            </div>    
+            {
+              aiReportDetail?.type !== 'rent' ? (
+                <div className="space-y-[16px]">
+                  <p className="font-h3">사업기간</p>
+                  <div className="p-[16px] flex rounded-[8px] border-[1px] border-line-03 divide-x-[1px] divide-line-02">
+                    {renderDuration()}
+                  </div>
+                </div>
+              ) : null
+            }  
             <div className="space-y-[16px]">
               <div className="flex items-center gap-[8px]">
                 <p className="font-h3">사업비</p>

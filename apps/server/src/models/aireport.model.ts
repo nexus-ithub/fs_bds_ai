@@ -1530,7 +1530,8 @@ export class AIReportModel {
         devDetailInfo
       } = await this.makeDevDetailInfo(landId, estimatedPrice);
       const {remodel, build, rent} = devDetailInfo;
-      const valueArray = [remodel, build, rent].sort((a, b) => b.grade > a.grade ? -1 : 1);
+      let valueArray = [remodel, build, rent].filter((v) => v !== null);
+      valueArray = valueArray.sort((a, b) => b?.grade > a?.grade ? -1 : 1);
       const resultType = valueArray[0] === remodel ? 'remodel' : valueArray[0] === build ? 'build' : 'rent';
       const resultValue = valueArray[0];
       const result = {
