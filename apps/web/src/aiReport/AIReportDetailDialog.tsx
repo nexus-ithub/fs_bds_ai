@@ -24,6 +24,34 @@ const ItemRow = ({title, value}: {title: string, value: string}) => {
   )
 }
 
+const Dot = ({label = null, isLast = false, variant = "gray"}: {label?: string, isLast?: boolean, color?: string, variant?: "gray" | "primary" | "primary-b"}) => {
+
+  const dotColor = variant === "gray" ? "#585C64" : "var(--primary-050)";
+  const borderColor = variant === "gray" ? "var(--gray-020)" :  variant === "primary" ? "var(--primary-050)" : "var(--primary-050)";
+  const bgColor = variant === "gray" ? "white" :  variant === "primary" ? "white" : "var(--primary-050)";
+  const textColor = variant === "gray" ? "" :  variant === "primary" ? "var(--primary-050)" : "white";
+
+
+  return (
+    <>
+    <div className={`absolute ${isLast ? "right-0 translate-x-1/2" : "-translate-x-1/2"} top-[-4px]`}>  
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <circle cx="6" cy="6" r="4.5" fill="white" stroke={dotColor} stroke-width="3"/>
+      </svg>
+    </div>
+    {
+      label && (
+        <div className={`font-s4 text-text-02 absolute top-[-35px] ${isLast ? "right-0 translate-x-1/2" : "-translate-x-1/2"} whitespace-nowrap border rounded-[4px] px-[8px] py-[4px]`} style={{borderColor: borderColor, backgroundColor: bgColor}}>
+          <p style={{color: textColor}}>{label}</p>
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]" style={{borderTopColor: borderColor}}></div>
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-5px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px]" style={{borderTopColor: bgColor}}></div>
+        </div>
+      )
+    }
+    </>
+  )
+}
+
 export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AIReportDetailDialogProps) => {
 
   const [loading, setLoading] = useState(false);
@@ -51,6 +79,126 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
     });
   }
 
+
+
+  const renderDuration = () => {
+    if (!aiReportDetail) return;
+    const totalMonths = aiReportDetail.value.duration.planningDurationMonths + aiReportDetail.value.duration.designDurationMonths + aiReportDetail.value.duration.constructionDurationMonths;
+    // const totalMonths = 10;
+    const count = (totalMonths * 2) + 1;
+    return (
+      <div className="items-center space-y-[16px] w-full">
+        <div className="flex items-center gap-[8px] font-s1-p">
+          <p className="font-s1-p">총 사업기간</p>
+          <VDivider colorClassName="bg-line-03"/>
+          <p className="font-s1-p">{totalMonths}개월</p>
+        </div>
+        <HDivider/>
+        
+        <div className="w-full px-[26px] relative h-[162px] py-[14px]">
+          {/* ticks */}
+          <div className="w-full flex">
+            {
+              Array.from({ length: count}).map((_, index) => {
+                const isMonthTick = index % 2 === 0;
+                const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
+                console.log('index', index, 'width', width);
+                return (
+                  <div key={index} className="relative" style={{ width: width }}>
+                    {isMonthTick && (
+                      <p className="font-c3-p text-text-03 absolute top-[-18px] -translate-x-1/2 whitespace-nowrap">
+                        {index / 2}
+                      </p>
+                    )}
+                    {
+                      index !== count - 1 && (
+                        <div className="w-full h-[4px] bg-primary" />
+                      )
+                    }
+                    {
+                      (isMonthTick) && (
+                        <div className="w-[2px] h-[128px] bg-line-02 absolute top-[12px] -translate-x-1/2" />
+                      )
+                    }
+                  </div>
+                );
+              })
+            }
+          </div>
+
+          {/* center lines */}
+          <div className="flex left-[26px] right-[26px] h-[4px] bg-grayscale-020 absolute top-[70px]">
+            {
+              Array.from({ length: aiReportDetail.value.duration.planningDurationMonths * 2}).map((_, index) => {
+                const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
+                console.log('index', index, 'width', width);
+                return (
+                  <div key={index} className="relative" style={{ width: width }}>
+                    {
+                      index == 0 && <Dot label="기획"/>
+                    }
+                    <div className="w-full h-[4px] bg-content-02" />
+                  </div>
+                );
+              })
+            }
+            {
+              Array.from({ length: aiReportDetail.value.duration.designDurationMonths * 2}).map((_, index) => {
+                const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
+                console.log('index', index, 'width', width);
+                return (
+                  <div key={index} className="relative" style={{ width: width }}>
+                    {
+                      index == 0 && (<Dot label="설계/인허가"/>)
+                    }
+                    {
+                      (index == ((aiReportDetail.value.duration.designDurationMonths * 2) - 1)) && (<Dot isLast/>)
+                    }                    
+                    <div className="w-full h-[4px] bg-content-02" />
+                  </div>
+                );
+              })
+            }            
+          </div>
+          {/* bottom lines */}
+          <div className="flex left-[26px] right-[26px] h-[4px] bg-grayscale-020 absolute top-[130px]">
+            {
+              Array.from({ length: (aiReportDetail.value.duration.planningDurationMonths + aiReportDetail.value.duration.designDurationMonths) * 2}).map((_, index) => {
+                const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
+                console.log('index', index, 'width', width);
+                return (
+                  <div key={index} className="relative" style={{ width: width }}>
+                    {/* {
+                      index == 0 && <Dot label="기획"/>
+                    } */}
+                    <div className="w-full h-[4px] bg-transparent" />
+                  </div>
+                );
+              })
+            }
+            {
+              Array.from({ length: aiReportDetail.value.duration.constructionDurationMonths * 2}).map((_, index) => {
+                const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
+                console.log('index', index, 'width', width);
+                return (
+                  <div key={index} className="relative" style={{ width: width }}>
+                    {
+                      index == 0 && (<Dot label="착공" variant="primary"/>)
+                    }
+                    {
+                      (index == ((aiReportDetail.value.duration.constructionDurationMonths * 2) - 1)) && (<Dot label="준공" variant="primary-b" isLast/>)
+                    }                    
+                    <div className="w-full h-[4px] bg-primary" />
+                  </div>
+                );
+              })
+            }            
+          </div>
+        </div>
+
+      </div>
+    )
+  }
 
   useEffect(() => {
     getAIReportDetail()
@@ -130,9 +278,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
             <div className="space-y-[16px]">
               <p className="font-h3">사업기간</p>
               <div className="p-[16px] flex rounded-[8px] border-[1px] border-line-03 divide-x-[1px] divide-line-02">
-                <div className="h-[120px]">
-
-                </div>
+                {renderDuration()}
               </div>
             </div>    
             <div className="space-y-[16px]">

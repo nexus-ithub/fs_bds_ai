@@ -4,7 +4,7 @@ import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 import { useQuery } from "react-query";
-import { QUERY_KEY_USER } from "../constants";
+import { IS_DEVELOPMENT, QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
@@ -137,6 +137,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         landId: landId});
       console.log(res.data);
       setAiReportDebugInfo(res.data);
+      setOpenDebugInfo(true);
     } catch (error) {
       console.error(error);
     }
@@ -155,7 +156,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
     getEstimatedPrice();
     getAIReport();
 
-    getAIReportDebugInfo();
+    // getAIReportDebugInfo();
   }, [landId]);
 
   
@@ -246,17 +247,20 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                 공유하기
                 <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
               </button> */}
+              
               {
-                aiReportDebugInfo &&
-                  <button 
-                  className="flex items-center px-[16px] gap-[4px]"
-                  onClick={()=>{
-                    setOpenDebugInfo(true);
-                  }}
-                  >
-                    확인 (개발용)
-                  </button>   
+                IS_DEVELOPMENT &&
+                <button 
+                className="flex items-center px-[16px] gap-[4px]"
+                onClick={()=>{
+                  getAIReportDebugInfo()
+                  
+                }}
+                >
+                  확인 (개발용)
+                </button>   
               }
+ 
               <button 
                 className="flex items-center px-[16px] gap-[4px]"
                 onClick={addBookmark}
