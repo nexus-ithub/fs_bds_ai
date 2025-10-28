@@ -67,6 +67,7 @@ export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingIn
           <Row title="연면적" content={getAreaStrWithPyeong(selectedBuilding?.totalFloorArea)} />
           <Row title="용적률" content={getRatioStr(selectedBuilding?.floorAreaRatio)} />
           <Row title="준공년도" content={getBuildingCreateDateStr(selectedBuilding?.useApprovalDate)} />
+          <Row title="지상/지하" content={selectedBuilding?.gndFloorNumber + '/' + selectedBuilding?.baseFloorNumber} />
         </>
         : (
           <div>

@@ -17,7 +17,9 @@ export class BuildingModel {
           building.arch_land_ratio AS archLandRatio,
           building.total_floor_area AS totalFloorArea,
           building.floor_area_ratio AS floorAreaRatio,
-          building.use_approval_date AS useApprovalDate
+          building.use_approval_date AS useApprovalDate,
+          building.gnd_floor_number AS gndFloorNumber,
+          building.base_floor_number AS baseFloorNumber
         FROM building_leg_headline AS building
       `;
       let params = [];

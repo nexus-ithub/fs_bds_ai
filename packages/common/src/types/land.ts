@@ -87,6 +87,8 @@ export interface BuildingInfo {
   totalFloorArea: number;
   floorAreaRatio: number;
   useApprovalDate : string;
+  gndFloorNumber: string;
+  baseFloorNumber: string;
 }
 
 export interface EstimatedPrice {
