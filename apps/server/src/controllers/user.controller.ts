@@ -19,12 +19,26 @@ export const getUserInfo = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const checkEmail = async (req: Request, res: Response) => {
+  try {
+    console.log("checkEmail req.query >>>>> ", req.query)
+    const email = req.query.email as string;
+    const user = await UserModel.findByEmail(email);
+    if (user) {
+      return res.status(409).json({ message: '이미 사용 중인 이메일입니다.' });
+    }
+    res.status(200).json({ valid: true });
+  } catch (err) {
+    console.error('Check email error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, phone, profile, provider, marketingEmail, marketingSms } = req.body;
-    // const user = await UserModel.create({ email, password, name, phone, profile, provider, marketingEmail, marketingSms });
-    // res.status(201).json(user);
-    res.status(201).json({ message: '사용자 생성이 완료되었습니다.' });
+    const { user } = req.body;
+    const response = await UserModel.create(user);
+    res.status(201).json(response);
   } catch (err) {
     console.error('Create user error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });

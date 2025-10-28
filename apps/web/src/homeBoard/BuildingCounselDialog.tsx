@@ -43,7 +43,7 @@ export const BuildingCounselDialog = ({
                   className="px-[14px] py-[12px] border border-line-03 rounded-[2px]"/>
               </div>
             </div>
-            <HDivider className="!border-b-line-02"/>
+            <HDivider colorClassName="bg-line-02"/>
             <div className="w-full flex flex-col gap-[16px]">
               <p className="font-h4">추가 요청 사항</p>
               <textarea
@@ -51,7 +51,7 @@ export const BuildingCounselDialog = ({
                 className="h-[120px] px-[16px] py-[12px] font-b2 rounded-[4px] resize-none bg-surface-second"/>
             </div>
             {/* 비로그인일 때 TODO */}
-            <HDivider className="!border-b-line-02"/>
+            <HDivider colorClassName="bg-line-02"/>
             <div className="w-full flex flex-col gap-[12px]">
               <div className="flex items-center gap-[8px]">
                 <Checkbox

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_HOST } from "../constants";
 import axios from "axios";
+import useAxiosWithAuth from "../axiosWithAuth";
 
 export const AdditionalInfoContent = ({
   gender,
@@ -91,6 +92,7 @@ export const AdditionalInfoContent = ({
 }
 
 export const AdditionalInfo = () => {
+  const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const hasAlerted = useRef(false);
@@ -101,7 +103,7 @@ export const AdditionalInfo = () => {
   const [additionalInfo, setAdditionalInfo] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!location.state || !location.state.email || !location.state.password || !location.state.name || !location.state.phone) {
+    if (!location.state || !location.state.userId) {
       if (!hasAlerted.current) {
         hasAlerted.current = true;
         alert('잘못된 접근입니다.');
@@ -115,13 +117,29 @@ export const AdditionalInfo = () => {
     return null;
   }
 
-  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, password, name, phone, profile, provider } = location.state;
+  const { userId } = location.state;
+  console.log("AdditionalInfo state >>>>> ", location.state)
   
-  // const handleSignup = async() => {
-  //   try{
-  //     await axios.post(`${API_HOST}/auth`)
-  //   }
-  // }
+  const handleSubmit = async() => {
+    try {
+      const response = await axiosInstance.post(`/api/user/additional-info/${userId}`, {
+        gender,
+        age,
+        interests,
+        additionalInfo
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    console.log("gender >>>>> ", gender)
+    console.log("age >>>>> ", age)
+    console.log("interests >>>>> ", interests)
+    console.log("additionalInfo >>>>> ", additionalInfo)
+  }, [gender, age, interests, additionalInfo]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -136,10 +154,10 @@ export const AdditionalInfo = () => {
           additionalInfo={additionalInfo}
           setAdditionalInfo={setAdditionalInfo}
         />
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px]">
-          <Button variant="bggray" size="medium" className="w-[80px]" fontSize="font-h4">취소</Button>
-          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {alert('가입api 호출'); navigate('/login')}}>가입</Button>
+          {/* <Button variant="bggray" size="medium" className="w-[80px]" fontSize="font-h4">취소</Button> */}
+          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {alert('가입api 호출'); navigate('/login')}}>입력 완료</Button>
         </div>
       </div>
     </div>

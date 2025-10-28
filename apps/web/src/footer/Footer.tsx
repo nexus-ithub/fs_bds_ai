@@ -47,7 +47,7 @@ export const Footer = () => {
             <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">ADD.</span>{'서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)'}</p>
           </div>
         </div>
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
         <div className="font-s3 text-text-02">© 2025 JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</div>
       </div>
     </div>

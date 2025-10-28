@@ -35,7 +35,7 @@ export const TermsContent = ({menuSelectable=true, contentClassName=''}: {menuSe
           <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
           <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">인쇄하기</span><PrintIcon/></button>
         </div>
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
       </div>
       <div className={`w-full flex flex-col gap-[20px] ${contentClassName}`}>
         <h2 className="font-h2-p">제 1 장 개인회원 이용약관</h2>
@@ -75,7 +75,7 @@ export const Terms = () => {
           <p className="font-s2 text-text-02">서비스 이용약관</p>
         </div>
         <div className="flex flex-col gap-[32px] items-center">
-          <HDivider className="!border-b-line-02"/>
+          <HDivider colorClassName="bg-line-02"/>
           <TermsContent />
         </div>
       </div>

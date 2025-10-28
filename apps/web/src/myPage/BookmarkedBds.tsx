@@ -58,7 +58,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
       </div>
-      <HDivider className="!border-b-line-02"/>
+      <HDivider colorClassName="bg-line-02"/>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
           {/* 빌딩샵은 주소 빼기로 함 -> 검색할 항목이 없음 */}

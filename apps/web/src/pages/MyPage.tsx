@@ -138,7 +138,7 @@ export const MyPage = () => {
               <p className="font-s2-p">{config?.email}</p>
             </div>
           </div>
-          <HDivider className="!border-b-line-02"/>
+          <HDivider colorClassName="bg-line-02"/>
           <div className="flex flex-col gap-[16px]">
             <p className="font-s1">관심물건</p>
             <div className="flex items-center justify-between gap-[6px]">
@@ -149,7 +149,7 @@ export const MyPage = () => {
               <p className="font-s2 text-text-03">저장된 관심물건</p>
               <p className="font-s2 text-text-02">{reportCount}</p>
             </div>
-            <HDivider className="!border-b-line-02" dashed={true}/>
+            <HDivider colorClassName="bg-line-02" dashed={true}/>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">생성한 AI 리포트</p>
               <p className="font-s2 text-text-02">32TODO</p>

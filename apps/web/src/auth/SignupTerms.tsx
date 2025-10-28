@@ -35,7 +35,7 @@ export const SignupTerms = () => {
               setMarketingSmsAgree(checked);
             }}
           />
-          <HDivider dashed={true} className="!border-b-line-02"/>
+          <HDivider dashed={true} colorClassName="bg-line-02"/>
           <div className="flex justify-between items-center">
             <Checkbox
               label="서비스 이용약관 동의(필수)"
@@ -113,7 +113,7 @@ export const SignupTerms = () => {
             disabled={!serviceAgree || !privacyAgree}
           >동의하고 본인인증하기</Button>
         </div>
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px] mt-[8px] mx-auto">
           <p className="font-s2 text-text-03">이미 회원이세요?</p>
           <button className="font-s2 text-primary" onClick={() => navigate('/login')}>로그인</button>

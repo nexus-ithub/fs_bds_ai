@@ -85,7 +85,7 @@ export const Privacy = () => {
           <p className="font-s2 text-text-02">개인정보 처리방침</p>
         </div>
         <div className="flex flex-col gap-[32px] items-center">
-          <HDivider className="!border-b-line-02"/>
+          <HDivider colorClassName="bg-line-02"/>
           <div className="flex flex-col items-center gap-[16px]">
             <h1 className="font-h1">빌딩샵 개인정보 처리방침</h1>
             <MenuDropdown 
@@ -109,11 +109,11 @@ export const Privacy = () => {
                 <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
                 <button className="flex items-center gap-[4px]"><span className="font-b3 text-text-02">인쇄하기</span><PrintIcon/></button>
               </div>
-              <HDivider className="!border-b-line-02"/>
+              <HDivider colorClassName="bg-line-02"/>
             </div>
             <TermsIndexTable/>
           </div>
-          <HDivider className="!border-b-line-02"/>
+          <HDivider colorClassName="bg-line-02"/>
           <div className="w-full flex flex-col gap-[20px]">
             {termsIndexSample.map((item) => (
               <div

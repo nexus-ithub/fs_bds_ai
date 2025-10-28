@@ -179,7 +179,7 @@ export const YoutubeList = ({
                     <p className="font-s2 text-text-03">조회수 {formatViews(video.viewCount || 0)}회 ∙ {formatTimeAgo(new Date(video.publishedAt))}</p>
                   </div>
                 </div>
-                {index < videos.length - 1 && <HDivider dashed={true} className="!border-b-line-02"/>}
+                {index < videos.length - 1 && <HDivider dashed={true} colorClassName="bg-line-02"/>}
               </React.Fragment>
             ))}
           </div>

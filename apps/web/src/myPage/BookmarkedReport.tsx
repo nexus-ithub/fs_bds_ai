@@ -156,7 +156,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         <h2 className="font-h2">관심물건 관리</h2>
         <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>
       </div>
-      <HDivider className="!border-b-line-02"/>
+      <HDivider colorClassName="bg-line-02"/>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
           <SearchBar

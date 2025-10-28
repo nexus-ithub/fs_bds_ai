@@ -32,11 +32,11 @@ export const BoardDetail = () => {
             <p className="font-s2 text-text-03">{format(new Date((item as NoticeSampleType)?.date), "yyyy.MM.dd")}</p>
           )}
         </div>
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
         <div className="flex-1 font-b1">{item?.content}</div>
       </div>
       <div className="flex flex-col gap-[24px]">
-        <HDivider className="!border-b-line-02"/>
+        <HDivider colorClassName="bg-line-02"/>
         <Button
           variant="outline"
           size="default"
