@@ -461,15 +461,6 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                   </div>
                 </div>
               </div>
-              {/* {
-                aiReportDebugInfo &&
-                <div className="space-y-[16px]">
-                  <p className="font-h3">사업계획서 확인(개발용)</p>
-                  <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo.devDetailInfo.debugExtraInfo.map((item, index) => (
-                    <p key={index}>{item}</p>
-                  ))}</p>
-                </div>
-              }  */}
               </>
           }
          
@@ -496,7 +487,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         maxWidth="xl"
         open={openDebugInfo} onClose={() => setOpenDebugInfo(false)}>
 
-        <p className="px-[20px] pt-[20px] font-h3">사업계획서 확인(개발용)</p>
+        <p className="px-[20px] py-[20px] font-h3">사업계획서 확인(개발용)</p>
         <div className="p-[20px] h-[100vh] space-y-[16px] overflow-y-auto">
           <div className="flex-1">
             <p className="font-s2 space-y-[4px] bg-gray-200 p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugExtraInfo.map((item, index) => (
@@ -505,20 +496,20 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
           </div>          
           <div className="flex gap-[16px]">
             <div className="flex-1">
-              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugBuildInfo.map((item, index) => (
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugBuildInfo?.map((item, index) => (
                 <p key={index}>{item}</p>
               ))}</p>
             </div>
             <div className="flex-1">
-              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRemodelInfo.map((item, index) => (
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRemodelInfo?.map((item, index) => (
                 <p key={index}>{item}</p>
               ))}</p>
-            </div>
+            </div>       
             <div className="flex-1">
-              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRentInfo.map((item, index) => (
+              <p className="font-s2 space-y-[4px] bg-surface-second p-[16px] rounded-[8px]">{aiReportDebugInfo?.devDetailInfo.debugRentInfo?.map((item, index) => (
                 <p key={index}>{item}</p>
               ))}</p>
-            </div>
+            </div>                 
           </div>
         </div>
           <Button 
