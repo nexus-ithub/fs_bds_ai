@@ -1541,12 +1541,12 @@ export class AIReportModel {
         tax : devDetailInfo.tax,
         result: {
           grade: resultValue.grade,
-          initialCapital: calculateInitialCapital(resultValue),
-          investmentCapital: calculateRealInvestmentCapital(resultValue),
-          annualProfit: calculateaAnnualProfit(resultValue, devDetailInfo.tax),
-          rentProfitRatio: calculateaAnnualProfit(resultValue, devDetailInfo.tax) / calculateInvestmentCapital(resultValue),
-          investmentProfitRatio: (calculateaAnnualProfit(resultValue, devDetailInfo.tax) + (resultValue.landCost.purchaseCost * 0.045)) / calculateInvestmentCapital(resultValue),
-          expectedSaleAmount: (resultValue.annualManagementProfit + resultValue.annualRentProfit) / (3.5 / 100)
+          initialCapital: resultValue.result.initialCapital,
+          investmentCapital: resultValue.result.investmentCapital,
+          annualProfit: resultValue.result.annualProfit,
+          rentProfitRatio: resultValue.result.rentProfitRatio,
+          investmentProfitRatio: resultValue.result.investmentProfitRatio,
+          expectedSaleAmount: resultValue.result.expectedSaleAmount
         },
         buildInfo: devDetailInfo.buildInfo,
       } as AIReportDetail;

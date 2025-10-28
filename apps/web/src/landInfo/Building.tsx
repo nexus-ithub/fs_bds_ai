@@ -19,6 +19,9 @@ export const Building = React.forwardRef<HTMLDivElement, { buildings: BuildingIn
   }, [buildings]);
 
   const getBuildingCreateDateStr = (date: string) => {
+    if(!date) {
+      return '-';
+    }
     const buildingCreateDate = getBuildingCreateDate(date);
     return buildingCreateDate ? format(buildingCreateDate, 'yyyy년 MM월 dd일') : '-';
   }
