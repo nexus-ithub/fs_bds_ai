@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "../../../utils/token";
-import { ConsultRequestModel } from "../../../models/consult.model";
+import { UserModel } from "../../../models/user.model";
 function handleAuth(req: Request) {
   const rawHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
   const token = rawHeader?.startsWith("Bearer ") ? rawHeader.split(" ")[1] : null;
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   console.log(searchParams);
   const page = Number(searchParams.get("page")) || 1;
   const size = Number(searchParams.get("size")) || 10;
-  const result = await ConsultRequestModel.getList(page, size);
+  const result = await UserModel.getList(page, size);
   if (result) {
     return NextResponse.json({ success: true, data: result });
   }

@@ -226,7 +226,6 @@ export default function ConsultRequest() {
                 <span key={index}>{item}<br/></span>
               ))}
             </p>
-            
           </div>
         </div>
         <HDivider/>

@@ -16,7 +16,7 @@ export class ConsultRequestModel {
     }
   }
 
-  static async findAll(page: number, size: number): Promise<{total: number, response: ConsultRequest[]}> {
+  static async getList(page: number, size: number): Promise<{total: number, response: ConsultRequest[]}> {
     try {
       const total = await this.getTotalConsultRequest();
       const response = await db.query<(ConsultRequest & RowDataPacket)[]>(
