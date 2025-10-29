@@ -44,6 +44,11 @@ const bdsAIMenu: MenuItemType[] = [
   { label: "세션", path: "/main/session" },
 ];
 
+const consultMenu: MenuItemType[] = [
+  { label: "매입 상담(빌딩샵)", path: "/main/bd-consult" },
+  { label: "설계 상담", path: "/main/design-consult" },
+];
+
 const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const pathname = usePathname();
@@ -120,6 +125,7 @@ export const Sidebar = () => {
         {/* <CustomAccordion title="공지사항•FAQ 관리" menuItems={boardMenu} defaultExpanded /> */}
         {/* <CustomAccordion title="빌딩샵 매물 관리" menuItems={bdsMenu} defaultExpanded />
         <CustomAccordion title="빌딩의 신 관리" menuItems={youtubeMenu} defaultExpanded /> */}
+        <CustomAccordion title="사용자 문의" menuItems={consultMenu} defaultExpanded />
         <CustomAccordion title="빌딩샵AI 관리" menuItems={bdsAIMenu} defaultExpanded />
       </div>
     </div>
