@@ -16,7 +16,7 @@ export class UserModel {
     }
   }
 
-  static async getList(page: number, size: number): Promise<{total: number, response: User[]}> {
+  static async getList(page: number, size: number, searchName?: string): Promise<{total: number, response: User[]}> {
     try {
       const total = await this.getTotalUser();
       const response = await db.query<(User & RowDataPacket)[]>(
@@ -29,6 +29,7 @@ export class UserModel {
           u.created_at as createdAt
         FROM users as u
         WHERE u.delete_yn = 'N' 
+        ${searchName ? `AND u.name LIKE '%${searchName}%'` : ''}
         ORDER BY u.created_at DESC
         LIMIT ? OFFSET ?`,
         [size, (page - 1) * size]

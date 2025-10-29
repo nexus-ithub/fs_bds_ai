@@ -22,7 +22,8 @@ export async function GET(req: Request) {
   console.log(searchParams);
   const page = Number(searchParams.get("page")) || 1;
   const size = Number(searchParams.get("size")) || 10;
-  const result = await UserModel.getList(page, size);
+  const name = searchParams.get("name");
+  const result = await UserModel.getList(page, size, name || '');
   if (result) {
     return NextResponse.json({ success: true, data: result });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon, DotProgress } from "@repo/common";
+import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon, DotProgress, Button } from "@repo/common";
 import { useEffect, useState } from "react";
 import { UserModel } from "../../models/user.model";
 import { User } from "@repo/common";
@@ -35,7 +35,6 @@ export default function Users() {
   const [totalItems, setTotalItems] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // const [sortedType, setSortedType] = useState<'email' | 'name' | 'recentLogin' | 'registerDate' | null>(null);
   const axiosInstance = useAxiosWithAuth();
 
   const [loading, setLoading] = useState(false);
@@ -48,6 +47,7 @@ export default function Users() {
         params: {
           page: currentPage,
           size: pageSize,
+          name: searchKeyword || null,
         },
       });
       const data = await response.data;
@@ -93,15 +93,21 @@ export default function Users() {
           :  
           <>
             <div className="flex items-center justify-between gap-[16px]">
-              <div className="flex items-center gap-[20px]">
+              <div className="flex items-center gap-[12px]">
                 <SearchBar
-                  placeholder="검색어를 입력해 주세요."
+                  placeholder="검색할 사용자 이름을 입력해 주세요."
                   value={searchKeyword}
                   onChange={setSearchKeyword}
                   variant="filled"
                   prefixSize={14}
-                  className="font-b3 px-[8px] py-[6px]"
+                  className="font-b3 px-[8px] py-[6px] w-[240px]"
                 />
+                <Button
+                  disabled={searchKeyword === ''}
+                  onClick={() => getUserList()} 
+                  className="font-b3 py-[5px]" size="small">
+                  검색
+                </Button>
                 {/* <div className="flex items-center gap-[8px]">
                   <p className="font-s3 text-text-03">성별</p>
                   <MenuDropdown<'M' | 'F' | ''> 
@@ -161,22 +167,16 @@ export default function Users() {
                   <th className="pl-[12px] py-[14px] font-s3">
                     가입일
                   </th>
-                  {/* <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th> */}
                 </tr>
               </thead>
               <tbody>
                 {list.map((user : User, index) => (
-                  <tr key={index} className="h-[56px] font-s2 border-b border-line-02">
+                  <tr key={index} className="h-[56px] cursor-pointer hover:bg-primary-010 font-s2 border-b border-line-02">
                     <td className="pl-[16px]">{user.email}</td>
                     <td className="pl-[12px]">{user.name}</td>
                     <td className="pl-[12px]">{user.phone}</td>
                     <td className="pl-[12px]">{joinMethod(user.provider ?? '')}</td>
                     <td className="pl-[12px]">{user.createdAt ? formatDate(user.createdAt, 'yyyy-MM-dd HH:mm:ss') : ''}</td>
-                    {/* <td className="pl-[12px] pr-[16px] w-[52px]">
-                      <div className="flex items-center gap-[12px]">
-                        <button><MenuIcon/></button>
-                      </div>
-                    </td> */}
                   </tr>
                 ))}
               </tbody>
