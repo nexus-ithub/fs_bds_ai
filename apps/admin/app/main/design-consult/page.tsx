@@ -221,8 +221,10 @@ export default function ConsultRequest() {
           {/* <HDivider/> */}
           <div className="space-y-[18px]">
             <p className="font-h4">상담 내용</p>
-            <p className="font-b2 placeholder:text-text-04 h-[120px] focus:outline-none bg-surface-second rounded-[4px] w-full px-[16px] py-[12px]">
-              {selectedItem?.content}
+            <p className="font-b2 placeholder:text-text-04 max-h-[320px] overflow-y-auto focus:outline-none bg-surface-second rounded-[4px] w-full px-[16px] py-[12px]">
+              {selectedItem?.content?.split('\n').map((item, index) => (
+                <span key={index}>{item}<br/></span>
+              ))}
             </p>
             
           </div>
