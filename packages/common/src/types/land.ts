@@ -1,3 +1,4 @@
+import { User } from "./user";
 
 export interface LatLng {
   lat: number;
@@ -140,6 +141,15 @@ export interface BookmarkedReportType {
   lng: number;
   polygon: Coords[] | Coords[][];
 }
+
+export interface ConsultRequest {
+  id: string;
+  user: User;
+  land: LandInfo;
+  content: string;
+  createdAt: string;
+}
+
 
 export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo?.legDongName} ${landInfo?.jibun}`;

@@ -538,3 +538,34 @@ export const getBookmarkList = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
+
+
+export const addConsultRequest = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, landId, content } = req.body as { 
+      userId: string; 
+      landId: string; 
+      content: string;
+    };
+    await LandModel.addConsultRequest(userId, landId, content);
+    res.status(200).json({ message: '상담 요청 추가 성공' });
+  } catch (err) {
+    console.error('Add consult request error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
+export const getConsultRequestList = async (req: AuthRequest, res: Response) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const size = Number(req.query.size) || 10;
+    const rawConsultRequests = await LandModel.getConsultRequestList(page, size) as {total: number, response: any[]};
+    res.status(200).json({
+      result: rawConsultRequests.response,
+      total: rawConsultRequests.total,
+    });
+  } catch (err) {
+    console.error('Get consult request list error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}

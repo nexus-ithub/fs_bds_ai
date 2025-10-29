@@ -6,6 +6,7 @@ import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
+import { ConsultRequestDialog } from "./ConsultRequestDialog";
 
 
 export interface AIReportDetailDialogProps {
@@ -57,7 +58,8 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
   const [loading, setLoading] = useState(false);
   const [aiReportDetail, setAiReportDetail] = useState<AIReportDetail | null>(null);
   const axiosInstance = useAxiosWithAuth();
-
+  const [openConsultRequestDialog, setOpenConsultRequestDialog] = useState(false);
+  
   const getAIReportDetail = async () => {
     
     console.log('request ai report ', landId);
@@ -102,7 +104,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
               Array.from({ length: count}).map((_, index) => {
                 const isMonthTick = index % 2 === 0;
                 const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
-                console.log('index', index, 'width', width);
+                // console.log('index', index, 'width', width);
                 return (
                   <div key={index} className="relative" style={{ width: width }}>
                     {isMonthTick && (
@@ -131,7 +133,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
             {
               Array.from({ length: aiReportDetail.value.duration.planningDurationMonths * 2}).map((_, index) => {
                 const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
-                console.log('index', index, 'width', width);
+                // console.log('index', index, 'width', width);
                 return (
                   <div key={index} className="relative" style={{ width: width }}>
                     {
@@ -145,7 +147,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
             {
               Array.from({ length: aiReportDetail.value.duration.designDurationMonths * 2}).map((_, index) => {
                 const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
-                console.log('index', index, 'width', width);
+                // console.log('index', index, 'width', width);
                 return (
                   <div key={index} className="relative" style={{ width: width }}>
                     {
@@ -165,7 +167,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
             {
               Array.from({ length: (aiReportDetail.value.duration.planningDurationMonths + aiReportDetail.value.duration.designDurationMonths) * 2}).map((_, index) => {
                 const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
-                console.log('index', index, 'width', width);
+                // console.log('index', index, 'width', width);
                 return (
                   <div key={index} className="relative" style={{ width: width }}>
                     {/* {
@@ -179,7 +181,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
             {
               Array.from({ length: aiReportDetail.value.duration.constructionDurationMonths * 2}).map((_, index) => {
                 const width = (index === count - 1) ? 0 : `${(100 / (count - 1))}%`;
-                console.log('index', index, 'width', width);
+                // console.log('index', index, 'width', width);
                 return (
                   <div key={index} className="relative" style={{ width: width }}>
                     {
@@ -205,6 +207,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
   }, [landId, open])
 
   return (
+    <>
     <Dialog
       fullWidth
       sx={{
@@ -370,8 +373,12 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
         <HDivider/>
         <div className="w-full flex p-[24px] gap-[10px]">
           <Button variant="bggray" fontSize="font-h4" size="medium" className="flex-1" onClick={() => {onClose()}}>닫기</Button>
-          <Button className="flex-1" fontSize="font-h4" size="medium" onClick={() => {}}>설계상담요청하기</Button>
+          <Button className="flex-1" fontSize="font-h4" size="medium" onClick={() => {setOpenConsultRequestDialog(true)}}>설계상담요청하기</Button>
         </div>
+        
     </Dialog>
+    <ConsultRequestDialog open={openConsultRequestDialog} onClose={() => {setOpenConsultRequestDialog(false)}} landId={aiReportDetail?.landInfo?.id}/>
+    </>
+
   )
 } 

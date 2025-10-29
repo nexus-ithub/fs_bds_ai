@@ -13,6 +13,8 @@ body {
 
 :root {
 
+
+
   --primary-010: #EEF4FF;
   --primary-020: #D4E4FF;
   --primary-030: #4091FF;
@@ -89,6 +91,7 @@ body {
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
+
 }
 
 @theme static {
@@ -164,6 +167,9 @@ body {
   --color-line-04: var(--gray-040);
   --color-line-05: var(--gray-060);
   --color-line-06: var(--gray-080);
+
+
+
 }
 
 
@@ -182,7 +188,7 @@ body {
   font-size: 14px;
 }
 .Toastify__toast--error {
-  background-color: #FF5722;
+  background-color: var(--red-050);
   color: #FAFAFA;
   font-size: 14px;
 }
@@ -195,20 +201,20 @@ body {
 
 .Toastify__toast--warning {
   font-size: 14px;
-  color: #F5F5F5;
-  background-color: #FFAB91;
+  color: #FAFAFA;
+  background-color: var(--red-030);
 }
 
 .Toastify__toast--default {
   font-size: 14px;
-  color: #616161;
-  background-color: #BBDEFB;
+  color: #000000;
+  background-color: #ffffff;
 }
 
 .Toastify__toast--success {
   font-size: 14px;
   color: #F5F5F5;
-  background-color: #1976D2;
+  background-color: var(--primary-050);
 }
 
 

@@ -1,6 +1,6 @@
 
 import { db } from '../utils/database';
-import { BuildingInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
+import { BuildingInfo, ConsultRequest, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
@@ -2307,5 +2307,66 @@ export class LandModel {
     }
   }
 
+  static async addConsultRequest(userId: string, landId: string, content: string) {
+    try {
+          await db.query(
+          `INSERT INTO consult_request (user_id, land_id, content)
+            VALUES (?, ?, ?)`,
+          [userId, landId, content]
+        );
+    } catch (err) {
+      console.error('Error adding consult request:', err);
+      throw err;
+    }
+  }
 
+  static async getTotalConsultRequest() {
+    try {
+      const countRows = await db.query(
+        `SELECT COUNT(*) as total FROM consult_request WHERE delete_yn = 'N'`,
+        []
+      );
+      const total = (countRows as any)[0].total;
+      return total;
+    } catch (err) {
+      console.error('Error getting total consult request:', err);
+      throw err;
+    }
+  }
+
+  static async getConsultRequestList(page: number, size: number) {
+    try {
+      const total = await this.getTotalConsultRequest();
+      const response = await db.query<ConsultRequest>(
+        `SELECT 
+          cr.id as id,
+          cr.land_id as landId,
+          cr.content as content,
+          cr.created_at as createdAt,
+          cr.updated_at as updatedAt,
+          cr.user_id as userId,
+          JSON_OBJECT(
+            'name', u.name,
+            'email', u.email,
+            'phone', u.phone
+          ) as user,
+          JSON_OBJECT(
+            'id', l.id,
+            'legDongCode', l.leg_dong_code,
+            'legDongName', l.leg_dong_name,
+            'jibun', l.jibun,
+          ) as land
+        FROM consult_request WHERE delete_yn = 'N' 
+        LEFT JOIN user u ON cr.user_id = u.id
+        LEFT JOIN address_polygon l ON cr.land_id = l.id
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?`,
+        [size, (page - 1) * size]
+      );
+      return {total, response};
+    } catch (err) {
+      console.error('Error getting consult request list:', err);
+      throw err;
+    }
+  }
 }

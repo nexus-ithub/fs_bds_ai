@@ -13,6 +13,7 @@ import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
 import { AIReport } from "../aiReport/AIReport";
 import { AIChat } from "../aiChat/AIChat";
+import { toast } from "react-toastify";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
@@ -317,6 +318,7 @@ export default function Main() {
           ref={mapRef}
           mapTypeId={mapTypeId}
           onClick={(_, mouseEvent) => {
+
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             if(mapType === 'roadview') {
               setRoadViewCenter({
