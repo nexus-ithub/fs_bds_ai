@@ -43,7 +43,7 @@ export const Header = ({user} : {user : User}) => {
         <button onClick={() => navigate("/main")}>
           <BuildingShopBIText />
         </button>
-        {isSupportPage && (
+        {/* {isSupportPage && (
           <>
             <span className="font-s1-p mr-[8px] cursor-pointer" onClick={() => navigate("/support")}>고객센터</span>
             {SUPPORT_MENU.map((menu, index) => (
@@ -58,7 +58,7 @@ export const Header = ({user} : {user : User}) => {
               </React.Fragment>
             ))}
           </>
-        )}
+        )} */}
       </div>
       <div className="flex items-center gap-[16px]">
         {user && (
@@ -127,7 +127,7 @@ export const Header = ({user} : {user : User}) => {
         </button> */}
         {user && <VDivider colorClassName="bg-line-04"/>}
         <a 
-          href="/support"
+          href="https://chip-flare-463.notion.site/AI-29b1c63ec1af80dfb037ffc2fbd448db?source=copy_link"
           target="_blank"
           rel="noopener noreferrer"
           className="font-s2-p">

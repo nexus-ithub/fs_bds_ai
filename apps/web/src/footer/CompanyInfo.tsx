@@ -30,11 +30,30 @@ export const CompanyInfo = () => {
       <div className="font-s3 text-text-02 flex items-center justify-between">
         <button className="">서비스소개</button>
         <VDivider/>
-        <button className="">고객센터</button>
+        <a
+          href="https://chip-flare-463.notion.site/AI-29b1c63ec1af80dfb037ffc2fbd448db?source=copy_link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          고객센터
+        </a>
         <VDivider/>
-        <button className="">이용약관</button>
+        <a
+          href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          이용약관
+        </a>
         <VDivider/>
-        <button className="flex-shrink-0">개인정보 처리방침</button>
+        <a
+          href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0"
+        >
+          개인정보 처리방침
+        </a>
       </div>
       <div className="font-c2 text-text-02 flex items-center gap-[10px]">
         <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 3366</p>
