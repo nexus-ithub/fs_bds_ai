@@ -60,7 +60,7 @@ export class UserModel {
   static async create (user: User): Promise<User> {
     try {
       const salt = bcrypt.genSaltSync(8);
-      const hashedPassword = bcrypt.hashSync(user.password, salt);
+      const hashedPassword = bcrypt.hashSync(String(user.password), salt);
       const result = await db.query(
         `
         INSERT INTO users (email, password, name, phone, profile, provider, marketing_email, marketing_sms)
