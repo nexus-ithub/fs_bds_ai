@@ -4,6 +4,7 @@ import { Home } from './pages/Home'
 import Login from './pages/Login'
 import { Signup } from './pages/Signup'
 import { OAuthCallback } from './auth/callback/OAuthCallback'
+import { ResetPassword } from './auth/ResetPassword'
 
 function App() {
   
@@ -21,6 +22,10 @@ function App() {
         <Route
           path="/signup/*"
           element={<Signup />}
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
         />
         <Route 
           path="/oauth/callback/*" 

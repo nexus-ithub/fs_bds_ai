@@ -1,4 +1,4 @@
-import { Avatar } from "@mui/material";
+import { Avatar, Dialog } from "@mui/material";
 import { ChevronRightCustomIcon, HDivider, Switch } from "@repo/common";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -46,15 +46,16 @@ export const Profile = () => {
             <div className="flex flex-col gap-[12px]">
               <p className="font-s2 text-text-02">고객명</p>
               <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${name ? "border-line-04" : "border-line-03"}`}>
-                <p>{name}</p>
-                <ChevronRightCustomIcon size={16} />
+                <p className="font-b1 text-text-05">{name}</p>
+                {/* <ChevronRightCustomIcon size={16} /> */}
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">
               <p className="font-s2 text-text-02">휴대폰 번호</p>
               <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${phone ? "border-line-04" : "border-line-03"}`}>
                 <p className={`font-b1 ${phone ? "" : "text-text-04"}`}>{phone ?? "휴대폰 번호를 입력하세요."}</p>
-                <ChevronRightCustomIcon size={16} />
+                <button onClick={() => alert("본인인증 호출(개발중)")}><ChevronRightCustomIcon size={16}/></button>
+                {/* <ChevronRightCustomIcon size={16}/> */}
               </div>
             </div>
             {/* <div className="flex flex-col gap-[12px]">

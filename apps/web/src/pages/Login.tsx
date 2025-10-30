@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
-import { BuildingShopBI, Checkbox, FacebookLogo, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
+import { BuildingShopBI, Button, Checkbox, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
+import { Dialog } from '@mui/material';
 
 interface LoginResponse {
   id: string;
@@ -21,6 +22,9 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string>('');
+  const [openPWFind, setOpenPWFind] = useState<boolean>(false);
+  const [openPWFindSuccess, setOpenPWFindSuccess] = useState<boolean>(false);
+  const [findPWEmail, setFindPWEmail] = useState<string>('');
   console.log("error : ", error)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +48,9 @@ export default function Login() {
       navigate('/');
     } catch (err) {
       // alert('로그인 중 오류가 발생했습니다.');
-      setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+      // setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+      console.log(`로그인 중 오류: ${err}`)
+      setError("이메일 또는 비밀번호가 올바르지 않습니다.")
     }
   };
 
@@ -56,7 +62,18 @@ export default function Login() {
     if (url) {
       window.location.href = url.data.url;
     } else {
-      setError('지원하지 않는 OAuth 제공자입니다.');
+      setError('다른 로그인 방법을 시도하거나 잠시 후 다시 시도해주세요.');
+      console.log('지원하지 않는 OAuth 제공자입니다.')
+    }
+  };
+
+  const handlePWFind = async () => {
+    try{
+      await axios.post(`${API_HOST}/api/auth/pwfind`, { email: findPWEmail });
+      setOpenPWFind(false);
+      setOpenPWFindSuccess(true);
+    }catch(err){
+      console.log("비밀번호 찾기 중 오류: ", err)
     }
   };
 
@@ -67,6 +84,10 @@ export default function Login() {
       window.history.replaceState({}, document.title); 
     }
   }, [location.state]);
+
+  useEffect(() => {
+    setFindPWEmail('');
+  }, [openPWFind])
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -168,9 +189,9 @@ export default function Login() {
               </button>
             </form>
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
-              <button>아이디 찾기</button>
+              <button onClick={() => alert("본인인증 api 구현 예정")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button>비밀번호 찾기</button>
+              <button onClick={() => setOpenPWFind(true)}>비밀번호 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
               <button onClick={() => navigate('/signup')}>회원가입</button>
             </div>
@@ -207,6 +228,43 @@ export default function Login() {
           {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
         </div>
       </div>
+      <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>
+        <div className="flex flex-col gap-[20px] w-[400px]">
+          <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">비밀번호 찾기</h3>
+          <div className="flex flex-col items-center gap-[4px] px-[20px]">
+            <p className='font-h3'>등록된 이메일 주소를 입력해주세요.</p>
+            <p className='font-s1'>비밀번호 재설정 메일을 보내드립니다.</p>
+          </div>
+          <input 
+            type="text" 
+            placeholder="이메일" 
+            className='mx-[30px] px-[14px] py-[8px] font-b1 rounded-[4px] border border-line-03 focus:outline-none' 
+            value={findPWEmail} 
+            onChange={(e) => setFindPWEmail(e.target.value)}
+            onKeyDown={(e) => {if (e.key === 'Enter') handlePWFind()}}/>
+          <Button 
+            size='semiMedium' 
+            fontSize='font-h5' 
+            className="w-[200px] mx-auto mb-[20px]" 
+            disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(findPWEmail)}
+            onClick={() => handlePWFind()}>재설정 메일 발송</Button>
+        </div>
+      </Dialog>
+      <Dialog
+        open={openPWFindSuccess}
+        onClose={() => {setOpenPWFindSuccess(false)}}
+        onKeyDown={(e) => {if (e.key === 'Enter') {e.preventDefault(); setOpenPWFindSuccess(false);}}}
+      >
+        <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
+          <div className="flex flex-col items-center justify-center gap-[8px]">
+            <p className="font-h3 pt-[12px]">입력하신 이메일로 비밀번호 재설정 안내 메일이 발송되었습니다.</p>
+            <p className="font-s1">메일에 포함된 링크는 30분 동안 유효합니다.</p>
+          </div>
+          <div className="flex justify-center gap-[12px]">
+            <Button className="w-[160px]" onClick={() => {setOpenPWFindSuccess(false);}}>확인</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

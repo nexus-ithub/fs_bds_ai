@@ -34,6 +34,7 @@ export const Header = ({user} : {user : User}) => {
 
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const [logoutConfirm, setLogoutConfirm] = useState<boolean>(false);
+  const [logoutComplete, setLogoutComplete] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const ProfileRef = useRef<HTMLButtonElement | null>(null);
 
@@ -176,7 +177,19 @@ export const Header = ({user} : {user : User}) => {
 
           <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
             <Button variant="bggray" className="w-[60px]" onClick={() => {setLogoutConfirm(false)}}>취소</Button>
-            <Button className="w-[100px]" onClick={() => {logout(); setLogoutConfirm(false); navigate("/main")}}>확인</Button>
+            <Button className="w-[100px]" onClick={() => {logout(); setLogoutComplete(true); setLogoutConfirm(false);}}>확인</Button>
+          </div>
+        </div>
+      </Dialog>
+      <Dialog
+        open={logoutComplete}
+        onClose={() => {setLogoutComplete(false)}}
+        disableScrollLock={true}
+      >
+        <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
+          <p className="font-h3 text-center pt-[12px]">로그아웃이 완료되었습니다.</p>
+          <div className="flex justify-center gap-[12px]">
+            <Button className="w-[100px]" onClick={() => {setLogoutComplete(false); navigate("/main");}}>확인</Button>
           </div>
         </div>
       </Dialog>

@@ -5,6 +5,8 @@ import { authConfig } from '../config/auth.config';
 import { UserModel } from '../models/user.model';
 import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
+import { transporter } from "../utils/nodemailer";
+import { v4 as uuidv4 } from 'uuid';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   console.log(`userId: ${userId}, auto: ${auto}`);
@@ -192,6 +194,61 @@ export const logout = async (req: Request, res: Response) => {
   }
 };
 
+export const pwFind = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    console.log(email)
+    if (!email) {
+      return res.status(400).json({ message: '이메일이 제공되지 않았습니다.' });
+    }
+    const user = await UserModel.findByEmail(email);
+    if (user) {
+      const token = jwt.sign(
+        { id: user.id }, 
+        authConfig.resetToken.secret as string, 
+        { expiresIn: authConfig.resetToken.expires } as jwt.SignOptions);
+      const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+      
+      const expiresInStr = authConfig.resetToken.expires;
+
+      let readableExpires = "";
+      if (expiresInStr.endsWith("m")) {
+        readableExpires = `${parseInt(expiresInStr)}분`;
+      } else if (expiresInStr.endsWith("h")) {
+        readableExpires = `${parseInt(expiresInStr)}시간`;
+      } else if (expiresInStr.endsWith("d")) {
+        readableExpires = `${parseInt(expiresInStr)}일`;
+      } else {
+        readableExpires = "일정시간";
+      }
+
+      try {
+        await transporter.sendMail({
+          from: process.env.SMTP_USER,
+          to: email,
+          subject: '비밀번호 재설정 안내',
+          html: `
+            <p>아래 링크를 눌러 비밀번호를 재설정하세요.</p>
+            <a href="${resetLink}" target="_blank"
+               style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;">
+               비밀번호 재설정하기
+            </a>
+            <p>이 링크는 ${readableExpires} 후 만료됩니다.</p>
+            `
+        });
+      } catch (error) {
+        console.error('메일 발송 실패:', error);
+        return res.status(500).json({ message: '이메일 발송에 실패했습니다.' });
+      }
+    }
+
+    res.status(200).json({ message: '비밀번호 재설정 메일이 발송되었습니다.' });
+  } catch (err) {
+    console.error('Password find error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 const formatPhoneNumber = (phone: string | null) => {
   if (!phone) return null;
   let digits = phone.replace(/\D/g, "");
@@ -210,7 +267,7 @@ export const oAuthCallback = (req: Request, res: Response) => {
       redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_REST_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
       break;
     case 'naver':
-      const stateNaver = crypto.randomUUID();
+      const stateNaver = uuidv4();
       res.cookie("oauth_state", stateNaver, {
         httpOnly: true,      
         secure: true,     
@@ -220,7 +277,7 @@ export const oAuthCallback = (req: Request, res: Response) => {
       redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
       break;
     case 'google':
-      const stateGoogle = crypto.randomUUID();
+      const stateGoogle = uuidv4();
       res.cookie("oauth_state", stateGoogle, {
         httpOnly: true,      
         secure: true,     
