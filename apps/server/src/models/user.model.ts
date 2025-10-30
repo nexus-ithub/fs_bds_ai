@@ -88,14 +88,13 @@ export class UserModel {
     }
   }
 
-  static async update (user: User): Promise<User> {
+  static async update (user: User): Promise<void> {
     console.log('user:', user);
     try {
-      const [result] = await db.query<User>(
+      await db.query<User>(
         'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ?',
         [user.password, user.name, user.phone, user.profile, user.provider, user.id]
       );
-      return result;
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
