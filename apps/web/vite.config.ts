@@ -26,5 +26,8 @@ export default defineConfig(({ mode }) => {
       host: true, // ngrok
       allowedHosts: ['265ac29d1ca2.ngrok-free.app'], // ngrok
     },
+    esbuild: {
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },    
   }
 })
