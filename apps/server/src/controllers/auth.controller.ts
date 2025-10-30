@@ -6,7 +6,7 @@ import { UserModel } from '../models/user.model';
 import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
 import { transporter } from "../utils/nodemailer";
-import { v4 as uuidv4 } from 'uuid';
+const { randomUUID } = require('node:crypto');
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   console.log(`userId: ${userId}, auto: ${auto}`);
@@ -267,7 +267,7 @@ export const oAuthCallback = (req: Request, res: Response) => {
       redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_REST_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
       break;
     case 'naver':
-      const stateNaver = uuidv4();
+      const stateNaver = randomUUID();
       res.cookie("oauth_state", stateNaver, {
         httpOnly: true,      
         secure: true,     
@@ -277,7 +277,7 @@ export const oAuthCallback = (req: Request, res: Response) => {
       redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
       break;
     case 'google':
-      const stateGoogle = uuidv4();
+      const stateGoogle = randomUUID();
       res.cookie("oauth_state", stateGoogle, {
         httpOnly: true,      
         secure: true,     
