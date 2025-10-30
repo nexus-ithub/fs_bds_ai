@@ -47,10 +47,10 @@ const useAxiosWithAuth = () => {
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
           setToken(null);
-          navigate('/login');
+          // navigate('/login');
         }
       }else if(statusCode === 403){
-        navigate('/login');
+        // navigate('/login');
         return Promise.reject(error);
       }
       return Promise.reject(error);

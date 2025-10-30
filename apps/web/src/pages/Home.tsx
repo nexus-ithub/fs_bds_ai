@@ -29,7 +29,7 @@ export const Home = () => {
     },
     onError: (error) => {
       console.error("config onError ", error);
-      navigate('/login')
+      // navigate('/login')
     },
     refetchIntervalInBackground: false,
     retryOnMount: false,
