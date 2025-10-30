@@ -136,9 +136,13 @@ export const BuildingList = () => {
                 <div className="flex-shrink-0 relative">
                   <img
                     className="w-[160px] h-[160px] rounded-[8px] object-cover" 
-                    src={building.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} 
+                    src={building.imagePath || '/bd_img.png'} 
                     width={160} 
-                    height={160} 
+                    height={160}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/bd_img.png';
+                    }}
                     alt=""/>
                   <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
