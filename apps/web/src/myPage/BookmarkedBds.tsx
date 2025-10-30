@@ -103,7 +103,11 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
           <div key={item.idx} className="w-full flex h-[190px] rounded-[8px] border border-line-03">
             <img
               className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
-              src={item.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} alt=""/>
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/bd_img.png';
+              }}
+              src={item.imagePath || '/bd_img.png'} alt=""/>
             <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
               <div className="flex flex-col gap-[8px]">
                 <div className="flex items-center justify-between gap-[8px]">

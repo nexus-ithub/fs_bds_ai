@@ -130,10 +130,14 @@ export const BuildingListDialog = ({
                 <div className="flex-shrink-0 relative">
                   <img
                     className="w-[160px] h-[160px] rounded-[8px] object-cover" 
-                    src={building.imagePath || 'http://buildingshop.co.kr/img/img_box_bg6.jpg'} 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/bd_img.png';
+                    }}
+                    src={building.imagePath || '/bd_img.png'} 
                     width={160} 
-                      height={160} 
-                      alt=""/>
+                    height={160} 
+                    alt=""/>
                     <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
                 <div className="flex-1 flex flex-col h-[160px] gap-[8px] justify-between">
