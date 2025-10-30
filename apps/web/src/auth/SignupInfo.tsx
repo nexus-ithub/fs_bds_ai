@@ -24,7 +24,7 @@ export const SignupInfo = () => {
 
   const [emailValid, setEmailValid] = useState<boolean>(location.state?.email ? true : false);
   const [phoneValid, setPhoneValid] = useState<boolean>(location.state?.phone ? true : false);
-  const passwordValid = password && passwordConfirm && password === passwordConfirm;
+  const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState<boolean>(false);
 
@@ -178,7 +178,7 @@ export const SignupInfo = () => {
           rightElement={
             <button
               type="button"
-              onClick={() => {alert("본인인증 호출(개발중)"); setPhoneValid(true)}}
+              onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
               className={`font-s2 ${phone.length < 10 ? 'text-text-04' : 'text-primary'}`}
               disabled={phone.length < 10}
             >
