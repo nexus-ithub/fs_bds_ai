@@ -99,7 +99,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
         </div>
       </div>
       <div className="flex flex-col gap-[16px]">
-        {bookmarkList.map((item) => (
+        {bookmarkList?.length > 0 ? bookmarkList.map((item) => (
           <div key={item.idx} className="w-full flex h-[190px] rounded-[8px] border border-line-03">
             <img
               className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
@@ -154,7 +154,9 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   
             </div>
           </div>
-        ))}
+        )) : (
+          <p className="text-text-03">관심매물이 없습니다.</p>
+        )}
       </div>
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>

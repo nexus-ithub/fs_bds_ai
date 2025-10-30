@@ -179,7 +179,7 @@ export const SignupInfo = () => {
             <button
               type="button"
               // onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
-              onClick={() => {alert("⚠️ 현재 본인인증 및 회원가입 기능은 개발 중입니다.\n정식 오픈 후 이용 가능합니다.");}}
+              onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");}}
               className={`font-s2 ${phone.length < 10 ? 'text-text-04' : 'text-primary'}`}
               disabled={phone.length < 10}
             >

@@ -189,11 +189,13 @@ export default function Login() {
               </button>
             </form>
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
-              <button onClick={() => alert("본인인증 api 구현 예정")}>아이디 찾기</button>
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => setOpenPWFind(true)}>비밀번호 찾기</button>
+              {/* <button onClick={() => setOpenPWFind(true)}>비밀번호 찾기</button> */}
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => navigate('/signup')}>회원가입</button>
+              {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button>
             </div>
           </div>
           <div className="flex flex-col gap-[28px]">
@@ -216,7 +218,8 @@ export default function Login() {
                 <NaverLogo/>
               </button>
               <button 
-                onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('google')}}
+                // onClick={() => {localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false"); handleOAuth('google')}}
+                onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
                 className="flex items-center justify-center w-[48px] h-[48px] bg-[#FFF] rounded-full border border-line-03"
               >
                 <GoogleLogo/>

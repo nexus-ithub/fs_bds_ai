@@ -102,7 +102,7 @@ export const Header = ({user} : {user : User}) => {
               <div>
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">개인정보 수정</span></MenuItem>
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/additional-info')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">추가정보 수정</span></MenuItem>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">비밀번호 변경</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/edit-pw')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">비밀번호 변경</span></MenuItem>
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">
@@ -112,14 +112,14 @@ export const Header = ({user} : {user : User}) => {
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/bookmarked-report')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">저장된 관심물건</span></MenuItem>
               </div>
             </div>
-            <div className="flex flex-col gap-[12px]">
+            {/* <div className="flex flex-col gap-[12px]">
               <p className="font-s1 border-b border-line-03 py-[10px]">AI 리포트</p>
               <div>
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">생성한 AI 리포트</span></MenuItem>
               </div>
-            </div>
+            </div> */}
             <HDivider/>
-            <MenuItem className="!p-0" onClick={() => {setAnchorEl(null)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">로그아웃</span></MenuItem>
+            <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); setLogoutConfirm(true)}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">로그아웃</span></MenuItem>
           </div>
         </Menu>
         {/* <VDivider colorClassName="bg-line-04"/>

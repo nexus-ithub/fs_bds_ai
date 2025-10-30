@@ -17,6 +17,7 @@ import { useQuery } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
+import { EditPassword } from "../myPage/EditPassword";
 
 interface MenuItemType {
   label: string;
@@ -40,9 +41,9 @@ const favoriteMenu: MenuItemType[] = [
   { label: "저장된 관심물건", path: "/myPage/bookmarked-report" },
 ];
 
-const reportMenu: MenuItemType[] = [
-  { label: "생성한 AI 리포트", path: "/myPage/ai-report" },
-];
+// const reportMenu: MenuItemType[] = [
+//   { label: "생성한 AI 리포트", path: "/myPage/ai-report" },
+// ];
 
 const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -158,12 +159,13 @@ export const MyPage = () => {
         </div>
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
         <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
-        <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded />
+        {/* <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded /> */}
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
         <Routes>
           <Route path="/" element={<Profile />} />
           <Route path="additional-info" element={<MyAdditionalInfo />} />
+          <Route path="edit-pw" element={<EditPassword />} />
           <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
           <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
         </Routes>

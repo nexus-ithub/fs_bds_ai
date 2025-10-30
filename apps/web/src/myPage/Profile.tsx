@@ -54,7 +54,7 @@ export const Profile = () => {
               <p className="font-s2 text-text-02">휴대폰 번호</p>
               <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${phone ? "border-line-04" : "border-line-03"}`}>
                 <p className={`font-b1 ${phone ? "" : "text-text-04"}`}>{phone ?? "휴대폰 번호를 입력하세요."}</p>
-                <button onClick={() => alert("본인인증 호출(개발중)")}><ChevronRightCustomIcon size={16}/></button>
+                <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}><ChevronRightCustomIcon size={16}/></button>
                 {/* <ChevronRightCustomIcon size={16}/> */}
               </div>
             </div>
@@ -72,8 +72,8 @@ export const Profile = () => {
           <Switch checked={alarm} onChange={(checked) => setAlarm(checked)}/>
         </div> */}
         <div className="flex justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02">
-          <p className="font-s2 text-text-02">회원 탈퇴</p>
-          <ChevronRightCustomIcon size={16} />
+          <p className="font-s2 text-text-02" >회원 탈퇴</p>
+          <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}><ChevronRightCustomIcon size={16}/></button>
         </div>
       </div>
     </div>
