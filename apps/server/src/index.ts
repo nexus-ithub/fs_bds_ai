@@ -40,7 +40,7 @@ httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? 'https://your-production-frontend-domain.com' // ❗️운영 프론트엔드 주소로 변경하세요
+      ? 'https://your-production-frontend-domain.com' 
       : 'http://localhost:3000',
     methods: ['GET', 'POST'],
     credentials: true,
@@ -53,7 +53,8 @@ export { io };
 // 허용할 도메인 목록
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://nexusnas.iptime.org:7500'
+  'http://nexusnas.iptime.org:7500',
+  'https://buildingshopai.com'
 ];
 
 
