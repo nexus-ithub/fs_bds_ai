@@ -24,14 +24,14 @@ export const resetPasswordMailTemplate = (resetLink: string, readableExpires: st
         </div>
         <h2 style="color:#333;">비밀번호 재설정</h2>
         <p>아래 버튼을 눌러 비밀번호를 재설정해주세요.</p>
-        <div style="text-align:center; margin:20px 0;">
+        <div style="text-align:left; margin:30px 0;">
           <a href="https://example.com/reset-password?token=sample_token_here" target="_blank"
             style="padding:12px 24px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-weight:bold;">
             비밀번호 재설정하기
           </a>
         </div>
         <p style="color:#555;">이 링크는 24시간 후 만료됩니다.</p>
-        <p style="color:#999; font-size:12px;">만약 요청하지 않았다면 이 메일을 무시하세요.</p>
+        <p style="color:#999; font-size:12px;">만약 요청하지 않았다면 이 메일을 무시하세요.(멘트 수정 + 회사 정보같은거 기입하기)</p>
       </div>
     </body>
   </html>
