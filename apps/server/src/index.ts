@@ -37,18 +37,18 @@ let httpServer: http.Server | https.Server;
 console.log('☕️ Development mode: Initializing HTTP server.');
 httpServer = http.createServer(app);
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? 'https://your-production-frontend-domain.com' 
-      : 'http://localhost:3000',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
+// const io = new Server(httpServer, {
+//   cors: {
+//     origin: process.env.NODE_ENV === 'production' 
+//       ? 'https://your-production-frontend-domain.com' 
+//       : 'http://localhost:3000',
+//     methods: ['GET', 'POST'],
+//     credentials: true,
+//   },
+// });
 
 
-export { io };
+// export { io };
 
 // 허용할 도메인 목록
 const allowedOrigins = [

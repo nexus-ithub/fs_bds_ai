@@ -137,8 +137,7 @@ export const BuildingDetailDialog = ({
       </div>
       <HDivider/>
       <div className="flex p-[24px] gap-[10px]">
-        <Button className="w-full h-[48px]" variant="outline" fontSize="font-h4">매입 상담 요청</Button>
-        <Button className="w-full h-[48px]" fontSize="font-h4">AI 설계 • 임대 분석 리포트</Button>
+        <Button className="w-full h-[48px]" fontSize="font-h4">매입 상담 요청</Button>
       </div>
       <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
     </Dialog>  
