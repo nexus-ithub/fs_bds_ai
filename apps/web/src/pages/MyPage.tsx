@@ -149,11 +149,11 @@ export const MyPage = () => {
               <p className="font-s2 text-text-03">저장된 관심물건</p>
               <p className="font-s2 text-text-02">{reportCount}</p>
             </div>
-            <HDivider colorClassName="bg-line-02" dashed={true}/>
+            {/* <HDivider colorClassName="bg-line-02" dashed={true}/>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">생성한 AI 리포트</p>
               <p className="font-s2 text-text-02">32TODO</p>
-            </div>
+            </div> */}
           </div>
         </div>
         <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
