@@ -6,7 +6,7 @@ import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { format } from "date-fns";
 import { Dialog, DialogTitle } from "@mui/material";
 import Link from "next/link";
-
+import { ExternalLinkIcon } from "lucide-react";
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
   { value: 20, label: '20' },
@@ -173,7 +173,13 @@ export default function ConsultRequest() {
                     <td className="pl-[12px]">{format(item.createdAt, 'yyyy-MM-dd HH:mm:ss')}</td>
 
                     <td className="pl-[12px]">
-                      <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Link href={`/main/bd-consult/${item.id}`}/></button>
+                  <button
+                    
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`http://admin.buildingshop.co.kr/#/building/${item?.bdId}`, '_blank')
+                    }}
+                    className="hover:none w-full font-b1 px-[4px] py-[4px] rounded-[2px] items-center justify-between"><ExternalLinkIcon size={16} color="#585C64"/></button>                          
                     </td>
                   </tr>
                 ))}
@@ -206,10 +212,10 @@ export default function ConsultRequest() {
               <div className="flex gap-[20px]">
                 <Item title="날짜" value={selectedItem? format(selectedItem?.createdAt, 'yyyy-MM-dd HH:mm:ss') : ""}/>
                 <div className="flex-1 space-y-[10px]">
-                  <p className="font-s2 text-text-03">빌딩샵ID</p>
+                  <p className="font-s2 text-text-03">빌딩샵 빌딩 ID</p>
                   <button
                     onClick={() => window.open(`http://admin.buildingshop.co.kr/#/building/${selectedItem?.bdId}`, '_blank')}
-                    className="font-b1 px-[14px] py-[12px] rounded-[2px] bg-primary text-white">{selectedItem?.bdId}</button>         
+                    className="w-full font-b1 px-[14px] py-[12px] rounded-[2px] border border-line-04 flex items-center justify-between">{selectedItem?.bdId} <ExternalLinkIcon size={16} color="#585C64"/></button>         
                 </div>                
               </div>
             </div>
