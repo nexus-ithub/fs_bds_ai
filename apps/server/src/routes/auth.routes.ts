@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUser, login, refresh, logout, oauth, oAuthCallback, pwFind } from '../controllers/auth.controller';
+import { createUser, login, refresh, logout, oauth, oAuthCallback, pwFind, verifyResetToken } from '../controllers/auth.controller';
 
 const router: Router = Router();
 
@@ -8,6 +8,7 @@ router.post('/login', login);
 router.post('/refresh-token', refresh);
 router.post('/logout', logout);
 router.post('/pwfind', pwFind);
+router.get('/verify-reset-token', verifyResetToken);
 router.post('/oauth', oauth);
 router.post('/oauth/callback/:provider', oAuthCallback);
 

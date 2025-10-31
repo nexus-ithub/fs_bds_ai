@@ -25,13 +25,24 @@ export const resetPasswordMailTemplate = (resetLink: string, readableExpires: st
         <h2 style="color:#333;">비밀번호 재설정</h2>
         <p>아래 버튼을 눌러 비밀번호를 재설정해주세요.</p>
         <div style="text-align:left; margin:30px 0;">
-          <a href="https://example.com/reset-password?token=sample_token_here" target="_blank"
+          <a href="${resetLink}" target="_blank"
             style="padding:12px 24px; background:#4f46e5; color:white; text-decoration:none; border-radius:6px; font-weight:bold;">
             비밀번호 재설정하기
           </a>
         </div>
-        <p style="color:#555;">이 링크는 24시간 후 만료됩니다.</p>
-        <p style="color:#999; font-size:12px;">만약 요청하지 않았다면 이 메일을 무시하세요.(멘트 수정 + 회사 정보같은거 기입하기)</p>
+        <p style="color:#555;">이 링크는 이메일 발송 시점으로부터 ${readableExpires} 동안 유효합니다.</p>
+        <p style="color:#999; font-size:12px;">본인이 요청하지 않은 메일이라면, 안전을 위해 링크를 클릭하지 마시기 바랍니다.</p>
+      </div>
+      <div style="margin-top:30px; padding-top:20px; border-top:1px solid #eee; color:#666; font-size:12px;">
+        <p style="margin:5px 0;"><strong>BUILDINGSHOPAI</strong></p>
+        <p style="margin:5px 0;">서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
+        <p style="margin:5px 0;">고객센터: contact@buildingshop.co.kr | 02-558-3366</p>
+        <p style="margin:15px 0 5px 0;">
+          <a href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link" style="color:#4f46e5; text-decoration:none; margin-right:10px;">개인정보처리방침</a>
+          <a href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link" style="color:#4f46e5; text-decoration:none;">이용약관</a>
+        </p>
+        <p style="margin:15px 0 0 0; color:#999;">© 2025 BUILDINGSHOPAI. All rights reserved.</p>
+        <p style="margin:5px 0; color:#999; font-size:11px;">이 메일은 자동으로 발송되었습니다. 회신하지 말아주세요.</p>
       </div>
     </body>
   </html>

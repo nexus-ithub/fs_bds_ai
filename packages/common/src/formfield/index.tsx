@@ -7,6 +7,7 @@ export const FormField = ({
   rightElement,
   required=false,
   disabled=false,
+  onKeyDown,
 }: {
   label: string,
   type?: string,
@@ -16,6 +17,7 @@ export const FormField = ({
   rightElement?: React.ReactNode,
   required?: boolean,
   disabled?: boolean,
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void,
 }) => {
   return (
     <div className="flex flex-col gap-[12px]">
@@ -31,6 +33,7 @@ export const FormField = ({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          onKeyDown={onKeyDown}
         />
         {rightElement && (
           <div className="absolute right-[12px] top-1/2 -translate-y-1/2 flex items-center">

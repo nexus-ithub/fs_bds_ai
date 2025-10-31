@@ -100,4 +100,31 @@ export class UserModel {
       throw error;
     }
   }
+
+  static async updatePassword (id: number, password: string): Promise<void> {
+    const salt = bcrypt.genSaltSync(8);
+    const hashedPassword = bcrypt.hashSync(String(password), salt);
+    try {
+      await db.query<User>(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [hashedPassword, id]
+      );
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  static async confirmPassword (id: number, password: string): Promise<boolean> {
+    try {
+      const user = await UserModel.findById(id);
+      if (!user) {
+        return false;
+      }
+      return bcrypt.compareSync(String(password), user.password);
+    } catch (error) {
+      console.error('Error comparing password:', error);
+      throw error;
+    }
+  }
 }

@@ -137,7 +137,7 @@ export const SignupInfo = () => {
               <FormField 
                 label="비밀번호 확인" 
                 type={showPasswordConfirm ? 'text' : 'password'} 
-                placeholder="비밀번호를 입력하세요." 
+                placeholder="비밀번호를 다시 입력하세요." 
                 value={passwordConfirm} 
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 rightElement={

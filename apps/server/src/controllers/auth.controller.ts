@@ -5,7 +5,7 @@ import { authConfig } from '../config/auth.config';
 import { UserModel } from '../models/user.model';
 import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
-import { transporter } from "../utils/nodemailer";
+import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
@@ -55,6 +55,16 @@ export const createUser = async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Create user error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const verifyResetToken = async (req: Request, res: Response) => {
+  const { token } = req.query;
+  try {
+    jwt.verify(token as string, authConfig.resetToken.secret as string);
+    res.status(200).json({ valid: true });
+  } catch (err) {
+    res.status(500).json({ valid: false });
   }
 };
 
@@ -123,23 +133,16 @@ export const refresh = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Refresh token이 제공되지 않았습니다.' });
     }
 
-    // Verify refresh token from database
     const storedToken = await RefreshTokenModel.findByToken(refreshToken);
     if (!storedToken) {
-      console.log('Invalid or expired refresh token');
       return res.status(403).json({ message: '유효하지 않거나 만료된 refresh token입니다.' });
     }
 
-    // Verify JWT
     try {
       const decoded = jwt.verify(refreshToken, authConfig.refreshToken.secret as string) as { id: number };
-      console.log('Decoded token:', decoded);
-      // Generate new access token
       const newAccessToken = generateAccessToken(decoded.id, keepLoggedIn);
-      // Generate new refresh token
       const newRefreshToken = generateRefreshToken(decoded.id, keepLoggedIn);
 
-      // Calculate refresh token expiry
       const refreshExpiry = new Date();
       //  refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now 
       if (keepLoggedIn) {
@@ -147,7 +150,6 @@ export const refresh = async (req: Request, res: Response) => {
       } else {
         refreshExpiry.setHours(refreshExpiry.getHours() + 1); // 1시간
       }
-      // Save new refresh token to database
       await RefreshTokenModel.create(decoded.id, newRefreshToken, refreshExpiry);
 
       console.error('new access token:', newAccessToken);
@@ -177,7 +179,6 @@ export const logout = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
-      // Delete refresh token from database
       await RefreshTokenModel.deleteByToken(refreshToken);
     }
     res.clearCookie('refreshToken', {
@@ -224,22 +225,17 @@ export const pwFind = async (req: Request, res: Response) => {
 
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_USER,
+          from: process.env.SMTP_EMAIL,
           to: email,
           subject: '비밀번호 재설정 안내',
-          html: `
-            <p>아래 링크를 눌러 비밀번호를 재설정하세요.</p>
-            <a href="${resetLink}" target="_blank"
-               style="display:inline-block;padding:10px 20px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;">
-               비밀번호 재설정하기
-            </a>
-            <p>이 링크는 ${readableExpires} 후 만료됩니다.</p>
-            `
+          html: resetPasswordMailTemplate(resetLink, readableExpires),
         });
       } catch (error) {
         console.error('메일 발송 실패:', error);
         return res.status(500).json({ message: '이메일 발송에 실패했습니다.' });
       }
+    } else {
+      console.log('User not found');
     }
 
     res.status(200).json({ message: '비밀번호 재설정 메일이 발송되었습니다.' });
