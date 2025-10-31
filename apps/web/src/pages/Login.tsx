@@ -25,6 +25,19 @@ export default function Login() {
   const [openPWFind, setOpenPWFind] = useState<boolean>(false);
   const [openPWFindSuccess, setOpenPWFindSuccess] = useState<boolean>(false);
   const [findPWEmail, setFindPWEmail] = useState<string>('');
+
+  const expiresInStr = import.meta.env.VITE_RESET_TOKEN_EXPIRES_IN;
+
+  let readableExpires = "";
+  if (expiresInStr.endsWith("m")) {
+    readableExpires = `${parseInt(expiresInStr)}분`;
+  } else if (expiresInStr.endsWith("h")) {
+    readableExpires = `${parseInt(expiresInStr)}시간`;
+  } else if (expiresInStr.endsWith("d")) {
+    readableExpires = `${parseInt(expiresInStr)}일`;
+  } else {
+    readableExpires = "일정시간";
+  }
   console.log("error : ", error)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,7 +82,8 @@ export default function Login() {
 
   const handlePWFind = async () => {
     try{
-      await axios.post(`${API_HOST}/api/auth/pwfind`, { email: findPWEmail });
+      const response = await axios.post(`${API_HOST}/api/auth/pwfind`, { email: findPWEmail });
+      console.log(response)
       setOpenPWFind(false);
       setOpenPWFindSuccess(true);
     }catch(err){
@@ -84,10 +98,6 @@ export default function Login() {
       window.history.replaceState({}, document.title); 
     }
   }, [location.state]);
-
-  useEffect(() => {
-    setFindPWEmail('');
-  }, [openPWFind])
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -191,8 +201,8 @@ export default function Login() {
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              {/* <button onClick={() => setOpenPWFind(true)}>비밀번호 찾기</button> */}
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
+              <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button>
+              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button> */}
               <VDivider colorClassName="bg-line-04"/>
               {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button>
@@ -261,7 +271,7 @@ export default function Login() {
         <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
           <div className="flex flex-col items-center justify-center gap-[8px]">
             <p className="font-h3 pt-[12px]">입력하신 이메일로 비밀번호 재설정 안내 메일이 발송되었습니다.</p>
-            <p className="font-s1">메일에 포함된 링크는 30분 동안 유효합니다.</p>
+            <p className="font-s1">메일에 포함된 링크는 {readableExpires} 동안 유효합니다.</p>
           </div>
           <div className="flex justify-center gap-[12px]">
             <Button className="w-[160px]" onClick={() => {setOpenPWFindSuccess(false);}}>확인</Button>

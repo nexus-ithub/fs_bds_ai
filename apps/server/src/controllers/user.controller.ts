@@ -5,6 +5,8 @@ import { ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/user.model';
 import { type User} from '@repo/common'
+import jwt from 'jsonwebtoken';
+import { authConfig } from '../config/auth.config';
 
 export const getUserInfo = async (req: AuthRequest, res: Response) => {
   try {
@@ -31,5 +33,36 @@ export const checkEmail = async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Check email error:', err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    const payload = jwt.verify(token, authConfig.resetToken.secret) as { id: number };
+    await UserModel.updatePassword(payload.id, password);
+
+    res.status(200).json({ message: '비밀번호가 변경되었습니다.' });
+  } catch (err) {
+    console.error('Update user error:', err);
+    res.status(500).json({ message: '페이지가 만료되었습니다.\n비밀번호 찾기를 다시 진행해주세요' });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { userId, password, newPassword } = req.body;
+    console.log(`userId: ${userId}, password: ${password}`);
+
+    const confirmPassword = await UserModel.confirmPassword(userId, password);
+    if (!confirmPassword) {
+      return res.status(400).json({ message: '현재 비밀번호가 맞지 않습니다. 다시 입력해주세요.' });
+    }
+    await UserModel.updatePassword(userId, newPassword);
+
+    res.status(200).json({ message: '비밀번호가 변경되었습니다.' });
+  } catch (err) {
+    console.error('Update user error:', err);
+    res.status(500).json({ message: '페이지가 만료되었습니다.\n비밀번호 찾기를 다시 진행해주세요' });
   }
 };

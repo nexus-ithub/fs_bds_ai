@@ -164,7 +164,7 @@ export const MyPage = () => {
         <Routes>
           <Route path="/" element={<Profile />} />
           <Route path="additional-info" element={<MyAdditionalInfo />} />
-          <Route path="edit-pw" element={<EditPassword />} />
+          <Route path="edit-pw" element={<EditPassword userId={config?.id}/> } />
           <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
           <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
         </Routes>
