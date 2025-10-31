@@ -251,13 +251,13 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
               {
                 IS_DEVELOPMENT &&
                 <button 
-                className="flex items-center px-[16px] gap-[4px]"
+                className="flex items-center px-[16px] gap-[4px] text-red-500 font-bold"
                 onClick={()=>{
                   getAIReportDebugInfo()
                   
                 }}
                 >
-                  확인 (개발용)
+                  상세보기 (개발확인용)
                 </button>   
               }
  
