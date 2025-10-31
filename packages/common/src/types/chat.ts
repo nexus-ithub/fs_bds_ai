@@ -8,3 +8,12 @@ export interface ChatInfo {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface SessionList {
+  sessionId: string;
+  email?: string;
+  sessionStart: string;
+  sessionEnd: string;
+  questionCount: number;
+  deleteYn: 'Y' | 'N';
+}
