@@ -1,12 +1,13 @@
 import { BookmarkFilledIcon, BookmarkIcon, Button, CloseIcon, getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, ShareIcon, VDivider, type BdsSale } from "@repo/common";
 import { Dialog } from "@mui/material";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { useEffect, useState } from "react";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
+import { BuildingConsultRequestDialog } from "./BuildingConsultRequestDialog";
 
 export const BuildingDetailDialog = ({
   open,
@@ -18,17 +19,12 @@ export const BuildingDetailDialog = ({
   building: BdsSale;
 }) => {
   const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()],
-    queryFn: async () => {
-      const response = await axiosWithAuth.get("/api/user/info");
-      return response.data;
-    },
-    enabled: !!getAccessToken(),
-  })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [openNeedLogin, setOpenNeedLogin] = useState<boolean>(false);
-
+  const [openConsultRequestDialog, setOpenConsultRequestDialog] = useState<boolean>(false);
+  
   const addBookmark = async () => {
     try {
       if (!config) {
@@ -132,14 +128,23 @@ export const BuildingDetailDialog = ({
         </div>
         <div className="p-[24px] space-y-[16px]">
           <p className="font-h3">AI 분석 리포트</p>
-          <p className="flex-1 font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">{building.memo}</p>
+          <p className="flex-1 font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">
+            {building.memo?.split('\n').map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </p>
         </div>
       </div>
       <HDivider/>
       <div className="flex p-[24px] gap-[10px]">
-        <Button className="w-full h-[48px]" fontSize="font-h4">매입 상담 요청</Button>
+        <Button className="w-full h-[48px]" fontSize="font-h4" onClick={() => setOpenConsultRequestDialog(true)}>매입 상담 요청</Button>
       </div>
       <NeedLoginDialog open={openNeedLogin} onClose={() => setOpenNeedLogin(false)}/>
+        {
+          openConsultRequestDialog && (
+            <BuildingConsultRequestDialog open={openConsultRequestDialog} onClose={() => setOpenConsultRequestDialog(false)} bdsSale={building}/>
+          )
+        }
     </Dialog>  
   )
 }

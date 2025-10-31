@@ -3,7 +3,7 @@ import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon,
 import { Dialog, Menu, MenuItem } from "@mui/material";
 import axios from "axios";
 import { API_HOST } from "../constants";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { v4 as uuidv4 } from 'uuid';
@@ -40,14 +40,17 @@ interface ChatHistory {
 
 export const AIChat = ({open, onClose}: AIChatProps) => {
   const axiosInstance = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()],
-      queryFn: async () => {
-        const response = await axiosInstance.get("/api/user/info");
-        return response.data;
-      },
-      enabled: !!getAccessToken(),
-    })
+  // const { data : config } = useQuery<User>({
+  //     queryKey: [QUERY_KEY_USER, getAccessToken()],
+  //     queryFn: async () => {
+  //       const response = await axiosInstance.get("/api/user/info");
+  //       return response.data;
+  //     },
+  //     enabled: !!getAccessToken(),
+  //   })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
+    
   const [mounted, setMounted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);

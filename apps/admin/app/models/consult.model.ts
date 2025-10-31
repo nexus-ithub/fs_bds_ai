@@ -1,4 +1,4 @@
-import { Admin, ConsultRequest } from "@repo/common";
+import { ConsultRequest } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 

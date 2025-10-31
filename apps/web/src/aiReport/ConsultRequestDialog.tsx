@@ -6,7 +6,7 @@ import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { getAccessToken } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { toast } from "react-toastify";
@@ -20,13 +20,8 @@ export interface ConsultRequestDialogProps {
 
 
 export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDialogProps) => {
-  const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()],
-    queryFn: async () => {
-      const response = await axiosInstance.get("/api/user/info");
-      return response.data;
-    },
-  })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
   const axiosInstance = useAxiosWithAuth();
   const [loading, setLoading] = useState(true);

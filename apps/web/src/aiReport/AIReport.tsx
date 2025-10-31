@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { IS_DEVELOPMENT, QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
@@ -32,15 +32,18 @@ const ReportItem = ({title, value}: {title: string, value: string}) => {
 
 export const AIReport = ({ landId, onClose }: AIReportProps) => {
   const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()],
-    queryFn: async () => {
-      const response = await axiosWithAuth.get("/api/user/info");
-      return response.data;
-    },
-    enabled: !!getAccessToken(),
-  })
+  // const { data : config } = useQuery<User>({
+  //   queryKey: [QUERY_KEY_USER, getAccessToken()],
+  //   queryFn: async () => {
+  //     const response = await axiosWithAuth.get("/api/user/info");
+  //     return response.data;
+  //   },
+  //   enabled: !!getAccessToken(),
+  // })
   
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
+    
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -13,7 +13,7 @@ import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
 import { BookmarkedReport } from "../myPage/BookmarkedReport";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
@@ -98,9 +98,8 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 
 export const MyPage = () => {
   const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-    queryKey: [QUERY_KEY_USER, getAccessToken()]
-  })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [bdsCount, setBdsCount] = useState<number>(0);
   const [reportCount, setReportCount] = useState<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);

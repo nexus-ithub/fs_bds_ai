@@ -1,7 +1,7 @@
 import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType } from "@repo/common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
@@ -40,9 +40,8 @@ const RoadviewComponent = ({lat, lng}: {lat: number, lng: number}) => {
 
 export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()]
-    })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [bookmarkList, setBookmarkList] = useState<BookmarkedReportType[]>([]);
 

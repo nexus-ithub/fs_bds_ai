@@ -1,19 +1,21 @@
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
-import { getAccessToken } from "../authutil";
+import { getAccessToken, setToken } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Support } from "./Support";
 import { MyPage } from "./MyPage";
+import { DotProgress } from "@repo/common";
 
 export const Home = () => {
 
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
   const accessToken = getAccessToken();
+  console.log("accessToken", accessToken);
   const {
     isLoading: checkingConfig,
     data: config,
@@ -43,7 +45,7 @@ export const Home = () => {
 
   if (checkingConfig) {
     return <div className="w-full flex flex-col items-center justify-center overflow-auto h-screen">
-      
+      <DotProgress/>
     </div>;
   }  
 

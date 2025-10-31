@@ -158,7 +158,11 @@ export const BuildingList = () => {
                 </div>
               </div>
             </div>
-            <p className="font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">{building.memo}</p>
+            <p className="font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">
+              {building.memo?.split('\n').map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </p>
             
           </button>
         )))}
