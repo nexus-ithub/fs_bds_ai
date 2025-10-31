@@ -1,7 +1,3 @@
-
-
-
-
 export interface BdsSale {
     idx: string;
     name: string;
@@ -12,12 +8,21 @@ export interface BdsSale {
     sellProfit: number;
     saleId: string;
     saleAmount: number;
-    // saleLoanRatio: number;
-    // saleLoanRate: number;
-    // saleIncomeEtc: number;
     memo: string;
     imagePath: string;
 }
+
+
+export interface BdConsultRequest {
+  id: string;
+  bdId: string;
+  userId: string;
+  name: string;
+  phone: string;
+  content: string;
+  createdAt: string;
+}
+
 
 export const getShortAddress = (address: string) => {
     const addressArray = address.split(' ');

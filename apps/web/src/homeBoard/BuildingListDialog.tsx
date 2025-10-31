@@ -152,7 +152,11 @@ export const BuildingListDialog = ({
                   </div>
                 </div>
               </div>
-              <p className="flex-1 font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">{building.memo}</p>
+              <p className="flex-1 font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">
+                {building.memo?.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+              </p>
             </button>
           )))}
         </div>

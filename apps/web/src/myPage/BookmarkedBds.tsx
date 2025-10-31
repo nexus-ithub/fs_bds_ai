@@ -1,7 +1,7 @@
 import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
@@ -14,9 +14,8 @@ const COUNT_BUTTON = [
 
 export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
   const axiosWithAuth = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()]
-    })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
 

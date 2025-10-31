@@ -242,4 +242,18 @@ export class BdsModel {
       throw err;
     }
   }
+
+
+  static async addConsultRequest(userId: string, bd_id: string, name: string, phone: string, content: string) {
+    try {
+          await db.query(
+          `INSERT INTO bds_consult_request (user_id, bd_id, name, phone, content)
+            VALUES (?, ?, ?, ?, ?)`,
+          [userId, bd_id, name, phone, content]
+        );
+    } catch (err) {
+      console.error('Error adding bds consult request:', err);
+      throw err;
+    }
+  }
 }

@@ -1,22 +1,25 @@
 import { Avatar, Dialog } from "@mui/material";
 import { ChevronRightCustomIcon, HDivider, Switch } from "@repo/common";
 import { useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import type { User } from "@repo/common";
 import { getAccessToken } from "../authutil";
 import useAxiosWithAuth from "../axiosWithAuth";
 
 export const Profile = () => {
-  const axiosInstance = useAxiosWithAuth();
-  const { data : config } = useQuery<User>({
-      queryKey: [QUERY_KEY_USER, getAccessToken()],
-      queryFn: async () => {
-        const response = await axiosInstance.get("/api/user/info");
-        return response.data;
-      },
-      enabled: !!getAccessToken(),
-    })
+  // const axiosInstance = useAxiosWithAuth();
+  // const { data : config } = useQuery<User>({
+  //     queryKey: [QUERY_KEY_USER, getAccessToken()],
+  //     queryFn: async () => {
+  //       const response = await axiosInstance.get("/api/user/info");
+  //       return response.data;
+  //     },
+  //     enabled: !!getAccessToken(),
+  //   })
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
+
   const [email, setEmail] = useState<string>(config?.email ?? "");
   const [name, setName] = useState<string>(config?.name ?? "");
   const [phone, setPhone] = useState<string | null>(config?.phone ?? null);

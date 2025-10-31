@@ -20,6 +20,23 @@ export const getList = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const addConsultRequest = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId, bdId, name, phone, content } = req.body as { 
+      userId: string; 
+      bdId: string; 
+      name: string; 
+      phone: string; 
+      content: string;
+    };
+    await BdsModel.addConsultRequest(userId, bdId, name, phone, content);
+    res.status(200).json({ message: '건물 상담 요청 추가 성공' });
+  } catch (err) {
+    console.error('Add consult request error:', err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
 export const isBookmarked = async (req: AuthRequest, res: Response) => {
   try{
     const userId = req.query.userId as string;
