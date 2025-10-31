@@ -52,11 +52,11 @@ httpServer = http.createServer(app);
 
 // 허용할 도메인 목록
 const allowedOrigins = process.env.NODE_ENV === 'production' ? [
-  'https://buildingshopai.com'
+  'https://buildingshopai.com',
+  'https://www.buildingshopai.com'
 ] : [
   'http://localhost:3000',
   'http://nexusnas.iptime.org:7500',
-  'https://buildingshopai.com'
 ];
 
 
