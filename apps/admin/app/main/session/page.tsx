@@ -190,7 +190,7 @@ export default function Session() {
             <p className="font-h3 pt-[12px]">비밀번호가 성공적으로 변경되었습니다.</p>
           </div>
           <div className="flex justify-center gap-[12px]">
-            <Button className="w-[160px]" onClick={() => {setOpenChatContent(false)}}>확인</Button>
+            <Button className="w-[160px]" onClick={() => {setOpenChatContent(false); setChatContent([])}}>확인</Button>
           </div>
         </div>
       </Dialog>
