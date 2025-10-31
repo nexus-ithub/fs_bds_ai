@@ -45,11 +45,11 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   return (
     <LoadingContext.Provider value={{ isLoading, startLoading }}>
       {children}
-      {isLoading && (
+      {/* {isLoading && (
         <div className="fixed inset-0 flex items-center justify-center z-[9999]">
           <DotProgress />
         </div>
-      )}
+      )} */}
     </LoadingContext.Provider>
   );
 }
