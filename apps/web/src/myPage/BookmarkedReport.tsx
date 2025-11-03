@@ -92,23 +92,23 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     }
   }
 
-  const searchBookmark = async(keyword: string, page: number, size: number) => {
-    try {
-      console.log(`userId : ${config?.id}, query : ${keyword}, page : ${page}, size : ${size}`)
-      const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: keyword, page: page, size: size}});
-      setBookmarkList(response.data.response);
-      setTotalCount(response.data.total);
-    } catch (error) {
-      console.log(error)
-      console.error('Failed to fetch bookmark list:', error);
-    }
-  }
+  // const searchBookmark = async(keyword: string, page: number, size: number) => {
+  //   try {
+  //     console.log(`userId : ${config?.id}, query : ${keyword}, page : ${page}, size : ${size}`)
+  //     const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: keyword, page: page, size: size}});
+  //     setBookmarkList(response.data.response);
+  //     setTotalCount(response.data.total);
+  //   } catch (error) {
+  //     console.log(error)
+  //     console.error('Failed to fetch bookmark list:', error);
+  //   }
+  // }
 
-  const debouncedSearch = useRef(
-    debounce((keyword: string, page: number, size: number) => {
-      searchBookmark(keyword, page, size);
-    }, DEBOUNCE_DELAY)
-  ).current
+  // const debouncedSearch = useRef(
+  //   debounce((keyword: string, page: number, size: number) => {
+  //     searchBookmark(keyword, page, size);
+  //   }, DEBOUNCE_DELAY)
+  // ).current
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -129,29 +129,30 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     }
   }, [openAIReport]);
 
-  useEffect(() => {
-    if (searchKeyword.length > 0) {
-      setCurrentPage(1);
-      debouncedSearch(searchKeyword, 1, pageSize); // 검색어가 바뀌면 항상 1페이지
-    } else {
-      debouncedSearch.cancel();
-      getBookmarkList(); // 검색어가 없으면 전체 리스트
-    }
-  }, [searchKeyword, pageSize]);
+  // useEffect(() => {
+  //   if (searchKeyword.length > 0) {
+  //     setCurrentPage(1);
+  //     debouncedSearch(searchKeyword, 1, pageSize); // 검색어가 바뀌면 항상 1페이지
+  //   } else {
+  //     debouncedSearch.cancel();
+  //     getBookmarkList(); // 검색어가 없으면 전체 리스트
+  //   }
+  // }, [searchKeyword, pageSize]);
 
   useEffect(() => {
-    if (searchKeyword.length > 0) {
-      debouncedSearch(searchKeyword, currentPage, pageSize);
-    } else {
-      getBookmarkList();
-    }
+    // if (searchKeyword.length > 0) {
+    //   debouncedSearch(searchKeyword, currentPage, pageSize);
+    // } else {
+    //   getBookmarkList();
+    // }
+    getBookmarkList();
   }, [currentPage, pageSize]);
   
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
+  // useEffect(() => {
+  //   return () => {
+  //     debouncedSearch.cancel();
+  //   };
+  // }, [debouncedSearch]);
 
   return (
     <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
@@ -162,14 +163,14 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       <HDivider colorClassName="bg-line-02"/>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
-          <SearchBar
+          {/* <SearchBar
             placeholder="검색어를 입력해 주세요."
             value={searchKeyword}
             onChange={setSearchKeyword}
             variant="filled"
             prefixSize={14}
             className="font-b3 px-[8px] py-[6px]"
-          />
+          /> */}
           {/* <div className="flex items-center gap-[8px]">
             <p className="font-s3 text-text-03">지역</p>
             <MenuDropdown 
