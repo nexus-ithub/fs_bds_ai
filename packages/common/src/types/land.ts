@@ -72,9 +72,15 @@ export interface LandInfo {
   relParcelCount : number; // 연관된 모든 필지의 개수
 
   relArchAreaSum : number; // 연관된 모든 건축물의 건축면적 합
+  relFloorAreaSum : number; // 연관된 모든 건축물의 연면적 합
+  
   relBuildingCount : number; // 연관된 모든 건축물의 개수
 
   relMainUsageName : string; // (연면적이 제일큰) 대표 건축물의 주용도명
+  relUseApprovalDate : string; // (연면적이 제일큰) 대표 건축물의 준공일
+  relFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 층수
+  relGndFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 지상층수
+  relBaseFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 지하층수
 }
 
 export interface BuildingInfo {
@@ -190,7 +196,7 @@ export const getRatioStr = (value : any) => {
 
 
 export const getBuildingCreateDate = (date : string) => {
-  const dateStr = date.replace(' ', '');
+  const dateStr = date?.replace(' ', '');
   if(!dateStr || dateStr.length < 8) {
     return null;
   }
@@ -203,4 +209,34 @@ export const getBuildingCreateDate = (date : string) => {
   const completionDate = new Date(year, month, day);
   // console.log('getBuildingCreateDate', completionDate);
   return completionDate;
+}
+
+export const getBuildingCreateYear = (date : string) => {
+  const dateStr = getBuildingCreateDate(date);
+  if(!dateStr) {
+    return '';
+  }
+  return dateStr.getFullYear() + '년';
+}
+
+
+export const getBuildingRelInfoText = (landInfo : LandInfo) => {
+  if(!landInfo) {
+    return '';
+  }
+  const arr = []
+  if (landInfo.relUseApprovalDate) {
+    arr.push(getBuildingCreateYear(landInfo.relUseApprovalDate))
+  }
+  let floorInfo = ''
+  if (landInfo.relGndFloorNumber) {
+    floorInfo += landInfo.relGndFloorNumber + 'F'
+  }
+  if (landInfo.relBaseFloorNumber) {
+    floorInfo += '/B' + landInfo.relBaseFloorNumber
+  }
+  if (floorInfo.length > 0) {
+    arr.push(floorInfo)
+  }
+  return arr.join(' · ')
 }

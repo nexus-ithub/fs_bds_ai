@@ -1,7 +1,7 @@
 
 
 import { Dialog } from "@mui/material";
-import { AIReportLogo, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
+import { AIReportLogo, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
 import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
@@ -112,18 +112,24 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
                     )
                   }                
                 </div>
-                <div className="flex items-center gap-[6px]">
-                  {
-                    landInfo.usageName && (
-                      <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
-                    )
-                  }
-                  {
-                    landInfo.relMainUsageName && (
-                      <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
-                    )
-                  }               
-                </div>              
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-[6px]">
+                    {
+                      landInfo.usageName && (
+                        <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
+                      )
+                    }
+                    {
+                      landInfo.relMainUsageName && (
+                        <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
+                      )
+                    }               
+                  </div>
+                  <div className="flex items-center gap-[4px] font-s3 text-text-02">
+                    {getBuildingRelInfoText(landInfo)}
+                  </div>                  
+                </div>
+          
                 <div className="flex gap-[12px] items-center">
                   <div className="flex-1 flex items-center justify-between">
                     <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
@@ -131,8 +137,8 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
                   </div>
                   <VDivider colorClassName="bg-line-02"/>
                   <div className="flex-1 flex items-center justify-between">
-                    <p className="font-s3 text-text-03">건축면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
-                    <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relArchAreaSum)}</p>
+                    <p className="font-s3 text-text-03">연면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                    <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relFloorAreaSum)}</p>
                   </div>        
                 </div>
               </div>

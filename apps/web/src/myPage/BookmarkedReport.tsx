@@ -1,4 +1,4 @@
-import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType } from "@repo/common";
+import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType, getBuildingRelInfoText } from "@repo/common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery, useQueryClient } from "react-query";
@@ -244,37 +244,32 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                     )
                   } 
                 </div>
-                <div className="flex items-center gap-[6px]">
-                  {
-                    item.landInfo.usageName && (
-                      <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
-                    )
-                  }
-                  {
-                    (item.buildings && item.buildings.length > 0) && (
-                      <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{item.buildings[0].mainUsageName}</p>
-                    )
-                  }        
-                </div>
-                {/* <div className="flex items-center gap-[12px]">
-                  <div className="flex-1 flex items-center justify-between gap-[6px]">
-                    <p className="w-[44px] font-s4 text-text-03">대지면적</p>
-                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.landInfo.area)}</p>
+                <div className="flex flex justify-between">
+                  <div className="flex items-center gap-[6px]">
+                    {
+                      item.landInfo.usageName && (
+                        <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
+                      )
+                    }
+                    {
+                      (item.buildings && item.buildings.length > 0) && (
+                        <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{item.buildings[0].mainUsageName}</p>
+                      )
+                    }        
                   </div>
-                  <VDivider colorClassName="bg-line-03"/>
-                  <div className="flex-1 flex items-center justify-between gap-[6px]">
-                    <p className="w-[44px] font-s4 text-text-03">건축면적</p>
-                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.buildings?.[0]?.archArea)}</p>
-                  </div>        
-                </div> */}
+                  <div className="flex items-center gap-[4px] font-s4 text-text-02">
+                    {getBuildingRelInfoText(item.landInfo)}
+                  </div>                  
+                </div>  
+
                 <div className="flex-col space-y-[6px]">
                   <div className="flex-1 flex items-center justify-between">
                     <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
                     <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
                   </div>
                 <div className="flex-1 flex items-center justify-between">
-                    <p className="font-s4 text-text-03">건축면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
-                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relArchAreaSum)}</p>
+                    <p className="font-s4 text-text-03">연면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relFloorAreaSum)}</p>
                   </div>        
                 </div>                
               </div>
