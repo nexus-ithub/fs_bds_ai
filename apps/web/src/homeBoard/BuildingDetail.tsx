@@ -93,9 +93,10 @@ export const BuildingDetailDialog = ({
           <div className="flex-1 flex flex-col p-[16px] gap-[10px]">
             <div className="flex items-center gap-[8px]">
               <p className="font-c2-p bg-primary text-white px-[4px] py-[2px] rounded-[2px]">👍 빌딩샵 추천매물</p>
-              <p className="font-s1-p">{building.name || '-'}</p>
+              {/* <p className="font-s1-p">{building.name || '-'}</p> */}
+               <p className="font-s1-p">{getShortAddress(building.addr)}</p>
             </div>
-            <p className="font-s1-p">{getShortAddress(building.addr)}</p>
+            {/* <p className="font-s1-p">{getShortAddress(building.addr)}</p> */}
             <div className="flex items-center gap-[5px]">
               <div className="flex-1 flex items-center justify-between">
                 <p className="font-s4 text-text-03">대지면적</p>

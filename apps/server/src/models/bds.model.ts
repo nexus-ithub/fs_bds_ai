@@ -101,7 +101,6 @@ export class BdsModel {
         )
         SELECT
           bd.id AS idx,
-          bd.bd_name as name,
           bd.bd_addr as addr,
           bd.bd_plat_area as platArea,
           bd.bd_total_area as totalArea,
@@ -194,13 +193,13 @@ export class BdsModel {
       if(!!rows) {
         await db.query(
           `UPDATE bookmarked_bds SET sale_id = ?, image_path = ?, memo = ?, name = ?, addr = ?, plat_area = ?, total_area = ?, sale_amount = ?, sell_profit = ?, build_value = ?, delete_yn = ? WHERE user_id = ? AND bds_id = ?`,
-          [building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue, deleteYn, userId, building.idx]
+          [building.saleId, building.imagePath, building.memo, null, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue, deleteYn, userId, building.idx]
         );
       } else{
         await db.query(
           `INSERT INTO bookmarked_bds (user_id, bds_id, sale_id, image_path, memo, name, addr, plat_area, total_area, sale_amount, sell_profit, build_value)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [userId, building.idx, building.saleId, building.imagePath, building.memo, building.name, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue]
+          [userId, building.idx, building.saleId, building.imagePath, building.memo, null, building.addr, building.platArea, building.totalArea, building.saleAmount, building.sellProfit, building.buildValue]
         );
       }
     } catch (err) {

@@ -6,7 +6,7 @@ import { CircularProgress, Dialog, DialogContent } from "@mui/material";
 
 
 const BUILDING_LIST_FILTER_TABS = [
-  '실거래 슈퍼빌딩',
+  // '실거래 슈퍼빌딩',
   '핫플레이스',
   '역세권',
   '수익용',
@@ -17,7 +17,7 @@ const BUILDING_LIST_FILTER_TABS = [
 ]
 
 const BUILDING_LIST_ORDER = [
-  'recommend',
+  // 'recommend',
   'hotplace',
   'subway',
   'income',
@@ -141,7 +141,7 @@ export const BuildingListDialog = ({
                     <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
                 <div className="flex-1 flex flex-col h-[160px] gap-[8px] justify-between">
-                  <p className="font-h4">{building.name}</p>
+                  {/* <p className="font-h4">{building.name}</p> */}
                   <div className="flex-1 flex flex-col gap-[4px]">
                     <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{getShortAddress(building.addr)}</p></div>
                     <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className="font-s1-p text-primary">{krwUnit(building.saleAmount * 10000, true)}</p></div>

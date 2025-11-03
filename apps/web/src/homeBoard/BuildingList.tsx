@@ -10,15 +10,17 @@ import { API_HOST } from "../constants";
 
 
 const FILTER_TABS = [
-  '👍 빌딩샵 추천 TOP5',
-  '🧭 핫플레이스 추천매물',
-  '💸 역세권 추천매물'
+  // '👍 빌딩샵 추천 TOP5',
+  '👍 핫플레이스 추천매물',
+  '💸 역세권 추천매물',
+  '💰 수익용 추천매물'
 ]
 
 const ORDER = [
-  'recommend',
+  // 'recommend',
   'hotplace',
-  'subway'
+  'subway',
+  'income'
 ]
 
 const BUILDING_LIST_FILTER_TABS = [
@@ -146,8 +148,8 @@ export const BuildingList = () => {
                     alt=""/>
                   <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
-              <div className="flex-1 flex flex-col h-[160px] gap-[8px] justify-between">
-                <p className="font-h4">{building.name}</p>
+              <div className="flex-1 flex flex-col h-[160px] justify-between">
+                {/* <p className="font-h4">{building.name}</p> */}
                 <div className="flex-1 flex flex-col gap-[4px]">
                   <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{getShortAddress(building.addr)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className="font-s1-p text-primary">{krwUnit(building.saleAmount * 10000, true)}</p></div>
