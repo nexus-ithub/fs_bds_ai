@@ -1,13 +1,14 @@
 'use client';
 
 import { Avatar } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from 'next/navigation';
-import { CheckIcon, ChevronDownCustomIcon, HDivider, Button } from "@repo/common";
+import { CheckIcon, ChevronDownCustomIcon, HDivider, Button, Admin } from "@repo/common";
 import { type Menu } from "@repo/common";
 import { useLoading } from "./utils/loadingOverlay";
 import { useSession } from "next-auth/react";
 import { AccountDialog } from "./main/admin/AccountDialog";
+import useAxiosWithAuth from "./utils/axiosWithAuth";
 
 interface MenuItemType {
   label: string;
@@ -105,9 +106,16 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 export const Sidebar = () => {
   const router = useRouter();
   const session = useSession();
+  const axiosInstance = useAxiosWithAuth();
   const { startLoading } = useLoading();
   const [openMyAccount, setOpenMyAccount] = useState<boolean>(false);
-  console.log(">>>>", session.data?.user)
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+
+  const getMyAccount = async () => {
+    const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: session.data?.user?.email, page: 1, size: 1 } });
+    const data = await response.data;
+    setSelectedAdmin(data.users[0]);
+  }
   
   return (
     <div className="w-[320px] shrink-0 h-full flex flex-col gap-[20px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
@@ -120,7 +128,7 @@ export const Sidebar = () => {
           </div>
         </div>
         <HDivider className="!bg-line-02"/>
-        <button className="font-h5 text-primary" onClick={() => setOpenMyAccount(true)}>내 계정 관리</button>
+        <button className="font-h5 text-primary" onClick={() => {getMyAccount(); setOpenMyAccount(true)}}>내 계정 관리</button>
       </div>
       <Button variant="outline" size="medium" fontSize="font-h4" onClick={() => {startLoading(); router.push("/main/dashboard")}}>DASHBOARD</Button>
       <div className="flex flex-col gap-[16px]">
@@ -131,14 +139,12 @@ export const Sidebar = () => {
         <CustomAccordion title="사용자 문의" menuItems={consultMenu} defaultExpanded />
         <CustomAccordion title="빌딩샵AI 관리" menuItems={bdsAIMenu} defaultExpanded />
       </div>
-      {/* <AccountDialog 
-        open={openMyAccount} 
-        setOpen={setOpenMyAccount} 
-        selectedAdmin={session.data?.user} 
-        email={session.data?.user?.email} 
-        name={session.data?.user?.name} 
-        phone={session.data?.user?.phone} 
-        adminType={session.data?.user?.adminType}/> */}
+      <AccountDialog
+        open={openMyAccount}
+        setOpen={setOpenMyAccount}
+        selectedAdmin={selectedAdmin}
+        setSelectedAdmin={setSelectedAdmin}
+      />
     </div>
   );
 };
