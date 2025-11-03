@@ -3,13 +3,23 @@ import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 
 export class AdminModel {
-  static async findAll(keyword: string): Promise<Admin[] | null> {
+  static async findAll(keyword: string, page: number, size: number): Promise<{ users: Admin[]; totalCount: number } | null> {
     try {
       const users = await db.query<(RowDataPacket & Admin)[]>(
-        'SELECT id, name, email, phone, admin_type as adminType, created_at as createdAt FROM admins WHERE delete_yn = "N" AND (name LIKE ? OR email LIKE ?)',
+        `SELECT 
+          id, name, email, phone, admin_type as adminType, created_at as createdAt 
+        FROM admins 
+        WHERE delete_yn = "N" AND (name LIKE ? OR email LIKE ?) 
+        LIMIT ? 
+        OFFSET ?`,
+        [`%${keyword}%`, `%${keyword}%`, size, (page - 1) * size]
+      );
+      const countRows = await db.query<RowDataPacket[]>(
+        `SELECT COUNT(*) as count FROM admins WHERE delete_yn = "N" AND (name LIKE ? OR email LIKE ?)`,
         [`%${keyword}%`, `%${keyword}%`]
       );
-      return users || null;
+      const totalCount = (countRows?.[0] as { count: number })?.count ?? 0;
+      return { users, totalCount };
     } catch (error) {
       console.error('Error finding user by email:', error);
       throw error; 

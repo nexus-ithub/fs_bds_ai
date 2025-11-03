@@ -21,14 +21,16 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
   const keyword = searchParams.get("keyword");
+  const page = searchParams.get("page");
+  const size = searchParams.get("size");
 
   // 관리자 계정 목록
   if (action === "list") {
     const user = await handleAuth(req);
     if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
-    const users = await AdminModel.findAll(`%${keyword}%`);
-    return NextResponse.json(users);
+    const result = await AdminModel.findAll(`%${keyword}%`, Number(page), Number(size));
+    return NextResponse.json({ users: result?.users ?? [], totalCount: result?.totalCount ?? 0 });
   }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });

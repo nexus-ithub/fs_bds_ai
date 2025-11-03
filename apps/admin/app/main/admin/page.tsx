@@ -22,6 +22,7 @@ export default function Admin() {
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
 
@@ -42,10 +43,10 @@ export default function Admin() {
   const getUsers = async () => {
     try {
       setInitialLoading(true);
-      const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: searchKeyword } });
+      const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: searchKeyword, page: currentPage, size: pageSize } });
       const data = await response.data;
-      console.log("data", data);
-      setAdmins(data);
+      setAdmins(data.users);
+      setTotalCount(data.totalCount);
     } catch (error) {
       console.error(error);
     } finally {
@@ -58,6 +59,10 @@ export default function Admin() {
       getUsers();
     }
   }, [status, session?.accessToken])
+
+  useEffect(() => {
+    getUsers()
+  }, [currentPage, pageSize]);
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
@@ -146,7 +151,7 @@ export default function Admin() {
         </tbody>
       </table>
       <div className="flex items-center justify-center py-[12px]">
-        <Pagination totalItems={admins.length} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={setCurrentPage}/>
+        <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={setCurrentPage}/>
       </div>
       <AccountDialog
         open={openAddAccount}
