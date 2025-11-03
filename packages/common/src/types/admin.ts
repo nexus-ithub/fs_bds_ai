@@ -6,7 +6,7 @@ export interface Admin {
   name: string;
   password: string;
   phone?: string;
-  adminType: string;
+  adminType: "M" | "N";
   createdAt: Date;
   updatedAt: Date;
 }

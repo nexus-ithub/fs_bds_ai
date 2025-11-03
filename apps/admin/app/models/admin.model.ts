@@ -3,10 +3,11 @@ import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 
 export class AdminModel {
-  static async findAll(): Promise<Admin[] | null> {
+  static async findAll(keyword: string): Promise<Admin[] | null> {
     try {
       const users = await db.query<(RowDataPacket & Admin)[]>(
-        'SELECT id, name, email, phone, admin_type as adminType, created_at as createdAt FROM admins WHERE delete_yn = "N"'
+        'SELECT id, name, email, phone, admin_type as adminType, created_at as createdAt FROM admins WHERE delete_yn = "N" AND (name LIKE ? OR email LIKE ?)',
+        [`%${keyword}%`, `%${keyword}%`]
       );
       return users || null;
     } catch (error) {

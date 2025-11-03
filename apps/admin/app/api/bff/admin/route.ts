@@ -20,27 +20,16 @@ async function handleAuth(req: Request) {
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
+  const keyword = searchParams.get("keyword");
 
   // 관리자 계정 목록
   if (action === "list") {
     const user = await handleAuth(req);
     if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
-    const users = await AdminModel.findAll();
+    const users = await AdminModel.findAll(`%${keyword}%`);
     return NextResponse.json(users);
   }
-
-  // 이메일 체크
-  // if (action === "check-email") {
-  //   const email = searchParams.get("email");
-  //   console.log("email:", email);
-  //   if (!email) return NextResponse.json({ success: false, message: "이메일이 없습니다." }, { status: 400 });
-
-  //   const existing = await AuthModel.findByEmail(email);
-  //   if (existing) return NextResponse.json({ success: false, message: "이미 존재하는 이메일입니다." }, { status: 400 });
-
-  //   return NextResponse.json({ success: true, message: "사용 가능한 이메일입니다." });
-  // }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
 }

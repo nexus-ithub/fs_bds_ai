@@ -1,6 +1,6 @@
 'use client';
 
-import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon, DotProgress, ChatInfo, Button } from "@repo/common";
+import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon, DotProgress, ChatInfo, Button, CloseIcon } from "@repo/common";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
@@ -79,26 +79,26 @@ export default function Session() {
         <h2 className="font-h2">세션 관리</h2>
         <div className="flex items-center justify-between gap-[12px]">
           <p className="font-s2 text-text-02">AI를 사용한 유저의 각 세션 분석 및 대화 내용을 확인해 보세요.</p>
-          <div className="flex items-center gap-[6px]">
+          {/* <div className="flex items-center gap-[6px]">
             <p className="font-s3 text-primary">UPDATED</p>
             <VDivider colorClassName="bg-line-04" className="!h-[10px]"/>
             <p className="font-s3">{format(updateDate, 'yyyy.MM.dd HH:mm:ss')}</p>
-          </div>
+          </div> */}
         </div>
       </div>
       <HDivider className="!bg-line-02"/>
-      <div className="flex items-center justify-between gap-[16px]">
-        <SearchBar
+      <div className="flex items-center justify-end gap-[16px]">
+        {/* <SearchBar
           placeholder="검색어를 입력해 주세요."
           value={searchKeyword}
           onChange={setSearchKeyword}
           variant="filled"
           prefixSize={14}
           className="font-b3 px-[8px] py-[6px]"
-        />
+        /> */}
         <div className="flex items-center gap-[12px]">
-          <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Refresh/></button>
-          <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><DownloadIcon color="#585C64"/></button>
+          {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Refresh/></button> */}
+          {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><DownloadIcon color="#585C64"/></button> */}
           <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
             {COUNT_BUTTON.map((item) => (
               <button
@@ -155,7 +155,7 @@ export default function Session() {
               </th>
               <th className="pl-[12px] py-[14px] font-s3">질의 수</th>
               <th className="pl-[12px] py-[14px] font-s3 text-center">삭제여부</th>
-              <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
+              {/* <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th> */}
             </tr>
           </thead>
           <tbody>
@@ -171,11 +171,11 @@ export default function Session() {
                   {format(session.sessionEnd, 'HH:mm:ss')}</td>
                 <td className="pl-[12px]">{session.questionCount}</td>
                 <td className="pl-[12px] text-center">{session.deleteYn === 'Y' ? '삭제됨' : '정상'}</td>
-                <td className="pl-[12px] pr-[16px] w-[52px]">
+                {/* <td className="pl-[12px] pr-[16px] w-[52px]">
                   <div className="flex items-center gap-[12px]">
                     <button><MenuIcon/></button>
                   </div>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
@@ -185,12 +185,50 @@ export default function Session() {
         <Pagination totalItems={totalItems} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={setCurrentPage}/>
       </div>
       <Dialog open={openChatContent} onClose={() => {setOpenChatContent(false); setChatContent([])}}>
-        <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
-          <div className="flex flex-col items-center justify-center gap-[8px]">
-            <p className="font-h3 pt-[12px]">비밀번호가 성공적으로 변경되었습니다.</p>
+        <div className="flex flex-col max-h-[80vh] w-[500px]">
+          <div className="flex items-center justify-between px-[24px] py-[16px] border-b border-line-02">
+            <h2 className="font-h2">대화 내용</h2>
+            <button 
+              onClick={() => {setOpenChatContent(false); setChatContent([])}}
+              className="rounded-[4px]"
+            >
+              <CloseIcon/>
+            </button>
           </div>
-          <div className="flex justify-center gap-[12px]">
-            <Button className="w-[160px]" onClick={() => {setOpenChatContent(false); setChatContent([])}}>확인</Button>
+          <div className="flex-1 overflow-y-auto px-[34px] py-[24px] scrollbar-hover">
+            {chatLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <DotProgress size="sm" />
+              </div>
+            ) : (
+              chatContent.map((chat, index) => (
+                <div key={index} className="flex flex-col">
+                  <div className="flex justify-end w-full py-[12px]">
+                    <div className="flex flex-col gap-[4px] max-w-[80%]">
+                      <p className="font-c2 text-text-03 text-right">
+                        {chat.created_at
+                        ? format(new Date(chat.created_at), 'yyyy.MM.dd HH:mm:ss')
+                        : '-'}
+                      </p>
+                      <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p whitespace-pre-line">
+                        {chat.question}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full py-[20px] border-t border-line-02">
+                    <p className="font-b1-p whitespace-pre-line">{chat.answer}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="flex justify-center gap-[12px] px-[24px] py-[20px] border-t border-line-02">
+            <Button 
+              className="w-[160px]" 
+              onClick={() => {setOpenChatContent(false); setChatContent([])}}
+            >
+              확인
+            </Button>
           </div>
         </div>
       </Dialog>
