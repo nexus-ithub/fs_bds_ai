@@ -1,5 +1,5 @@
 import type { BuildingInfo, DistrictInfo, EstimatedPrice, LandInfo, PlaceList } from "@repo/common";
-import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider } from "@repo/common";
+import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider, getBuildingCreateDate, getBuildingCreateYear, getBuildingRelInfoText } from "@repo/common";
 import { krwUnit } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
 import { Land } from "./Land";
@@ -134,6 +134,7 @@ export const LandInfoCard = ({
   }
 
 
+
   return (
     <div className="h-full flex flex-col pt-[20px]">
       <div className="px-[20px]">
@@ -156,23 +157,24 @@ export const LandInfoCard = ({
             )
           }
         </div>
-        <div className="mt-[14px] flex items-center gap-[6px]">
-          {
-            landInfo.usageName && (
-              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.usageName}</p>
-            )
-          }
-          {
-            landInfo.relMainUsageName && (
-              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
-            )
-          }               
-          {/* {
-            (buildingList && buildingList.length > 0) && (
-              <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
-            )
-          }         */}
+        <div className="mt-[14px] flex items-center justify-between">
+          <div className="flex items-center gap-[6px]">
+            {
+              landInfo.usageName && (
+                <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
+              )
+            }
+            {
+              landInfo.relMainUsageName && (
+                <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
+              )
+            }               
+          </div>
+          <div className="flex items-center gap-[4px] font-s3 text-text-02">
+            {getBuildingRelInfoText(landInfo)}
+          </div>
         </div>
+
         {/* <div className="mt-[10px] flex items-center gap-[5px]">
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s4 text-text-03">토지면적</p>
@@ -189,10 +191,14 @@ export const LandInfoCard = ({
             <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
           </div>
-         <div className="flex-1 flex items-center justify-between">
+         {/* <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">건축면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relArchAreaSum)}</p>
-          </div>        
+          </div>         */}
+         <div className="flex-1 flex items-center justify-between">
+            <p className="font-s3 text-text-03">연면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+            <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relFloorAreaSum)}</p>
+          </div>             
         </div>
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
           <div className="flex-1 flex flex-col items-center gap-[6px]">

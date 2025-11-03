@@ -1,4 +1,4 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportDebugInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportDebugInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
@@ -321,18 +321,24 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                   </div>
                 )
               } 
-              <div className="mt-[8px] flex items-center gap-[6px]">
-                {
-                  landInfo?.usageName && (
-                    <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
-                  )
-                }
-                {
-                  (landInfo?.relMainUsageName) && (
-                    <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
-                  )
-                }        
-              </div>            
+              <div className="mt-[8px] flex items-center justify-between">
+                <div className="flex items-center gap-[6px]">
+                  {
+                    landInfo?.usageName && (
+                      <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
+                    )
+                  }
+                  {
+                    (landInfo?.relMainUsageName) && (
+                      <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
+                    )
+                  }        
+                </div>            
+                <div className="flex items-center gap-[4px] font-s4 text-text-02">
+                  {getBuildingRelInfoText(landInfo)}
+                </div>
+              </div>
+    
               {/* <div className="mt-[8px] flex items-center gap-[5px]">
                 <div className="flex-1 flex items-center justify-between">
                   <p className="font-s4 text-text-03">대지면적</p>
@@ -350,10 +356,14 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                   <p className="font-s4 text-text-03">토지면적{landInfo?.relParcelCount > 1 ? ' (합계)' : ''}</p>
                   <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relTotalArea)}</p>
                 </div>
-              <div className="flex-1 flex items-center justify-between">
+              {/* <div className="flex-1 flex items-center justify-between">
                   <p className="font-s4 text-text-03">건축면적{landInfo?.relBuildingCount > 1 ? ' (합계)' : ''}</p>
                   <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relArchAreaSum)}</p>
-                </div>        
+                </div>         */}
+                <div className="flex-1 flex items-center justify-between">
+                  <p className="font-s3 text-text-03">연면적{landInfo?.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                  <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo?.relFloorAreaSum)}</p>
+                </div>                     
               </div>               
               <div className="mt-[12px] flex border border-line-02 rounded-[4px] flex-1 items-center">
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
