@@ -1,6 +1,6 @@
 export interface BdsSale {
     idx: string;
-    name: string;
+    // name: string;
     addr: string;
     platArea: number;
     totalArea: number;
