@@ -1,4 +1,4 @@
-import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType, getBuildingRelInfoText } from "@repo/common";
+import { BookmarkFilledIcon, getAreaStrWithPyeong, getJibunAddress, getRoadAddress, HDivider, krwUnit, NoteIcon, Pagination, SearchBar, VDivider, type User, type BookmarkedReportType, getBuildingRelInfoText, DotProgress } from "@repo/common";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery, useQueryClient } from "react-query";
@@ -52,6 +52,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   const [selectedItem, setSelectedItem] = useState<BookmarkedReportType | null>(null);
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const aiReportRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +60,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
 
   const getBookmarkList = async() => {
     try {
+      setLoading(true);
       const response = await axiosWithAuth.get('/api/land/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
       setBookmarkList(response.data.result);
       console.log(">>>>", response.data)
@@ -69,6 +71,8 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -295,7 +299,11 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   
             </div>
           </div>
-        )) : (
+        )) : loading ? (
+          <div className="w-full flex items-center justify-center">
+            <DotProgress size="sm"/>
+          </div>
+        ) : (
           <p className="text-text-03">관심물건이 없습니다.</p>
         )}
       </div>
