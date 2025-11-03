@@ -1,4 +1,4 @@
-import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination } from "@repo/common";
+import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination, DotProgress } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery, useQueryClient } from "react-query";
@@ -24,9 +24,11 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   const [pageSize, setPageSize] = useState<number>(COUNT_BUTTON[0].value);
 
   const [openCounselDialog, setOpenCounselDialog] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const getBookmarkList = async() => {
     try {
+      setLoading(true);
       const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
       setBookmarkList(response.data.result);
       setTotalCount(response.data.total);
@@ -35,6 +37,8 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -157,7 +161,11 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   
             </div>
           </div>
-        )) : (
+        )) : loading ? (
+          <div className="w-full flex items-center justify-center">
+            <DotProgress size="sm"/>
+          </div>
+        ) : (
           <p className="text-text-03">관심매물이 없습니다.</p>
         )}
       </div>
