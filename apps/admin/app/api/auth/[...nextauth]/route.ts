@@ -37,11 +37,17 @@ const options: NextAuthOptions = {
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, session, trigger }) {
       if (user) {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.accessTokenExpires = Date.now() + Number(process.env.ACCESS_TOKEN_EXPIRES_IN || 300) * 1000;
+      } else if (trigger === "update" && session) {
+        if (session.user) {
+          token.name = session.user.name ?? token.name;
+          token.email = session.user.email ?? token.email;
+        }
+        return token;
       } else if (Date.now() > token.accessTokenExpires!) {
         const refreshed = await refreshAccessToken(token);
         if (refreshed.error) {

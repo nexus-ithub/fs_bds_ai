@@ -2,6 +2,7 @@ import { Dialog } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Admin, FormField, Radio, Spinner, VDivider, Button, CloseIcon } from "@repo/common";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
+import { useSession } from "next-auth/react";
 
 interface AccountDialogProps {
   open: boolean;
@@ -9,6 +10,7 @@ interface AccountDialogProps {
   selectedAdmin: Admin | null;
   setSelectedAdmin: (selectedAdmin: Admin | null) => void;
   getUsers?: () => void;
+  updateSession?: () => void;
   // email: string;
   // setEmail: (email: string) => void;
   // emailValid: boolean | null;
@@ -55,6 +57,8 @@ export const AccountDialog = ({
   // handlePhoneChange,
 }: AccountDialogProps) => {
   const axiosInstance = useAxiosWithAuth();
+  const session = useSession();
+  const { update } = useSession();
   const [email, setEmail] = useState<string>('');
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [name, setName] = useState<string>('');
@@ -95,7 +99,21 @@ export const AccountDialog = ({
     }
     setOpen(false);
     setLoading(false);
-    getUsers?.();
+    if (getUsers) {
+      getUsers();
+    } else {
+      updateSession();
+    }
+  }
+
+  const updateSession = async () => {
+    await update({
+      user: {
+        ...session.data?.user,
+        name: name,
+        email: email,
+      }
+    });
   }
 
   useEffect(() => {
