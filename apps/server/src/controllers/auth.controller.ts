@@ -156,7 +156,7 @@ export const refresh = async (req: Request, res: Response) => {
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: keepLoggedIn 
           ? 14 * 24 * 60 * 60 * 1000 // 14일
           : 1 * 60 * 60 * 1000,       // 1시간
@@ -185,7 +185,7 @@ export const logout = async (req: Request, res: Response) => {
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: 'lax'
     });
 
     res.status(200).json({ message: '로그아웃되었습니다.' });
@@ -266,8 +266,8 @@ export const oAuthCallback = (req: Request, res: Response) => {
       const stateNaver = randomUUID();
       res.cookie("oauth_state", stateNaver, {
         httpOnly: true,      
-        secure: true,     
-        sameSite: "lax",  
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
         maxAge: 10 * 60 * 1000, // 유효기간 10분
       });
       redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
@@ -276,8 +276,8 @@ export const oAuthCallback = (req: Request, res: Response) => {
       const stateGoogle = randomUUID();
       res.cookie("oauth_state", stateGoogle, {
         httpOnly: true,      
-        secure: true,     
-        sameSite: "lax",  
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
         maxAge: 10 * 60 * 1000, // 유효기간 10분
       });
       redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=openid%20email%20profile&state=${stateGoogle}`;
