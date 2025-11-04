@@ -6,6 +6,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
 import { toast } from "react-toastify";
+import { BuildingConsultRequestDialog } from "../homeBoard/BuildingConsultRequestDialog";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -19,6 +20,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [bookmarkList, setBookmarkList] = useState<BdsSale[]>([]);
+  const [selectedBdsSale, setSelectedBdsSale] = useState<BdsSale | null>(null);
 
   const [totalCount, setTotalCount] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -120,11 +122,15 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
                 <div className="flex items-center justify-between gap-[8px]">
                   <div className="flex items-center gap-[8px]">
                     <p className="font-s1-p shrink-0">{getShortAddress(item.addr)}</p>
-                    <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
-                    <p className="font-s1-p shrink-0">{item.name || '-'}</p>
+                    {item.name && (
+                      <>
+                        <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                        <p className="font-s1-p shrink-0">{item.name}</p>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-[8px]">
-                    <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setOpenCounselDialog(true)}}>
+                    <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setSelectedBdsSale(item); setOpenCounselDialog(true)}}>
                       <p className="font-s4 text-primary">매입 상담 요청</p>
                       <CounselIcon/>
                     </button>
@@ -176,7 +182,12 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
       </div>
-      <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false);}}/>
+      {/* <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false);}}/> */}
+      {
+        openCounselDialog && (
+          <BuildingConsultRequestDialog open={openCounselDialog} onClose={() => setOpenCounselDialog(false)} bdsSale={selectedBdsSale}/>
+        )
+      }
     </div>
   )
 }

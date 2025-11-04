@@ -115,22 +115,36 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (aiReportRef.current && !aiReportRef.current.contains(event.target as Node)) {
-        setOpenAIReport(false);
-        setSelectedItem(null);
+      const target = event.target as Node;
+      const aiReportEl = aiReportRef.current;
+
+      if (aiReportEl && aiReportEl.contains(target)) return;
+
+      const dialogElements = document.querySelectorAll('.MuiDialog-root');
+      for (const dialogEl of dialogElements) {
+        if (dialogEl.contains(target)) return;
       }
-    }
-  
+
+      const backdropElements = document.querySelectorAll('.MuiBackdrop-root');
+      for (const backdropEl of backdropElements) {
+        if (backdropEl.contains(target)) return;
+      }
+
+      setOpenAIReport(false);
+      setSelectedItem(null);
+    };
+
     if (openAIReport) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     }
-  
+
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [openAIReport]);
+
 
   // useEffect(() => {
   //   if (searchKeyword.length > 0) {

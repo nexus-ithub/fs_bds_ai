@@ -20,6 +20,7 @@ export interface ConsultRequestDialogProps {
 
 
 export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDialogProps) => {
+  console.log(">>>landID", landId)
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
