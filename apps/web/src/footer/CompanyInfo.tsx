@@ -56,12 +56,18 @@ export const CompanyInfo = () => {
         </a>
       </div>
       <div className="font-c2 text-text-02 flex items-center gap-[10px]">
+        <p className="font-c2-p text-text-03 pr-[4px]">정인부동산그룹(주)</p>
+        <VDivider/>
+        <p>대표 : 박준연</p>
+      </div>
+      <p className="font-c2 text-text-02 flex items-center">사업자 등록번호 : 272-86-01078</p>
+      <div className="font-c2 text-text-02 flex items-center gap-[10px]">
         <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 3366</p>
         <VDivider/>
-        <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>contact@buildingshop.co.kr</p>
+        <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>junginpng@naver.com</p>
       </div>
       <p className="font-c2 text-text-02 flex items-center"><span className="font-c2-p text-text-05 pr-[4px]">ADD.</span>서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
-      <p className="font-c2 text-text-02 flex items-center">© 2025 JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</p>
+      <p className="font-c2 text-text-02 flex items-center">©JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</p>
     </div>
   )
 }

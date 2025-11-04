@@ -19,6 +19,7 @@ import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 import { EditPassword } from "../myPage/EditPassword";
 import { toast } from "react-toastify";
+import { Footer } from "../footer/Footer";
 
 interface MenuItemType {
   label: string;

@@ -7,6 +7,7 @@ import { BuildingListDialog } from "./BuildingListDialog";
 import { BuildingDetailDialog } from "./BuildingDetail";
 import axios from "axios";
 import { API_HOST } from "../constants";
+import { CompanyInfo } from "../footer/CompanyInfo";
 
 
 const FILTER_TABS = [
@@ -168,6 +169,7 @@ export const BuildingList = () => {
             
           </button>
         )))}
+        <CompanyInfo/>
       </div>
       <BuildingListDialog 
         open={showBuildingListDialog} 
