@@ -1,6 +1,7 @@
 import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, Spinner, StreetViewIcon, ZoomController, type LatLng } from "@repo/common";
 import { saveMapState } from "../utils";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 export const MapToolbar = ({
   mapType,
@@ -22,8 +23,7 @@ export const MapToolbar = ({
   const getCurrentLocation = () => {
     setIsLoading(true);
     if (!navigator.geolocation) {
-      // alert('브라우저가 위치 서비스를 지원하지 않습니다.');
-      console.log('브라우저가 위치 서비스를 지원하지 않습니다.');
+      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.')
       setIsLoading(false);
       return;
     }
@@ -31,8 +31,6 @@ export const MapToolbar = ({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        console.log(latitude, longitude);
-        // saveMapState(latitude, longitude, 4);
         setCenter({ lat: latitude, lng: longitude });
         setLevel(4);
         setIsLoading(false);
@@ -41,20 +39,16 @@ export const MapToolbar = ({
         console.error('위치 정보를 가져올 수 없습니다:', error);
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            // alert('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
-            console.log('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+            toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
             break;
           case error.POSITION_UNAVAILABLE:
-            // alert('위치 정보를 사용할 수 없습니다.');
-            console.log('위치 정보를 사용할 수 없습니다.');
+            toast.error('위치 정보를 사용할 수 없습니다.');
             break;
           case error.TIMEOUT:
-            // alert('위치 정보 요청이 시간 초과되었습니다.');
-            console.log('위치 정보 요청이 시간 초과되었습니다.');
+            toast.error('위치 정보 요청이 시간 초과되었습니다.');
             break;
           default:
-            // alert('알 수 없는 오류가 발생했습니다.');
-            console.log('알 수 없는 오류가 발생했습니다.');
+            toast.error('알 수 없는 오류가 발생했습니다.');
             break;
         }
         setIsLoading(false);

@@ -35,7 +35,8 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
       setLandInfo(res.data[0]);
     })
     .catch((error) => {
-      console.error(error);
+      console.error("getLandInfo error", error);
+      toast.error('매물 정보 조회 중 오류가 발생했습니다.')
     })
     .finally(() => {
       setLoading(false);

@@ -130,6 +130,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("필터링 중 오류가 발생했습니다.");
       });
      
   }
@@ -190,6 +191,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("지도 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
 
@@ -204,6 +206,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("지형 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
   
@@ -217,6 +220,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("건물 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
   
@@ -230,6 +234,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("추정 가격 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
   
@@ -243,6 +248,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("지역 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
 
@@ -257,6 +263,7 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
+        toast.error("장소 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
 

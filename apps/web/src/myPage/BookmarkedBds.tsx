@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
+import { toast } from "react-toastify";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -30,6 +31,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
     try {
       setLoading(true);
       const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
+      console.log(response.data.result);
       setBookmarkList(response.data.result);
       setTotalCount(response.data.total);
       if (scrollRef.current) {
@@ -37,6 +39,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
+      toast.error('북마크한 추천매물 목록을 가져오는 데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -48,6 +51,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       getBookmarkList();
     } catch (error) {
       console.error(error);
+      toast.error('북마크를 취소하는 데 실패했습니다.');
     }
   }
 

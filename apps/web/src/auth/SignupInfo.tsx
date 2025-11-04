@@ -9,6 +9,7 @@ import { SignupConfirmDialog } from "./SignupConfirmDialog";
 import { setToken } from "../authutil";
 import type { LottieRefCurrentProps } from "lottie-react";
 import { Check } from "lucide-react";
+import { toast } from "react-toastify";
 
 export const SignupInfo = () => {
   const navigate = useNavigate();
@@ -34,7 +35,6 @@ export const SignupInfo = () => {
   const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, profile="", provider="" } = location.state;
 
   useEffect(() => {
-    console.log("location.state", location.state);
     if (!location.state) return; 
     if (!location.state.serviceAgree || !location.state.privacyAgree) {
       if (!hasAlerted.current) {
@@ -64,6 +64,7 @@ export const SignupInfo = () => {
       setEmailValid(response.data.valid);
     } catch (error) {
       console.error('이메일 중복 확인 중 오류 발생:', error);
+      toast.error('이메일 중복 확인 중 오류가 발생했습니다.')
     }
   }
 
@@ -91,6 +92,7 @@ export const SignupInfo = () => {
       }
     } catch (error) {
       console.error('회원가입 중 오류 발생:', error);
+      toast.error('회원가입 중 오류가 발생했습니다.')
     }
   }
 

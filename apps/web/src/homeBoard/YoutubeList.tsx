@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { formatTimeAgo, formatDuration } from "../../utils";
 import { Dialog, DialogActions } from "@mui/material";
+import { toast } from "react-toastify";
 export const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
 export const YOUTUBE_SEARCH_URL = import.meta.env.VITE_YOUTUBE_SEARCH_URL;
@@ -56,20 +57,20 @@ export const YoutubeList = ({
     try {
       const res = await axios.get(`${API_HOST}/api/youtube/list`, {params: {order}});
 
-      console.log("VideoList : res.data >>>>>>>>>>>>", res.data);
       setVideos(res.data);
     } catch (error) {
       console.error(error);
+      toast.error('영상 정보를 가져오는데 실패했습니다.')
     }
   };
 
   const getBrandingVideo = async () => {
     try {
       const res = await axios.get(`${API_HOST}/api/youtube/branding`);
-      console.log("Branding : res.data >>>>>>>>>>>>", res.data);
       setMainVideo(res.data);
     } catch (error) {
       console.error(error);
+      toast.error('대표 영상 정보를 가져오는데 실패했습니다.')
     }
   }
 

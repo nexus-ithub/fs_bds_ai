@@ -18,6 +18,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 import { EditPassword } from "../myPage/EditPassword";
+import { toast } from "react-toastify";
 
 interface MenuItemType {
   label: string;
@@ -110,6 +111,7 @@ export const MyPage = () => {
       setBdsCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
+      // toast.error("북마크 총 개수 조회 중 오류 발생");
     }
   }
 

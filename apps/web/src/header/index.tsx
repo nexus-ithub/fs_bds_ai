@@ -27,7 +27,6 @@ const SUPPORT_MENU = [
 ]
 
 export const Header = ({user} : {user : User}) => {
-  console.log(">>>>>user :", user)
   const location = useLocation();
   const navigate = useNavigate();
   const isSupportPage = location.pathname.startsWith("/support");

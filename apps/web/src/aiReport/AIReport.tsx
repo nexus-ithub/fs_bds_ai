@@ -11,6 +11,7 @@ import { NeedLoginDialog } from "../auth/NeedLoginDialog";
 import { bearingFromTo, getGradeChip } from "../utils";
 import { AIReportDetailDialog } from "./AIReportDetailDialog";
 import { Dialog } from "@mui/material";
+import { toast } from "react-toastify";
 
 
 export interface AIReportProps {
@@ -92,7 +93,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       console.log(res.data);
       setAiReportResult(res.data);
     }).catch((error) => {
-      console.error(error);
+      console.error("getAIReport error", error);
+      toast.error('AI 보고서 조회 중 오류가 발생했습니다.')
     }).finally(() => {
       setLoading(false);
     });
@@ -106,7 +108,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       console.log(res.data[0]);
       setLandInfo(res.data[0]);
     } catch (error) {
-      console.error(error);
+      console.error("getLandInfo error", error);
+      toast.error('토지 정보 조회 중 오류가 발생했습니다.')
     }
   }
 
@@ -117,7 +120,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       console.log(res.data);
       setPolygon(res.data);
     } catch (error) {
-      console.error(error);
+      console.error("getPolygonInfo error", error);
+      toast.error('지도 표시 정보 조회 중 오류가 발생했습니다.')
     }
   }
 
@@ -130,7 +134,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       console.log(res.data);
       setEstimatedPrice(res.data);
     } catch (error) {
-      console.error(error);
+      console.error("getEstimatedPrice error", error);
+      toast.error('추정 가격 정보 조회 중 오류가 발생했습니다.')
     }
   }
 
@@ -142,7 +147,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       setAiReportDebugInfo(res.data);
       setOpenDebugInfo(true);
     } catch (error) {
-      console.error(error);
+      console.error("getAIReportDebugInfo error", error);
+      toast.error('AI 상세 보고서 조회 중 오류가 발생했습니다.')
     }
   }
 
@@ -177,7 +183,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         deleteYn: isBookmarked ? 'Y' : 'N'});
       setIsBookmarked(!isBookmarked);
     } catch (error) {
-      console.error(error);
+      console.error("addBookmark error", error);
+      toast.error('북마크 수정 중 오류가 발생했습니다.')
     }
   }
 
@@ -188,7 +195,8 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         params: {userId: config?.id, landId: landId}});
       setIsBookmarked(res.data);
     } catch (error) {
-      console.error(error);
+      console.error("getIdBookmarked error", error);
+      toast.error('북마크 조회 중 오류가 발생했습니다.')
     }
   }
 

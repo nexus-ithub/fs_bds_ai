@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { AIReport } from "../aiReport/AIReport";
 import debounce from "lodash/debounce";
 import { bearingFromTo } from "../utils";
+import { toast } from "react-toastify";
 
 const DEBOUNCE_DELAY = 300;
 const COUNT_BUTTON = [
@@ -71,6 +72,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       }
     } catch (error) {
       console.error('Failed to fetch bookmark list:', error);
+      toast.error('북마크한 관심물건 목록을 가져오는 데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -89,6 +91,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
       getBookmarkList();
     } catch (error) {
       console.error(error);
+      toast.error('북마크를 취소하는 데 실패했습니다.');
     }
   }
 

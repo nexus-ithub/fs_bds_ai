@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Dialog } from "@mui/material";
+import { toast } from "react-toastify";
 
 export const EditPassword = ({userId}: {userId: number}) => {
   const axiosInstance = useAxiosWithAuth();
@@ -27,6 +28,7 @@ export const EditPassword = ({userId}: {userId: number}) => {
       setOpenSuccessDialog(true);
     } catch (error) {
       setError(error.response.data.message);
+      toast.error("비밀번호 변경에 실패했습니다.");
     } finally {
       setLoading(false);
     }

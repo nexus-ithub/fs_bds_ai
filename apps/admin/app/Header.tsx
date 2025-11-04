@@ -22,11 +22,11 @@ export const Header = () => {
         <p className="font-s1-p">ADMIN</p>
       </div>
       <div className="flex items-center gap-[16px]">
-        <div className="flex items-center gap-[8px]">
-          <IconButton className="!p-0">
-            <Avatar alt="내 프로필" src="" sx={{ width: 24, height: 24 }}/>
+        <div className="flex items-center gap-[8px] cursor-default">
+          <IconButton className="!p-0 ">
+            <Avatar alt="내 프로필" src="" sx={{ width: 24, height: 24, cursor: 'default' }}/>
           </IconButton>
-          <p className="flex items-center gap-[4px] cursor-pointer">
+          <p className="flex items-center gap-[4px]">
             <span className="font-s2-p">{session.data?.user?.name}</span>
             <span className="font-s2 text-primary">마스터</span>
           </p>

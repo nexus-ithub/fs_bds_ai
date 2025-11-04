@@ -5,6 +5,7 @@ import { API_HOST } from "../constants";
 import { BuildingShopBI, Button, Checkbox, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
 import { Dialog } from '@mui/material';
+import { toast } from 'react-toastify';
 
 interface LoginResponse {
   id: string;
@@ -38,14 +39,12 @@ export default function Login() {
   } else {
     readableExpires = "일정시간";
   }
-  console.log("error : ", error)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     try {
-      console.log('credentials', credentials);
       const response = await axios.post(`${API_HOST}/api/auth/login`, credentials, {
         withCredentials: true,
       });
@@ -68,10 +67,7 @@ export default function Login() {
   };
 
   const handleOAuth = async(provider: string) => {
-    console.log(API_HOST)
-    console.log(provider)
     const url = await axios.post(`${API_HOST}/api/auth/oauth/callback/${provider}`, {}, { withCredentials: true });
-    console.log(url)
     if (url) {
       window.location.href = url.data.url;
     } else {
@@ -88,6 +84,7 @@ export default function Login() {
       setOpenPWFindSuccess(true);
     }catch(err){
       console.log("비밀번호 찾기 중 오류: ", err)
+      toast.error("비밀번호 찾기 중 오류가 발생했습니다.");
     }
   };
 

@@ -8,6 +8,7 @@ import { type User } from "@repo/common";
 import { useEffect, useState } from "react";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
 import { BuildingConsultRequestDialog } from "./BuildingConsultRequestDialog";
+import { toast } from "react-toastify";
 
 export const BuildingDetailDialog = ({
   open,
@@ -35,6 +36,7 @@ export const BuildingDetailDialog = ({
       setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error(error);
+      toast.error('관심물건 추가 중 오류가 발생했습니다.')
     }
   }
 
@@ -45,6 +47,7 @@ export const BuildingDetailDialog = ({
       setIsBookmarked(res.data);
     } catch (error) {
       console.error(error);
+      toast.error('관심물건 확인 중 오류가 발생했습니다.')
     }
   }
 

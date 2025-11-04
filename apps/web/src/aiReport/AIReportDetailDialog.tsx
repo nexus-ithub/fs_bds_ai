@@ -7,6 +7,7 @@ import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { ConsultRequestDialog } from "./ConsultRequestDialog";
+import { toast } from "react-toastify";
 
 
 export interface AIReportDetailDialogProps {
@@ -75,7 +76,8 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
       console.log(res.data);
       setAiReportDetail(res.data);
     }).catch((error) => {
-      console.error(error);
+      console.error("getAIReportDetail error", error);
+      toast.error('AI 상세 보고서 조회 중 오류가 발생했습니다.')
     }).finally(() => {
       setLoading(false);
     });

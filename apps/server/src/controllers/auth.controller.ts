@@ -9,22 +9,32 @@ import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
-  console.log(`userId: ${userId}, auto: ${auto}`);
-  const expiresIn = auto ? authConfig.expires.auto.accessToken : authConfig.expires.normal.accessToken;
-  return jwt.sign(
-    { id: userId },
-    authConfig.secret as string,
-    { expiresIn } as jwt.SignOptions
-  );
+  try{
+    console.log(`userId: ${userId}, auto: ${auto}`);
+    const expiresIn = auto ? authConfig.expires.auto.accessToken : authConfig.expires.normal.accessToken;
+    return jwt.sign(
+      { id: userId },
+      authConfig.secret as string,
+      { expiresIn } as jwt.SignOptions
+    );
+  } catch (err) {
+    console.error('Generate access token error:', err);
+    return null;
+  }
 };
 
 const generateRefreshToken = (userId: number, auto: boolean): string => {
-  const expiresIn = auto ? authConfig.expires.auto.refreshToken : authConfig.expires.normal.refreshToken;
-  return jwt.sign(
-    { id: userId },
-    authConfig.refreshToken.secret as string,
-    { expiresIn } as jwt.SignOptions
-  );
+  try{
+    const expiresIn = auto ? authConfig.expires.auto.refreshToken : authConfig.expires.normal.refreshToken;
+    return jwt.sign(
+      { id: userId },
+      authConfig.refreshToken.secret as string,
+      { expiresIn } as jwt.SignOptions
+    );
+  } catch (err) {
+    console.error('Generate refresh token error:', err);
+    return null;
+  }
 };
 
 export const createUser = async (req: Request, res: Response) => {
@@ -35,6 +45,9 @@ export const createUser = async (req: Request, res: Response) => {
     const refreshToken = generateRefreshToken(Number(response?.id ?? user.id), false);
     console.log("accessToken:", accessToken);
     console.log("refreshToken:", refreshToken);
+    if (!accessToken || !refreshToken) {
+      return res.status(500).json({ message: '토큰 생성에 실패했습니다.' });
+    }
 
     const refreshExpiry = new Date();
     refreshExpiry.setHours(refreshExpiry.getHours() + 1);
@@ -85,6 +98,9 @@ export const login = async (req: Request, res: Response) => {
     // Generate tokens
     const accessToken = generateAccessToken(Number(user.id), keepLoggedIn); 
     const refreshToken = generateRefreshToken(Number(user.id), keepLoggedIn);
+    if (!accessToken || !refreshToken) {
+      return res.status(500).json({ message: '토큰 생성에 실패했습니다.' });
+    }
 
     // Calculate refresh token expiry
     const refreshExpiry = new Date();
@@ -142,6 +158,9 @@ export const refresh = async (req: Request, res: Response) => {
       const decoded = jwt.verify(refreshToken, authConfig.refreshToken.secret as string) as { id: number };
       const newAccessToken = generateAccessToken(decoded.id, keepLoggedIn);
       const newRefreshToken = generateRefreshToken(decoded.id, keepLoggedIn);
+      if (!newAccessToken || !newRefreshToken) {
+        return res.status(500).json({ message: '토큰 생성에 실패했습니다.' });
+      }
 
       const refreshExpiry = new Date();
       //  refreshExpiry.setDate(refreshExpiry.getDate() + 7); // 7 days from now 
@@ -438,9 +457,7 @@ export const oauth = async (req: Request, res: Response) => {
       console.log('existingUser:', existingUser);
       if (!existingUser) { // 완전 신규회원 -> 추가 정보 입력 필요
         console.log("완전 신규회원")
-        // user = await UserModel.create(user);
         return res.status(206).json(user);
-        // res.status(201).json({ message: '회원가입이 완료되었습니다.' });
       } else if(existingUser.provider !== provider.slice(0, 1)) {  // 일반가입 했던 회원
         console.log("이미 가입된 회원")
         return res.status(409).json({ message: '이미 가입된 이메일 계정입니다. 다른 방법으로 로그인하세요.' });

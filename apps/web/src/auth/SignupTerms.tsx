@@ -7,6 +7,7 @@ import axios from "axios";
 import { API_HOST } from "../constants";
 import { SignupConfirmDialog } from "./SignupConfirmDialog";
 import { setToken } from "../authutil";
+import { toast } from "react-toastify";
 
 export const SignupTerms = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export const SignupTerms = () => {
         setToken(response.data.accessToken);
         setOpenCompleteDialog(true);
       } else {
-        alert("회원가입 중 오류 발생");
+        toast.error('회원가입 중 오류가 발생했습니다.')
       }
     } else {
       navigate('/signup/info', {
