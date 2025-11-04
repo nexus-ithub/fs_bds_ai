@@ -5,13 +5,6 @@ import { useRouter } from "next/navigation";
 import { signIn } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 
-interface LoginResponse {
-  id: string;
-  email: string;
-  accessToken: string;
-  refreshToken: string;
-}
-
 export default function Login() {
   const router = useRouter();
   const [credentials, setCredentials] = useState({
@@ -29,19 +22,19 @@ export default function Login() {
     setError('');
 
     try {
-      console.log('credentials', credentials);
       setLoading(true);
 
       const response = await signIn('credentials', {
         email: credentials.email,
         password: credentials.password,
+        redirect: false,
       });
       console.log('response', response);
       if (response?.error) {
-        setError(response.error);
+        setError('이메일 또는 비밀번호가 일치하지 않습니다.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
+      setError('로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }

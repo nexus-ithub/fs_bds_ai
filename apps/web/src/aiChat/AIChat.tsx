@@ -362,7 +362,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           <div className="flex h-[calc(100%-64px)]">
             {config?.id && (
               <div className="w-[252px] p-[20px] border-r border-line-02 overflow-y-auto scrollbar-hover">
-                <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
+                {chatHistory.length > 0 ? (
+                  <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
+                ) : (
+                  <div className="flex items-center justify-center py-[50px]">
+                    <DotProgress size="sm"/>
+                  </div>
+                )}
               </div>
             )}
             <div className="w-[768px] flex flex-col">

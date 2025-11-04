@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { format } from "date-fns";
 import { Dialog, DialogTitle } from "@mui/material";
+import { toast } from "react-toastify";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -49,6 +50,7 @@ export default function ConsultRequest() {
       // setList([]);
     } catch (error) {
       console.error(error);
+      toast.error('설계 상담 요청 조회에 실패했습니다.');
     } finally {
       setLoading(false);
     }

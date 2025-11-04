@@ -4,11 +4,11 @@ import { Avatar } from "@mui/material";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownCustomIcon, HDivider, Button, Admin } from "@repo/common";
-import { type Menu } from "@repo/common";
 import { useLoading } from "./utils/loadingOverlay";
 import { useSession } from "next-auth/react";
 import { AccountDialog } from "./main/admin/AccountDialog";
 import useAxiosWithAuth from "./utils/axiosWithAuth";
+import { toast } from "react-toastify";
 
 interface MenuItemType {
   label: string;
@@ -110,11 +110,19 @@ export const Sidebar = () => {
   const { startLoading } = useLoading();
   const [openMyAccount, setOpenMyAccount] = useState<boolean>(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const getMyAccount = async () => {
-    const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: session.data?.user?.email, page: 1, size: 1 } });
-    const data = await response.data;
-    setSelectedAdmin(data.users[0]);
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: session.data?.user?.email, page: 1, size: 1 } });
+      const data = await response.data;
+      setSelectedAdmin(data.users[0]);
+    } catch (error) {
+      toast.error("내 계정 조회 실패");
+    } finally {
+      setIsLoading(false);
+    }
   }
   
   return (
@@ -144,6 +152,7 @@ export const Sidebar = () => {
         setOpen={setOpenMyAccount}
         selectedAdmin={selectedAdmin}
         setSelectedAdmin={setSelectedAdmin}
+        isLoading={isLoading}
       />
     </div>
   );

@@ -1,8 +1,9 @@
 import { Dialog } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Admin, FormField, Radio, Spinner, VDivider, Button, CloseIcon } from "@repo/common";
+import { Admin, FormField, Radio, Spinner, VDivider, Button, CloseIcon, DotProgress } from "@repo/common";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { useSession } from "next-auth/react";
+import { toast } from "react-toastify";
 
 interface AccountDialogProps {
   open: boolean;
@@ -11,24 +12,7 @@ interface AccountDialogProps {
   setSelectedAdmin: (selectedAdmin: Admin | null) => void;
   getUsers?: () => void;
   updateSession?: () => void;
-  // email: string;
-  // setEmail: (email: string) => void;
-  // emailValid: boolean | null;
-  // setEmailValid: (emailValid: boolean | null) => void;
-  // name: string;
-  // setName: (name: string) => void;
-  // phone: string;
-  // setPhone: (phone: string) => void;
-  // adminType: "M" | "N";
-  // setAdminType: (adminType: "M" | "N") => void;
-  // isModified: boolean;
-  // loading: boolean;
-  // setLoading: (loading: boolean) => void;
-  // emailLoading: boolean;
-  // setEmailLoading: (emailLoading: boolean) => void;
-  // handleEmailValidation: () => void;
-  // handleSubmit: () => void;
-  // handlePhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isLoading?: boolean;
 }
 
 export const AccountDialog = ({
@@ -37,24 +21,7 @@ export const AccountDialog = ({
   selectedAdmin,
   setSelectedAdmin,
   getUsers,
-  // email,
-  // setEmail,
-  // emailValid,
-  // setEmailValid,
-  // name,
-  // setName,
-  // phone,
-  // setPhone,
-  // adminType,
-  // setAdminType,
-  // isModified,
-  // loading,
-  // setLoading,
-  // emailLoading,
-  // setEmailLoading,
-  // handleEmailValidation,
-  // handleSubmit,
-  // handlePhoneChange,
+  isLoading=false,
 }: AccountDialogProps) => {
   const axiosInstance = useAxiosWithAuth();
   const session = useSession();
@@ -89,23 +56,6 @@ export const AccountDialog = ({
     setPhone(onlyNumbers);
   };
 
-  const handleSubmit = async () => {
-    if (!email || !name || !adminType) return;
-    setLoading(true);
-    if (selectedAdmin) {
-      await axiosInstance.put("/admin", {action: "update", id: selectedAdmin.id, email, name, phone, adminType});
-    } else {
-      await axiosInstance.post("/admin", {action: "register", email, name, phone, adminType});
-    }
-    setOpen(false);
-    setLoading(false);
-    if (getUsers) {
-      getUsers();
-    } else {
-      updateSession();
-    }
-  }
-
   const updateSession = async () => {
     await update({
       user: {
@@ -114,6 +64,29 @@ export const AccountDialog = ({
         email: email,
       }
     });
+  }
+
+  const handleSubmit = async () => {
+    if (!email || !name || !adminType) return;
+    try{
+      setLoading(true);
+      if (selectedAdmin) {
+        await axiosInstance.put("/admin", {action: "update", id: selectedAdmin.id, email, name, phone, adminType});
+      } else {
+        await axiosInstance.post("/admin", {action: "register", email, name, phone, adminType});
+      }
+      setOpen(false);
+      setLoading(false);
+      if (getUsers) {
+        getUsers();
+      } else {
+        updateSession();
+      }
+    } catch (error) {
+      toast.error("관리자 계정 추가/수정 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -165,70 +138,77 @@ export const AccountDialog = ({
       <div className="flex flex-col">
         <div className="flex items-center justify-between px-[20px] py-[14px]">
           <div className="flex items-center gap-[12px] py-[8px]">
-            <h4 className="font-h4">{selectedAdmin ? '관리자 수정' : '관리자 추가'}</h4>
+            <h4 className="font-h4">{isLoading ? <Spinner/> : selectedAdmin ? '관리자 수정' : '관리자 추가'}</h4>
             <VDivider colorClassName="bg-line-04" className="!h-[12px]"/>
             <p className="font-s2 text-text-03">관리자를 정보를 입력하고 관리 권한 설정을 선택해 주세요.</p>
           </div>
           <button onClick={() => setOpen(false)}><CloseIcon color="#1A1C20"/></button>
         </div>
-        <div className="flex flex-col gap-[20px] px-[24px]">
-        <FormField 
-          label="이메일" 
-          type="email" 
-          placeholder="이메일을 입력하세요." 
-          value={email} 
-          required
-          onChange={(e) => {setEmail(e.target.value); setEmailValid(null)}}
-          rightElement={
-            <button
-              type="button"
-              onClick={() => handleEmailValidation()}
-              className={`font-s2 transition-colors ${
-                emailValid === true
-                  ? "text-primary cursor-default"
-                  : emailValid === false
-                  ? "text-secondary-050 cursor-default"
-                  : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-                  ? "text-text-04 cursor-default"
-                  : "text-primary"
-              }`}
-              disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || emailLoading}
-            >
-              {emailLoading ? <Spinner/> : emailValid === null ? "중복확인" : emailValid ? "사용가능" : "사용불가"}
-            </button>
-          }
-          />
-          <div className="flex items-center gap-[24px]">
-          <FormField 
-            label="이름" 
-            type="text" 
-            placeholder="이름을 입력하세요." 
-            value={name} 
-            required
-            onChange={(e) => setName(e.target.value)}/>
-            <FormField 
-            label="연락처" 
-            type="tel" 
-            placeholder="연락처를 입력하세요." 
-            value={phone} 
-            onChange={handlePhoneChange}
-            />
+        {isLoading 
+          ? 
+          <div className="flex items-center justify-center p-[24px] h-[248px]">
+            <DotProgress size="sm"/>
           </div>
-          <form className="flex items-center justify-center gap-[120px] px-[14px] py-[15px] rounded-[2px] border border-line-03">
-            <Radio
-              label="마스터"
-              value="M"
-              checked={adminType === 'M'}
-              onChange={() => setAdminType('M')}
-            />
-            <Radio
-              label="일반"
-              value="N"
-              checked={adminType === 'N'}
-              onChange={() => setAdminType('N')}
-            />
-          </form>
-        </div>
+          : 
+          <div className="flex flex-col gap-[20px] px-[24px]">
+            <FormField 
+              label="이메일" 
+              type="email" 
+              placeholder="이메일을 입력하세요." 
+              value={email} 
+              required
+              onChange={(e) => {setEmail(e.target.value); setEmailValid(null)}}
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => handleEmailValidation()}
+                  className={`font-s2 transition-colors ${
+                    emailValid === true
+                      ? "text-primary cursor-default"
+                      : emailValid === false
+                      ? "text-secondary-050 cursor-default"
+                      : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                      ? "text-text-04 cursor-default"
+                      : "text-primary"
+                  }`}
+                  disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || emailLoading}
+                >
+                  {emailLoading ? <Spinner/> : emailValid === null ? "중복확인" : emailValid ? "사용가능" : "사용불가"}
+                </button>
+              }
+              />
+              <div className="flex items-center gap-[24px]">
+              <FormField 
+                label="이름" 
+                type="text" 
+                placeholder="이름을 입력하세요." 
+                value={name} 
+                required
+                onChange={(e) => setName(e.target.value)}/>
+                <FormField 
+                label="연락처" 
+                type="tel" 
+                placeholder="연락처를 입력하세요." 
+                value={phone} 
+                onChange={handlePhoneChange}
+                />
+            </div>
+            <form className="flex items-center justify-center gap-[120px] px-[14px] py-[15px] rounded-[2px] border border-line-03">
+              <Radio
+                label="마스터"
+                value="M"
+                checked={adminType === 'M'}
+                onChange={() => setAdminType('M')}
+              />
+              <Radio
+                label="일반"
+                value="N"
+                checked={adminType === 'N'}
+                onChange={() => setAdminType('N')}
+              />
+            </form>
+          </div>
+        }
         <div className="flex items-center justify-center p-[24px]">
           <div className="w-[400px] flex items-center gap-[10px]">
             <Button variant="bggray" size="medium" fontSize="font-h4" className="w-[120px]" onClick={() => setOpen(false)}>취소</Button>

@@ -10,6 +10,7 @@ export class AdminModel {
           id, name, email, phone, admin_type as adminType, created_at as createdAt 
         FROM admins 
         WHERE delete_yn = "N" AND (name LIKE ? OR email LIKE ?) 
+        ORDER BY created_at DESC 
         LIMIT ? 
         OFFSET ?`,
         [`%${keyword}%`, `%${keyword}%`, size, (page - 1) * size]

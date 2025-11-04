@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Dialog, DialogTitle } from "@mui/material";
 import Link from "next/link";
 import { ExternalLinkIcon } from "lucide-react";
+import { toast } from "react-toastify";
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
   { value: 20, label: '20' },
@@ -50,6 +51,7 @@ export default function ConsultRequest() {
       // setList([]);
     } catch (error) {
       console.error(error);
+      toast.error('빌딩 매입 상담 요청 조회에 실패했습니다.');
     } finally {
       setLoading(false);
     }

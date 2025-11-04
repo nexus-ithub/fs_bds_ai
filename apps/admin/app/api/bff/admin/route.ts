@@ -26,11 +26,15 @@ export async function GET(req: Request) {
 
   // 관리자 계정 목록
   if (action === "list") {
-    const user = await handleAuth(req);
-    if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    try {
+      const user = await handleAuth(req);
+      if (!user) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
-    const result = await AdminModel.findAll(`%${keyword}%`, Number(page), Number(size));
-    return NextResponse.json({ users: result?.users ?? [], totalCount: result?.totalCount ?? 0 });
+      const result = await AdminModel.findAll(`%${keyword}%`, Number(page), Number(size));
+      return NextResponse.json({ users: result?.users ?? [], totalCount: result?.totalCount ?? 0 });
+    } catch (error) {
+      return NextResponse.json({ success: false, message: "관리자 계정 조회 중 오류가 발생했습니다." }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });

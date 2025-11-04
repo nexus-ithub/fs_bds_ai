@@ -1,13 +1,14 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
-import {AILogo, Button, Checkbox, CloseIcon, DeleteIcon, EditIcon, HDivider, PlusIcon, Question, SendIcon, Spinner, VDivider, type Agent} from "@repo/common";
+import {AILogo, Button, Checkbox, CloseIcon, DeleteIcon, DotProgress, EditIcon, HDivider, PlusIcon, Question, SendIcon, Spinner, VDivider, type Agent} from "@repo/common";
 import { DndContext, closestCenter, useSensors, useSensor, MouseSensor, TouchSensor, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import { MenuDropdown } from "@repo/common";
 import { Dialog, Menu } from "@mui/material";
+import { toast } from "react-toastify";
 
 const emojis = [
   "🏠", "🏢", "🏣", "🏛️", "🏦", "🏗️", "🏭", "🪜", "🛠", 
@@ -134,7 +135,7 @@ export default function Agent() {
     if (response.data.success) {
       setSetting(newSetting);
     } else {
-      alert("저장 실패");
+      toast.error("저장 실패");
     }
     setSaveSettingLoading(false);
   }
@@ -152,6 +153,7 @@ export default function Agent() {
       } as Agent);
     } catch (error) {
       console.log("저장 실패", error);
+      toast.error("저장 실패");
     } finally {
       setSaveSettingLoading(false);
     }
@@ -218,7 +220,7 @@ export default function Agent() {
     const currentSelectedCount = questionEdit.filter(q => q.selectedYn === "Y").length;
     
     if (!isCurrentlySelected && currentSelectedCount >= 5) {
-      alert("추천 질문은 최대 5개까지만 선택 가능합니다.");
+      toast.error("추천 질문은 최대 5개까지만 선택 가능합니다.");
       return;
     }
 
@@ -386,92 +388,98 @@ export default function Agent() {
         >{saveSettingLoading ? <Spinner /> : "저장"}</Button>
       </div>
       <HDivider className="!bg-line-02 my-[16px] !w-[calc(100%-80px)] mx-auto"/>
-      <div className="overflow-y-auto flex-1 min-h-0 mx-[40px] pb-[40px] scrollbar-hover">
-        <div className="w-[768px] flex flex-col rounded-[8px] border border-line-03">
-          <div className="w-full flex items-center justify-between h-[64px] px-[20px] py-[14px] border-b border-line-02">
-            <div className="flex items-center gap-[12px]">
-              <AILogo/>
-              <input 
-                ref={nameInputRef}
-                type="text" 
-                className="font-s2-p text-text-01 focus:outline-none" 
-                value={agentName}
-                onChange={(e) => setAgentName(e.target.value)}
-                style={{ width: `${agentName.length * 0.6}em` }}
-                />
-              <VDivider colorClassName="bg-line-04"/>
-              <input 
-                ref={nameDescRef}
-                type="text" 
-                className="font-s2 text-text-03 focus:outline-none"
-                value={nameDesc}
-                onChange={(e) => setNameDesc(e.target.value)}
-                style={{ width: `${nameDesc.length * 0.6}em` }}
-                />
-            </div>
-            <div className="flex items-center gap-[12px]">
-              <input 
-                ref={newchatLabelRef}
-                type="text" 
-                className="font-s3-p text-text-02 px-[12px] py-[8px] border border-line-03 rounded-[4px] focus:outline-none" 
-                value={newchatLabel}
-                onChange={(e) => setNewchatLabel(e.target.value)}
-                style={{ width: `${newchatLabel.length * 0.6}em` }}
-                />
-              <CloseIcon color="#1A1C20"/>
-            </div>
-          </div>
-          <div className="flex flex-col gap-[40px] py-[64px]">
-            <div className="flex flex-col gap-[8px] py-[12px]">
-              <input 
-                type="text" 
-                className="font-h2 text-text-01 text-center focus:outline-none" 
-                value={chatTitle}
-                onChange={(e) => setChatTitle(e.target.value)}
-                />
-              <textarea
-                ref={subTitleRef}
-                className="font-b2 text-text-01 focus:outline-none text-center resize-none transition-[height] duration-200 ease-in-out"
-                value={chatSubtitle}
-                onChange={(e) => setChatSubtitle(e.target.value)}
-                />
-            </div>
-            <div className="flex flex-col items-center gap-[20px]">
-              {questionEdit
-              .filter(q => q.selectedYn === "Y")
-              .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999))
-              .map((question) => (
-                <div key={question.id} className="w-[500px] bg-white flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
-                  <span className="w-[40px] h-[40px] flex items-center justify-center py-[5px] rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
-                  <p className="font-s2">{question.question}</p>
-                </div>
-              ))}
-              <Button variant="outline" className="w-[500px]" onClick={() => setOpenQuestionSetting(!openQuestionSetting)}>추천질문 관리</Button>
-            </div>
-          </div>
-          <div className="flex flex-col px-[32px]">
-            <div className="flex items-center justify-between gap-[10px] px-[16px] py-[12px] rounded-[4px] border border-line-03">
-              <div className="flex-1 font-b1 text-text-04">
+      {getSettingLoading ? 
+        <div className="flex flex-col items-center justify-center h-[120px] w-[778px] mx-[40px]">
+          <DotProgress size="sm"/>
+        </div>
+      : 
+        <div className="overflow-y-auto flex-1 min-h-0 mx-[40px] pb-[40px] scrollbar-hover">
+          <div className="w-[768px] flex flex-col rounded-[8px] border border-line-03">
+            <div className="w-full flex items-center justify-between h-[64px] px-[20px] py-[14px] border-b border-line-02">
+              <div className="flex items-center gap-[12px]">
+                <AILogo/>
                 <input 
+                  ref={nameInputRef}
                   type="text" 
-                  className="w-full font-b1 text-text-04 focus:outline-none" 
-                  value={placeholder}
-                  onChange={(e) => setPlaceholder(e.target.value)}
+                  className="font-s2-p text-text-01 focus:outline-none" 
+                  value={agentName}
+                  onChange={(e) => setAgentName(e.target.value)}
+                  style={{ width: `${agentName.length * 0.6}em` }}
+                  />
+                <VDivider colorClassName="bg-line-04"/>
+                <input 
+                  ref={nameDescRef}
+                  type="text" 
+                  className="font-s2 text-text-03 focus:outline-none"
+                  value={nameDesc}
+                  onChange={(e) => setNameDesc(e.target.value)}
+                  style={{ width: `${nameDesc.length * 0.6}em` }}
                   />
               </div>
-              <SendIcon/>
+              <div className="flex items-center gap-[12px]">
+                <input 
+                  ref={newchatLabelRef}
+                  type="text" 
+                  className="font-s3-p text-text-02 px-[12px] py-[8px] border border-line-03 rounded-[4px] focus:outline-none" 
+                  value={newchatLabel}
+                  onChange={(e) => setNewchatLabel(e.target.value)}
+                  style={{ width: `${newchatLabel.length * 0.6}em` }}
+                  />
+                <CloseIcon color="#1A1C20"/>
+              </div>
             </div>
-            <div className="h-[56px] flex items-center justify-center">
-              <input 
-                type="text"
-                className="w-full font-c2 text-text-04 focus:outline-none text-center"
-                value={warningMsg}
-                onChange={(e) => setWarningMsg(e.target.value)}
-                />
+            <div className="flex flex-col gap-[40px] py-[64px]">
+              <div className="flex flex-col gap-[8px] py-[12px]">
+                <input 
+                  type="text" 
+                  className="font-h2 text-text-01 text-center focus:outline-none" 
+                  value={chatTitle}
+                  onChange={(e) => setChatTitle(e.target.value)}
+                  />
+                <textarea
+                  ref={subTitleRef}
+                  className="font-b2 text-text-01 focus:outline-none text-center resize-none transition-[height] duration-200 ease-in-out"
+                  value={chatSubtitle}
+                  onChange={(e) => setChatSubtitle(e.target.value)}
+                  />
+              </div>
+              <div className="flex flex-col items-center gap-[20px]">
+                {questionEdit
+                .filter(q => q.selectedYn === "Y")
+                .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999))
+                .map((question) => (
+                  <div key={question.id} className="w-[500px] bg-white flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
+                    <span className="w-[40px] h-[40px] flex items-center justify-center py-[5px] rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
+                    <p className="font-s2">{question.question}</p>
+                  </div>
+                ))}
+                <Button variant="outline" className="w-[500px]" onClick={() => setOpenQuestionSetting(!openQuestionSetting)}>추천질문 관리</Button>
+              </div>
+            </div>
+            <div className="flex flex-col px-[32px]">
+              <div className="flex items-center justify-between gap-[10px] px-[16px] py-[12px] rounded-[4px] border border-line-03">
+                <div className="flex-1 font-b1 text-text-04">
+                  <input 
+                    type="text" 
+                    className="w-full font-b1 text-text-04 focus:outline-none" 
+                    value={placeholder}
+                    onChange={(e) => setPlaceholder(e.target.value)}
+                    />
+                </div>
+                <SendIcon/>
+              </div>
+              <div className="h-[56px] flex items-center justify-center">
+                <input 
+                  type="text"
+                  className="w-full font-c2 text-text-04 focus:outline-none text-center"
+                  value={warningMsg}
+                  onChange={(e) => setWarningMsg(e.target.value)}
+                  />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      }
       <div
         ref={questionSettingRef}
         className={`w-[650px] fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end bg-white flex flex-col rounded-[8px] transition-transform duration-300 ease-in-out ${
@@ -639,8 +647,7 @@ export default function Agent() {
       <Dialog ref={deleteConfirmRef} open={openDeleteConfirm} onClose={() => setOpenDeleteConfirm(false)}>
         <div className="flex flex-col gap-[20px] min-w-[340px]">
           <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">추천 질문 삭제</h3>
-          <p className="font-s1 px-[20px] whitespace-pre-line">{`${selectedQuestion?.question}\n질문을 정말 삭제하시겠습니까?`}</p>
-
+          <p className="font-s1 px-[20px] whitespace-pre-line">{`"${selectedQuestion?.question}"\n질문을 정말 삭제하시겠습니까?`}</p>
           <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
             <Button variant="bggray" className="w-[60px]" onClick={() => {setOpenDeleteConfirm(false)}}>취소</Button>
             <Button 

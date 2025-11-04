@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, DeleteIcon, DownloadIcon, EditIcon, HDivider, Pagination, Refresh, SearchBar, Spinner, DotProgress } from "@repo/common";
+import { Button, DeleteIcon, EditIcon, HDivider, Pagination, SearchBar, Spinner, DotProgress } from "@repo/common";
 import { type Admin } from "@repo/common";
 import { useState } from "react";
 import { Dialog } from "@mui/material";
@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { AccountDialog } from "./AccountDialog";
+import { toast } from "react-toastify";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -48,7 +49,7 @@ export default function Admin() {
       setAdmins(data.users);
       setTotalCount(data.totalCount);
     } catch (error) {
-      console.error(error);
+      toast.error("관리자 계정 조회 중 오류가 발생했습니다.");
     } finally {
       setInitialLoading(false);
     }
@@ -58,11 +59,7 @@ export default function Admin() {
     if (status === 'authenticated' && session?.accessToken) {
       getUsers();
     }
-  }, [status, session?.accessToken])
-
-  useEffect(() => {
-    getUsers()
-  }, [currentPage, pageSize]);
+  }, [status, session?.accessToken, currentPage, pageSize]);
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
@@ -71,88 +68,87 @@ export default function Admin() {
         <Button variant="outline" size="small" fontSize="font-s4" onClick={() => setOpenAddAccount(true)}>관리자 추가</Button>
       </div>
       <HDivider className="!bg-line-02"/>
-      <div className="flex items-center justify-between gap-[16px]">
-        <div className="flex items-center gap-[12px]">
-          <SearchBar
-            placeholder="검색어를 입력해 주세요."
-            value={searchKeyword}
-            onChange={setSearchKeyword}
-            variant="filled"
-            prefixSize={14}
-            className="font-b3 px-[8px] py-[6px]"
-            onSearch={getUsers}
-          />
-          <Button
-            // disabled={searchKeyword === ''}
-            onClick={() => getUsers()} 
-            className="font-b3 py-[5px]" size="small">
-            검색
-          </Button>
+      {initialLoading ? (
+        <div className="flex flex-col items-center justify-center h-[120px]">
+          <DotProgress size="sm"/>
         </div>
-        <div className="flex items-center gap-[12px]">
-          {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Refresh/></button> */}
-          {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><DownloadIcon color="#585C64"/></button> */}
-          <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
-            {COUNT_BUTTON.map((item) => (
-              <button
-                key={item.value}
-                className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
-                onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
-              >
-                {item.label}
-              </button>
-            ))}
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-[16px]">
+            <div className="flex items-center gap-[12px]">
+              <SearchBar
+                placeholder="검색어를 입력해 주세요."
+                value={searchKeyword}
+                onChange={setSearchKeyword}
+                variant="filled"
+                prefixSize={14}
+                className="font-b3 px-[8px] py-[6px]"
+                onSearch={getUsers}
+              />
+              <Button
+                // disabled={searchKeyword === ''}
+                onClick={() => getUsers()} 
+                className="font-b3 py-[5px]" size="small">
+                검색
+              </Button>
+            </div>
+            <div className="flex items-center gap-[12px]">
+              {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Refresh/></button> */}
+              {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><DownloadIcon color="#585C64"/></button> */}
+              <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
+                {COUNT_BUTTON.map((item) => (
+                  <button
+                    key={item.value}
+                    className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
+                    onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <table className="w-full">
-        <thead className="text-text-03 bg-surface-second text-left">
-          <tr>
-            <th className="pl-[16px] py-[14px] font-s3">이름</th>
-            <th className="pl-[12px] py-[14px] font-s3">이메일</th>
-            <th className="pl-[12px] py-[14px] font-s3">연락처</th>
-            <th className="pl-[12px] py-[14px] font-s3">권한</th>
-            <th className="pl-[12px] py-[14px] font-s3">등록일</th>
-            <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {initialLoading ? (
-            <tr>
-              <td colSpan={7} className="h-[100px] font-s2 border-b border-line-02">
-                <div className="flex flex-col items-center justify-center h-[120px]">
-                  <DotProgress size="sm"/>
-                </div>
-              </td>
-            </tr>
-          ) : (
-            admins.map((account, index) => (
-              <tr key={index} className="h-[56px] font-s2 border-b border-line-02">
-                <td className="pl-[16px]">{account.name}</td>
-                <td className="pl-[12px]">{account.email}</td>
-                <td className="pl-[12px]">{account.phone}</td>
-                <td className="pl-[12px]">{account.adminType === 'M' ? '마스터' : '일반'}</td>
-                <td className="pl-[12px]">{format(new Date(account.createdAt), "yyyy.MM.dd")}</td>
-                <td className="pl-[12px] pr-[16px] w-[52px]">
-                  <div className="flex items-center gap-[12px]">
-                    <button
-                      onClick={() => {
-                        setSelectedAdmin(account);
-                        setOpenAddAccount(true);
-                      }}
-                    ><EditIcon/></button>
-                    <button
-                      onClick={() => {setOpenDeleteConfirm(true); setSelectedAdmin(account)}}
-                    ><DeleteIcon color="#585C64"/></button>
-                  </div>
-                </td>
+          <table className="w-full">
+            <thead className="text-text-03 bg-surface-second text-left">
+              <tr>
+                <th className="pl-[16px] py-[14px] font-s3">이름</th>
+                <th className="pl-[12px] py-[14px] font-s3">이메일</th>
+                <th className="pl-[12px] py-[14px] font-s3">연락처</th>
+                <th className="pl-[12px] py-[14px] font-s3">권한</th>
+                <th className="pl-[12px] py-[14px] font-s3">등록일</th>
+                <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
               </tr>
-          )))}
-        </tbody>
-      </table>
-      <div className="flex items-center justify-center py-[12px]">
-        <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={setCurrentPage}/>
-      </div>
+            </thead>
+            <tbody>
+              {admins.map((account, index) => (
+                <tr key={index} className="h-[56px] font-s2 border-b border-line-02">
+                  <td className="pl-[16px]">{account.name}</td>
+                  <td className="pl-[12px]">{account.email}</td>
+                  <td className="pl-[12px]">{account.phone}</td>
+                  <td className="pl-[12px]">{account.adminType === 'M' ? '마스터' : '일반'}</td>
+                  <td className="pl-[12px]">{format(new Date(account.createdAt), "yyyy.MM.dd")}</td>
+                  <td className="pl-[12px] pr-[16px] w-[52px]">
+                    <div className="flex items-center gap-[12px]">
+                      <button
+                        onClick={() => {
+                          setSelectedAdmin(account);
+                          setOpenAddAccount(true);
+                        }}
+                      ><EditIcon/></button>
+                      <button
+                        onClick={() => {setOpenDeleteConfirm(true); setSelectedAdmin(account)}}
+                      ><DeleteIcon color="#585C64"/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex items-center justify-center py-[12px]">
+            <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={setCurrentPage}/>
+          </div>
+        </>
+      )}
       <AccountDialog
         open={openAddAccount}
         setOpen={setOpenAddAccount}

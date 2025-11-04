@@ -185,8 +185,8 @@ export const YoutubeList = ({
           </div>
         </>
       ) : (
-        <div className="flex items-center justify-center py-[30px]">
-          <div className="flex flex-col items-center gap-[12px]">
+        <div className="flex items-center justify-center py-[50px]">
+          {/* <div className="flex flex-col items-center gap-[12px]">
             <div className="flex flex-col items-center gap-[2px] text-secondary-040">
               <p className="font-s3">매물 정보를 가져오는데 실패했습니다.</p>
               <p className="font-s3">잠시후 다시 시도해 주세요.</p>
@@ -197,7 +197,8 @@ export const YoutubeList = ({
             >
               다시 시도
             </button>
-          </div>
+          </div> */}
+          <Spinner/>
         </div>
       )}
     </div>

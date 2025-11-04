@@ -6,6 +6,7 @@ import { UserModel } from "../../models/user.model";
 import { User } from "@repo/common";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { formatDate } from "date-fns";
+import { toast } from "react-toastify";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -57,6 +58,7 @@ export default function Users() {
       // setList([]);
     } catch (error) {
       console.error(error);
+      toast.error('회원 조회에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,6 @@ export default function Users() {
                   className="font-b3 px-[8px] py-[6px] w-[240px]"
                 />
                 <Button
-                  disabled={searchKeyword === ''}
                   onClick={() => getUserList()} 
                   className="font-b3 py-[5px]" size="small">
                   검색

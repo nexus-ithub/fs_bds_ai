@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { SessionList } from "@repo/common";
 import { Dialog } from "@mui/material";
+import { toast } from "react-toastify";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -48,7 +49,8 @@ export default function Session() {
       setSortedSessions(data.data);
       setUpdateDate(new Date());
     } catch (error) {
-      console.error(error);
+      console.error("세션 조회 실패", error);
+      toast.error("세션 조회 실패");
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,8 @@ export default function Session() {
       console.log(">>>", data);
       setChatContent(data);
     } catch (error) {
-      console.error(error);
+      console.error("채팅 내용 조회 실패", error);
+      toast.error("채팅 내용 조회 실패");
     } finally {
       setChatLoading(false);
     }
