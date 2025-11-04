@@ -4,7 +4,6 @@ import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery, useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
-import { BuildingCounselDialog } from "../homeBoard/BuildingCounselDialog";
 import { toast } from "react-toastify";
 import { BuildingConsultRequestDialog } from "../homeBoard/BuildingConsultRequestDialog";
 
@@ -182,7 +181,6 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       <div className="w-full flex items-center justify-center py-[12px]">
         <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
       </div>
-      {/* <BuildingCounselDialog open={openCounselDialog} onClose={() => {setOpenCounselDialog(false);}}/> */}
       {
         openCounselDialog && (
           <BuildingConsultRequestDialog open={openCounselDialog} onClose={() => setOpenCounselDialog(false)} bdsSale={selectedBdsSale}/>
