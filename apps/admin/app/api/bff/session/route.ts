@@ -1,6 +1,5 @@
 export const runtime = 'nodejs';
 import { NextResponse } from "next/server";
-import { AgentModel } from "../../../models/agent.model";
 import { verifyToken } from "../../../utils/token";
 import { SessionModel } from "../../../models/session.model";
 
