@@ -66,7 +66,10 @@ export const CompanyInfo = () => {
         <VDivider/>
         <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>junginpng@naver.com</p>
       </div>
-      <p className="font-c2 text-text-02 flex items-center"><span className="font-c2-p text-text-05 pr-[4px]">ADD.</span>서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
+      <p className="font-c2 text-text-02 flex items-center">
+        <span className="font-c2-p text-text-05 pr-[4px]">ADD.</span>
+        서울시 강남구 선릉로 340, 4층 404호 (대치동, 대치 EM 프라자)
+      </p>
       <p className="font-c2 text-text-02 flex items-center">©JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</p>
     </div>
   )

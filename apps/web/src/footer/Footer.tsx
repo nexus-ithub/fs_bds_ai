@@ -44,7 +44,7 @@ export const Footer = () => {
             <VDivider className="!h-[12px]"/>
             <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">E</span>junginpng@naver.com</p>
             <VDivider className="!h-[12px]"/>
-            <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">ADD.</span>{'서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)'}</p>
+            <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">ADD.</span>{'서울특별시 강남구 선릉로 340, 4층 404호 (대치동, 대치 EM 프라자)'}</p>
           </div>
         </div>
         <HDivider colorClassName="bg-line-02"/>
