@@ -531,7 +531,7 @@ const getPropertyTaxForBuilding = (price : number, totalFloorArea : number, stru
 
 
   if(debug){
-     debugExtraInfo.push(`---`);
+    debugExtraInfo.push(`---`);
     debugExtraInfo.push(`[구조지수] ${structureIndex} (${structureCodeName})`);
     debugExtraInfo.push(`[용도지수] ${usageIndex} (${BUILDING_USAGE_INDEX_BASE})`);
     debugExtraInfo.push(`[위치지수] ${locationIndex} (공시지가 ${price})`);
@@ -1071,6 +1071,27 @@ function calculateaAnnualProfit(value : ReportValue, tax : TaxInfo, debug : bool
   return result;
 }
 
+
+function makeTaxInfo(curLandInfo : LandData, totalFloorArea : number, structureCodeName : string, useApprovalDate : string, taxInfo : TaxInfo, debug : boolean = false, debugInfo : string[] = []){
+  if(debug){
+    debugInfo.push(`---------------------------------------`);
+    debugInfo.push(`🧾 세금`);
+  }        
+  taxInfo.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, debugInfo);
+
+  taxInfo.propertyTaxForBuilding = getPropertyTaxForBuilding(
+    curLandInfo.relTotalPrice, 
+    totalFloorArea, 
+    structureCodeName,
+    useApprovalDate,
+    debug, debugInfo);
+  // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+  if(debug){
+    // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+    debugInfo.push(`<종합부동산세> ${taxInfo.comprehensiveRealEstateTax}원 (작업중..)`);
+  }
+  
+}
 
 function newReportValue(): ReportValue {
   return {
@@ -1615,33 +1636,47 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugBuildInfo
         );
-
-
-        if(debug){
-          devDetailInfo.debugBuildInfo.push(`---------------------------------------`);
-          devDetailInfo.debugBuildInfo.push(`🧾 세금`);
-        }        
-
-        devDetailInfo.build.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugBuildInfo);
-        
         const today = new Date();
         const formattedToday =
           today.getFullYear().toString() +
           (today.getMonth() + 1).toString().padStart(2, '0') +
           today.getDate().toString().padStart(2, '0');
 
-
-        devDetailInfo.build.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-          curLandInfo.relTotalPrice, 
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+        makeTaxInfo(
+          curLandInfo,
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
           "철근콘크리트구조",
           formattedToday,
-          debug, devDetailInfo.debugBuildInfo);
-        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        if(debug){
-          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-          devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.build.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        }
+          devDetailInfo.build.tax,
+          debug,
+          devDetailInfo.debugBuildInfo
+        );
+
+        // if(debug){
+        //   devDetailInfo.debugBuildInfo.push(`---------------------------------------`);
+        //   devDetailInfo.debugBuildInfo.push(`🧾 세금`);
+        // }        
+
+        // devDetailInfo.build.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugBuildInfo);
+        
+        // const today = new Date();
+        // const formattedToday =
+        //   today.getFullYear().toString() +
+        //   (today.getMonth() + 1).toString().padStart(2, '0') +
+        //   today.getDate().toString().padStart(2, '0');
+
+
+        // devDetailInfo.build.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+        //   curLandInfo.relTotalPrice, 
+        //   devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+        //   "철근콘크리트구조",
+        //   formattedToday,
+        //   debug, devDetailInfo.debugBuildInfo);
+        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        // if(debug){
+        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+        //   devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.build.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        // }
 
         devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.build.tax, debug, devDetailInfo.debugBuildInfo);
       }
@@ -1679,28 +1714,42 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRemodelInfo
         );
-
-        if(debug){
-          devDetailInfo.debugRemodelInfo.push(`---------------------------------------`);
-          devDetailInfo.debugRemodelInfo.push(`🧾 세금`);
-        }        
-        devDetailInfo.remodel.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRemodelInfo);
-  
-        devDetailInfo.remodel.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-          curLandInfo.relTotalPrice, 
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+        const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
+        const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;        
+        makeTaxInfo(
+          curLandInfo,
+          totalFloorArea,
           buildingList[0].structureCodeName,
           buildingList[0].useApprovalDate,
-          debug, devDetailInfo.debugRemodelInfo);
-        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        if(debug){
-          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-          devDetailInfo.debugRemodelInfo.push(`<종합부동산세> ${devDetailInfo.remodel.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        }
+          devDetailInfo.remodel.tax,
+          debug,
+          devDetailInfo.debugRemodelInfo
+        );
+        // if(debug){
+        //   devDetailInfo.debugRemodelInfo.push(`---------------------------------------`);
+        //   devDetailInfo.debugRemodelInfo.push(`🧾 세금`);
+        // }        
+        // devDetailInfo.remodel.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRemodelInfo);
+  
+        // const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
+        // const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;
+        // devDetailInfo.remodel.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+        //   curLandInfo.relTotalPrice, 
+        //   totalFloorArea, 
+        //   buildingList[0].structureCodeName,
+        //   buildingList[0].useApprovalDate,
+        //   debug, devDetailInfo.debugRemodelInfo);
+        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        // if(debug){
+        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+        //   devDetailInfo.debugRemodelInfo.push(`<종합부동산세> ${devDetailInfo.remodel.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        // }
 
 
         devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.remodel.tax, debug, devDetailInfo.debugRemodelInfo);
       }
+
+
       ////////////////////////////////////////////////////////////////
       // 임대
       if(devDetailInfo.rent){
@@ -1731,23 +1780,32 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRentInfo
         );
-
-        if(debug){
-          devDetailInfo.debugRentInfo.push(`---------------------------------------`);
-          devDetailInfo.debugRentInfo.push(`🧾 세금`);
-        }        
-        devDetailInfo.rent.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRentInfo);
-        devDetailInfo.rent.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-          curLandInfo.relTotalPrice, 
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+        makeTaxInfo(
+          curLandInfo,
+          curBuildingTotalFloorArea,
           buildingList[0].structureCodeName,
           buildingList[0].useApprovalDate,
-          debug, devDetailInfo.debugRentInfo);
-        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        if(debug){
-          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-          devDetailInfo.debugRentInfo.push(`<종합부동산세> ${devDetailInfo.rent.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        }
+          devDetailInfo.remodel.tax,
+          debug,
+          devDetailInfo.debugRemodelInfo
+        );
+        // if(debug){
+        //   devDetailInfo.debugRentInfo.push(`---------------------------------------`);
+        //   devDetailInfo.debugRentInfo.push(`🧾 세금`);
+        // }        
+        
+        // devDetailInfo.rent.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRentInfo);
+        // devDetailInfo.rent.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+        //   curLandInfo.relTotalPrice, 
+        //   devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+        //   buildingList[0].structureCodeName,
+        //   buildingList[0].useApprovalDate,
+        //   debug, devDetailInfo.debugRentInfo);
+        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        // if(debug){
+        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+        //   devDetailInfo.debugRentInfo.push(`<종합부동산세> ${devDetailInfo.rent.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        // }
 
         
         devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.rent.tax, debug, devDetailInfo.debugRentInfo);
