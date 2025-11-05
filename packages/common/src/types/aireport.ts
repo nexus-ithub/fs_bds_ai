@@ -19,6 +19,7 @@ export interface BuildingData{
   landArea: string; // 토지면적 
   gndFloorNumber: number; // 지상층수
   baseFloorNumber: number; // 지하층수 
+  structureCodeName: string;
 }
 
 export interface LandData{
@@ -131,6 +132,8 @@ export interface ReportValue {
   // 연간보증금수익
   annualDepositProfit: number;
 
+  // 세금
+  tax: TaxInfo;
 
   result: ReportResult;
 }
@@ -164,7 +167,7 @@ export interface DevDetailInfo {
   remodel: ReportValue; // 리모델링
   build: ReportValue; // 신축
 
-  tax: TaxInfo;
+  // tax: TaxInfo;
 
   analysisMessage: string;
 

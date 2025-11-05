@@ -1,3 +1,4 @@
+import { CadastralIcon } from './../../../../packages/common/src/icons/index';
 import { db } from '../utils/database';
 import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo } from '@repo/common';
 import OpenAI from "openai";
@@ -86,7 +87,193 @@ const LOAN_INTEREST_RATIO = 0.035;
 const LOAN_RATIO_FOR_OWNER = 0.8;
 const LOAN_INTEREST_RATIO_FOR_OWNER = 0.035;
 
-const FAIR_MARKET_RATIO = 0.7; // 공정시장가 비율 
+
+// 세금 관련 
+const FAIR_MARKET_RATIO = 0.7; // 공정시장가 비율 (토지재산세 계산시 사용)
+
+// 아래 법령 링크에서 "가격기준액" 으로 검색하면 건축물가격기준액을 확인할 수 있음
+// https://www.mois.go.kr/frt/bbs/type001/commonSelectBoardList.do?bbsId=BBSMSTR_000000000016
+// const BUILDING_PRICE_INDEX_BASE = 830000; // (상업용) 건축물가격기준액 (건물기준시가 , 건물 재산세 계산시 사용)
+// const BUILDING_PRICE_INDEX_BASE = [
+//   { name: "주거용", value: 840000 },
+//   { name: "상업용", value: 830000 },
+//   { name: "공업용", value: 820000 },
+//   { name: "농수산용", value: 630000 },
+//   { name: "문화/복지/교육용", value: 840000 },
+//   { name: "공공용", value: 830000 },
+// ]
+
+const BULILDING_PROPERTY_TAX_RATIO = 0.0025; // 건물 재산세 비율 (기타건축물)
+
+const BUILDING_PRICE_INDEX_BASE = 830000; // DEFAULT 로 주거용 값을 사용
+
+
+// 아래 법령 링크에서 "지방세 시가표준액 조사산정 기준" 으로 검색하면 건물지수등 확인 가능
+// https://www.mois.go.kr/frt/bbs/type001/commonSelectBoardList.do?bbsId=BBSMSTR_000000000016
+
+// 건축물 구조지수 (건물 재산세 계산시 사용)
+const STRUCTURE_INDEX_BASE_LIST = [
+  { code: "10", name: "조적구조", value: 0.90 },
+  { code: "11", name: "벽돌구조", value: 0.90 },
+  { code: "12", name: "블록구조", value: 0.60 },
+  { code: "13", name: "석구조", value: 1.00 },
+  { code: "14", name: "스틸하우스조", value: 1.00 },
+  { code: "17", name: "보강콘크리트조", value: 0.95 },
+  { code: "19", name: "기타조적구조", value: 0.90 },
+  { code: "20", name: "콘크리트구조", value: 1.00 },
+  { code: "21", name: "철근콘크리트구조", value: 1.00 },
+  { code: "22", name: "프리케스트콘크리트구조", value: 1.00 },
+  { code: "23", name: "철파이프조", value: 0.30 },
+  { code: "24", name: "돌담 및 토담조", value: 0.35 },
+  { code: "26", name: "라멘조", value: 1.00 },
+  { code: "27", name: "석회 및 흙혼합 벽돌조", value: 0.35 },
+  { code: "29", name: "기타콘크리트구조", value: 1.00 },
+  { code: "30", name: "철골구조", value: 1.00 },
+  { code: "31", name: "일반철골구조", value: 1.00 },
+  { code: "32", name: "경량철골구조", value: 0.65 },
+  { code: "33", name: "강파이프구조", value: 1.00 },
+  { code: "34", name: "공업화박판강구조(PEB)", value: 1.00 },
+  { code: "35", name: "단일형강구조", value: 1.00 },
+  { code: "36", name: "트러스구조", value: 1.00 },
+  { code: "37", name: "스틸하우스조", value: 1.00 },
+  { code: "39", name: "기타강구조", value: 1.00 },
+  { code: "40", name: "철골철근콘크리트구조", value: 1.20 },
+  { code: "41", name: "철골콘크리트구조", value: 1.20 },
+  { code: "42", name: "철골철근콘크리트구조", value: 1.20 },
+  { code: "43", name: "철골철근콘크리트합성구조", value: 1.20 },
+  { code: "49", name: "기타철골철근콘크리트구조", value: 1.20 },
+  { code: "50", name: "목구조", value: 1.25 },
+  { code: "51", name: "일반목구조", value: 0.83 },
+  { code: "52", name: "통나무구조", value: 1.35 },
+  { code: "53", name: "트러스목구조", value: 0.83 },
+  { code: "60", name: "블럭/판넬조", value: 0.55 },
+  { code: "61", name: "시멘트블럭조", value: 0.60 },
+  { code: "63", name: "조립식판넬조", value: 0.55 },
+  { code: "70", name: "벽돌/컨테이너조", value: 0.30 },
+  { code: "72", name: "흙벽돌조", value: 0.35 },
+  { code: "74", name: "컨테이너조", value: 0.30 },
+  { code: "80", name: "막구조", value: 0.30 },
+  { code: "81", name: "막구조", value: 0.30 },
+  { code: "90", name: "기타구조", value: 1.00 },
+  { code: "99", name: "기타구조", value: 1.00 },
+];
+
+
+// 건축물 용도지수 (건물 재산세 계산시 사용)
+const BUILDING_USAGE_INDEX_BASE = 1.12; // DEFAULT 로 사무실용 건물의 값 사용 (1.12)
+
+// 건축물 위치지수 (건물 재산세 계산시 사용)
+export const getBuildingLocationIndex = (price: number): number => {
+  const brackets: Array<[max: number, index: number]> = [
+    [10, 0.80],     // 10천원/㎡ 이하
+    [30, 0.82],     // 10초과 ~ 30이하
+    [50, 0.84],     // 30초과 ~ 50이하
+    [100, 0.86],    // 50초과 ~ 100이하
+    [150, 0.88],    // 100초과 ~ 150이하
+    [200, 0.90],    // 150초과 ~ 200이하
+    [350, 0.92],    // 200초과 ~ 350이하
+    [500, 0.94],    // 350초과 ~ 500이하
+    [650, 0.96],    // 500초과 ~ 650이하
+    [800, 0.98],    // 650초과 ~ 800이하
+    [1000, 1.00],   // 800초과 ~ 1000이하
+    [1200, 1.03],   // 1000초과 ~ 1200이하
+    [1600, 1.06],   // 1200초과 ~ 1600이하
+    [2000, 1.09],   // 1600초과 ~ 2000이하
+    [2500, 1.12],   // 2000초과 ~ 2500이하
+    [3000, 1.15],   // 2500초과 ~ 3000이하
+    [4000, 1.18],   // 3000초과 ~ 4000이하
+    [5000, 1.21],   // 4000초과 ~ 5000이하
+    [6000, 1.24],   // 5000초과 ~ 6000이하
+    [7000, 1.27],   // 6000초과 ~ 7000이하
+    [8000, 1.30],   // 7000초과 ~ 8000이하
+    [9000, 1.33],   // 8000초과 ~ 9000이하
+    [10000, 1.36],  // 9000초과 ~ 10000이하
+    [20000, 1.40],  // 10000초과 ~ 20000이하
+    [30000, 1.45],  // 20000초과 ~ 30000이하
+    [40000, 1.50],  // 30000초과 ~ 40000이하
+    [50000, 1.55],  // 40000초과 ~ 50000이하
+    [60000, 1.60],  // 50000초과 ~ 60000이하
+    [70000, 1.63],  // 60000초과 ~ 70000이하
+    [80000, 1.66],  // 70000초과 ~ 80000이하
+  ];
+
+  for (const [max, idx] of brackets) {
+    if (price <= max) return idx;
+  }
+  return 1.69; 
+};
+
+
+// 건축물 경과연수별 잔가율 (제19조 관련)
+export const BUILDING_RESIDUAL_VALUE = [
+  // ① 철골철근콘크리트조, 철근콘크리트조, 통나무조 → 50년, 0.10, 0.018
+  { code: "40", name: "철골철근콘크리트구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+  { code: "41", name: "철골콘크리트구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "42", name: "철골철근콘크리트구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+  { code: "43", name: "철골철근콘크리트합성구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+  { code: "49", name: "기타철골철근콘크리트구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+  { code: "21", name: "철근콘크리트구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+  { code: "22", name: "프리케스트콘크리트구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "26", name: "라멘조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "52", name: "통나무구조", year: 50, minResidualRatio: 0.10, yearDiscountRatio: 0.018 },
+
+  // ② 철골콘크리트조, 석조, 프리케스트콘크리트조, 목구조 → 40년, 0.10, 0.0225
+  { code: "13", name: "석구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "50", name: "목구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "51", name: "일반목구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "53", name: "트러스목구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+
+  // ③ 철골조, 스틸하우스조, 연와조, 보강콘크리트조, 보강블록조, 황토조, 시멘트벽돌조, ALC조 등 → 30년, 0.10, 0.030
+  { code: "30", name: "철골구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "31", name: "일반철골구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "32", name: "경량철골구조", year: 20, minResidualRatio: 0.10, yearDiscountRatio: 0.045 },
+  { code: "33", name: "강파이프구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "34", name: "공업화박판강구조(PEB)", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "35", name: "단일형강구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "36", name: "트러스구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "37", name: "스틸하우스조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "17", name: "보강콘크리트조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "12", name: "블록구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "11", name: "벽돌구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "14", name: "스틸하우스조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "19", name: "기타조적구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+
+  // ④ 시멘트블록조, 경량철골조, 조립식패널조, FRP패널조 → 20년, 0.10, 0.045
+  { code: "61", name: "시멘트블록조", year: 20, minResidualRatio: 0.10, yearDiscountRatio: 0.045 },
+  { code: "63", name: "조립식패널조", year: 20, minResidualRatio: 0.10, yearDiscountRatio: 0.045 },
+  { code: "60", name: "블록/판넬조", year: 20, minResidualRatio: 0.10, yearDiscountRatio: 0.045 },
+
+  // ⑤ 석회 및 흙벽돌조, 돌담 및 토담조, 철파이프조, 컨테이너조 → 10년, 0.10, 0.090
+  { code: "27", name: "석회 및 흙혼합 벽돌조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+  { code: "24", name: "돌담 및 토담조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+  { code: "23", name: "철파이프조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+  { code: "74", name: "컨테이너조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+
+  // 기타
+  { code: "20", name: "콘크리트구조", year: 40, minResidualRatio: 0.10, yearDiscountRatio: 0.0225 },
+  { code: "80", name: "막구조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+  { code: "81", name: "막구조", year: 10, minResidualRatio: 0.10, yearDiscountRatio: 0.090 },
+  { code: "90", name: "기타구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+  { code: "99", name: "기타구조", year: 30, minResidualRatio: 0.10, yearDiscountRatio: 0.030 },
+];
+
+const calculateResidualValueRatio = (structureCodeName : string, diffYear : number) => {
+  let value = null;
+  for(const item of BUILDING_RESIDUAL_VALUE){
+    if(item.name === structureCodeName){
+      value = item;
+      break;
+    }
+  }
+  if(!value){
+    value = BUILDING_RESIDUAL_VALUE[0];
+  }
+  const {yearDiscountRatio, minResidualRatio} = value;
+
+  const ratio = 1 - (yearDiscountRatio * diffYear);
+
+  return Math.max(ratio, minResidualRatio);
+}
 
 const getBuildProjectDuration = (floorArea : number, debug : boolean = false, debugExtraInfo : string[] = []) => {
   const areaPerPy = floorArea * 0.3025;
@@ -322,14 +509,79 @@ const getPropertyTax = (price : number, area : number, debug : boolean, debugExt
 }
 
 
-const getPropertyTaxForBuilding = (taxBase : number) => {
-  // 아래 링크 참고 
-  // "건축물/기타건축물"를 기준으로 계산 
-  // https://xn--989a00af8jnslv3dba.com/%EC%9E%AC%EC%82%B0%EC%84%B8
-  // TODO : taxBase 가 아니라 건축물 시가표준액으로 계산해야 함 
+const getPropertyTaxForBuilding = (price : number, totalFloorArea : number, structureCodeName : string, useApprovalDateStr : string, debug : boolean, debugExtraInfo : string[]) => {
 
-  // 시가표준액 * 0.25%
-  return taxBase * 0.0025; 
+  const age = useApprovalDateStr ? getBuildingAge(useApprovalDateStr) : 40;
+
+  // 구조지수
+  const structureIndex = STRUCTURE_INDEX_BASE_LIST.find((item) => item.name === structureCodeName)?.value || 1.00;
+  // 용도지수 
+  const usageIndex = BUILDING_USAGE_INDEX_BASE;
+  // 위치지수 
+  const locationIndex = getBuildingLocationIndex(price);
+  // 경과연수별 잔가율 
+  const ageIndex = calculateResidualValueRatio(structureCodeName, age);
+  
+  // 시가표준액
+  const marketPrice = totalFloorArea * (BUILDING_PRICE_INDEX_BASE * structureIndex * usageIndex * locationIndex * ageIndex); 
+  // 과세표준 
+  const taxBase = marketPrice * FAIR_MARKET_RATIO;
+  // 재산세 
+  const propertyTax = taxBase * BULILDING_PROPERTY_TAX_RATIO;
+
+
+  if(debug){
+     debugExtraInfo.push(`---`);
+    debugExtraInfo.push(`[구조지수] ${structureIndex} (${structureCodeName})`);
+    debugExtraInfo.push(`[용도지수] ${usageIndex} (${BUILDING_USAGE_INDEX_BASE})`);
+    debugExtraInfo.push(`[위치지수] ${locationIndex} (공시지가 ${price})`);
+    debugExtraInfo.push(`[경과연수] ${age} (${useApprovalDateStr}(준공일))`);
+    debugExtraInfo.push(`[잔가율] ${ageIndex} ( 1- (매년상각율 x ${age}(건물경과년수))`);
+    debugExtraInfo.push(`[시가표준액] ${krwUnit(marketPrice)} (${totalFloorArea} (연면적) x ${BUILDING_PRICE_INDEX_BASE} (기준액) x ${structureIndex} (구조지수) x ${usageIndex} (용도지수) x ${locationIndex} (위치지수) x ${ageIndex} (잔가율))`);
+    debugExtraInfo.push(`[과세표준] ${krwUnit(taxBase)} (${krwUnit(marketPrice)} (시가표준액) x ${FAIR_MARKET_RATIO} (공정시장가액비율)`);
+    debugExtraInfo.push(`[재산세(건축물)] ${krwUnit(propertyTax)} (${krwUnit(taxBase)} (과세표준) x ${BULILDING_PROPERTY_TAX_RATIO}(기타건축물재산세율))`);
+  }
+  
+  let resourceTax = 0;
+
+  if (taxBase <= 6000000) {
+    resourceTax = Math.round(taxBase * 0.0004);
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(taxBase * 0.0004)} (6,000,000 이하 : 과세표준 x 0.04%)`);
+    }
+  } else if (taxBase <= 13000000) {
+    resourceTax = Math.round(2400 + ((taxBase - 6000000) * 0.0005));
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(2400 + ((taxBase - 6000000) * 0.0005))} (13,000,000 이하 : 2,400 + ((과세표준 - 6,000,000) x 0.05%)`);
+    }
+  } else if (taxBase <= 26000000) {
+    resourceTax = Math.round(5900 + ((taxBase - 13000000) * 0.0006));
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(5900 + ((taxBase - 13000000) * 0.0006))} (26,000,000 이하 : 5,900 + ((과세표준 - 13,000,000) x 0.06%)`);
+    }
+  } else if (taxBase <= 39000000) {
+    resourceTax = Math.round(13700 + ((taxBase - 26000000) * 0.0008));
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(13700 + ((taxBase - 26000000) * 0.0008))} (39,000,000 이하 : 13,700 + ((과세표준 - 26,000,000) x 0.08%)`);
+    }
+  } else if (taxBase <= 64000000) {
+    resourceTax = Math.round(24100 + ((taxBase - 39000000) * 0.0010));
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(24100 + ((taxBase - 39000000) * 0.0010))} (64,000,000 이하 : 24,100 + ((과세표준 - 39,000,000) x 0.10%)`);
+    }
+  } else {
+    resourceTax = Math.round(49100 + ((taxBase - 64000000) * 0.0012));
+    if(debug){
+      debugExtraInfo.push(`[지역자원시설세] ${krwUnit(49100 + ((taxBase - 64000000) * 0.0012))} (64,000,000 초과 : 49,100 + ((과세표준 - 64,000,000) x 0.12%))`);
+    }
+  }
+  
+  if(debug){
+    debugExtraInfo.push(`<재산세(건축물)+지역자원시설세> ${krwUnit(propertyTax + resourceTax)}`);
+  }
+  
+  // 재산세 + 지역자원시설세
+  return propertyTax + resourceTax; 
 }
 
 
@@ -857,7 +1109,11 @@ function newReportValue(): ReportValue {
     annualRentProfit: 0,
     annualDepositProfit: 0,
     annualManagementProfit: 0,
-
+    tax: {
+      propertyTax: 0,
+      propertyTaxForBuilding: 0,
+      comprehensiveRealEstateTax: 0,
+    },
     result: null,
   };
 }
@@ -911,11 +1167,6 @@ export class AIReportModel {
           secondFloorExclusiveArea: 0,
           lowerFloorExclusiveArea: 0,
         },
-        tax: {
-          propertyTax: 0,
-          propertyTaxForBuilding: 0,
-          comprehensiveRealEstateTax: 0,
-        },
         analysisMessage: ''
       } as DevDetailInfo;
       
@@ -968,7 +1219,8 @@ export class AIReportModel {
           blh.arch_area         AS archArea,
           blh.land_area         AS landArea,
           blh.gnd_floor_number  AS gndFloorNumber,
-          blh.base_floor_number AS baseFloorNumber
+          blh.base_floor_number AS baseFloorNumber,
+          blh.structure_code_name AS structureCodeName
         FROM building_leg_headline blh
         JOIN cand_building_ids c
           ON c.building_id = blh.building_id
@@ -1314,19 +1566,20 @@ export class AIReportModel {
         devDetailInfo.debugExtraInfo.push(`2층 이상: ${Number(Number(upperFloorRentProfitPerPy).toFixed(0)).toLocaleString()}원`);
         devDetailInfo.debugExtraInfo.push(`지하층: ${Number(Number(baseFloorRentProfitPerPy).toFixed(0)).toLocaleString()}원`);
       }
-      if(debug){
-        devDetailInfo.debugExtraInfo.push(`---`);
-        devDetailInfo.debugExtraInfo.push(`🧾 세금`);
+      // if(debug){
+      //   devDetailInfo.debugExtraInfo.push(`---`);
+      //   devDetailInfo.debugExtraInfo.push(`🧾 세금`);
 
-      }
+      // }
 
-      devDetailInfo.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugExtraInfo);
-      if(debug){
-        devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-        devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+      // devDetailInfo.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugExtraInfo);
+      // // devDetailInfo.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugExtraInfo);
+      // if(debug){
+      //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+      //   devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.tax.comprehensiveRealEstateTax}원 (작업중..)`);
         
 
-      }
+      // }
       // devDetailInfo.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(taxBase);
       
       ////////////////////////////////////////////////////////////////
@@ -1362,7 +1615,35 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugBuildInfo
         );
-        devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.tax, debug, devDetailInfo.debugBuildInfo);
+
+
+        if(debug){
+          devDetailInfo.debugBuildInfo.push(`---------------------------------------`);
+          devDetailInfo.debugBuildInfo.push(`🧾 세금`);
+        }        
+
+        devDetailInfo.build.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugBuildInfo);
+        
+        const today = new Date();
+        const formattedToday =
+          today.getFullYear().toString() +
+          (today.getMonth() + 1).toString().padStart(2, '0') +
+          today.getDate().toString().padStart(2, '0');
+
+
+        devDetailInfo.build.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+          curLandInfo.relTotalPrice, 
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+          "철근콘크리트구조",
+          formattedToday,
+          debug, devDetailInfo.debugBuildInfo);
+        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        if(debug){
+          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+          devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.build.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        }
+
+        devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.build.tax, debug, devDetailInfo.debugBuildInfo);
       }
       // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
@@ -1398,7 +1679,27 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRemodelInfo
         );
-        devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.tax, debug, devDetailInfo.debugRemodelInfo);
+
+        if(debug){
+          devDetailInfo.debugRemodelInfo.push(`---------------------------------------`);
+          devDetailInfo.debugRemodelInfo.push(`🧾 세금`);
+        }        
+        devDetailInfo.remodel.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRemodelInfo);
+  
+        devDetailInfo.remodel.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+          curLandInfo.relTotalPrice, 
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+          buildingList[0].structureCodeName,
+          buildingList[0].useApprovalDate,
+          debug, devDetailInfo.debugRemodelInfo);
+        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        if(debug){
+          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+          devDetailInfo.debugRemodelInfo.push(`<종합부동산세> ${devDetailInfo.remodel.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        }
+
+
+        devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.remodel.tax, debug, devDetailInfo.debugRemodelInfo);
       }
       ////////////////////////////////////////////////////////////////
       // 임대
@@ -1430,7 +1731,26 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRentInfo
         );
-        devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.tax, debug, devDetailInfo.debugRentInfo);
+
+        if(debug){
+          devDetailInfo.debugRentInfo.push(`---------------------------------------`);
+          devDetailInfo.debugRentInfo.push(`🧾 세금`);
+        }        
+        devDetailInfo.rent.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRentInfo);
+        devDetailInfo.rent.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
+          curLandInfo.relTotalPrice, 
+          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
+          buildingList[0].structureCodeName,
+          buildingList[0].useApprovalDate,
+          debug, devDetailInfo.debugRentInfo);
+        // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
+        if(debug){
+          // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+          devDetailInfo.debugRentInfo.push(`<종합부동산세> ${devDetailInfo.rent.tax.comprehensiveRealEstateTax}원 (작업중..)`);
+        }
+
+        
+        devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.rent.tax, debug, devDetailInfo.debugRentInfo);
       }
 
 
@@ -1539,7 +1859,12 @@ export class AIReportModel {
         landInfo,
         buildingList,
         value: resultValue,
-        tax : devDetailInfo.tax,
+        // tax : devDetailInfo.tax,
+        tax : {
+          propertyTax: resultValue.tax.propertyTax,
+          propertyTaxForBuilding: resultValue.tax.propertyTaxForBuilding,
+          comprehensiveRealEstateTax: resultValue.tax.comprehensiveRealEstateTax
+        },
         result: {
           grade: resultValue.grade,
           initialCapital: resultValue.result.initialCapital,
