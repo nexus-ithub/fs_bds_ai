@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from 'src/middleware/auth.middleware';;
+import { AuthRequest } from 'src/middleware/auth.middleware';
 import { BdsModel } from '../models/bds.model';
 import { BdsSale } from '@repo/common';
 
@@ -23,7 +23,7 @@ export const getList = async (req: AuthRequest, res: Response) => {
 export const addConsultRequest = async (req: AuthRequest, res: Response) => {
   try {
     const { userId, bdId, name, phone, content } = req.body as { 
-      userId: string; 
+      userId: string;
       bdId: string; 
       name: string; 
       phone: string; 
@@ -39,7 +39,7 @@ export const addConsultRequest = async (req: AuthRequest, res: Response) => {
 
 export const isBookmarked = async (req: AuthRequest, res: Response) => {
   try{
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const bdsId = req.query.bdsId as string;
     const isBookmarked = await BdsModel.isBookmarked(userId, bdsId);
     res.status(200).json(isBookmarked);
@@ -51,11 +51,11 @@ export const isBookmarked = async (req: AuthRequest, res: Response) => {
 
 export const addBookmark = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, building, deleteYn } = req.body as { 
-      userId: string; 
+    const { building, deleteYn } = req.body as { 
       building: BdsSale; 
       deleteYn: string;
     };
+    const userId = req.userId;
     await BdsModel.addBookmark(userId, building, deleteYn);
     res.status(200).json({ message: '즐겨찾기 추가 성공' });
   } catch (err) {
@@ -66,7 +66,7 @@ export const addBookmark = async (req: AuthRequest, res: Response) => {
 
 export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const total = await BdsModel.getTotalBookmarked(userId);
     res.status(200).json(total);
   } catch (err) {
@@ -77,7 +77,7 @@ export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
 
 export const getBookmarkList = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const page = Number(req.query.page) || 1;
     const size = Number(req.query.size) || 10;
     const bookmarkList = await BdsModel.getBookmarkList(userId, page, size);

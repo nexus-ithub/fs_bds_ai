@@ -31,7 +31,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   const getBookmarkList = async() => {
     try {
       setLoading(true);
-      const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
+      const response = await axiosWithAuth.get('/api/bds/bookmark', {params: {page: currentPage, size: pageSize}});
       console.log(response.data.result);
       setBookmarkList(response.data.result);
       setTotalCount(response.data.total);
@@ -48,7 +48,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
 
   const cancelBookmark = async (item: BdsSale) => {
     try {
-      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building: item, deleteYn: 'Y'});
+      await axiosWithAuth.post('/api/bds/bookmark', {building: item, deleteYn: 'Y'});
       getBookmarkList();
     } catch (error) {
       console.error(error);

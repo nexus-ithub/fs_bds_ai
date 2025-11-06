@@ -20,7 +20,7 @@ export const EditPassword = ({userId}: {userId: number}) => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await axiosInstance.put('/api/user/password', {userId, password, newPassword});
+      await axiosInstance.put('/api/user/password', {password, newPassword});
       setPassword('');
       setNewPassword('');
       setNewPasswordConfirm('');

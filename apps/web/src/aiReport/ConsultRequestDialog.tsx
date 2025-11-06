@@ -48,7 +48,6 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
   const onSubmit = () => {
     setLoading(true);
     axiosInstance.post(`/api/land/consult-request`, {
-      userId: config?.id,
       landId,
       content: text,
     })

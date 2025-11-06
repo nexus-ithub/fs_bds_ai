@@ -49,9 +49,10 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export const changePassword = async (req: Request, res: Response) => {
+export const changePassword = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, password, newPassword } = req.body;
+    const userId = req.userId;
+    const { password, newPassword } = req.body;
     console.log(`userId: ${userId}, password: ${password}`);
 
     const confirmPassword = await UserModel.confirmPassword(userId, password);

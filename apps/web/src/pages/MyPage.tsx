@@ -108,7 +108,7 @@ export const MyPage = () => {
 
   const getTotalBookmarkedBds = async () => {
     try {
-      const response = await axiosWithAuth.get('/api/bds/total-bookmarked', {params: {userId: config?.id}});
+      const response = await axiosWithAuth.get('/api/bds/total-bookmarked');
       setBdsCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
@@ -118,7 +118,7 @@ export const MyPage = () => {
 
   const getTotalBookmarkedReport = async () => {
     try {
-      const response = await axiosWithAuth.get('/api/land/total-bookmarked', {params: {userId: config?.id}});
+      const response = await axiosWithAuth.get('/api/land/total-bookmarked');
       setReportCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);

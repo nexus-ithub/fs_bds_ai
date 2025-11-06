@@ -176,7 +176,6 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         return;
       }
       await axiosWithAuth.post('/api/land/bookmark', {
-        userId: config?.id, 
         landId: landId, 
         estimatedPrice: estimatedPrice?.estimatedPrice,
         estimatedPricePer: estimatedPrice?.per,
@@ -192,7 +191,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
     try {
       if (!config) return;
       const res = await axiosWithAuth.get('/api/land/is-bookmarked', {
-        params: {userId: config?.id, landId: landId}});
+        params: {landId: landId}});
       setIsBookmarked(res.data);
     } catch (error) {
       console.error("getIdBookmarked error", error);

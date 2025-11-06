@@ -32,7 +32,7 @@ export const BuildingDetailDialog = ({
         setOpenNeedLogin(true);
         return;
       }
-      await axiosWithAuth.post('/api/bds/bookmark', {userId: config?.id, building, deleteYn: isBookmarked ? 'Y' : 'N'});
+      await axiosWithAuth.post('/api/bds/bookmark', {building, deleteYn: isBookmarked ? 'Y' : 'N'});
       setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error(error);
@@ -43,7 +43,7 @@ export const BuildingDetailDialog = ({
   const getIdBookmarked = async () => {
     try {
       if (!config) return;
-      const res = await axiosWithAuth.get('/api/bds/is-bookmarked', {params: {userId: config?.id, bdsId: building.idx}});
+      const res = await axiosWithAuth.get('/api/bds/is-bookmarked', {params: {bdsId: building.idx}});
       setIsBookmarked(res.data);
     } catch (error) {
       console.error(error);
