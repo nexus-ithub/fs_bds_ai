@@ -161,21 +161,41 @@ export default function Agent() {
 
   const handleAddQuestion = () => {
     if (newQuestion.trim() === '') return;
-    const maxId = questionEdit.length > 0 
-    ? Math.max(...questionEdit.map(q => q.id)) 
-    : 0;
-    const newQuestionObj = {
-      id: selectedQuestion?.id || maxId + 1,
-      icon: selectedEmoji,
-      question: newQuestion,
-      selectedYn: selectedQuestion?.selectedYn || "N" as "Y" | "N",
-      deleteYn: selectedQuestion?.deleteYn || "N" as "Y" | "N",
-      createdAt: new Date(),
-    };
-    setQuestionEdit((prev) => [...prev, newQuestionObj]);
+    
+    if (selectedQuestion) {
+      setQuestionEdit((prev) => 
+        prev.map(q => 
+          q.id === selectedQuestion.id 
+            ? {
+                ...q,
+                icon: selectedEmoji,
+                question: newQuestion,
+              }
+            : q
+        )
+      );
+    } else {
+      const maxId = questionEdit.length > 0 
+        ? Math.max(...questionEdit.map(q => q.id)) 
+        : 0;
+      
+      const newQuestionObj = {
+        id: maxId + 1,
+        icon: selectedEmoji,
+        question: newQuestion,
+        selectedYn: "N" as "Y" | "N",
+        deleteYn: "N" as "Y" | "N",
+        createdAt: new Date(),
+      };
+      
+      setQuestionEdit((prev) => [...prev, newQuestionObj]);
+    }
+    
     setNewQuestion("");
+    setSelectedEmoji("🏢");
+    setSelectedQuestion(null);
     setOpenAddQuestion(false);
-  }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -252,7 +272,7 @@ export default function Agent() {
   const QuestionItem = ({ question, isDraggable }: { question: Question; isDraggable: boolean }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
       id: question.id,
-      disabled: !isDraggable, // ✅ 여기서 드래그 가능 여부 제어
+      disabled: !isDraggable, // 여기서 드래그 가능 여부 제어
     });
 
     const style = isDraggable
@@ -448,7 +468,7 @@ export default function Agent() {
                 .filter(q => q.selectedYn === "Y")
                 .sort((a, b) => (a.seq ?? 999) - (b.seq ?? 999))
                 .map((question) => (
-                  <div key={question.id} className="w-[500px] bg-white flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
+                  <div key={question.id} className="w-[500px] bg-white flex items-center gap-[12px] h-[64px] p-[12px] rounded-[4px] border border-line-02 bg-grayscale-005 cursor-default" style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}>
                     <span className="w-[40px] h-[40px] flex items-center justify-center py-[5px] rounded-[4px] border border-line-02 bg-grayscale-005">{question.icon}</span>
                     <p className="font-s2">{question.question}</p>
                   </div>

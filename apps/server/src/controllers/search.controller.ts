@@ -3,6 +3,7 @@ import { SearchModel } from '../models/search.model';
 import { BuildingInfo, LandInfo } from '@repo/common';
 import { BuildingModel } from '../models/buliding.model';
 import { LandModel } from '../models/land.model';
+import { AuthRequest } from 'src/middleware/auth.middleware';
 
 
 export const search = async (req: Request, res: Response) => {
@@ -23,9 +24,9 @@ export const search = async (req: Request, res: Response) => {
   
 }
 
-export const bmReportSearch = async (req: Request, res: Response) => {
+export const bmReportSearch = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const page = req.query.page || '1';
     const size = req.query.size || '10';
     const query = req.query.query as string;
@@ -34,7 +35,7 @@ export const bmReportSearch = async (req: Request, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
     
-    const searchResults = await SearchModel.bmReportSearch(Number(userId), query as string, Number(page), Number(size)) as {total: number, response: any[]}
+    const searchResults = await SearchModel.bmReportSearch(userId, query as string, Number(page), Number(size)) as {total: number, response: any[]}
 
     const landIds = searchResults.response.map(r => r.landId).filter(Boolean);
     let lands: LandInfo[] = [];

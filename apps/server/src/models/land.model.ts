@@ -2137,7 +2137,7 @@ export class LandModel {
   //   }
   // }
  
-  static async isBookmarked(userId: string, landId: string): Promise<boolean> {
+  static async isBookmarked(userId: number, landId: string): Promise<boolean> {
     try {
       const [rows] = await db.query(
         `SELECT 1 
@@ -2154,7 +2154,7 @@ export class LandModel {
     }
   }
 
-  static async addBookmark(userId: string, landId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
+  static async addBookmark(userId: number, landId: string, estimatedPrice: number, estimatedPricePer: number, deleteYn: string) {
     try {
       const [rows] = await db.query(`SELECT 1 FROM bookmarked_report WHERE user_id = ? AND land_id = ? LIMIT 1`, 
         [userId, landId])
@@ -2177,7 +2177,7 @@ export class LandModel {
     }
   }
 
-  static async getTotalBookmarked(userId: string) {
+  static async getTotalBookmarked(userId: number) {
     try {
       const countRows = await db.query(
         `SELECT COUNT(*) as total FROM bookmarked_report WHERE user_id = ? AND delete_yn = 'N'`,
@@ -2191,7 +2191,7 @@ export class LandModel {
     }
   }
 
-  static async getBookmarkList(userId: string, page: number, size: number) {
+  static async getBookmarkList(userId: number, page: number, size: number) {
     try{
       const total = await this.getTotalBookmarked(userId);
       
@@ -2212,7 +2212,7 @@ export class LandModel {
     }
   }
 
-  static async addConsultRequest(userId: string, landId: string, content: string) {
+  static async addConsultRequest(userId: number, landId: string, content: string) {
     try {
           await db.query(
           `INSERT INTO consult_request (user_id, land_id, content)

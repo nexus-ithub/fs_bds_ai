@@ -24,7 +24,7 @@ const joinMethod = (provider : string) => {
     case 'g':
       return '구글';
     default:
-      return '이메일';
+      return '일반';
   }
 }
 

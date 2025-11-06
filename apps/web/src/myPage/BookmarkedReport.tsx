@@ -62,7 +62,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   const getBookmarkList = async() => {
     try {
       setLoading(true);
-      const response = await axiosWithAuth.get('/api/land/bookmark', {params: {userId: config?.id, page: currentPage, size: pageSize}});
+      const response = await axiosWithAuth.get('/api/land/bookmark', {params: {page: currentPage, size: pageSize}});
       setBookmarkList(response.data.result);
       console.log(">>>>", response.data)
       setTotalCount(response.data.total);
@@ -81,7 +81,6 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   const cancelBookmark = async (item: BookmarkedReportType) => {
     try {
       await axiosWithAuth.post('/api/land/bookmark', {
-        userId: config?.id, 
         landId: item.landInfo.id, 
         buildingId: item.buildings?.[0].id,
         estimatedPrice: item.estimatedPrice,
@@ -98,7 +97,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   // const searchBookmark = async(keyword: string, page: number, size: number) => {
   //   try {
   //     console.log(`userId : ${config?.id}, query : ${keyword}, page : ${page}, size : ${size}`)
-  //     const response = await axiosWithAuth.get('/api/search/bmReport', {params: {userId: config?.id, query: keyword, page: page, size: size}});
+  //     const response = await axiosWithAuth.get('/api/search/bmReport', {params: {query: keyword, page: page, size: size}});
   //     setBookmarkList(response.data.response);
   //     setTotalCount(response.data.total);
   //   } catch (error) {

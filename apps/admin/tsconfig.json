@@ -13,7 +13,8 @@
     "next-env.d.ts",
     "next.config.js",
     ".next/types/**/*.ts",
-    "next-auth.d.ts"
+    "next-auth.d.ts",
+    "middleware.ts"
   ],
   "exclude": [
     "node_modules"

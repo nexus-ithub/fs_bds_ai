@@ -457,7 +457,7 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
 
 export const isBookmarked = async (req: AuthRequest, res: Response) => {
   try{
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const landId = req.query.landId as string;
     const isBookmarked = await LandModel.isBookmarked(userId, landId);
     res.status(200).json(isBookmarked);
@@ -469,14 +469,15 @@ export const isBookmarked = async (req: AuthRequest, res: Response) => {
 
 export const addBookmark = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn } = req.body as { 
-      userId: string; 
+    const userId = req.userId;
+    const { landId, buildingId, estimatedPrice, estimatedPricePer, deleteYn } = req.body as { 
       landId: string; 
       buildingId: string;
       estimatedPrice: number;
       estimatedPricePer: number;
       deleteYn: string;
     };
+  
     await LandModel.addBookmark(userId, landId, estimatedPrice, estimatedPricePer, deleteYn);
     res.status(200).json({ message: '즐겨찾기 ' + (deleteYn === 'Y' ? '삭제' : '추가') + ' 성공' });
   } catch (err) {
@@ -487,7 +488,7 @@ export const addBookmark = async (req: AuthRequest, res: Response) => {
 
 export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const total = await LandModel.getTotalBookmarked(userId);
     res.status(200).json(total);
   } catch (err) {
@@ -498,7 +499,7 @@ export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
 
 export const getBookmarkList = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.query.userId as string;
+    const userId = req.userId;
     const page = Number(req.query.page) || 1;
     const size = Number(req.query.size) || 10;
     const rawBookmarks = await LandModel.getBookmarkList(userId, page, size) as {total: number, response: any[]};
@@ -542,8 +543,8 @@ export const getBookmarkList = async (req: AuthRequest, res: Response) => {
 
 export const addConsultRequest = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, landId, content } = req.body as { 
-      userId: string; 
+    const userId = req.userId;
+    const { landId, content } = req.body as { 
       landId: string; 
       content: string;
     };

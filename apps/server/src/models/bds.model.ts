@@ -170,7 +170,7 @@ export class BdsModel {
     }
   }
 
-  static async isBookmarked(userId: string, bdsId: string): Promise<boolean> {
+  static async isBookmarked(userId: number, bdsId: string): Promise<boolean> {
     try {
       const [rows] = await db.query(
         `SELECT 1 
@@ -187,7 +187,7 @@ export class BdsModel {
     }
   }
 
-  static async addBookmark(userId: string, building: BdsSale, deleteYn: string) {
+  static async addBookmark(userId: number, building: BdsSale, deleteYn: string) {
     try {
       const [rows] = await db.query(`SELECT 1 FROM bookmarked_bds WHERE user_id = ? AND bds_id = ? LIMIT 1`, [userId, building.idx])
       if(!!rows) {
@@ -208,7 +208,7 @@ export class BdsModel {
     }
   }
 
-  static async getTotalBookmarked(userId: string) {
+  static async getTotalBookmarked(userId: number) {
     try {
       const countRows = await db.query(
         `SELECT COUNT(*) as total FROM bookmarked_bds WHERE user_id = ? AND delete_yn = 'N'`,
@@ -222,7 +222,7 @@ export class BdsModel {
     }
   }
 
-  static async getBookmarkList(userId: string, page: number, size: number) {
+  static async getBookmarkList(userId: number, page: number, size: number) {
     try{
       const total = await this.getTotalBookmarked(userId);
       
