@@ -12,6 +12,7 @@ import { bearingFromTo, getGradeChip } from "../utils";
 import { AIReportDetailDialog } from "./AIReportDetailDialog";
 import { Dialog } from "@mui/material";
 import { toast } from "react-toastify";
+import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
 
 
 export interface AIReportProps {
@@ -507,7 +508,11 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
         openAIReportDetailDialog &&
         <AIReportDetailDialog open={openAIReportDetailDialog} landId={landId} estimatedPrice={estimatedPrice} onClose={() => setOpenAIReportDetailDialog(false)}/>
       }
-      <Dialog
+      {
+        openDebugInfo &&
+        <AIReportDebugInfoDialog open={openDebugInfo} onClose={() => setOpenDebugInfo(false)} aiReportDebugInfo={aiReportDebugInfo}/>
+      }
+      {/* <Dialog
         maxWidth="xl"
         open={openDebugInfo} onClose={() => setOpenDebugInfo(false)}>
 
@@ -542,7 +547,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
             onClick={() => setOpenDebugInfo(false)}>
             확인
           </Button>          
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 };
