@@ -24,6 +24,17 @@ export const verifyToken = (token: string) => {
   }
 };
 
+export function handleAuth(req: Request) {
+  const rawHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
+  const token = rawHeader?.startsWith("Bearer ") ? rawHeader.split(" ")[1] : null;
+  
+  if (!token) return null;
+
+  const decoded = verifyToken(token);
+  if (!decoded) return null;
+
+  return decoded;
+}
 
 export async function refreshAccessToken(token: any) {
 
