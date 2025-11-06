@@ -45,6 +45,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     
   const [mounted, setMounted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [chatHistoryLoading, setChatHistoryLoading] = useState<boolean>(true);
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [questionInput, setQuestionInput] = useState<string>('');
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -256,6 +257,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     } catch (error) {
       console.error("채팅 이력 조회 중 오류가 발생했습니다.", error);
       toast.error('채팅 이력 조회 중 오류가 발생했습니다.\n다시 시도하거나 관리자에게 문의하세요.')
+    } finally {
+      setChatHistoryLoading(false);
     }
   }
 
@@ -358,12 +361,12 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
           <div className="flex h-[calc(100%-64px)]">
             {config?.id && (
               <div className="w-[252px] p-[20px] border-r border-line-02 overflow-y-auto scrollbar-hover">
-                {chatHistory.length > 0 ? (
-                  <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
-                ) : (
+                {chatHistoryLoading ? (
                   <div className="flex items-center justify-center py-[50px]">
                     <DotProgress size="sm"/>
                   </div>
+                ) : (
+                  <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
                 )}
               </div>
             )}

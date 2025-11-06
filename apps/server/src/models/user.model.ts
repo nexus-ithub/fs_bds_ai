@@ -21,7 +21,7 @@ export class UserModel {
   static async findByEmail(email: string): Promise<User | null> {
     try {
       const users = await db.query<User>(
-        'SELECT * FROM users WHERE email = ? AND delete_yn = "N"',
+        'SELECT * FROM users WHERE email = ? ',
         [email]
       );
       return users[0] || null;

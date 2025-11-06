@@ -86,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password, keepLoggedIn } = req.body;
 
     const user = await UserModel.findByEmail(email);
-    if (!user) {
+    if (!user || user.delete_yn === 'Y') {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
@@ -461,6 +461,9 @@ export const oauth = async (req: Request, res: Response) => {
       } else if(existingUser.provider !== provider.slice(0, 1)) {  // 일반가입 했던 회원
         console.log("이미 가입된 회원")
         return res.status(409).json({ message: '이미 가입된 이메일 계정입니다. 다른 방법으로 로그인하세요.' });
+      } else if (existingUser.delete_yn === 'Y') {
+        console.log("삭제된 회원")
+        return res.status(409).json({ message: '회원을 찾을 수 없습니다.\n 다른 방법으로 로그인하세요.' });
       } else {
         console.log("이미 소셜회원가입 했던 회원")
         await UserModel.update({...existingUser, profile: user.profile});
