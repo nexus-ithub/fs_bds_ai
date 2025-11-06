@@ -1813,6 +1813,7 @@ export class AIReportModel {
           0,
           0,
           devDetailInfo.rent.duration,
+          false,
           debug,
           devDetailInfo.debugRentInfo
         );
