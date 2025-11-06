@@ -531,7 +531,6 @@ const getPropertyTaxForBuilding = (price : number, totalFloorArea : number, stru
 
 
   if(debug){
-    debugExtraInfo.push(`---`);
     debugExtraInfo.push(`[구조지수] ${structureIndex} (${structureCodeName})`);
     debugExtraInfo.push(`[용도지수] ${usageIndex} (${BUILDING_USAGE_INDEX_BASE})`);
     debugExtraInfo.push(`[위치지수] ${locationIndex} (공시지가 ${price})`);
@@ -584,6 +583,55 @@ const getPropertyTaxForBuilding = (price : number, totalFloorArea : number, stru
   return propertyTax + resourceTax; 
 }
 
+function getComprehensiveRealEstateTax(price : number, area : number, propertyTax : number, debug : boolean = false, debugInfo : string[] = []){
+  // 상업용건물은 별도합산토지로 계산 
+
+  const publicPrice = price * area; // 공시지가
+  const deductiblePrice = publicPrice - 8_000_000_000; // 80억 공제
+  const taxBase = Math.max(deductiblePrice * 1.0, 0); // 과세표준 (공제 금액의 100%)
+
+  if(debug){
+    debugInfo.push(`[과세표준] ${krwUnit(taxBase)} (${krwUnit(publicPrice)} (공시지가) - ${krwUnit(8_000_000_000)} (공제금액) x 100%)`);
+  }
+
+  // 산출세액 
+  const th1 = 20_000_000_000; // 200억
+  const th2 = 40_000_000_000; // 400억
+  let grossTax = 0; // 토지분 별도합산세액 
+  if (taxBase <= th1) {
+    grossTax = taxBase * 0.005; // 0.5%
+    if(debug){
+      debugInfo.push(`[산출세액] ${krwUnit(grossTax)} (${krwUnit(taxBase)} (과세표준) x 0.5%)`);
+    }
+  } else if (taxBase <= th2) {
+    grossTax = taxBase * 0.006 - 20_000_000; // 0.6% - 2,000만
+    if(debug){
+      debugInfo.push(`[산출세액] ${krwUnit(grossTax)} (${krwUnit(taxBase)} (과세표준) x 0.6% - 2,000만)`);
+    }
+  } else {
+    grossTax = taxBase * 0.007 - 60_000_000; // 0.7% - 6,000만
+    if(debug){
+      debugInfo.push(`[산출세액] ${krwUnit(grossTax)} (${krwUnit(taxBase)} (과세표준) x 0.7% - 6,000만)`);
+    }
+  }
+
+
+  // 재산세 차감: 80억 초과분에 해당하는 비율만큼
+  // 비율 = 과세표준 / 공시가격
+  const ratio = taxBase > 0 ? Math.min(1, taxBase / publicPrice) : 0;
+  const propertyTaxOffset = propertyTax * ratio;
+
+  // 최종 종부세
+  const finalTax = Math.max(0, grossTax - propertyTaxOffset);
+
+  if(debug){
+    debugInfo.push(`[재산세 차감] ${krwUnit(propertyTaxOffset)} (${krwUnit(propertyTax)}(재산세(토지)) x (${krwUnit(taxBase)} (과세표준) / ${krwUnit(publicPrice)} (공시가격)))`);
+    debugInfo.push(`<종부세> ${krwUnit(finalTax)} (${krwUnit(grossTax)} (산출세액) - ${krwUnit(propertyTaxOffset)} (재산세 차감))`);
+  }
+
+  return finalTax;
+}
+
 
 function getBuildingAge (useApprovalDateStr: string){
   if (!useApprovalDateStr || useApprovalDateStr.length < 8) {
@@ -627,7 +675,7 @@ function makeLandCost(landCost : LandCost, estimatedPrice : EstimatedPrice, debu
   landCost.agentFee = estimatedPrice.estimatedPrice * AGENT_FEE_RATIO; // 중개보수
 
   if(debug){
-    debugExtraInfo.push(`--------------------------------------------`);
+    debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`토지비`);
     debugExtraInfo.push(`[매입비용] ${krwUnit(landCost.purchaseCost)} (추정가)`);
     debugExtraInfo.push(`[취득세+법무사비] ${krwUnit(landCost.acquisitionCost)} (추정가 * ${(ACQUISITION_COST_RATIO * 100).toFixed(1)}%)`);
@@ -675,20 +723,20 @@ function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, 
 
 
 function makeProjectCost(
+  type : 'rent' | 'remodel' | 'build',
   projectCost: ProjectCost,
   currentFloorArea: number,
   totalFloorArea: number,
   projectDuration: ProjectDuration,
-  remodeling: boolean,
   debug: boolean,
   debugExtraInfo: string[]
 ) {
   // console.log('makeProjectCost ', currentFloorArea, totalFloorArea, projectDuration, remodeling);
   if(debug){
-    debugExtraInfo.push(`--------------------------------------------`);
+    debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`사업비`);
   }
-  if(remodeling){
+  if(type === 'remodel' || type === 'rent'){
     projectCost.demolitionCost = 0;
     projectCost.demolitionManagementCost = 0;
     if(debug){
@@ -706,14 +754,14 @@ function makeProjectCost(
 
   projectCost.constructionDesignCost = totalFloorArea * 0.3025 * getConstructionDesignCostPerPy(totalFloorArea);
 
-  if(remodeling){
+  if(type === 'remodel'){
     projectCost.constructionCost = totalFloorArea * 0.3025 * getRemodelingCostPerPy(totalFloorArea);
   }else{
     projectCost.constructionCost = totalFloorArea * 0.3025 * getConstructionCostPerPy(totalFloorArea);
   }
   if(debug){
     debugExtraInfo.push(`[건축설계비] ${krwUnit(projectCost.constructionDesignCost)} (${( totalFloorArea * 0.3025 ).toFixed(2)}(건물연면적(평)) * ${getConstructionDesignCostPerPy(totalFloorArea).toLocaleString()}(평당금액))`);
-    if(remodeling){
+    if(type === 'remodel'){
       debugExtraInfo.push(`[건축공사비] ${krwUnit(projectCost.constructionCost)} (${( totalFloorArea * 0.3025 ).toFixed(2)}(건물연면적(평)) * ${getRemodelingCostPerPy(totalFloorArea).toLocaleString()}(평당금액))`);
     }else{
       debugExtraInfo.push(`[건축공사비] ${krwUnit(projectCost.constructionCost)} (${( totalFloorArea * 0.3025 ).toFixed(2)}(건물연면적(평)) * ${getConstructionCostPerPy(totalFloorArea).toLocaleString()}(평당금액))`);
@@ -767,7 +815,7 @@ function makeLoan(value : ReportValue, debug : boolean = false, debugExtraInfo :
   const loanInterestPerYear = loanAmount * LOAN_INTEREST_RATIO;
 
   if(debug){
-    debugExtraInfo.push(`--------------------------------------------`);
+    debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`금융차입`);
     debugExtraInfo.push(`[차입비] ${krwUnit(loanAmount)} ((토지비 + 사업비) * ${(LOAN_RATIO * 100).toFixed(2)}%)`);
     debugExtraInfo.push(`[이자/년] ${krwUnit(loanInterestPerYear)} (${krwUnit(loanAmount)} * ${(LOAN_INTEREST_RATIO * 100).toFixed(2)}%)`);
@@ -860,7 +908,7 @@ function makeProfit(
   // console.log('baseFloorRentProfitPerPy', baseFloorRentProfitPerPy);
 
   if(debug){
-    debugExtraInfo.push(`---------------------------------------`);
+    debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`임대 수익`);
   }
   
@@ -971,7 +1019,7 @@ function makeProfit(
 
 function makeResult(value : ReportValue, tax : TaxInfo, debug : boolean = false, debugExtraInfo : string[] = []){
   if(debug){
-    debugExtraInfo.push(`--`);
+    debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`최종`);
   }
   const initialCapital = calculateInitialCapital(value, debug, debugExtraInfo);
@@ -1074,7 +1122,7 @@ function calculateaAnnualProfit(value : ReportValue, tax : TaxInfo, debug : bool
 
 function makeTaxInfo(curLandInfo : LandData, totalFloorArea : number, structureCodeName : string, useApprovalDate : string, taxInfo : TaxInfo, debug : boolean = false, debugInfo : string[] = []){
   if(debug){
-    debugInfo.push(`---------------------------------------`);
+    debugInfo.push(`\n`);
     debugInfo.push(`🧾 세금`);
   }        
   taxInfo.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, debugInfo);
@@ -1085,11 +1133,13 @@ function makeTaxInfo(curLandInfo : LandData, totalFloorArea : number, structureC
     structureCodeName,
     useApprovalDate,
     debug, debugInfo);
+
+  taxInfo.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, taxInfo.propertyTax, debug, debugInfo);
   // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-  if(debug){
-    // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-    debugInfo.push(`<종합부동산세> ${taxInfo.comprehensiveRealEstateTax}원 (작업중..)`);
-  }
+  // if(debug){
+  //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
+  //   debugInfo.push(`<종합부동산세> ${taxInfo.comprehensiveRealEstateTax}원 (작업중..)`);
+  // }
   
 }
 
@@ -1171,7 +1221,6 @@ export class AIReportModel {
   } | null> {
       console.log('landId', landId)
       console.log('estimatedPrice', estimatedPrice)
-
 
       const devDetailInfo = {
         rent: newReportValue(),
@@ -1457,7 +1506,6 @@ export class AIReportModel {
         devDetailInfo.debugExtraInfo.push(`건물 총 연면적: ${curBuildingTotalFloorArea.toFixed(2)}`);
         devDetailInfo.debugExtraInfo.push(`건물 용적률: ${curBuildingFar.toFixed(2)}%`);
         devDetailInfo.debugExtraInfo.push(`=> 개발후 용적률: ${Number(curLandInfo.relWeightedFar).toFixed(0)}%`);
-        
       }
     
       console.log('env ', process.env.NODE_ENV)
@@ -1608,18 +1656,17 @@ export class AIReportModel {
       if(devDetailInfo.build){
         if(debug){
           devDetailInfo.debugBuildInfo = [];
-          devDetailInfo.debugBuildInfo.push(`============================================`);
           devDetailInfo.debugBuildInfo.push(`🏢 신축`);
         }
         devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugBuildInfo);
   
         makeLandCost(devDetailInfo.build.landCost, estimatedPrice, debug, devDetailInfo.debugBuildInfo);
         makeProjectCost(
+          'build',
           devDetailInfo.build.projectCost,
           curBuildingTotalFloorArea,
           devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
           devDetailInfo.build.duration,
-          false,
           debug,
           devDetailInfo.debugBuildInfo
         );
@@ -1687,17 +1734,16 @@ export class AIReportModel {
       if(devDetailInfo.remodel){
         if(debug){
           devDetailInfo.debugRemodelInfo = [];
-          devDetailInfo.debugRemodelInfo.push(`============================================`);
           devDetailInfo.debugRemodelInfo.push(`🔨리모델링`);
         }
         devDetailInfo.remodel.duration = getRemodelProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugRemodelInfo);
         makeLandCost(devDetailInfo.remodel.landCost, estimatedPrice, debug, devDetailInfo.debugRemodelInfo);
         makeProjectCost(
+          'remodel',
           devDetailInfo.remodel.projectCost,
           curBuildingTotalFloorArea,
           devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
           devDetailInfo.remodel.duration,
-          true,
           debug,
           devDetailInfo.debugRemodelInfo
         );
@@ -1755,18 +1801,21 @@ export class AIReportModel {
       if(devDetailInfo.rent){
         if(debug){
           devDetailInfo.debugRentInfo = [];
-          devDetailInfo.debugRentInfo.push(`============================================`);
           devDetailInfo.debugRentInfo.push(`⛺ 임대`);
+          devDetailInfo.debugRentInfo.push(`-`);
+          devDetailInfo.debugRentInfo.push(`-`);
         }
         // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
         makeLandCost(devDetailInfo.rent.landCost, estimatedPrice, debug, devDetailInfo.debugRentInfo);
-        // makeProjectCost(
-        //   aiReport.rent.projectCost,
-        //   building?.totalFloorArea || 0,
-        //   aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea,
-        //   aiReport.rent.duration,
-        //   false
-        // );
+        makeProjectCost(
+          'rent',
+          devDetailInfo.rent.projectCost,
+          0,
+          0,
+          devDetailInfo.rent.duration,
+          debug,
+          devDetailInfo.debugRentInfo
+        );
         devDetailInfo.rent.loan = makeLoan(devDetailInfo.rent, debug, devDetailInfo.debugRentInfo);
         // devDetailInfo.rent.loanForOwner = makeLoanForOwner(devDetailInfo.rent, debug, devDetailInfo.debugExtraInfo);
         makeProfit(
@@ -1780,14 +1829,15 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRentInfo
         );
+
         makeTaxInfo(
           curLandInfo,
           curBuildingTotalFloorArea,
           buildingList[0].structureCodeName,
           buildingList[0].useApprovalDate,
-          devDetailInfo.remodel.tax,
+          devDetailInfo.rent.tax,
           debug,
-          devDetailInfo.debugRemodelInfo
+          devDetailInfo.debugRentInfo
         );
         // if(debug){
         //   devDetailInfo.debugRentInfo.push(`---------------------------------------`);
