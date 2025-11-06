@@ -23,7 +23,7 @@ export const SignupInfo = () => {
   const [name, setName] = useState<string>(location.state?.name ?? '');
   const [phone, setPhone] = useState<string>(location.state?.phone ?? '');
 
-  const [emailValid, setEmailValid] = useState<boolean>(location.state?.email ? true : false);
+  const [emailValid, setEmailValid] = useState<boolean | null>(location.state?.email ? true : null);
   const [phoneValid, setPhoneValid] = useState<boolean>(location.state?.phone ? true : false);
   const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -109,15 +109,20 @@ export const SignupInfo = () => {
             type="email" 
             placeholder="이메일을 입력하세요." 
             value={email} 
-            onChange={(e) => {setEmail(e.target.value); setEmailValid(false)}}
+            onChange={(e) => {setEmail(e.target.value); setEmailValid(null)}}
             rightElement={
               <button
                 type="button"
                 onClick={() => {handleCheckEmail()}}
-                className={`font-s2 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 'text-primary'}`}
+                className={`font-s2 ${
+                  emailValid === false ? 'text-red-500' : 
+                  emailValid === true ? 'text-green-500' : 
+                  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'text-text-04' : 
+                  'text-primary'
+                }`}
                 disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || location.state?.email}
               >
-                {emailValid ? "사용가능" : "중복확인"}
+                {emailValid === false ? "사용불가" : emailValid === true ? "사용가능" : "중복확인"}
               </button>
             }
             disabled={!!location.state?.email}

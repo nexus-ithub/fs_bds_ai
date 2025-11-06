@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
-import { db } from '../utils/database';
 import { AuthRequest } from 'src/middleware/auth.middleware';
-import { ResultSetHeader } from 'mysql2';
-import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/user.model';
-import { type User} from '@repo/common'
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../config/auth.config';
 
@@ -23,11 +19,10 @@ export const getUserInfo = async (req: AuthRequest, res: Response) => {
 
 export const checkEmail = async (req: Request, res: Response) => {
   try {
-    console.log("checkEmail req.query >>>>> ", req.query)
     const email = req.query.email as string;
-    const user = await UserModel.findByEmail(email);
+    const user = await UserModel.checkEmail(email);
     if (user) {
-      return res.status(409).json({ message: '이미 사용 중인 이메일입니다.' });
+      return res.status(200).json({ valid: false });
     }
     res.status(200).json({ valid: true });
   } catch (err) {
