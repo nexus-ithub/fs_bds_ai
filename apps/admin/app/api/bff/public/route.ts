@@ -9,8 +9,8 @@ export async function GET(req: Request) {
     const email = url.searchParams.get("email");
     if (!email) return NextResponse.json({ success: false }, { status: 400 });
 
-    const user = await AuthModel.findByEmail(email);
-    return NextResponse.json({ success: !user });
+    const user = await AuthModel.checkEmail(email);
+    return NextResponse.json({ success: user });
   }
 
   return NextResponse.json({ success: false, message: "Unknown action" }, { status: 400 });

@@ -24,8 +24,7 @@ export const AccountDialog = ({
   isLoading=false,
 }: AccountDialogProps) => {
   const axiosInstance = useAxiosWithAuth();
-  const session = useSession();
-  const { update } = useSession();
+  const { data: session, update } = useSession();
   const [email, setEmail] = useState<string>('');
   const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const [name, setName] = useState<string>('');
@@ -47,7 +46,7 @@ export const AccountDialog = ({
     const res = await fetch(`/api/bff/public?action=check-email&email=${email}`);
     const data = await res.json();
 
-    setEmailValid(data.success)
+    setEmailValid(!data.success)
     setEmailLoading(false);
   }
 
@@ -59,7 +58,7 @@ export const AccountDialog = ({
   const updateSession = async () => {
     await update({
       user: {
-        ...session.data?.user,
+        ...session?.user,
         name: name,
         email: email,
       }
@@ -164,7 +163,7 @@ export const AccountDialog = ({
                   onClick={() => handleEmailValidation()}
                   className={`font-s2 transition-colors ${
                     emailValid === true
-                      ? "text-primary cursor-default"
+                      ? "text-green-500 cursor-default"
                       : emailValid === false
                       ? "text-secondary-050 cursor-default"
                       : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)

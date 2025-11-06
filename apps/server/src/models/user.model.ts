@@ -21,7 +21,7 @@ export class UserModel {
   static async findByEmail(email: string): Promise<User | null> {
     try {
       const users = await db.query<User>(
-        'SELECT * FROM users WHERE email = ?',
+        'SELECT * FROM users WHERE email = ? AND delete_yn = "N"',
         [email]
       );
       return users[0] || null;
@@ -31,10 +31,23 @@ export class UserModel {
     }
   }
 
+  static async checkEmail(email: string): Promise<boolean> {
+    try {
+      const users = await db.query<User>(
+        'SELECT * FROM users WHERE email = ? ',
+        [email]
+      );
+      return users[0] ? true : false;
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      throw error; 
+    }
+  }
+
   static async findById(id: number): Promise<User | null> {
     try {
       const users = await db.query<User>(
-        'SELECT * FROM users WHERE id = ?',
+        'SELECT * FROM users WHERE id = ? AND delete_yn = "N"',
         [id]
       );
       return users[0] || null;
@@ -47,7 +60,7 @@ export class UserModel {
   static async userInfoById(id: number): Promise<User | null> {
     try {
       const users = await db.query<User>(
-        'SELECT id, email, name, phone, profile FROM users WHERE id = ?',
+        'SELECT id, email, name, phone, profile FROM users WHERE id = ? AND delete_yn = "N"',
         [id]
       );
       return users[0] || null;
@@ -92,7 +105,7 @@ export class UserModel {
     console.log('user:', user);
     try {
       await db.query<User>(
-        'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ?',
+        'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ? AND delete_yn = "N"',
         [user.password, user.name, user.phone, user.profile, user.provider, user.id]
       );
     } catch (error) {
@@ -106,7 +119,7 @@ export class UserModel {
     const hashedPassword = bcrypt.hashSync(String(password), salt);
     try {
       await db.query<User>(
-        'UPDATE users SET password = ? WHERE id = ?',
+        'UPDATE users SET password = ? WHERE id = ? AND delete_yn = "N"',
         [hashedPassword, id]
       );
     } catch (error) {

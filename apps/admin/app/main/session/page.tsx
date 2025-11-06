@@ -163,8 +163,11 @@ export default function Session() {
           </thead>
           <tbody>
             {sortedSessions?.map((session, index) => (
-              <tr key={index} className="h-[56px] font-s2 border-b border-line-02">
-                <td className="pl-[16px] cursor-pointer" onClick={() => {getChatContent(session.sessionId); setOpenChatContent(true)}}>{session.sessionId}</td>
+              <tr key={index} 
+                className="h-[56px] font-s2 border-b border-line-02 hover:bg-primary-010 cursor-pointer"
+                onClick={() => {getChatContent(session.sessionId); setOpenChatContent(true)}}
+              >
+                <td className="pl-[16px]">{session.sessionId}</td>
                 <td className="pl-[12px]">{session.email}</td>
                 <td className="pl-[12px] text-center">
                   {format(session.sessionStart, 'yyyy.MM.dd')}<br />
