@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
-import { BuildingShopBI, Button, Checkbox, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
+import { BuildingShopBI, Button, Checkbox, Spinner, VDivider } from "@repo/common";
 import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
@@ -25,6 +25,7 @@ export const EmailLogin = () => {
   const [openPWFind, setOpenPWFind] = useState<boolean>(false);
   const [openPWFindSuccess, setOpenPWFindSuccess] = useState<boolean>(false);
   const [findPWEmail, setFindPWEmail] = useState<string>('');
+  const [sendEmailLoading, setSendEmailLoading] = useState<boolean>(false);
 
   const expiresInStr = import.meta.env.VITE_RESET_TOKEN_EXPIRES_IN;
 
@@ -51,6 +52,10 @@ export const EmailLogin = () => {
       if (!response.data) {
         throw new Error('로그인에 실패했습니다.');
       }
+      if (response.status === 210) {
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.")
+        return;
+      }
 
       const data: LoginResponse = response.data;
 
@@ -58,32 +63,23 @@ export const EmailLogin = () => {
       setToken(data.accessToken)
       navigate('/');
     } catch (err) {
-      // alert('로그인 중 오류가 발생했습니다.');
-      // setError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
       console.log(`로그인 중 오류: ${err}`)
-      setError("이메일 또는 비밀번호가 올바르지 않습니다.")
-    }
-  };
-
-  const handleOAuth = async(provider: string) => {
-    const url = await axios.post(`${API_HOST}/api/auth/oauth/callback/${provider}`, {}, { withCredentials: true });
-    if (url) {
-      window.location.href = url.data.url;
-    } else {
-      setError('다른 로그인 방법을 시도하거나 잠시 후 다시 시도해주세요.');
-      console.log('지원하지 않는 OAuth 제공자입니다.')
+      setError("오류가 발생하였습니다. 잠시 후 다시 시도해주세요.")
     }
   };
 
   const handlePWFind = async () => {
     try{
+      setSendEmailLoading(true);
       const response = await axios.post(`${API_HOST}/api/auth/pwfind`, { email: findPWEmail });
       console.log(response)
       setOpenPWFind(false);
       setOpenPWFindSuccess(true);
-    }catch(err){
+    } catch(err){
       console.log("비밀번호 찾기 중 오류: ", err)
       toast.error("비밀번호 찾기 중 오류가 발생했습니다.");
+    } finally {
+      setSendEmailLoading(false);
     }
   };
 
@@ -161,31 +157,6 @@ export const EmailLogin = () => {
                   labelOrderLast={true}
                   labelClassName="font-s2 text-text-04"
                 />
-                {/* <div>
-                  <label className="flex items-center gap-[8px]">
-                  <input
-                    type="checkbox"
-                    name="keepLoggedIn"
-                    checked={keepLoggedIn}
-                    onChange={(e) => setKeepLoggedIn(e.target.checked)}
-                    className="sr-only"
-                  />
-                  {keepLoggedIn ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" fill="#D2D4DA" />
-                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="#D2D4DA" />
-                      <path fillRule="evenodd" clipRule="evenodd" d="M11.4638 4.68695C11.7476 4.37273 12.2343 4.35327 12.5423 4.64383C12.8409 4.92558 12.8596 5.39434 12.5845 5.69905L7.57922 11.2411C7.26155 11.5928 6.70947 11.5928 6.3918 11.2411L3.41558 7.94566C3.14039 7.64096 3.15914 7.1722 3.45778 6.89045C3.76576 6.59988 4.25242 6.61935 4.53621 6.93357L6.98551 9.64554L11.4638 4.68695Z" fill="white"/>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
-                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" fill="white" />
-                      <rect x="0.5" y="0.5" width="15" height="15" rx="1.5" stroke="var(--primary-050)" />
-                      <path fillRule="evenodd" clipRule="evenodd" d="M11.4638 4.68695C11.7476 4.37273 12.2343 4.35327 12.5423 4.64383C12.8409 4.92558 12.8596 5.39434 12.5845 5.69905L7.57922 11.2411C7.26155 11.5928 6.70947 11.5928 6.3918 11.2411L3.41558 7.94566C3.14039 7.64096 3.15914 7.1722 3.45778 6.89045C3.76576 6.59988 4.25242 6.61935 4.53621 6.93357L6.98551 9.64554L11.4638 4.68695Z" fill="var(--primary-050)"/>
-                    </svg>
-                  )}
-                    <span className="font-s2 text-text-04 cursor-pointer">로그인 상태 유지</span>
-                  </label>  
-                </div> */}
               </div>
               <button
                 type="submit"
@@ -205,15 +176,12 @@ export const EmailLogin = () => {
             </div>
           </div>
         </div>
-        <div className="flex items-center">
-          {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
-        </div>
       </div>
       <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>
         <div className="flex flex-col gap-[20px] w-[400px]">
           <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">비밀번호 찾기</h3>
           <div className="flex flex-col items-center gap-[4px] px-[20px]">
-            <p className='font-h3'>등록된 이메일 주소를 입력해주세요.</p>
+            <p className='font-h3 pb-[4px]'>등록된 이메일 주소를 입력해주세요.</p>
             <p className='font-s1'>비밀번호 재설정 메일을 보내드립니다.</p>
           </div>
           <input 
@@ -226,9 +194,13 @@ export const EmailLogin = () => {
           <Button 
             size='semiMedium' 
             fontSize='font-h5' 
-            className="w-[200px] mx-auto mb-[20px]" 
-            disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(findPWEmail)}
-            onClick={() => handlePWFind()}>재설정 메일 발송</Button>
+            className="w-[200px] mx-auto" 
+            disabled={!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(findPWEmail) || sendEmailLoading}
+            onClick={() => handlePWFind()}>{sendEmailLoading ? <Spinner /> : "재설정 메일 발송"}</Button>
+          <p className="text-center text-text-03 font-s4 mb-[20px]">
+            메일이 오지 않았다면 입력한 이메일 주소를 다시 확인하거나,<br />
+            스팸함을 확인해주세요.
+          </p>
         </div>
       </Dialog>
       <Dialog

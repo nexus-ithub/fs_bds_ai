@@ -38,10 +38,13 @@ export const OAuthCallback = () => {
           setToken(res.data.accessToken)
           setOpenDialog(true);
           return;
-        } else if (res.status === 206) {
+        } else if (res.status === 206) {  // 완전 신규회원
           // navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})
           console.log("res.data : ", res.data)
           navigate('/signup', {state: {email: res.data.email, name: res.data.name, password: res.data.password, phone: res.data.phone, profile: res.data.profile, provider: res.data.provider}})
+          return;
+        } else if (res.status === 208) {  // 이미 가입된 회원 || 탈퇴한 회원
+          navigate("/login", { state: { message: res.data.message } });
           return;
         }
         setToken(res.data.accessToken)
