@@ -168,8 +168,8 @@ export const EmailLogin = () => {
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              {/* <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button> */}
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
+              <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button>
+              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button> */}
               <VDivider colorClassName="bg-line-04"/>
               {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button>
@@ -185,7 +185,7 @@ export const EmailLogin = () => {
             <p className='font-s1'>비밀번호 재설정 메일을 보내드립니다.</p>
           </div>
           <input 
-            type="text" 
+            type="email" 
             placeholder="이메일" 
             className='mx-[30px] px-[14px] py-[8px] font-b1 rounded-[4px] border border-line-03 focus:outline-none' 
             value={findPWEmail} 

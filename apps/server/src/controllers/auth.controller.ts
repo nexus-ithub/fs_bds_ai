@@ -7,6 +7,7 @@ import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
 import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
+import path from 'path';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -244,10 +245,15 @@ export const pwFind = async (req: Request, res: Response) => {
 
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_EMAIL,
+          from: `"빌딩샵AI" <${process.env.SMTP_EMAIL}>`,
           to: email,
           subject: '비밀번호 재설정 안내',
           html: resetPasswordMailTemplate(resetLink, readableExpires),
+          attachments: [{
+            filename: 'buildingshop_BI.png',
+            path: path.join(__dirname, '../utils/buildingshop_BI.png'),
+            cid: 'logo'
+          }]
         });
       } catch (error) {
         console.error('메일 발송 실패:', error);
