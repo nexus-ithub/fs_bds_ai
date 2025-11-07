@@ -61,6 +61,7 @@ export const EmailLogin = () => {
 
       localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false");
       setToken(data.accessToken)
+      localStorage.setItem("lastLogin", 'em');
       navigate('/');
     } catch (err) {
       console.log(`로그인 중 오류: ${err}`)

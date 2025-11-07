@@ -493,8 +493,9 @@ export const oauth = async (req: Request, res: Response) => {
             : 1 * 60 * 60 * 1000,       // 1시간
         });
 
-        res.status(!existingUser ? 201 : 200).json({
+        res.status(200).json({
           id: existingUser.id,
+          provider: existingUser.provider,
           accessToken,
         });
       }

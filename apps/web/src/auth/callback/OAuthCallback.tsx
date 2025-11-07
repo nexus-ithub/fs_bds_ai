@@ -4,13 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../../constants";
 import { setToken } from "../../authutil";
-import { Dialog } from "@mui/material";
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const handledRef = useRef(false);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   useEffect(() => {
     if (handledRef.current) return;
@@ -34,11 +32,7 @@ export const OAuthCallback = () => {
           { withCredentials: true },
         );
         console.log("res : ", res)
-        if (res.status === 201) {
-          setToken(res.data.accessToken)
-          setOpenDialog(true);
-          return;
-        } else if (res.status === 206) {  // 완전 신규회원
+        if (res.status === 206) {  // 완전 신규회원
           // navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})
           console.log("res.data : ", res.data)
           navigate('/signup', {state: {email: res.data.email, name: res.data.name, password: res.data.password, phone: res.data.phone, profile: res.data.profile, provider: res.data.provider}})
@@ -48,6 +42,7 @@ export const OAuthCallback = () => {
           return;
         }
         setToken(res.data.accessToken)
+        localStorage.setItem("lastLogin", `${res.data.provider}`);
         navigate('/');
       } catch (err) {
         console.log("err : ", err.response.status)
@@ -62,24 +57,6 @@ export const OAuthCallback = () => {
   return (
     <div className="flex items-center justify-center h-screen">
       <DotProgress />
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <div className="flex flex-col items-center justify-center px-[40px] pt-[40px] pb-[32px] gap-[8px]">
-          <p className="font-h2 text-center">회원가입이 완료되었습니다.</p>
-          <div className="flex items-center justify-center gap-[12px] w-full mt-[16px]">
-            <Button
-              autoFocus
-              className="w-[112px]"
-              size="semiMedium"
-              onClick={() => {
-                setOpenDialog(false);
-                navigate('/main');
-              }}
-            >
-              확인
-            </Button>
-          </div>
-              </div>
-      </Dialog>
     </div>
   );
 }

@@ -5,6 +5,13 @@ import { BuildingShopBI, GoogleLogo, KakaoLogo, NaverLogo, VDivider } from "@rep
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+const LOGIN_TYPES = [
+  { provider: 'k', callback: 'kakao', color: '#FEE502', textColor: 'text-[rgba(0,0,0,0.85)]', logo: <KakaoLogo size='20' />, label: '카카오 계정으로 계속하기' },
+  { provider: 'n', callback: 'naver', color: '#03C75A', textColor: 'text-white', logo: <NaverLogo size='20' />, label: '네이버 계정으로 계속하기' },
+  { provider: 'g', callback: 'google', color: '#FFFFFF', textColor: 'text-[#3C4043]', logo: <GoogleLogo size='20' />, label: '구글 계정으로 계속하기', border: 'border border-[#DADCE0]' },
+  { provider: 'em', callback: 'email', color: 'rgb(243 244 246)', textColor: 'text-black', label: '이메일 계정으로 계속하기' },
+]
+
 export const LoginMain = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,42 +51,31 @@ export const LoginMain = () => {
             </div>
           </div>
           <div className="flex flex-col gap-[10px]">
-            <button 
-              className="flex items-center justify-center gap-[12px] bg-[#FEE502] rounded-[8px] h-[56px] text-[16px] font-semibold"
-              onClick={() => {localStorage.setItem("autoLogin", "true"); handleOAuth('kakao')}}
-            >
-              <KakaoLogo size='20'/>
-              <p className="text-[rgba(0,0,0,0.85)]">
-                카카오 계정으로 계속하기
-              </p>
-            </button>
-            <button 
-              className="flex items-center justify-center gap-[12px] bg-[#03C75A] rounded-[8px] h-[56px] text-[16px] font-semibold"
-              onClick={() => {localStorage.setItem("autoLogin", "true"); handleOAuth('naver')}}
-            >
-              <NaverLogo size='20'/>
-              <p className="text-white">
-                네이버 계정으로 계속하기
-              </p>
-            </button>
-            <button 
-              className="flex items-center justify-center gap-[12px] bg-[#FFFFFF] rounded-[8px] h-[56px] text-[16px] font-semibold border border-[#DADCE0]"
-              // onClick={() => {localStorage.setItem("autoLogin", "true"); handleOAuth('google')}}
-              onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
-            >
-              <GoogleLogo size='20'/>
-              <p className="text-[#3C4043]">
-                구글 계정으로 계속하기
-              </p>
-            </button>
-            <button 
-              className="flex items-center justify-center gap-[12px] bg-gray-100 rounded-[8px] h-[56px] text-[16px] font-semibold"
-              onClick={() => navigate('/login/email')}
-            >
-              <p>
-                이메일 계정으로 계속하기
-              </p>
-            </button>
+            {LOGIN_TYPES.map(({provider, callback, color, textColor, logo, label, border}) => (
+              <button
+                key={provider}
+                className={`relative flex items-center justify-center gap-[12px] rounded-[8px] h-[56px] text-[16px] font-semibold ${border}`}
+                style={{ backgroundColor: color }}
+                onClick={() => {
+                  localStorage.setItem('autoLogin', 'true');
+                  if (provider === 'em') return navigate('/login/email');
+                  if (provider === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
+                  handleOAuth(callback);
+                }}
+              >
+                {logo}
+                <p className={textColor}>{label}</p>
+
+                {localStorage.getItem('lastLogin') === provider && (
+                  <div className="absolute left-[14px] top-[4px] -translate-y-1/2 bg-secondary rounded-[6px] px-[8px] py-[4px]
+                    text-white font-s4-p shadow-sm
+                    after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2
+                    after:border-[6px] after:border-transparent after:border-t-secondary">
+                    최근 로그인
+                  </div>
+                )}
+              </button>
+            ))}
           </div>
         </div>
         <div className="flex items-center gap-[24px] font-s2 text-text-03">
