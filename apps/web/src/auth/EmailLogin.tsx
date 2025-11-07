@@ -169,8 +169,8 @@ export const EmailLogin = () => {
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button>
-              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button> */}
+              {/* <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button> */}
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
               {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button>

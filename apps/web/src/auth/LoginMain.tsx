@@ -58,8 +58,8 @@ export const LoginMain = () => {
                 style={{ backgroundColor: color }}
                 onClick={() => {
                   localStorage.setItem('autoLogin', 'true');
-                  if (provider === 'em') return navigate('/login/email');
-                  if (provider === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
+                  if (callback === 'email') return navigate('/login/email');
+                  if (callback === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
                   handleOAuth(callback);
                 }}
               >
