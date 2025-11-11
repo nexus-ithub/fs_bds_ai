@@ -9,6 +9,7 @@ import { BusinessDistrict } from "./BusinessDistrict";
 import { Place } from "./Place";
 import { CompanyInfo } from "../footer/CompanyInfo";
 import { format } from "date-fns";
+import { usePostHog } from 'posthog-js/react'
 
 const TABS = [
   "토지",
@@ -37,6 +38,7 @@ export const LandInfoCard = ({
 
   const [selectedTab, setSelectedTab] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const posthog = usePostHog()
 
   const landRef = useRef<HTMLDivElement>(null);
   const buildingRef = useRef<HTMLDivElement>(null);
@@ -49,6 +51,14 @@ export const LandInfoCard = ({
 
 
   const [selecting, setSelecting] = useState(false);
+
+  const handleOpenAIReport = () => {
+    onOpenAIReport?.();
+    console.log('report_viewed', landInfo?.sidoName + ' ' + landInfo?.sigunguName);
+    posthog?.capture('report_viewed', {
+      region: landInfo?.sidoName + ' ' + landInfo?.sigunguName,
+    })
+  }
 
   const scrollToTab = (tab: number) => {
     const tabRef = [
@@ -222,7 +232,7 @@ export const LandInfoCard = ({
 
         <Button 
           className="w-full mt-[16px] py-[11px]"
-          onClick={() => onOpenAIReport?.()}
+          onClick={() => handleOpenAIReport()}
         >
           AI 설계 • 임대 분석 리포트
         </Button>

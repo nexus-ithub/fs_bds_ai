@@ -8,6 +8,7 @@ import { BuildingDetailDialog } from "./BuildingDetail";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { CompanyInfo } from "../footer/CompanyInfo";
+import posthog from "posthog-js";
 
 
 const FILTER_TABS = [
@@ -133,7 +134,10 @@ export const BuildingList = () => {
           buildings.map((building, index) => (
             <button 
               key={index} 
-              onClick={() => setSelectedBuilding(building)}
+              onClick={() => {
+                setSelectedBuilding(building); 
+                posthog.capture('bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") });
+              }}
               className="space-y-[12px] px-[20px] py-[20px] text-start hover:bg-primary-010">
               <div className="flex items-center gap-[12px]">
                 <div className="flex-shrink-0 relative">
@@ -161,11 +165,11 @@ export const BuildingList = () => {
                 </div>
               </div>
             </div>
-            <p className="font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">
+            <div className="font-b3 rounded-[4px] px-[16px] py-[12px] bg-surface-second">
               {building.memo?.split('\n').map((line, index) => (
                 <p key={index}>{line}</p>
               ))}
-            </p>
+            </div>
             
           </button>
         )))}

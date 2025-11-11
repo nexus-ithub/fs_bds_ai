@@ -7,6 +7,7 @@ import { RefreshTokenModel } from '../models/refresh-token.model';
 import axios from 'axios';
 import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
+import path from 'path';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -74,8 +75,13 @@ export const createUser = async (req: Request, res: Response) => {
 export const verifyResetToken = async (req: Request, res: Response) => {
   const { token } = req.query;
   try {
-    jwt.verify(token as string, authConfig.resetToken.secret as string);
-    res.status(200).json({ valid: true });
+    const decoded = jwt.verify(token as string, authConfig.resetToken.secret as string);
+    if ((decoded as any).provider === null) {
+      res.status(200).json({ valid: true });
+    } else {
+      const provider = (decoded as any).provider === "k" ? "카카오" : (decoded as any).provider === "n" ? "네이버" : "구글";
+      res.status(201).json({ valid: true, message: `${provider} 계정으로 가입된 사용자입니다.`});
+    }
   } catch (err) {
     res.status(500).json({ valid: false });
   }
@@ -87,12 +93,12 @@ export const login = async (req: Request, res: Response) => {
 
     const user = await UserModel.findByEmail(email);
     if (!user || user.delete_yn === 'Y') {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      return res.status(210).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
     const isValidPassword = bcrypt.compareSync(password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
+      return res.status(210).json({ message: '비밀번호가 일치하지 않습니다.' });
     }
 
     // Generate tokens
@@ -126,12 +132,7 @@ export const login = async (req: Request, res: Response) => {
 
     res.status(200).json({
       id: user.id,
-      // email: user.email,
-      // name: user.name,
-      // phone: user.phone,
-      // profile: user.profile,
       accessToken,
-      // refreshToken
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -224,7 +225,7 @@ export const pwFind = async (req: Request, res: Response) => {
     const user = await UserModel.findByEmail(email);
     if (user) {
       const token = jwt.sign(
-        { id: user.id }, 
+        { id: user.id, provider: user.provider }, 
         authConfig.resetToken.secret as string, 
         { expiresIn: authConfig.resetToken.expires } as jwt.SignOptions);
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
@@ -244,10 +245,15 @@ export const pwFind = async (req: Request, res: Response) => {
 
       try {
         await transporter.sendMail({
-          from: process.env.SMTP_EMAIL,
+          from: `"빌딩샵AI" <${process.env.SMTP_EMAIL}>`,
           to: email,
           subject: '비밀번호 재설정 안내',
           html: resetPasswordMailTemplate(resetLink, readableExpires),
+          attachments: [{
+            filename: 'buildingshop_BI.png',
+            path: path.join(__dirname, '../utils/buildingshop_BI.png'),
+            cid: 'logo'
+          }]
         });
       } catch (error) {
         console.error('메일 발송 실패:', error);
@@ -458,12 +464,9 @@ export const oauth = async (req: Request, res: Response) => {
       if (!existingUser) { // 완전 신규회원 -> 추가 정보 입력 필요
         console.log("완전 신규회원")
         return res.status(206).json(user);
-      } else if(existingUser.provider !== provider.slice(0, 1)) {  // 일반가입 했던 회원
+      } else if(existingUser.provider !== provider.slice(0, 1) || existingUser.delete_yn === 'Y') {  // 일반가입 했던 회원 || 탈퇴한 회원
         console.log("이미 가입된 회원")
-        return res.status(409).json({ message: '이미 가입된 이메일 계정입니다. 다른 방법으로 로그인하세요.' });
-      } else if (existingUser.delete_yn === 'Y') {
-        console.log("삭제된 회원")
-        return res.status(409).json({ message: '회원을 찾을 수 없습니다.\n 다른 방법으로 로그인하세요.' });
+        return res.status(208).json({ message: '회원을 찾을 수 없습니다.\n다른 방법으로 로그인하세요.' });
       } else {
         console.log("이미 소셜회원가입 했던 회원")
         await UserModel.update({...existingUser, profile: user.profile});
@@ -490,8 +493,9 @@ export const oauth = async (req: Request, res: Response) => {
             : 1 * 60 * 60 * 1000,       // 1시간
         });
 
-        res.status(!existingUser ? 201 : 200).json({
+        res.status(200).json({
           id: existingUser.id,
+          provider: existingUser.provider,
           accessToken,
         });
       }

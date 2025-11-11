@@ -10,6 +10,7 @@ import { setToken } from "../authutil";
 import type { LottieRefCurrentProps } from "lottie-react";
 import { Check } from "lucide-react";
 import { toast } from "react-toastify";
+import posthog from "posthog-js";
 
 export const SignupInfo = () => {
   const navigate = useNavigate();
@@ -82,10 +83,11 @@ export const SignupInfo = () => {
           marketingSms: marketingSmsAgree ? "Y" : "N"
         }
       })
-      console.log("response >>>>> ", response.data)
       if (response.data) {
         setUserId(response.data.id);
         setToken(response.data.accessToken);
+        posthog.identify(response.data.id)
+        posthog.capture("signup")
         setOpenCompleteDialog(true);
       } else {
         alert("회원가입 중 오류 발생");

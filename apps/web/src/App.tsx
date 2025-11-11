@@ -1,7 +1,7 @@
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Home } from './pages/Home'
-import Login from './pages/Login'
+import { Login } from './pages/Login'
 import { Signup } from './pages/Signup'
 import { OAuthCallback } from './auth/callback/OAuthCallback'
 import { ResetPassword } from './auth/ResetPassword'
@@ -16,7 +16,7 @@ function App() {
           element={<Home />}
         />
         <Route
-          path="/login"
+          path="/login/*"
           element={<Login />}
         />
         <Route

@@ -11,6 +11,7 @@ export const ResetPassword = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const [providerMsg, setProviderMsg] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [passwordConfirm, setPasswordConfirm] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -31,7 +32,7 @@ export const ResetPassword = () => {
       setOpenSuccess(true);
     } catch (error) {
       console.error(error);
-      setError(error.response.data.message);
+      setError("오류가 발생했습니다. 다시 시도해주세요.");
     }
   }
 
@@ -56,9 +57,12 @@ export const ResetPassword = () => {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        await axios.get(`${API_HOST}/api/auth/verify-reset-token`, {
+        const res = await axios.get(`${API_HOST}/api/auth/verify-reset-token`, {
           params: { token },
         });
+        if (res.data.message) {
+          setProviderMsg(res.data.message);
+        }
       } catch (error) {
         setOpenTokenExpired(true);
       }
@@ -83,62 +87,75 @@ export const ResetPassword = () => {
               <div className="text-sm text-red-700 whitespace-pre-line">{error}</div>
             </div>
           )}
-          <div className="flex flex-col gap-[24px]">
-            <FormField 
-              label="새 비밀번호" 
-              type={showPassword ? 'text' : 'password'} 
-              placeholder="새 비밀번호를 입력하세요." 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSubmit();
-                }
-              }}
-              rightElement={
-                <button type="button" onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
-                </button>
-              }
-              />
-            <FormField 
-              label="새 비밀번호 확인" 
-              type={showPasswordConfirm ? 'text' : 'password'} 
-              placeholder="새 비밀번호를 다시 입력하세요." 
-              value={passwordConfirm} 
-              onChange={(e) => setPasswordConfirm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSubmit();
-                }
-              }}
-              rightElement={
-                <>
-                  <div
-                    className={`transition-opacity duration-200 pr-[6px] ${
-                      password && passwordConfirm ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    {password === passwordConfirm ? (
-                      <Check className="text-green-500 w-5 h-5" />
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                  <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>
-                    {showPasswordConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
+          {providerMsg ? (
+            <div className="flex flex-col gap-[24px]">
+              <div className="flex items-start gap-3 rounded-md bg-blue-50 p-4 border border-blue-200">
+                <span className="font-s2">ℹ️</span>
+                <div className="flex flex-col gap-[4px] font-s2 text-primary">
+                  <p>{providerMsg}</p>
+                  <p>해당 소셜 계정으로 로그인해주세요.</p>
+                </div>
+              </div>
+              <Button onClick={() => navigate('/login')} className="h-[36px]">확인</Button>
+            </div>
+          ) : 
+            <div className="flex flex-col gap-[24px]">
+              <FormField 
+                label="새 비밀번호" 
+                type={showPassword ? 'text' : 'password'} 
+                placeholder="새 비밀번호를 입력하세요." 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSubmit();
+                  }
+                }}
+                rightElement={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
                   </button>
-                </>
-              }
-              />
-          </div>
-          <Button
-            onClick={() => handleSubmit()}
-            className="w-full"
-            size="medium"
-            fontSize="font-h5"
-            disabled={!password || !passwordConfirm || password !== passwordConfirm}
-          >비밀번호 재설정</Button>
+                }
+                />
+              <FormField 
+                label="새 비밀번호 확인" 
+                type={showPasswordConfirm ? 'text' : 'password'} 
+                placeholder="새 비밀번호를 다시 입력하세요." 
+                value={passwordConfirm} 
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSubmit();
+                  }
+                }}
+                rightElement={
+                  <>
+                    <div
+                      className={`transition-opacity duration-200 pr-[6px] ${
+                        password && passwordConfirm ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {password === passwordConfirm ? (
+                        <Check className="text-green-500 w-5 h-5" />
+                      ) : (
+                        ""
+                      )}
+                    </div>
+                    <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>
+                      {showPasswordConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
+                    </button>
+                  </>
+                }
+                />
+              <Button
+                onClick={() => handleSubmit()}
+                className="w-full mt-[10px]"
+                size="medium"
+                fontSize="font-h5"
+                disabled={!password || !passwordConfirm || password !== passwordConfirm}
+              >비밀번호 재설정</Button>
+            </div>
+          }
         </div>
         <div className="flex items-center">
           {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
