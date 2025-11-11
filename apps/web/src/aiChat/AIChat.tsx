@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import useAxiosWithAuth from "../axiosWithAuth";
 import setting from "../../../admin/app/main/agent/setting.json"
 import { toast } from "react-toastify";
+import posthog from "posthog-js";
 
 interface AIChatProps {
   open: boolean;
@@ -209,6 +210,10 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
             : c
         )
       );
+      if (config?.id) {
+        posthog.identify(String(config?.id));
+      }
+      posthog.capture('ask_chat')
     } catch (error) {
       console.error("AI 응답 중 오류가 발생했습니다.", error);
       toast.error('AI 응답 중 오류가 발생했습니다.\n다시 시도하거나 관리자에게 문의하세요.')

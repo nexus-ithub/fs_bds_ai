@@ -52,5 +52,6 @@ export const config = {
     "/api/bff/design-consult/:path*",
     "/api/bff/session/:path*",
     "/api/bff/users/:path*",
+    // "/api/bff/dashboard/:path*",
   ],
 };

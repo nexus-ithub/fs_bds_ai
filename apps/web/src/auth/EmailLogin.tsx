@@ -6,6 +6,7 @@ import { BuildingShopBI, Button, Checkbox, Spinner, VDivider } from "@repo/commo
 import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
+import posthog from 'posthog-js';
 
 interface LoginResponse {
   id: string;
@@ -61,6 +62,7 @@ export const EmailLogin = () => {
 
       localStorage.setItem("autoLogin", credentials.keepLoggedIn ? "true" : "false");
       setToken(data.accessToken)
+      posthog.identify(data.id)
       localStorage.setItem("lastLogin", 'em');
       navigate('/');
     } catch (err) {

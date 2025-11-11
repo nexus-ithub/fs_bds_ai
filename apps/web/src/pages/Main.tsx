@@ -308,6 +308,7 @@ export default function Main() {
             }} 
             onOpenAIReport={() => {
               setOpenAIReport(true)
+              console.log('landInfo', landInfo)
             }}
           /> : 
           <HomeBoard 

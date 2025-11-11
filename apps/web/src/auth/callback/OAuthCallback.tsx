@@ -1,9 +1,10 @@
-import { Button, DotProgress } from "@repo/common";
-import { useEffect, useRef, useState } from "react";
+import { DotProgress } from "@repo/common";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../../constants";
 import { setToken } from "../../authutil";
+import posthog from 'posthog-js';
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -33,8 +34,8 @@ export const OAuthCallback = () => {
         );
         console.log("res : ", res)
         if (res.status === 206) {  // 완전 신규회원
-          // navigate('/signup/info', {state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree}})
-          console.log("res.data : ", res.data)
+          posthog.identify(res.data.id)
+          posthog.capture('signup');
           navigate('/signup', {state: {email: res.data.email, name: res.data.name, password: res.data.password, phone: res.data.phone, profile: res.data.profile, provider: res.data.provider}})
           return;
         } else if (res.status === 208) {  // 이미 가입된 회원 || 탈퇴한 회원
@@ -42,6 +43,7 @@ export const OAuthCallback = () => {
           return;
         }
         setToken(res.data.accessToken)
+        posthog.identify(res.data.id)
         localStorage.setItem("lastLogin", `${res.data.provider}`);
         navigate('/');
       } catch (err) {
