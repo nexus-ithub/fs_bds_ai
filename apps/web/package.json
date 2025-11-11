@@ -17,6 +17,7 @@
     "@tailwindcss/vite": "^4.1.13",
     "axios": "^1.8.4",
     "date-fns": "^4.1.0",
+    "firebase": "^12.5.0",
     "jotai": "^2.14.0",
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",

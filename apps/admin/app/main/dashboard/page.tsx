@@ -1,32 +1,18 @@
 'use client';
 
-import { HDivider, ArrowUpLong, ArrowDownLong, VDivider, MinusIcon, MinusSmallIcon, Spinner, DotProgress } from "@repo/common";
+import { HDivider, ArrowUpLong, ArrowDownLong, MinusSmallIcon, Spinner, DotProgress } from "@repo/common";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { calculateChangeRate } from "../../utils/dashboardUtil";
+import { calculateChangeRate, ChangeRate } from "../../utils/dashboardUtil";
+import { DetailDialog } from "./DetailDialog";
+
 
 interface UserCountData {
   date: string;
   users: number;
 }
-
-const ChangeRate = ({current, previous}: {current: number, previous: number}) => {
-  const changeRate = calculateChangeRate(current, previous);
-  return (
-    <p className={`flex items-center font-s2 ${changeRate.status === 'increase' ? 'text-secondary-050' : changeRate.status === 'decrease' ? 'text-primary' : ''} mr-[2px]`}>
-      {changeRate.percent}%
-      <span>
-        {changeRate.status === 'increase' 
-          ? <ArrowUpLong /> 
-          : changeRate.status === 'decrease' 
-          ? <ArrowDownLong /> 
-          : <MinusSmallIcon />}
-      </span>
-    </p>
-  );
-};
 
 const generateEmptyChartData = () => {
   const data = [];
@@ -60,12 +46,14 @@ export default function Dashboard() {
   const [askChatData, setAskChatData] = useState<UserCountData[]>([]);
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [openReportDetail, setOpenReportDetail] = useState<boolean>(false);
+  const [openBdsDetail, setOpenBdsDetail] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try{
-        const response = await axiosInstance.get('/dashboard');
+        const response = await axiosInstance.get('/dashboard?action=dashboard');
         const data = await response.data;
         console.log(">>data", data)
         if (pageviewData) {
@@ -177,11 +165,11 @@ export default function Dashboard() {
         <h2 className="font-h2">DASHBOARD</h2>
         <div className="flex items-center justify-between gap-[12px]">
           <p className="font-s2 text-text-02">사용자들의 데이터를 기반으로 다양한 지표를 제공합니다.</p>
-          <div className="flex items-center gap-[6px]">
+          {/* <div className="flex items-center gap-[6px]">
             <p className="font-s3 text-primary">UPDATED</p>
             <VDivider colorClassName="bg-line-04" className="!h-[10px]"/>
             <p className="font-s3">2025.07.21 16:52:32</p>
-          </div>
+          </div> */}
         </div>
         <HDivider className="!bg-line-02 my-[12px]"/>
         {loading 
@@ -231,134 +219,95 @@ export default function Dashboard() {
             <div className="flex flex-1 flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
               <div className="flex items-center justify-between">
                 <h4 className="font-h4">리포트 조회 지역</h4>
-                <button className="font-h6 text-primary">전체보기</button>
+                <button className="font-h6 text-primary" onClick={() => setOpenReportDetail(true)}>전체보기</button>
               </div>
               <div className="flex flex-col gap-[8px]">
-              {/* {reportRankingSample.map((item, index) => {
-                let rankDisplay;
-                if (index === 0) rankDisplay = "🥇";
-                else if (index === 1) rankDisplay = "🥈";
-                else if (index === 2) rankDisplay = "🥉";
-                else rankDisplay = index + 1;
+                {(() => {
+                  const totalCount = reportRanking.reduce((sum, item) => sum + (item.value || 0), 0);
+                  
+                  return Array.from({ length: 5 }).map((_, index) => {
+                    const item = reportRanking[index] ?? { name: "", value: 0, todayCount: 0, yesterdayCount: 0 };
+                    const changeRate = calculateChangeRate(item.todayCount, item.yesterdayCount);
+                    const percentage = totalCount > 0 ? ((item.value / totalCount) * 100).toFixed(1) : "0.0";
 
-                return (
-                  <div key={index} className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02">
-                    <p className="flex items-center">
-                      <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
-                        {rankDisplay}
-                      </span>
-                      <span>{item.name}</span>
-                    </p>
-                    <div className="flex items-center gap-[12px]">
-                      <p className="font-s1">{item.value}%</p>
-                      {Number(item.value) > Number(item.preValue) && <ArrowUpLong />}
-                      {Number(item.value) < Number(item.preValue) && <ArrowDownLong />}
-                      {Number(item.value) === Number(item.preValue) && <MinusSmallIcon />}
-                    </div>
-                  </div>
-                );
-              })} */}
-                {Array.from({ length: 5 }).map((_, index) => {
-                  const item = reportRanking[index] ?? { name: "", value: "", todayCount: 0, yesterdayCount: 0 };
-                  const changeRate = calculateChangeRate(item.todayCount, item.yesterdayCount);
+                    let rankDisplay;
+                    if (index === 0) rankDisplay = "🥇";
+                    else if (index === 1) rankDisplay = "🥈";
+                    else if (index === 2) rankDisplay = "🥉";
+                    else rankDisplay = index + 1;
 
-                  let rankDisplay;
-                  if (index === 0) rankDisplay = "🥇";
-                  else if (index === 1) rankDisplay = "🥈";
-                  else if (index === 2) rankDisplay = "🥉";
-                  else rankDisplay = index + 1;
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02"
-                    >
-                      <p className="flex items-center">
-                        <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
-                          {rankDisplay}
-                        </span>
-                        <span>{item.name}</span>
-                      </p>
-                      <div className="flex items-center gap-[12px]">
-                        <p className="font-s1">{item.value ? `${item.value}건` : ""}</p>
-                        {item.name && (
-                          <>
-                            {changeRate.status === "increase" && <ArrowUpLong />}
-                            {changeRate.status === "decrease" && <ArrowDownLong />}
-                            {changeRate.status === "same" && <MinusSmallIcon />}
-                          </>
-                        )}
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02"
+                      >
+                        <p className="flex items-center">
+                          <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
+                            {rankDisplay}
+                          </span>
+                          <span>{item.name}</span>
+                        </p>
+                        <div className="flex items-center gap-[12px]">
+                          <p className="font-s1">{item.value ? `${percentage}%` : ""}</p>
+                          {item.name && (
+                            <>
+                              {changeRate.status === "increase" && <ArrowUpLong />}
+                              {changeRate.status === "decrease" && <ArrowDownLong />}
+                              {changeRate.status === "same" && <MinusSmallIcon />}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-
+                    );
+                  });
+                })()}
               </div>
             </div>
             <div className="flex flex-1 flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
               <div className="flex items-center justify-between">
                 <h4 className="font-h4">빌딩샵 매물 조회 순</h4>
-                <button className="font-h6 text-primary">전체보기</button>
+                <button className="font-h6 text-primary" onClick={() => setOpenBdsDetail(true)}>전체보기</button>
               </div>
               <div className="flex flex-col gap-[8px]">
-              {/* {bdsRankingSample.map((item, index) => {
-                let rankDisplay;
-                if (index === 0) rankDisplay = "🥇";
-                else if (index === 1) rankDisplay = "🥈";
-                else if (index === 2) rankDisplay = "🥉";
-                else rankDisplay = index + 1;
+                {(() => {
+                  const totalCount = bdsRanking.reduce((sum, item) => sum + (item.value || 0), 0);
+                  
+                  return Array.from({ length: 5 }).map((_, index) => {
+                    const item = bdsRanking[index] ?? { name: "", value: 0, todayCount: 0, yesterdayCount: 0 };
+                    const changeRate = calculateChangeRate(item.todayCount, item.yesterdayCount);
+                    const percentage = totalCount > 0 ? ((item.value / totalCount) * 100).toFixed(1) : "0.0";
 
-                return (
-                  <div key={index} className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02">
-                    <p className="flex items-center">
-                      <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
-                        {rankDisplay}
-                      </span>
-                      <span>{item.name}</span>
-                    </p>
-                    <div className="flex items-center gap-[12px]">
-                      <p className="font-s1">{item.value}%</p>
-                      {Number(item.value) > Number(item.preValue) && <ArrowUpLong />}
-                      {Number(item.value) < Number(item.preValue) && <ArrowDownLong />}
-                      {Number(item.value) === Number(item.preValue) && <MinusSmallIcon />}
-                    </div>
-                  </div>
-                );
-              })} */}
-              {Array.from({ length: 5 }).map((_, index) => {
-                  const item = bdsRanking[index] ?? { name: "", value: "", todayCount: 0, yesterdayCount: 0 };
-                  const changeRate = calculateChangeRate(item.todayCount, item.yesterdayCount);
+                    let rankDisplay;
+                    if (index === 0) rankDisplay = "🥇";
+                    else if (index === 1) rankDisplay = "🥈";
+                    else if (index === 2) rankDisplay = "🥉";
+                    else rankDisplay = index + 1;
 
-                  let rankDisplay;
-                  if (index === 0) rankDisplay = "🥇";
-                  else if (index === 1) rankDisplay = "🥈";
-                  else if (index === 2) rankDisplay = "🥉";
-                  else rankDisplay = index + 1;
-
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02"
-                    >
-                      <p className="flex items-center">
-                        <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
-                          {rankDisplay}
-                        </span>
-                        <span>{item.name}</span>
-                      </p>
-                      <div className="flex items-center gap-[12px]">
-                        <p className="font-s1">{item.value ? `${item.value}건` : ""}</p>
-                        {item.name && (
-                          <>
-                            {changeRate.status === "increase" && <ArrowUpLong />}
-                            {changeRate.status === "decrease" && <ArrowDownLong />}
-                            {changeRate.status === "same" && <MinusSmallIcon />}
-                          </>
-                        )}
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between gap-[16px] font-s1 p-[12px] rounded-[4px] border border-line-02"
+                      >
+                        <p className="flex items-center">
+                          <span className={index >= 3 ? "w-[21.97px] flex justify-center text-text-04" : ""}>
+                            {rankDisplay}
+                          </span>
+                          <span>{item.name}</span>
+                        </p>
+                        <div className="flex items-center gap-[12px]">
+                          <p className="font-s1">{item.value ? `${percentage}%` : ""}</p>
+                          {item.name && (
+                            <>
+                              {changeRate.status === "increase" && <ArrowUpLong />}
+                              {changeRate.status === "decrease" && <ArrowDownLong />}
+                              {changeRate.status === "same" && <MinusSmallIcon />}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  });
+                })()}
               </div>
             </div>
           </div>
@@ -430,7 +379,8 @@ export default function Dashboard() {
           </div>
         </>
       }
-      
+      <DetailDialog open={openReportDetail} onClose={() => setOpenReportDetail(false)} type="reportDetail" />
+      <DetailDialog open={openBdsDetail} onClose={() => setOpenBdsDetail(false)} type="bdsDetail" />
     </div>
   );
 }
