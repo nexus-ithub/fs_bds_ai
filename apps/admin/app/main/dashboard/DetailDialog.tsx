@@ -109,7 +109,7 @@ export const DetailDialog = ({open, onClose, type}: {open: boolean, onClose: () 
     <Dialog open={open} onClose={onClose}>
       <div className="flex flex-col w-[420px]">
         <div className="flex items-center justify-between px-[20px] py-[12px] border-b border-line-02">
-          <h3 className="font-h3 flex items-center">{type === 'reportDetail' ? '리포트 조회 지역' : '빌딩샵 매물 조회 순'} 상세보기</h3>
+          <h3 className="font-h3 flex items-center">{type === 'reportDetail' ? '리포트 조회 지역' : '빌딩샵 매물 조회 순'} 전체보기</h3>
           <button onClick={onClose}><CloseIcon /></button>
         </div>
         <div className="flex flex-col px-[20px] py-[8px]">

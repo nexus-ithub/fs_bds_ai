@@ -10,6 +10,8 @@ import { Place } from "./Place";
 import { CompanyInfo } from "../footer/CompanyInfo";
 import { format } from "date-fns";
 import { usePostHog } from 'posthog-js/react'
+import { logEvent, getAnalytics } from "firebase/analytics";
+import { analytics } from "../firebaseConfig";
 
 const TABS = [
   "토지",
@@ -54,8 +56,16 @@ export const LandInfoCard = ({
 
   const handleOpenAIReport = () => {
     onOpenAIReport?.();
-    console.log('report_viewed', landInfo?.sidoName + ' ' + landInfo?.sigunguName);
-    posthog?.capture('report_viewed', {
+    if (!landInfo?.sidoName || !landInfo?.sigunguName) {
+      posthog.capture('report_viewed_missing_region', {
+        landInfo: landInfo,
+      });
+      return;
+    }
+    posthog.capture('report_viewed', {
+      region: landInfo?.sidoName + ' ' + landInfo?.sigunguName,
+    })
+    logEvent(analytics, 'report_viewed', {
       region: landInfo?.sidoName + ' ' + landInfo?.sigunguName,
     })
   }

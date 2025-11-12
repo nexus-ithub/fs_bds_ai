@@ -174,8 +174,8 @@ export const EmailLogin = () => {
               {/* <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button> */}
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button>
+              <button onClick={() => navigate('/signup')}>회원가입</button>
+              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button> */}
             </div>
           </div>
         </div>

@@ -9,6 +9,8 @@ import axios from "axios";
 import { API_HOST } from "../constants";
 import { CompanyInfo } from "../footer/CompanyInfo";
 import posthog from "posthog-js";
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../firebaseConfig";
 
 
 const FILTER_TABS = [
@@ -137,6 +139,7 @@ export const BuildingList = () => {
               onClick={() => {
                 setSelectedBuilding(building); 
                 posthog.capture('bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") });
+                logEvent(analytics, 'bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") });
               }}
               className="space-y-[12px] px-[20px] py-[20px] text-start hover:bg-primary-010">
               <div className="flex items-center gap-[12px]">

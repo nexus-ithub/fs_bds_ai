@@ -11,6 +11,8 @@ import type { LottieRefCurrentProps } from "lottie-react";
 import { Check } from "lucide-react";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../firebaseConfig";
 
 export const SignupInfo = () => {
   const navigate = useNavigate();
@@ -88,6 +90,7 @@ export const SignupInfo = () => {
         setToken(response.data.accessToken);
         posthog.identify(response.data.id)
         posthog.capture("signup")
+        logEvent(analytics, 'signup')
         setOpenCompleteDialog(true);
       } else {
         alert("회원가입 중 오류 발생");

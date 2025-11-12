@@ -5,6 +5,8 @@ import axios from "axios";
 import { API_HOST } from "../../constants";
 import { setToken } from "../../authutil";
 import posthog from 'posthog-js';
+import { logEvent } from "firebase/analytics";
+import { analytics } from "../../firebaseConfig";
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ export const OAuthCallback = () => {
         if (res.status === 206) {  // 완전 신규회원
           posthog.identify(res.data.id)
           posthog.capture('signup');
+          logEvent(analytics, 'signup');
           navigate('/signup', {state: {email: res.data.email, name: res.data.name, password: res.data.password, phone: res.data.phone, profile: res.data.profile, provider: res.data.provider}})
           return;
         } else if (res.status === 208) {  // 이미 가입된 회원 || 탈퇴한 회원

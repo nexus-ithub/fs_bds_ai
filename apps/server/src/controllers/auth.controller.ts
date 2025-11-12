@@ -285,7 +285,7 @@ export const oAuthCallback = (req: Request, res: Response) => {
   let redirectUrl: string | null = null;
   switch (provider) {
     case 'kakao':
-      redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_REST_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+      redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
       break;
     case 'naver':
       const stateNaver = randomUUID();
@@ -315,15 +315,13 @@ export const oAuthCallback = (req: Request, res: Response) => {
 }
 
 const handleKakao = async (code: string) => {
-  console.log("KAKAO_REST_API_KEY:", process.env.KAKAO_REST_API_KEY);
-  console.log("KAKAO_REDIRECT_URI:", process.env.KAKAO_REDIRECT_URI);
   const tokenRes = await axios.post(
     "https://kauth.kakao.com/oauth/token",
     null,
     {
       params: {
         grant_type: "authorization_code",
-        client_id: process.env.KAKAO_REST_API_KEY,
+        client_id: process.env.KAKAO_API_KEY,
         redirect_uri: process.env.KAKAO_REDIRECT_URI,
         code,
       },
