@@ -7,6 +7,7 @@ import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
+import * as Sentry from "@sentry/react";
 
 interface LoginResponse {
   id: string;
@@ -67,6 +68,7 @@ export const EmailLogin = () => {
       navigate('/');
     } catch (err) {
       console.log(`로그인 중 오류: ${err}`)
+      Sentry.captureException(err);
       setError("오류가 발생하였습니다. 잠시 후 다시 시도해주세요.")
     }
   };
@@ -80,6 +82,7 @@ export const EmailLogin = () => {
       setOpenPWFindSuccess(true);
     } catch(err){
       console.log("비밀번호 찾기 중 오류: ", err)
+      Sentry.captureException(err);
       toast.error("비밀번호 찾기 중 오류가 발생했습니다.");
     } finally {
       setSendEmailLoading(false);

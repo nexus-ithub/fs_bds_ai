@@ -11,7 +11,7 @@ import { CompanyInfo } from "../footer/CompanyInfo";
 import posthog from "posthog-js";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../firebaseConfig";
-
+import * as Sentry from "@sentry/react";
 
 const FILTER_TABS = [
   // '👍 빌딩샵 추천 TOP5',
@@ -53,7 +53,6 @@ export const BuildingList = () => {
   const [buildings, setBuildings] = useState<BdsSale[]>([]);
   const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
   const [order, setOrder] = useState<string>(ORDER[0]);
-  const axiosWithAuth = useAxiosWithAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -68,6 +67,7 @@ export const BuildingList = () => {
       setBuildings(res.data as BdsSale[]);
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error);
       setIsError(true);
     } finally {
       setLoading(false);

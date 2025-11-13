@@ -8,6 +8,7 @@ import axios from 'axios';
 import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
 import path from 'path';
+import { Sentry } from '../instrument';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -20,6 +21,7 @@ const generateAccessToken = (userId: number, auto: boolean): string => {
     );
   } catch (err) {
     console.error('Generate access token error:', err);
+    Sentry.captureException(err);
     return null;
   }
 };
@@ -34,6 +36,7 @@ const generateRefreshToken = (userId: number, auto: boolean): string => {
     );
   } catch (err) {
     console.error('Generate refresh token error:', err);
+    Sentry.captureException(err);
     return null;
   }
 };
@@ -68,6 +71,7 @@ export const createUser = async (req: Request, res: Response) => {
     // res.status(201).json(response);
   } catch (err) {
     console.error('Create user error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -83,6 +87,7 @@ export const verifyResetToken = async (req: Request, res: Response) => {
       res.status(201).json({ valid: true, message: `${provider} 계정으로 가입된 사용자입니다.`});
     }
   } catch (err) {
+    Sentry.captureException(err);
     res.status(500).json({ valid: false });
   }
 };
@@ -136,6 +141,7 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('Login error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -190,6 +196,7 @@ export const refresh = async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('Token refresh error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -211,6 +218,7 @@ export const logout = async (req: Request, res: Response) => {
     res.status(200).json({ message: '로그아웃되었습니다.' });
   } catch (err) {
     console.error('Logout error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -266,6 +274,7 @@ export const pwFind = async (req: Request, res: Response) => {
     res.status(200).json({ message: '비밀번호 재설정 메일이 발송되었습니다.' });
   } catch (err) {
     console.error('Password find error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -281,37 +290,42 @@ const formatPhoneNumber = (phone: string | null) => {
 
 export const oAuthCallback = (req: Request, res: Response) => {
   const {provider} = req.params;
-  console.log("provider : ", provider)
-  let redirectUrl: string | null = null;
-  switch (provider) {
-    case 'kakao':
-      redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
-      break;
-    case 'naver':
-      const stateNaver = randomUUID();
-      res.cookie("oauth_state", stateNaver, {
-        httpOnly: true,      
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-        maxAge: 10 * 60 * 1000, // 유효기간 10분
-      });
-      redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
-      break;
-    case 'google':
-      const stateGoogle = randomUUID();
-      res.cookie("oauth_state", stateGoogle, {
-        httpOnly: true,      
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-        maxAge: 10 * 60 * 1000, // 유효기간 10분
-      });
-      redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=openid%20email%20profile&state=${stateGoogle}`;
-      break;
-    default:
-      return null;
-  }
+  try{
+    console.log("provider : ", provider)
+    let redirectUrl: string | null = null;
+    switch (provider) {
+      case 'kakao':
+        redirectUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${process.env.KAKAO_API_KEY}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}`;
+        break;
+      case 'naver':
+        const stateNaver = randomUUID();
+        res.cookie("oauth_state", stateNaver, {
+          httpOnly: true,      
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
+          maxAge: 10 * 60 * 1000, // 유효기간 10분
+        });
+        redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
+        break;
+      case 'google':
+        const stateGoogle = randomUUID();
+        res.cookie("oauth_state", stateGoogle, {
+          httpOnly: true,      
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
+          maxAge: 10 * 60 * 1000, // 유효기간 10분
+        });
+        redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=openid%20email%20profile&state=${stateGoogle}`;
+        break;
+      default:
+        return null;
+    }
 
-  res.json({ url: redirectUrl });
+    res.json({ url: redirectUrl });
+  }catch(err){
+    Sentry.captureException(err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
 }
 
 const handleKakao = async (code: string) => {
@@ -425,10 +439,7 @@ export const oauth = async (req: Request, res: Response) => {
   try {
     const { provider, code, state, keepLoggedIn } = req.body;
     const cookieState = req.cookies.oauth_state;
-    console.log('provider:', provider);
-    console.log('code:', code);
-    console.log('state:', state);
-    console.log('keepLoggedIn:', keepLoggedIn);
+    console.log(`provider: ${provider}, code: ${code}, state: ${state}, keepLoggedIn: ${keepLoggedIn}`);
     let user;
 
     switch (provider) {
@@ -437,8 +448,7 @@ export const oauth = async (req: Request, res: Response) => {
         console.log('user:', user);
         break;
       case 'naver':
-        console.log('cookieState:', cookieState);
-        console.log('state:', state);
+        console.log(`cookieState: ${cookieState}, state: ${state}`);
         if (cookieState !== state) {
           return res.status(400).json({ message: 'Invalid state' });
         }
@@ -446,6 +456,7 @@ export const oauth = async (req: Request, res: Response) => {
         console.log('user:', user);
         break;
       case 'google':
+        console.log(`cookieState: ${cookieState}, state: ${state}`);
         if (cookieState !== state) {
           return res.status(400).json({ message: 'Invalid state' });
         }
@@ -500,6 +511,7 @@ export const oauth = async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('회원가입 실패', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };

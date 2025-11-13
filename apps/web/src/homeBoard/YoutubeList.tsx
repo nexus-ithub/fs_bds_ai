@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TabButton, SubTabButton, HDivider, VDivider, Spinner, YoutubeVideoLogo, ShareIcon, MiniPlayerIcon, FullScreenIcon } from "@repo/common";
+import { SubTabButton, HDivider, VDivider, Spinner, YoutubeVideoLogo } from "@repo/common";
 import React from "react";
 import axios from "axios";
 import { API_HOST } from "../constants";
@@ -8,7 +8,7 @@ import type { YoutubeVideo } from "@repo/common";
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { formatTimeAgo, formatDuration } from "../../utils";
-import { Dialog, DialogActions } from "@mui/material";
+import * as Sentry from "@sentry/react";
 import { toast } from "react-toastify";
 export const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
@@ -60,6 +60,7 @@ export const YoutubeList = ({
       setVideos(res.data);
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error);
       toast.error('영상 정보를 가져오는데 실패했습니다.')
     }
   };
@@ -70,6 +71,7 @@ export const YoutubeList = ({
       setMainVideo(res.data);
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error);
       toast.error('대표 영상 정보를 가져오는데 실패했습니다.')
     }
   }
@@ -187,18 +189,6 @@ export const YoutubeList = ({
         </>
       ) : (
         <div className="flex items-center justify-center py-[50px]">
-          {/* <div className="flex flex-col items-center gap-[12px]">
-            <div className="flex flex-col items-center gap-[2px] text-secondary-040">
-              <p className="font-s3">매물 정보를 가져오는데 실패했습니다.</p>
-              <p className="font-s3">잠시후 다시 시도해 주세요.</p>
-            </div>
-            <button 
-              onClick={() => {getVideoList(); getBrandingVideo();}}
-              className="font-s3 text-primary border border-primary rounded-[4px] px-[12px] py-[8px]"
-            >
-              다시 시도
-            </button>
-          </div> */}
           <Spinner/>
         </div>
       )}

@@ -534,21 +534,6 @@ export default function Agent() {
             <HDivider className="!bg-line-02 mt-[8px]"/>
           </div>
           <div className="flex items-center gap-[20px]">
-            <MenuDropdown
-              options={[
-                { value: "recent", label: "최근등록 순" },
-                { value: "popular", label: "인기순" },
-              ]}
-              value={"recent"}
-              onChange={() => {}}
-              placeholder="최근등록 순"
-              disabled={false}
-              padding="minimum"
-              width="w-[96px]"
-              font="font-s3"
-              borderStyle="none"
-              optionPadding="4px 6px"
-            />
             <Checkbox
               checked={isCheckedRecommends}
               onChange={() => setIsCheckedRecommends(!isCheckedRecommends)}

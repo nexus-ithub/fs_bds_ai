@@ -1,3 +1,5 @@
+import "./instrument";
+import { Sentry } from "./instrument";
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -59,7 +61,6 @@ const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'http://nexusnas.iptime.org:7500',
 ];
 
-
 // app.use(cors());
 app.use(cors({
   origin: (origin, callback) => {
@@ -92,10 +93,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });
 });
 
-
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
+  Sentry.captureException(err);
   res.status(500).json({ message: '서버 오류가 발생했습니다.' });
 });
 
@@ -119,12 +120,14 @@ const startServer = async () => {
 // Handle graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received. Shutting down gracefully...');
+  await Sentry.flush(2000);
   await db.disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received. Shutting down gracefully...');
+  await Sentry.flush(2000);
   await db.disconnect();
   process.exit(0);
 });

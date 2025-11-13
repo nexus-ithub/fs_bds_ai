@@ -12,6 +12,7 @@
 
 import axios from "axios";
 import { API_HOST } from "./constants";
+import * as Sentry from "@sentry/react";
 
 
 export function setToken(accessToken : string | null) {
@@ -60,11 +61,17 @@ export const getRefreshToken = () => {
 }
 
 export const logout = async() => {
-  localStorage.removeItem("auth");
-  sessionStorage.removeItem("auth");
-  localStorage.removeItem("autoLogin");
-  await axios.post(`${API_HOST}/api/auth/logout`, {}, {
-    withCredentials: true,
-  });
-  return Promise.resolve();
+  try {
+    localStorage.removeItem("auth");
+    sessionStorage.removeItem("auth");
+    localStorage.removeItem("autoLogin");
+    await axios.post(`${API_HOST}/api/auth/logout`, {}, {
+      withCredentials: true,
+    });
+    return Promise.resolve();
+  } catch (error) {
+    console.error("Logout failed:", error);
+    Sentry.captureException(error);
+    return Promise.reject(error);
+  }
 };

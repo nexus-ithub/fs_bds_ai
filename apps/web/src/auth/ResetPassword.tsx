@@ -6,6 +6,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { Dialog } from "@mui/material";
+import * as Sentry from "@sentry/react";
 
 export const ResetPassword = () => {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export const ResetPassword = () => {
       setOpenSuccess(true);
     } catch (error) {
       console.error(error);
+      Sentry.captureException(error);
       setError("오류가 발생했습니다. 다시 시도해주세요.");
     }
   }

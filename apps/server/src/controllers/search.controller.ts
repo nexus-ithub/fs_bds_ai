@@ -4,6 +4,7 @@ import { BuildingInfo, LandInfo } from '@repo/common';
 import { BuildingModel } from '../models/buliding.model';
 import { LandModel } from '../models/land.model';
 import { AuthRequest } from 'src/middleware/auth.middleware';
+import { Sentry } from "../instrument"
 
 
 export const search = async (req: Request, res: Response) => {
@@ -18,6 +19,7 @@ export const search = async (req: Request, res: Response) => {
     res.status(200).json(results);
   } catch (err) {
     console.error('Get polygon info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 
@@ -54,6 +56,7 @@ export const bmReportSearch = async (req: AuthRequest, res: Response) => {
     res.status(200).json({total: searchResults.total, response: searchWithLandInfo});
   } catch (err) {
     console.error('Get search info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 

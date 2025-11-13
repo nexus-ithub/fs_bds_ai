@@ -8,6 +8,7 @@ import { API_HOST } from "../constants";
 import { SignupConfirmDialog } from "./SignupConfirmDialog";
 import { setToken } from "../authutil";
 import { toast } from "react-toastify";
+import * as Sentry from "@sentry/react";
 
 export const SignupTerms = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export const SignupTerms = () => {
         setToken(response.data.accessToken);
         setOpenCompleteDialog(true);
       } else {
+        Sentry.captureException('회원가입 중 오류가 발생했습니다.');
         toast.error('회원가입 중 오류가 발생했습니다.')
       }
     } else {

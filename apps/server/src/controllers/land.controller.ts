@@ -7,7 +7,7 @@ import axios from 'axios';
 import { getDistance } from 'geolib';
 import { BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
 import { AIReportModel } from '../models/aireport.model';
-
+import { Sentry } from "../instrument"
 
 // const ESTIMATE_REFERENCE_DISTANCE = 300;
 // const ESTIMATE_REFERENCE_YEAR = 2;
@@ -102,6 +102,7 @@ export const getPolygonInfo = async (req: AuthRequest, res: Response) => {
     res.status(200).json(polygon);
   } catch (err) {
     console.error('Get polygon info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -122,6 +123,7 @@ export const getPolygonWithSub = async (req: AuthRequest, res: Response) => {
     res.status(200).json(polygon);
   } catch (err) {
     console.error('Get polygon info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -151,6 +153,7 @@ export const getFilteredPolygon = async (req: AuthRequest, res: Response) => {
     res.status(200).json(polygon);
   } catch (err) {
     console.error('Get filtered polygon info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -170,6 +173,7 @@ export const getLandInfo = async (req: AuthRequest, res: Response) => {
     res.status(200).json(land);
   } catch (err) {
     console.error('Get land info error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -188,6 +192,7 @@ export const getBuildingList = async (req: AuthRequest, res: Response) => {
     res.status(200).json(buildings);
   } catch (err) {
     console.error('Get building list error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -274,6 +279,7 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
     res.status(200).json(result);
   } catch (err) {
     console.error('Get estimated price error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -294,6 +300,7 @@ export const getAIReport = async (req: AuthRequest, res: Response) => {
     res.status(200).json(aiReportResult);
   } catch (err) {
     console.error('Get AI report error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -313,6 +320,7 @@ export const getAIReportDetail = async (req: AuthRequest, res: Response) => {
     res.status(200).json(aiReportResult);
   } catch (err) {
     console.error('Get AI report detail error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -338,6 +346,7 @@ export const getAIReportDebugInfo = async (req: AuthRequest, res: Response) => {
     res.status(200).json(debugInfo);
   } catch (err) {
     console.error('Get AI report detail error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -354,6 +363,7 @@ export const getBusinessDistrict = async (req: AuthRequest, res: Response) => {
     res.status(200).json(districtList);
   } catch (err) {
     console.error('Get business district error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -451,6 +461,7 @@ export const getPlace = async (req: AuthRequest, res: Response) => {
     res.status(200).json(placeList);
   } catch (err : any) {
     console.error('Get place info error:', err.message);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -463,6 +474,7 @@ export const isBookmarked = async (req: AuthRequest, res: Response) => {
     res.status(200).json(isBookmarked);
   } catch (err) {
     console.error('Check bookmarked error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -482,6 +494,7 @@ export const addBookmark = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ message: '즐겨찾기 ' + (deleteYn === 'Y' ? '삭제' : '추가') + ' 성공' });
   } catch (err) {
     console.error('Add bookmark error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -493,6 +506,7 @@ export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
     res.status(200).json(total);
   } catch (err) {
     console.error('Get total bookmarked error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -536,6 +550,7 @@ export const getBookmarkList = async (req: AuthRequest, res: Response) => {
     });
   } catch (err) {
     console.error('Get bookmark list error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -552,6 +567,7 @@ export const addConsultRequest = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ message: '상담 요청 추가 성공' });
   } catch (err) {
     console.error('Add consult request error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -567,6 +583,7 @@ export const getConsultRequestList = async (req: AuthRequest, res: Response) => 
     });
   } catch (err) {
     console.error('Get consult request list error:', err);
+    Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }

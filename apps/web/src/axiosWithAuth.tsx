@@ -2,7 +2,7 @@ import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {getAccessToken, getRefreshToken, setToken} from "./authutil";
 import { API_HOST } from "./constants";
-
+import * as Sentry from "@sentry/react";
 
 // console.log(API_HOST)
 const useAxiosWithAuth = () => {
@@ -49,9 +49,13 @@ const useAxiosWithAuth = () => {
           setToken(null);
           // navigate('/login');
         }
+        return Promise.reject(error);
       }else if(statusCode === 403){
         // navigate('/login');
         return Promise.reject(error);
+      }
+      if (statusCode && statusCode >= 400 && statusCode !== 404) {
+        Sentry.captureException(error);
       }
       return Promise.reject(error);
     }

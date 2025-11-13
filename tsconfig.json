@@ -20,6 +20,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": false    
   },
-  "include": ["apps/**/src", "packages/types/src/react-date-range.d.ts", "apps/admin/vite.config.ts"],
+  "include": ["apps/**/src", "packages/types/src/react-date-range.d.ts", "apps/admin/vite.config.ts", "apps/server/src/instrument.ts"],
   "exclude": ["node_modules"]
 }

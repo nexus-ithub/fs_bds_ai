@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_HOST } from "../constants";
 import { BuildingShopBI, GoogleLogo, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import * as Sentry from "@sentry/react";
 
 const LOGIN_TYPES = [
   { provider: 'k', callback: 'kakao', color: '#FEE502', textColor: 'text-[rgba(0,0,0,0.85)]', logo: <KakaoLogo size='20' />, label: '카카오 계정으로 계속하기' },
@@ -23,6 +24,7 @@ export const LoginMain = () => {
     } else {
       toast.error('다른 로그인 방법을 시도하거나 잠시 후 다시 시도해주세요.');
       console.log('지원하지 않는 OAuth 제공자입니다.')
+      Sentry.captureException('지원하지 않는 OAuth 제공자입니다.')
     }
   };
 

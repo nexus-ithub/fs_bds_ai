@@ -7,6 +7,7 @@ import { setToken } from "../../authutil";
 import posthog from 'posthog-js';
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../../firebaseConfig";
+import * as Sentry from "@sentry/react";
 
 export const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ export const OAuthCallback = () => {
         console.log("err : ", err.response.data.message)
 
         console.error("OAuth 로그인 실패:", err);
+        Sentry.captureException(err);
         navigate("/login", { state: { message: err.response.data.message } });
       }
     })();

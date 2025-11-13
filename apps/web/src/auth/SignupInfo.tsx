@@ -1,10 +1,9 @@
-import { Button, Complete, FormField, HDivider } from "@repo/common";
+import { Button, FormField, HDivider } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { API_HOST } from "../constants";
-import { Dialog } from "@mui/material";
 import { SignupConfirmDialog } from "./SignupConfirmDialog";
 import { setToken } from "../authutil";
 import type { LottieRefCurrentProps } from "lottie-react";
@@ -13,6 +12,7 @@ import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../firebaseConfig";
+import * as Sentry from "@sentry/react";
 
 export const SignupInfo = () => {
   const navigate = useNavigate();
@@ -59,6 +59,7 @@ export const SignupInfo = () => {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const onlyNumbers = e.target.value.replace(/[^0-9]/g, ""); // 숫자 외 제거
     setPhone(onlyNumbers);
+    setPhoneValid(false);
   };
 
   const handleCheckEmail = async() => {
@@ -67,6 +68,7 @@ export const SignupInfo = () => {
       setEmailValid(response.data.valid);
     } catch (error) {
       console.error('이메일 중복 확인 중 오류 발생:', error);
+      Sentry.captureException(error);
       toast.error('이메일 중복 확인 중 오류가 발생했습니다.')
     }
   }
@@ -97,6 +99,7 @@ export const SignupInfo = () => {
       }
     } catch (error) {
       console.error('회원가입 중 오류 발생:', error);
+      Sentry.captureException(error);
       toast.error('회원가입 중 오류가 발생했습니다.')
     }
   }
@@ -190,12 +193,12 @@ export const SignupInfo = () => {
           rightElement={
             <button
               type="button"
-              // onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
-              onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");}}
-              className={`font-s2 ${phone.length < 10 ? 'text-text-04' : 'text-primary'}`}
+              onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
+              // onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");}}
+              className={`font-s2 ${phone.length < 10 ? 'text-text-04' : phoneValid ? 'text-green-500' : 'text-primary'}`}
               disabled={phone.length < 10}
             >
-              본인인증
+              {phoneValid ? "인증완료" : "본인인증"}
             </button>
           }
           disabled={!!location.state?.phone}

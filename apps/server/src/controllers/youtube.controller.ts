@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import fs from "fs";
 import path from "path";
+import { Sentry } from "../instrument";
 
 export const getVideoList = async (req: Request, res: Response) => {
   const order = req.query.order as string
@@ -21,6 +22,7 @@ export const getVideoList = async (req: Request, res: Response) => {
     return res.json(result);
   } catch (error) {
     console.error(error);
+    Sentry.captureException(error);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -41,6 +43,7 @@ export const getBrandingVideo = async (req: Request, res: Response) => {
     return res.json(result);
   } catch (error) {
     console.error(error);
+    Sentry.captureException(error);
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }

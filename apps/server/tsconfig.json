@@ -10,7 +10,7 @@
     // },
     "composite": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/instrument.ts"],
   "exclude": ["node_modules"],
   "references": [
     // {

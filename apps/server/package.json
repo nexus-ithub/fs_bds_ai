@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@repo/common": "workspace:*",
+    "@sentry/node": "^10.25.0",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
