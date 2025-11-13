@@ -1,9 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 import { Profile } from "../myPage/Profile";
-import { Board } from "../support/Board";
-import { Terms } from "../support/Terms";
-import { Privacy } from "../support/Privacy";
-import { BoardDetail } from "../support/BoardDetail";
 import { CheckIcon, HDivider, type User } from "@repo/common";
 
 import { useEffect, useRef, useState } from "react";
@@ -13,14 +9,11 @@ import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
 import { BookmarkedReport } from "../myPage/BookmarkedReport";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 import { EditPassword } from "../myPage/EditPassword";
-import { toast } from "react-toastify";
-import { Footer } from "../footer/Footer";
-
 interface MenuItemType {
   label: string;
   path: string;
