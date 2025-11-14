@@ -79,17 +79,17 @@ export const Profile = () => {
           <p className="font-s2 text-text-02">알림설정</p>
           <Switch checked={alarm} onChange={(checked) => setAlarm(checked)}/>
         </div> */}
-        <div 
-          className="flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 cursor-pointer"
-          onClick={() => setOpenEditPasswordDialog(true)}
-          // onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
-          >
-          <p className="font-s2 text-text-02" >비밀번호 변경</p>
-          {config?.provider 
-          ? <p className="font-s2 text-text-04">소셜 로그인 계정</p> 
-          : <ChevronRightCustomIcon size={16}/>
-          }
-        </div>
+        {config?.provider 
+        ? null
+        : <div 
+            className={`flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 ${config?.provider ? "cursor-default" : "cursor-pointer"}`}
+            onClick={() => {if (!config?.provider) setOpenEditPasswordDialog(true)}}
+            // onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
+            >
+            <p className="font-s2 text-text-02" >비밀번호 변경</p>
+            <ChevronRightCustomIcon size={16}/>
+          </div>
+        }
         <div 
           className="flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 cursor-pointer"
           onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}

@@ -35,11 +35,10 @@ export const SignupInfo = () => {
   const [userId, setUserId] = useState<string>("");
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
 
-  const { serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, profile="", provider="" } = location.state;
+  const { serviceAgree=false, privacyAgree=false, marketingEmailAgree=false, marketingSmsAgree=false, profile="", provider="" } = location.state || {};
 
   useEffect(() => {
-    if (!location.state) return; 
-    if (!location.state.serviceAgree || !location.state.privacyAgree) {
+    if (!serviceAgree || !privacyAgree || !location.state) {
       if (!hasAlerted.current) {
         hasAlerted.current = true;
         alert('잘못된 접근입니다.');

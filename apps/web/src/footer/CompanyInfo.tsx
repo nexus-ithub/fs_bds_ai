@@ -62,9 +62,9 @@ export const CompanyInfo = () => {
       </div>
       <p className="font-c2 text-text-02 flex items-center">사업자 등록번호 : 272-86-01078</p>
       <div className="font-c2 text-text-02 flex items-center gap-[10px]">
-        <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 3366</p>
+        <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 7222</p>
         <VDivider/>
-        <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>junginpng@naver.com</p>
+        <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>buildingshopai@gmail.com</p>
       </div>
       <p className="font-c2 text-text-02 flex items-center"><span className="font-c2-p text-text-05 pr-[4px]">ADD.</span>서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
       <p className="font-c2 text-text-02 flex items-center">©JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</p>
