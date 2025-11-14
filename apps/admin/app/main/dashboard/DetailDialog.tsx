@@ -80,7 +80,6 @@ export const DetailDialog = ({open, onClose, type}: {open: boolean, onClose: () 
             lastMonthSum += dataArray[index];
           }
         });
-        
         return {
           count: currentMonthSum,
           lastCount: lastMonthSum
@@ -95,12 +94,14 @@ export const DetailDialog = ({open, onClose, type}: {open: boolean, onClose: () 
         const { count, lastCount } = calculateCounts(item);
         return {
           name: item.breakdown_value,
-          value: item.count,
+          value: count,
           count: count,
           lastCount: lastCount
         };
       })
+      .filter(item => item.count > 0) 
       .sort((a: any, b: any) => b.value - a.value);
+    console.log(processedData)
     
     setData(processedData);
   }, [rawData, selectedTab]);

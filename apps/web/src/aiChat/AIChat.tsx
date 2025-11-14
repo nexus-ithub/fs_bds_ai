@@ -194,7 +194,6 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     setCurrentSessionId(newSessionId);
     setQuestionInput("");
     setLoading(true);
-
     try {
       const response = await axios.post(`${API_HOST}/api/chat/ask`, 
         { question: question || questionInput, userId: config?.id, titleExists: !!currentSessionId, sessionId: newSessionId });

@@ -60,7 +60,7 @@ export class UserModel {
   static async userInfoById(id: number): Promise<User | null> {
     try {
       const users = await db.query<User>(
-        'SELECT id, email, name, phone, profile FROM users WHERE id = ? AND delete_yn = "N"',
+        'SELECT id, email, name, phone, profile, provider FROM users WHERE id = ? AND delete_yn = "N"',
         [id]
       );
       return users[0] || null;

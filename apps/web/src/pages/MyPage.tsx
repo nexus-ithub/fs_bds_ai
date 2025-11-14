@@ -13,7 +13,7 @@ import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
-import { EditPassword } from "../myPage/EditPassword";
+
 interface MenuItemType {
   label: string;
   path: string;
@@ -28,7 +28,7 @@ interface CustomAccordionProps {
 const accountMenu: MenuItemType[] = [
   { label: "개인정보", path: "/myPage" },
   { label: "추가정보", path: "/myPage/additional-info" },
-  { label: "비밀번호 변경", path: "/myPage/edit-pw" },
+  // { label: "비밀번호 변경", path: "/myPage/edit-pw" },
 ];
 
 const favoriteMenu: MenuItemType[] = [
@@ -160,7 +160,7 @@ export const MyPage = () => {
         <Routes>
           <Route path="/" element={<Profile />} />
           <Route path="additional-info" element={<MyAdditionalInfo />} />
-          <Route path="edit-pw" element={<EditPassword userId={config?.id}/> } />
+          {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
           <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
           <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
         </Routes>

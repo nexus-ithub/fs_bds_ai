@@ -101,7 +101,7 @@ export const Header = ({user} : {user : User}) => {
               <div>
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">개인정보 수정</span></MenuItem>
                 <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/additional-info')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">추가정보 수정</span></MenuItem>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/edit-pw')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">비밀번호 변경</span></MenuItem>
+                {/* <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/edit-pw')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">비밀번호 변경</span></MenuItem> */}
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">

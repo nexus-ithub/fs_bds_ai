@@ -11,7 +11,7 @@ export const askChat = async (req: Request, res: Response) => {
   try{
     const response = await axios.post(
       url,
-      { question, userId },
+      { question: question, user_id: String(userId) },
       {
         headers: {
           "Authorization": `Bearer ${apiKey}`,
