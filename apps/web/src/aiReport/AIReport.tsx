@@ -1,4 +1,4 @@
-import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIText, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportDebugInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
+import { AIReportLogo, BookmarkFilledIcon, BookmarkIcon, BuildingShopBIMain, Button, CI, CloseIcon, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRoadAddress, HDivider, krwUnit, ShareIcon, TabButton, VDivider, type AIReportDebugInfo, type AIReportResult, type BuildingInfo, type EstimatedPrice, type LandInfo, type PolygonInfo, type ReportValue } from "@repo/common";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { format } from "date-fns";
@@ -249,7 +249,7 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
       >
         <div className="flex items-center justify-between px-[24px] h-[64px]">
           <div className="flex items-center h-full gap-[8px]">
-          <BuildingShopBIText/>
+          <BuildingShopBIMain/>
           <AIReportLogo/>
           </div>
 

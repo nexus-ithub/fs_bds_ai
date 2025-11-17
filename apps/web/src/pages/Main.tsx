@@ -530,10 +530,11 @@ export default function Main() {
           onClick={() => {
             setOpenAIChat(true);
           }}
-          className="fixed gap-[12px] z-30 left-[calc(400px+40%)] -translate-x-1/2 bottom-[16px] w-[480px] h-[50px] rounded-full"
+          className="fixed gap-[8px] z-30 left-[calc(400px+40%)] -translate-x-1/2 bottom-[16px] w-[480px] h-[50px] rounded-full flex items-center justify-center"
         >
           <BuildingShopBITextSmall />
-          <AIShineLogo/>
+          <p className="font-s1-p text-white">질의하기</p>
+          {/* <AIShineLogo/> */}
         </Button>
 
 
