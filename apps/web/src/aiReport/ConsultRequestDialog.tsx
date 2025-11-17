@@ -1,7 +1,7 @@
 
 
 import { Dialog } from "@mui/material";
-import { AIReportLogo, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
+import { Button, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
 import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";

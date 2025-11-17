@@ -1,9 +1,7 @@
 
 
 import { Dialog } from "@mui/material";
-import { AIReportLogo, BuildingShopBIText, Button, Checkbox, DotProgress, getAreaStrWithPyeong, getJibunAddress, getRatioStr, getRoadAddress, getShortAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type BdsSale, type LandInfo, type User } from "@repo/common";
-import { getGradeChip } from "../utils";
-import { type EstimatedPrice } from "@repo/common";
+import { Button, Checkbox, DotProgress, HDivider, VDivider, type BdsSale, type User } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useQuery, useQueryClient } from "react-query";
