@@ -1,4 +1,4 @@
-import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown, Button, BuildingShopBIMain } from "@repo/common"
+import { BuildingShopBIText, VDivider, AlarmIcon, HDivider, MenuDropdown, Button, BuildingShopBIMain, BuildingShopBITitle } from "@repo/common"
 import React, { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, MenuItem, IconButton, Avatar, Dialog } from "@mui/material";
@@ -41,7 +41,7 @@ export const Header = ({user} : {user : User}) => {
     <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px] h-[64px]">
         <button onClick={() => navigate("/main")}>
-          <BuildingShopBIMain />
+          <BuildingShopBITitle />
         </button>
         {/* {isSupportPage && (
           <>
