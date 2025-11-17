@@ -4,6 +4,7 @@ import { Admin, FormField, Radio, Spinner, VDivider, Button, CloseIcon, DotProgr
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
+import { EditPasswordDialog } from "./EditPasswordDialog";
 
 interface AccountDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ export const AccountDialog = ({
   const [name, setName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [adminType, setAdminType] = useState<'M' | 'N'>('M');
+  const [openEditPasswordDialog, setOpenEditPasswordDialog] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [emailLoading, setEmailLoading] = useState<boolean>(false);
   const isModified = selectedAdmin
@@ -38,6 +40,8 @@ export const AccountDialog = ({
     selectedAdmin.phone !== phone ||
     selectedAdmin.adminType !== adminType
   : true;
+
+  console.log("selectedAdmin", selectedAdmin);
 
   const handleEmailValidation = async () => {
     if (emailValid !== null) return;
@@ -61,6 +65,7 @@ export const AccountDialog = ({
         ...session?.user,
         name: name,
         email: email,
+        adminType: adminType,
       }
     });
   }
@@ -78,6 +83,9 @@ export const AccountDialog = ({
       setLoading(false);
       if (getUsers) {
         getUsers();
+        if (selectedAdmin?.email === session?.user?.email) {
+          updateSession();
+        }
       } else {
         updateSession();
       }
@@ -192,31 +200,36 @@ export const AccountDialog = ({
                 onChange={handlePhoneChange}
                 />
             </div>
-            <form className="flex items-center justify-center gap-[120px] px-[14px] py-[15px] rounded-[2px] border border-line-03">
-              <Radio
-                label="마스터"
-                value="M"
-                checked={adminType === 'M'}
-                onChange={() => setAdminType('M')}
-              />
-              <Radio
-                label="일반"
-                value="N"
-                checked={adminType === 'N'}
-                onChange={() => setAdminType('N')}
-              />
-            </form>
+            {session?.user?.adminType === 'M' && (
+              <form className="flex items-center justify-center gap-[120px] px-[14px] py-[15px] rounded-[2px] border border-line-03">
+                <Radio
+                  label="마스터"
+                  value="M"
+                  checked={adminType === 'M'}
+                  onChange={() => setAdminType('M')}
+                />
+                <Radio
+                  label="일반"
+                  value="N"
+                  checked={adminType === 'N'}
+                  onChange={() => setAdminType('N')}
+                />
+              </form>
+            )}
           </div>
         }
         <div className="flex items-center justify-center p-[24px]">
-          <div className="w-[400px] flex items-center gap-[10px]">
-            <Button variant="bggray" size="medium" fontSize="font-h4" className="w-[120px]" onClick={() => setOpen(false)}>취소</Button>
-            <Button size="medium" fontSize="font-h4" className="flex-1" disabled={!emailValid || !name || !isModified} onClick={handleSubmit}>
+          <div className={`w-full flex items-center ${session?.user?.email === selectedAdmin?.email ? 'justify-between' : 'justify-end'} gap-[10px]`}>
+            {session?.user?.email === selectedAdmin?.email && (
+              <Button size="medium" fontSize="font-h4" className="w-[120px]" onClick={() => setOpenEditPasswordDialog(true)}>비밀번호 변경</Button>
+            )}
+            <Button size="medium" fontSize="font-h4" className="w-[240px]" disabled={!emailValid || !name || !isModified} onClick={handleSubmit}>
               {loading ? <Spinner /> : selectedAdmin ? '수정' : '추가'}
             </Button>
           </div>
         </div>
       </div>
+      <EditPasswordDialog open={openEditPasswordDialog} onClose={() => setOpenEditPasswordDialog(false)} selectedAdmin={selectedAdmin ?? undefined}/>
     </Dialog>
   )
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from 'next/navigation';
 import { CheckIcon, ChevronDownCustomIcon, HDivider, Button, Admin } from "@repo/common";
 import { useLoading } from "./utils/loadingOverlay";

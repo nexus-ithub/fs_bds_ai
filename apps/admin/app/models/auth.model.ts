@@ -7,7 +7,7 @@ export class AuthModel {
   static async findByEmail(email: string): Promise<Admin | null> {
     try {
       const users = await db.query<(RowDataPacket & Admin)[]>(
-        'SELECT * FROM admins WHERE email = ? AND delete_yn = "N" LIMIT 1',
+        'SELECT id, email, password, name, phone, admin_type as adminType FROM admins WHERE email = ? AND delete_yn = "N" LIMIT 1',
         [email]
       );
       return users[0] || null;

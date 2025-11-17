@@ -6,6 +6,7 @@ declare module "next-auth" {
       id: string;
       email?: string | null;
       name?: string | null;
+      adminType?: string | null;
     };
     accessToken?: string; // 클라이언트에 보내는 토큰
     error?: string;
@@ -15,6 +16,7 @@ declare module "next-auth" {
     id: string;
     email: string;
     name?: string | null;
+    adminType?: string | null;
     accessToken?: string;
     refreshToken?: string; // 서버에서만 사용
   }
@@ -24,6 +26,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     email: string;
+    name?: string | null;
+    adminType?: string | null;
     accessToken?: string;
     refreshToken?: string; // 서버에서만 사용
     accessTokenExpires?: number;
