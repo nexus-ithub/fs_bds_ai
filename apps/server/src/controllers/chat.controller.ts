@@ -19,22 +19,23 @@ export const askChat = async (req: Request, res: Response) => {
         },
       }
     );
+    const answerObj = JSON.parse(response.data.answer);
 
     const user = await ChatModel.saveChat({
       session_id: sessionId,
       user_id: userId ?? null,
-      title: titleExists ? null : response.data.summary_question,
+      title: titleExists ? null : answerObj.summary_question,
       question: question,
-      answer: response.data.answer ? response.data.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
+      answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
     });
 
     if (user) {
       return res.json({
-        title: titleExists ? null : response.data.summary_question,
-        answer: response.data.answer ? response.data.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
+        title: titleExists ? null : answerObj.summary_question,
+        answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
       }); 
     } else {
-      throw new Error('Error saving chat');
+      return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
   } catch (error) {
     Sentry.captureException(error);

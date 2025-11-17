@@ -60,8 +60,8 @@ export async function refreshAccessToken(token: any) {
       throw new Error("Refresh token not found in DB, invalid, or expired");
     }
 
-    const newAccessToken = generateAccessToken({ id: decoded.id, email: decoded.email });
-    const newRefreshToken = generateRefreshToken({ id: decoded.id, email: decoded.email });
+    const newAccessToken = generateAccessToken({ id: decoded.id, email: decoded.email, adminType: decoded.adminType });
+    const newRefreshToken = generateRefreshToken({ id: decoded.id, email: decoded.email, adminType: decoded.adminType });
 
     const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN * 1000);
     await AuthModel.updateRefreshToken(decoded.id, newRefreshToken, expiresAt);

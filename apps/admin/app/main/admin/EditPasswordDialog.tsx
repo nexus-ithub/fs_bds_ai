@@ -1,18 +1,19 @@
-import { Button, FormField, HDivider, Spinner, CloseIcon } from "@repo/common"
-import { useState, useEffect } from "react"
-import { Eye, EyeOff } from "lucide-react"
-import useAxiosWithAuth from "../axiosWithAuth";
 import { Dialog } from "@mui/material";
+import { CloseIcon, FormField } from "@repo/common";
+import { Eye, EyeOff } from "lucide-react";
+import { HDivider, Button, Spinner, Admin } from "@repo/common";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useQueryClient } from "react-query";
-import { QUERY_KEY_USER } from "../constants";
-import { getAccessToken } from "../authutil";
-import type { User } from "@repo/common";
+import useAxiosWithAuth from "../../utils/axiosWithAuth";
 
-export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () => void}) => {
+interface EditPasswordDialogProps {
+  open: boolean;
+  onClose: () => void;
+  selectedAdmin?: Admin;
+}
+
+export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswordDialogProps) => {
   const axiosInstance = useAxiosWithAuth();
-  const queryClient = useQueryClient()
-  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [showCurrentPW, setShowCurrentPW] = useState<boolean>(false);
   const [showNewPW, setShowNewPW] = useState<boolean>(false);
   const [showNewPWConfirm, setShowNewPWConfirm] = useState<boolean>(false);
@@ -26,13 +27,14 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await axiosInstance.put('/api/user/password', {password, newPassword});
+      await axiosInstance.put("/admin", {action: "updatePassword", id: selectedAdmin?.id, password, newPassword});
       setPassword('');
       setNewPassword('');
       setNewPasswordConfirm('');
       setError('');
       setOpenSuccessDialog(true);
-    } catch (error) {
+    } catch (error: any) {
+      // console.log(error)
       setError(error.response.data.message);
       toast.error("비밀번호 변경에 실패했습니다.");
     } finally {
@@ -54,7 +56,7 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
       <div className="w-full flex justify-center">
         <div className="w-[420px] flex flex-col gap-[24px]">
           <div className="flex flex-col gap-[20px] p-[26px] rounded-[8px] border border-line-02">
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <h2 className="font-h3">비밀번호 변경</h2>
               <button onClick={onClose}><CloseIcon/></button>
             </div>
@@ -110,10 +112,19 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
                 }
               />
 
-              <div className="flex flex-col pt-[12px]">
+              <div className="flex items-center justify-center gap-[12px] pt-[12px]">
+                <Button 
+                  type="button"
+                  variant="bggray"
+                  className="h-[40px] w-[88px]"
+                  fontSize="font-h5"
+                  onClick={onClose}
+                >
+                  취소
+                </Button>
                 <Button 
                   type="submit"
-                  className="h-[40px]"
+                  className="h-[40px] w-[160px]"
                   fontSize="font-h5"
                   disabled={!password || !newPassword || !newPasswordConfirm || newPassword !== newPasswordConfirm}
                 >
@@ -126,11 +137,12 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
       </div>
       <Dialog 
         open={openSuccessDialog} 
-        onClose={() => {setOpenSuccessDialog(false)}}
+        onClose={() => {setOpenSuccessDialog(false); onClose();}}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             setOpenSuccessDialog(false);
             onClose();
+            e.preventDefault();
           }
         }}
       >
@@ -139,7 +151,7 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
             <p className="font-h3 pt-[12px]">비밀번호가 성공적으로 변경되었습니다.</p>
           </div>
           <div className="flex justify-center gap-[12px]">
-            <Button className="w-[160px]" onClick={() => {setOpenSuccessDialog(false); onClose()}}>확인</Button>
+            <Button className="w-[160px]" onClick={() => {setOpenSuccessDialog(false); onClose();}}>확인</Button>
           </div>
         </div>
       </Dialog>

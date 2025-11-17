@@ -28,6 +28,7 @@ const options: NextAuthOptions = {
           id: user.id!,
           email: user.email,
           name: user.name,
+          adminType: user.adminType,
           accessToken,
           refreshToken,
         };
@@ -42,10 +43,12 @@ const options: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.accessTokenExpires = Date.now() + Number(process.env.ACCESS_TOKEN_EXPIRES_IN || 300) * 1000;
+        token.adminType = user.adminType;
       } else if (trigger === "update" && session) {
         if (session.user) {
           token.name = session.user.name ?? token.name;
           token.email = session.user.email ?? token.email;
+          token.adminType = session.user.adminType ?? token.adminType;
         }
         return token;
       } else if (Date.now() > token.accessTokenExpires!) {
@@ -58,7 +61,7 @@ const options: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.user = { id: token.id, email: token.email, name: token.name };
+      session.user = { id: token.id, email: token.email, name: token.name, adminType: token.adminType };
       session.accessToken = token.accessToken;
       session.error = token.error as string | undefined;
       return session;

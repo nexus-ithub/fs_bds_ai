@@ -1,6 +1,7 @@
 import { Admin } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
+import bcrypt from "bcryptjs";
 
 export class AdminModel {
   static async findAll(keyword: string, page: number, size: number): Promise<{ users: Admin[]; totalCount: number } | null> {
@@ -22,7 +23,7 @@ export class AdminModel {
       const totalCount = (countRows?.[0] as { count: number })?.count ?? 0;
       return { users, totalCount };
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      console.error('Error finding user:', error);
       throw error; 
     }
   }
@@ -35,7 +36,7 @@ export class AdminModel {
       );
       return true;
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      console.error('Error registering user:', error);
       return false; 
     }
   } 
@@ -48,7 +49,7 @@ export class AdminModel {
       );
       return true;
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      console.error('Error updating user:', error);
       return false; 
     }
   }
@@ -56,12 +57,40 @@ export class AdminModel {
   static async delete(id: string): Promise<boolean> {
     try {
       const users = await db.query<(RowDataPacket & Admin)[]>(
-        'UPDATE admins SET delete_yn = ? WHERE id = ?',
+        'UPDATE admins SET email = null, password = null, name = null, phone = null, admin_type = null, delete_yn = ? WHERE id = ?',
         ["Y", id]
       );
       return true;
     } catch (error) {
-      console.error('Error finding user by email:', error);
+      console.error('Error deleting user:', error);
+      return false; 
+    }
+  }
+
+  static async confirmPassword(id: string, password: string) {
+    try {
+      const user = await db.query<(RowDataPacket & Admin)[]>(
+        'SELECT password FROM admins WHERE id = ? AND delete_yn = "N"',
+        [id]
+      );
+      console.log(user?.[0]?.password)
+      return bcrypt.compareSync(String(password), user?.[0]?.password ?? "");
+    } catch (error) {
+      console.error('Error comparing password:', error);
+      throw error;
+    }
+  }
+
+  static async updatePassword(id: string, newPassword: string): Promise<boolean> {
+    try {
+      const hashedPassword = bcrypt.hashSync(newPassword, 10);
+      const users = await db.query<(RowDataPacket & Admin)[]>(
+        'UPDATE admins SET password = ? WHERE id = ?',
+        [hashedPassword, id]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating user password:', error);
       return false; 
     }
   }

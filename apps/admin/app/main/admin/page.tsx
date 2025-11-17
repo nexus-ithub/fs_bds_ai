@@ -4,12 +4,14 @@ import { Button, DeleteIcon, EditIcon, HDivider, Pagination, SearchBar, Spinner,
 import { type Admin } from "@repo/common";
 import { useState } from "react";
 import { Dialog } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { AccountDialog } from "./AccountDialog";
 import { toast } from "react-toastify";
+import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -19,13 +21,15 @@ const COUNT_BUTTON = [
 
 export default function Admin() {
   const axiosInstance = useAxiosWithAuth();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const router = useRouter();
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const didRunRef = useRef(false);
 
   const [openAddAccount, setOpenAddAccount] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
@@ -61,11 +65,33 @@ export default function Admin() {
     }
   }, [status, session?.accessToken, currentPage, pageSize]);
 
+  const getMyAccount = async () => {
+    try {
+      const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: session?.user?.email, page: 1, size: 1 } });
+      const data = await response.data;
+      const userInfo = data.users[0];
+      if (session?.user.adminType !== userInfo.adminType) {
+        alert("권한이 변경되었습니다. 다시 로그인 해주세요.");
+        signOut();
+      }
+    } catch (error) {
+      toast.error("내 계정 조회 실패");
+    }
+  }
+
+  useEffect(() => {
+    if (didRunRef.current) return;
+    getMyAccount();
+    didRunRef.current = true;
+  }, []);
+
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
       <div className="flex items-center justify-between gap-[16px]">
         <h2 className="font-h2">관리자 계정</h2>
-        <Button variant="outline" size="small" fontSize="font-s4" onClick={() => setOpenAddAccount(true)}>관리자 추가</Button>
+        {session?.user?.adminType === 'M' && (
+          <Button variant="outline" size="small" fontSize="font-s4" onClick={() => setOpenAddAccount(true)}>관리자 추가</Button>
+        )}
       </div>
       <HDivider className="!bg-line-02"/>
       {initialLoading ? (
@@ -116,7 +142,9 @@ export default function Admin() {
                 <th className="pl-[12px] py-[14px] font-s3">연락처</th>
                 <th className="pl-[12px] py-[14px] font-s3">권한</th>
                 <th className="pl-[12px] py-[14px] font-s3">등록일</th>
-                <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
+                {session?.user?.adminType === 'M' && (
+                  <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -127,19 +155,21 @@ export default function Admin() {
                   <td className="pl-[12px]">{account.phone}</td>
                   <td className="pl-[12px]">{account.adminType === 'M' ? '마스터' : '일반'}</td>
                   <td className="pl-[12px]">{format(new Date(account.createdAt), "yyyy.MM.dd")}</td>
-                  <td className="pl-[12px] pr-[16px] w-[52px]">
-                    <div className="flex items-center gap-[12px]">
-                      <button
-                        onClick={() => {
-                          setSelectedAdmin(account);
-                          setOpenAddAccount(true);
-                        }}
-                      ><EditIcon/></button>
-                      <button
-                        onClick={() => {setOpenDeleteConfirm(true); setSelectedAdmin(account)}}
-                      ><DeleteIcon color="#585C64"/></button>
-                    </div>
-                  </td>
+                  {session?.user?.adminType === 'M' && (
+                    <td className="pl-[12px] pr-[16px] w-[52px]">
+                      <div className="flex items-center gap-[12px]">
+                        <button
+                          onClick={() => {
+                            setSelectedAdmin(account);
+                            setOpenAddAccount(true);
+                          }}
+                        ><EditIcon/></button>
+                        <button
+                          onClick={() => {setOpenDeleteConfirm(true); setSelectedAdmin(account)}}
+                        ><DeleteIcon color="#585C64"/></button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

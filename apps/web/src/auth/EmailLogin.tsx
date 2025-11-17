@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
-import { BuildingShopBI, Button, Checkbox, Spinner, VDivider } from "@repo/common";
+import { BuildingShopBI, Button, Checkbox, HDivider, Spinner, VDivider } from "@repo/common";
 import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
@@ -101,7 +101,7 @@ export const EmailLogin = () => {
     <div className="min-h-screen flex items-center justify-center sm:px-6 lg:px-8">
       <div className="flex flex-col items-center w-full max-w-[664px] h-[720px] flex-shrink-0 rounded">
         <div className="flex flex-col w-[320px] my-[75px] pb-[20px] gap-[40px]">
-          <div className="flex flex-col gap-[24px] items-center">
+          {/* <div className="flex flex-col gap-[24px] items-center">
             <button onClick={() => navigate('/main')}> 
               <BuildingShopBI/>
             </button>
@@ -113,7 +113,8 @@ export const EmailLogin = () => {
                 빌딩의 가치를 알려주는 빌딩샵
               </p>
             </div>
-          </div>
+          </div> */}
+          <div className="font-h2 text-center">이메일로 로그인</div>
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700 whitespace-pre-line">{error}</div>
@@ -175,12 +176,22 @@ export const EmailLogin = () => {
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
               {/* <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 찾기</button> */}
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 찾기</button>
-              <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => navigate('/signup')}>회원가입</button>
-              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>회원가입</button> */}
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button>
             </div>
           </div>
+          <div className="flex items-center justify-center gap-[12px]">
+            <HDivider />
+            <p className="font-s2 text-text-03">or</p>
+            <HDivider />
+          </div>
+          {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
+          <Button 
+            onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
+            variant='outline'
+            size="medium"
+            fontSize="font-h4"
+            className=""
+          >이메일로 회원가입</Button>
         </div>
       </div>
       <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>

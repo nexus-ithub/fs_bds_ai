@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const { action, id, email, name, phone, adminType, deleteYn } = await req.json();
+  const { action, id, email, name, phone, adminType, password, newPassword } = await req.json();
 
   if (action === "update") {
     const result = await AdminModel.update(id, email, name, phone, adminType);
@@ -59,6 +59,17 @@ export async function PUT(req: Request) {
     return result
       ? NextResponse.json({ success: true, message: "관리자 계정이 삭제되었습니다." })
       : NextResponse.json({ success: false, message: "삭제 실패" }, { status: 400 });
+  }
+
+  if (action === 'updatePassword') {
+    const confirmResult = await AdminModel.confirmPassword(id, password);
+    if (!confirmResult) {
+      return NextResponse.json({ success: false, message: "현재 비밀번호가 맞지 않습니다. 다시 입력해주세요." }, { status: 400 });
+    }
+    const result = await AdminModel.updatePassword(id, newPassword);
+    return result
+      ? NextResponse.json({ success: true, message: "비밀번호가 수정되었습니다." })
+      : NextResponse.json({ success: false, message: "수정 실패" }, { status: 400 });
   }
 
   return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
