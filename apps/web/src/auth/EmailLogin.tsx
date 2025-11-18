@@ -181,8 +181,8 @@ export const EmailLogin = () => {
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
               <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
-              <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 재설정</button>
-              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button> */}
+              {/* <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 재설정</button> */}
+              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button>
             </div>
           </div>
           <div className="flex items-center justify-center gap-[12px]">
@@ -190,21 +190,20 @@ export const EmailLogin = () => {
             <p className="font-s2 text-text-03">or</p>
             <HDivider />
           </div>
-          {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
-          {/* <Button 
+          <Button 
             onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
             variant='outline'
             size="medium"
             fontSize="font-h4"
             className=""
-          >이메일로 회원가입</Button> */}
-          <Button 
+          >이메일로 회원가입</Button>
+          {/* <Button 
             onClick={() => navigate('/signup')}
             variant='outline'
             size="medium"
             fontSize="font-h4"
             className=""
-          >이메일로 회원가입</Button>
+          >이메일로 회원가입</Button> */}
         </div>
       </div>
       <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>

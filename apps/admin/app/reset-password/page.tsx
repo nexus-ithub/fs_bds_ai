@@ -1,13 +1,14 @@
-'use client'
+'use client';
+
 import { BuildingShopBIMain } from "@repo/common";
 import { Button, FormField } from "@repo/common";
 import { Check, Eye, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -180,5 +181,13 @@ export default function ResetPassword() {
         </div>
       </Dialog>
     </div>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩중...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

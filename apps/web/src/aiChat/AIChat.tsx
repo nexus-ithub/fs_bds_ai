@@ -114,7 +114,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   onClick={() => {setSelectedChatId(item.sessionId); setCurrentSessionId(item.sessionId);}}
                 >
                   <p className={`font-s2 ${isActive ? "text-primary" : "text-text-02"} truncate`}>
-                    {item.title}
+                    {item.title ?? "제목 없음"}
                   </p>
                   <div
                     className={`transition-opacity cursor-pointer ${
@@ -176,7 +176,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       if (existing) {
         const updatedSession = {
           ...existing,
-          messages: [...existing.messages, userMessage]
+          messages: [...existing.messages, userMessage],
         };
         const otherSessions = prev.filter(c => c.sessionId !== newSessionId);
         return [updatedSession, ...otherSessions];
@@ -214,13 +214,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       if (config?.id) {
         posthog.identify(String(config?.id));
       }
+    } catch (error) {
+      Sentry.captureException(error);
+      toast.error('AI 응답 중 일시적 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.')
+      setQuestionInput(inputToUse)
+    } finally {
       posthog.capture('ask_chat')
       logEvent(analytics, 'ask_chat')
-    } catch (error) {
-      console.error("AI 응답 중 오류가 발생했습니다.", error);
-      Sentry.captureException(error);
-      toast.error('AI 응답 중 오류가 발생했습니다.\n다시 시도하거나 관리자에게 문의하세요.')
-    } finally {
       setLoading(false);
     }
   }

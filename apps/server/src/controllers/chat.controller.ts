@@ -8,6 +8,8 @@ export const askChat = async (req: Request, res: Response) => {
   const url = process.env.CHAT_URL;
   const apiKey = process.env.AICHAT_KEY;
 
+  let answerObj = { answer: "응답 지연으로 답변을 받을 수 없습니다.", summary_question: "제목 없음" };
+
   try{
     const response = await axios.post(
       url,
@@ -17,11 +19,13 @@ export const askChat = async (req: Request, res: Response) => {
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+        timeout: 30000,
       }
     );
-    const answerObj = JSON.parse(response.data.answer);
+    answerObj = JSON.parse(response.data.answer);
+    // answerObj = response.data;  //로컬에서 돌릴 때
 
-    const user = await ChatModel.saveChat({
+    await ChatModel.saveChat({
       session_id: sessionId,
       user_id: userId ?? null,
       title: titleExists ? null : answerObj.summary_question,
@@ -29,17 +33,20 @@ export const askChat = async (req: Request, res: Response) => {
       answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
     });
 
-    if (user) {
-      return res.json({
-        title: titleExists ? null : answerObj.summary_question,
-        answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
-      }); 
-    } else {
-      return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
-    }
+    return res.json({
+      title: titleExists ? null : answerObj.summary_question,
+      answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
+    }); 
   } catch (error) {
     Sentry.captureException(error);
-    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    await ChatModel.saveChat({
+      session_id: sessionId,
+      user_id: userId ?? null,
+      title: titleExists ? null : answerObj.summary_question,
+      question: question,
+      answer: "",
+    });
+    return res.status(500).json({ title: titleExists ? null : answerObj.summary_question, message: '서버 오류가 발생했습니다.' });
   }
 }
 

@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_HOST } from "../constants";
-import { BuildingShopBIMain, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
+import { BuildingShopBIMain, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider, type User } from "@repo/common";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import * as Sentry from "@sentry/react";
+import { useQueryClient } from 'react-query';
+import { QUERY_KEY_USER } from '../constants';
+import { getAccessToken } from '../authutil';
 
 const LOGIN_TYPES = [
   { provider: 'k', callback: 'kakao', color: '#FEE502', textColor: 'text-[rgba(0,0,0,0.85)]', logo: <KakaoLogo size='20' />, label: '카카오 계정으로 계속하기' },
@@ -16,15 +19,73 @@ const LOGIN_TYPES = [
 export const LoginMain = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient()
+  const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
-  const handleOAuth = async(provider: string) => {
-    const url = await axios.post(`${API_HOST}/api/auth/oauth/callback/${provider}`, {}, { withCredentials: true });
-    if (url) {
-      window.location.href = url.data.url;
-    } else {
-      toast.error('다른 로그인 방법을 시도하거나 잠시 후 다시 시도해주세요.');
-      console.log('지원하지 않는 OAuth 제공자입니다.')
-      Sentry.captureException('지원하지 않는 OAuth 제공자입니다.')
+  useEffect(() => {
+    console.log("config: ", config)
+    console.log("getAccessToken(): ", getAccessToken())
+    console.log("queryClient: ", queryClient)
+    console.log("QUERY_KEY_USER: ", QUERY_KEY_USER)
+    if (config) {
+      navigate('/main')
+    }
+  }, [config])
+
+  const handleOAuth = async (provider: string) => {
+    try {
+      const response = await axios.post(
+        `${API_HOST}/api/auth/oauth/callback/${provider}`,
+        {},
+        { withCredentials: true }
+      );
+      
+      if (response.data.url) {
+        const width = 500;
+        const height = 600;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+        
+        const popup = window.open(
+          response.data.url,
+          'OAuth Login',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
+        
+        if (!popup) {
+          toast.error('팝업이 차단되었습니다.');
+          return;
+        }
+        
+        // 메시지 리스너 등록
+        const messageHandler = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+          
+          if (event.data.type === 'OAUTH_SUCCESS') {
+            window.removeEventListener('message', messageHandler);
+            navigate('/');
+          } else if (event.data.type === 'OAUTH_REDIRECT') {
+            window.removeEventListener('message', messageHandler);
+            navigate(event.data.path, { state: event.data.state });
+          } else if (event.data.type === 'OAUTH_ERROR') {
+            window.removeEventListener('message', messageHandler);
+            toast.error(event.data.message);
+          }
+        };
+        
+        window.addEventListener('message', messageHandler);
+        
+        // 팝업이 닫혔는지 주기적으로 확인
+        const checkPopup = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkPopup);
+            window.removeEventListener('message', messageHandler);
+          }
+        }, 500);
+      }
+    } catch (error) {
+      toast.error('로그인 중 오류가 발생했습니다.');
+      Sentry.captureException(error);
     }
   };
 

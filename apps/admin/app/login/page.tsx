@@ -166,8 +166,8 @@ export default function Login() {
               </button>
             </form>
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
-              {/* <button onClick={() => setOpenPWFind(true)}>비밀번호 재설정</button> */}
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button>
+              <button onClick={() => setOpenPWFind(true)}>비밀번호 재설정</button>
+              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button> */}
             </div>
           </div>
         </div>
