@@ -140,4 +140,16 @@ export class UserModel {
       throw error;
     }
   }
+
+  static async deleteAccount (id: number): Promise<void> {
+    try {
+      await db.query<User>(
+        'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ?, marketing_email = ?, marketing_sms = ? WHERE id = ? AND delete_yn = "N"',
+        ["Y", null, null, null, null, null, null, null, null, id]
+      );
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
 }

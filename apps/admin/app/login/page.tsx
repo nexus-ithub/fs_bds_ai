@@ -178,11 +178,11 @@ export default function Login() {
         </div>
       )}
       <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>
-        <div className="flex flex-col gap-[20px] w-[400px]">
+        <div className="flex flex-col gap-[24px] w-[400px]">
           <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">비밀번호 찾기</h3>
           <div className="flex flex-col items-center gap-[4px] px-[20px]">
-            <p className='font-h3 pb-[4px]'>등록된 이메일 주소를 입력해주세요.</p>
-            <p className='font-s1'>비밀번호 재설정 메일을 보내드립니다.</p>
+            <p className='font-h3 pb-[4px]'>등록된 이메일을 입력해 주세요.</p>
+            <p className='font-s2 text-text-02'>비밀번호 재설정 메일을 보내드립니다.</p>
           </div>
           <input 
             type="email" 

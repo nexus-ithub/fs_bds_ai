@@ -7,19 +7,12 @@ import type { User } from "@repo/common";
 import { getAccessToken } from "../authutil";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { EditPasswordDialog } from "./EditPasswordDialog";
+import { useNavigate } from "react-router-dom";
 
 export const Profile = () => {
-  // const axiosInstance = useAxiosWithAuth();
-  // const { data : config } = useQuery<User>({
-  //     queryKey: [QUERY_KEY_USER, getAccessToken()],
-  //     queryFn: async () => {
-  //       const response = await axiosInstance.get("/api/user/info");
-  //       return response.data;
-  //     },
-  //     enabled: !!getAccessToken(),
-  //   })
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState<string>(config?.email ?? "");
   const [name, setName] = useState<string>(config?.name ?? "");
@@ -92,9 +85,10 @@ export const Profile = () => {
         }
         <div 
           className="flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 cursor-pointer"
-          onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
+          // onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
+          onClick={() => navigate('/delete-account')}
           >
-          <p className="font-s2 text-text-02" >회원 탈퇴</p>
+          <p className="font-s2 text-text-02">회원 탈퇴</p>
           <ChevronRightCustomIcon size={16}/>
         </div>
       </div>

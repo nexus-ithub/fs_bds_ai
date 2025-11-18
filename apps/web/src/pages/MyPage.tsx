@@ -3,7 +3,7 @@ import { Profile } from "../myPage/Profile";
 import { CheckIcon, HDivider, type User } from "@repo/common";
 
 import { useEffect, useRef, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
@@ -13,6 +13,7 @@ import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
+import * as Sentry from "@sentry/react";
 
 interface MenuItemType {
   label: string;
@@ -92,6 +93,7 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 };
 
 export const MyPage = () => {
+  const navigate = useNavigate();
   const axiosWithAuth = useAxiosWithAuth();
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
@@ -105,7 +107,7 @@ export const MyPage = () => {
       setBdsCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
-      // toast.error("북마크 총 개수 조회 중 오류 발생");
+      Sentry.captureException(error);
     }
   }
 
@@ -115,13 +117,15 @@ export const MyPage = () => {
       setReportCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
+      Sentry.captureException(error);
     }
   }
 
   useEffect(() => {
+    if (!config) navigate("/")
     getTotalBookmarkedBds();
     getTotalBookmarkedReport();
-  }, [])
+  }, [config])
 
   return (
     <div className="flex h-full">
