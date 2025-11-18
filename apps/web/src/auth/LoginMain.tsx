@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_HOST } from "../constants";
-import { BuildingShopBIMain, GoogleLogo, HDivider, KakaoLogo, NaverLogo } from "@repo/common";
+import { BuildingShopBIMain, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider } from "@repo/common";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import * as Sentry from "@sentry/react";
@@ -87,24 +87,24 @@ export const LoginMain = () => {
             >기존 계정 찾기</button>
             <HDivider/>
           </div>
+          <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
+            <a
+            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
+              서비스 이용약관
+            </a>
+            <VDivider/>
+            <a
+            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
+              개인정보 처리방침
+            </a>
+          </div>
         </div>
-        {/* <div className="flex items-center gap-[24px] font-s2 text-text-03">
-          <a
-          href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
-          target="_blank"
-          rel="noopener noreferrer"
-          >
-            서비스 이용약관
-          </a>
-          <VDivider/>
-          <a
-          href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
-          target="_blank"
-          rel="noopener noreferrer"
-          >
-            개인정보 처리방침
-          </a>
-        </div> */}
       </div>
     </div>
   );

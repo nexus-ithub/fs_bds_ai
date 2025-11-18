@@ -94,30 +94,48 @@ export const DeleteAccount = () => {
           className="pt-[10px]"
         />
         <div className="flex gap-[12px] mt-[6px]">
-          <Button variant="bggray" size="semiMedium" fontSize="font-h4" className="w-[150px]" disabled={loading} onClick={() => window.history.back()}>
+          <Button 
+            variant="bggray" 
+            size="semiMedium" 
+            fontSize="font-h4" 
+            className="w-[150px]" 
+            disabled={loading} 
+            onClick={() => navigate("/mypage")}
+          >
             나중에 하기
           </Button>
-          <Button size="semiMedium" fontSize="font-h4" className="flex-1" disabled={!isChecked} onClick={() => setOpenConfirmDialog(true)}>
+          <Button 
+            size="semiMedium" 
+            fontSize="font-h4" 
+            className="flex-1" 
+            disabled={!isChecked} 
+            onClick={() => setOpenConfirmDialog(true)}
+          >
             {loading ? <Spinner/> : '탈퇴하기'}
           </Button>
         </div>
       </div>
       <Dialog
         open={openConfirmDialog}
-        onClose={() => {logout(); navigate('/'); setOpenConfirmDialog(false);}}
+        onClose={() => setOpenConfirmDialog(false)}
       >
         <div className="flex flex-col items-center p-[28px] gap-[20px]">
           <div className="flex flex-col items-center gap-[10px]">
             <h2 className="font-h2">정말 탈퇴하시겠습니까?</h2>
             <p className="font-s1 text-text-02">탈퇴 후에는 복구가 불가능합니다.</p>
           </div>
-          <Button 
-            onClick={() => handleSubmit()}
-            fontSize="font-h5"
-            className="w-[140px]"
-          >
-            확인
-          </Button>
+          <div className="flex gap-[12px]">
+            <Button variant="bggray" fontSize="font-h5" className="w-[96px]" onClick={() => setOpenConfirmDialog(false)}>
+              취소
+            </Button>
+            <Button 
+              onClick={() => handleSubmit()}
+              fontSize="font-h5"
+              className="w-[120px]"
+            >
+              확인
+            </Button>
+          </div>
         </div>
       </Dialog>
       <Dialog
