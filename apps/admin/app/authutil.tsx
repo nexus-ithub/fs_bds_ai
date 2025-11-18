@@ -36,6 +36,5 @@ export const logout = () => {
   localStorage.removeItem("auth");
   sessionStorage.removeItem("auth");
   localStorage.removeItem("autoLogin");
-  localStorage.removeItem("holidays");
   return Promise.resolve();
 };

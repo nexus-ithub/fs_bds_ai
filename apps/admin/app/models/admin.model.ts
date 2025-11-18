@@ -94,4 +94,18 @@ export class AdminModel {
       return false; 
     }
   }
+
+  static async resetPassword(email: string, password: string): Promise<boolean> {
+    try {
+      const hashedPassword = bcrypt.hashSync(password, 10);
+      const users = await db.query<(RowDataPacket & Admin)[]>(
+        'UPDATE admins SET password = ? WHERE email = ?',
+        [hashedPassword, email]
+      );
+      return true;
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      return false; 
+    }
+  }
 }

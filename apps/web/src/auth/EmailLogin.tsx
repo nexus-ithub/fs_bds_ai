@@ -90,6 +90,12 @@ export const EmailLogin = () => {
   };
 
   useEffect(() => {
+    if (openPWFind) {
+      setFindPWEmail('');
+    }
+  }, [openPWFind]);
+
+  useEffect(() => {
     if (location.state?.message) {
       setError(location.state.message);
       // 상태 초기화
