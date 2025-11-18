@@ -83,9 +83,13 @@ export const SignupTerms = () => {
               onChange={(checked) => {
                 setServiceAgree(checked);
               }}/>
-            <button className="w-[14px] h-[14px] flex items-center justify-center" onClick={() => {setOpenServiceTerms(true)}}>
+            <a
+            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
               <ChevronRightCustomIcon/>
-            </button>
+            </a>
           </div>
           <div className="flex justify-between items-center">
             <Checkbox
@@ -95,9 +99,13 @@ export const SignupTerms = () => {
               onChange={(checked) => {
               setPrivacyAgree(checked);
             }}/>
-            <button className="w-[14px] h-[14px] flex items-center justify-center">
+            <a
+            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
               <ChevronRightCustomIcon/>
-            </button>
+            </a>
           </div>
           <div className="flex justify-between items-center">
             <Checkbox

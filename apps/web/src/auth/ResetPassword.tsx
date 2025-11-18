@@ -114,9 +114,9 @@ export const ResetPassword = () => {
                   }
                 }}
                 rightElement={
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}>
+                  <span className="cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
-                  </button>
+                  </span>
                 }
                 />
               <FormField 
@@ -143,9 +143,9 @@ export const ResetPassword = () => {
                         ""
                       )}
                     </div>
-                    <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>
+                    <span className="cursor-pointer" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>
                       {showPasswordConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
-                    </button>
+                    </span>
                   </>
                 }
                 />

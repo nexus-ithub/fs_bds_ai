@@ -1,7 +1,7 @@
 import { Button, Checkbox, Spinner } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { toast } from "react-toastify";
 import { logout } from "../authutil";
@@ -14,9 +14,12 @@ import type { User } from "@repo/common";
 export const DeleteAccount = () => {
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
+  const { pwConfirm } = location.state ?? { pwConfirm: false };
   const [isChecked, setIsChecked] = useState<boolean>(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -34,7 +37,7 @@ export const DeleteAccount = () => {
   }
 
   useEffect(() => {
-    if (!config) navigate("/")
+    if (!config || !pwConfirm) navigate("/")
   }, [config])
 
   return (
@@ -94,11 +97,29 @@ export const DeleteAccount = () => {
           <Button variant="bggray" size="semiMedium" fontSize="font-h4" className="w-[150px]" disabled={loading} onClick={() => window.history.back()}>
             나중에 하기
           </Button>
-          <Button size="semiMedium" fontSize="font-h4" className="flex-1" disabled={!isChecked} onClick={() => handleSubmit()}>
+          <Button size="semiMedium" fontSize="font-h4" className="flex-1" disabled={!isChecked} onClick={() => setOpenConfirmDialog(true)}>
             {loading ? <Spinner/> : '탈퇴하기'}
           </Button>
         </div>
       </div>
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => {logout(); navigate('/'); setOpenConfirmDialog(false);}}
+      >
+        <div className="flex flex-col items-center p-[28px] gap-[20px]">
+          <div className="flex flex-col items-center gap-[10px]">
+            <h2 className="font-h2">정말 탈퇴하시겠습니까?</h2>
+            <p className="font-s1 text-text-02">탈퇴 후에는 복구가 불가능합니다.</p>
+          </div>
+          <Button 
+            onClick={() => handleSubmit()}
+            fontSize="font-h5"
+            className="w-[140px]"
+          >
+            확인
+          </Button>
+        </div>
+      </Dialog>
       <Dialog
         open={openCompleteDialog}
         onClose={() => {logout(); navigate('/'); setOpenCompleteDialog(false);}}

@@ -191,8 +191,15 @@ export const EmailLogin = () => {
             <HDivider />
           </div>
           {/* <button onClick={() => navigate('/signup')}>회원가입</button> */}
-          <Button 
+          {/* <Button 
             onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
+            variant='outline'
+            size="medium"
+            fontSize="font-h4"
+            className=""
+          >이메일로 회원가입</Button> */}
+          <Button 
+            onClick={() => navigate('/signup')}
             variant='outline'
             size="medium"
             fontSize="font-h4"

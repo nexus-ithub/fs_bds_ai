@@ -52,7 +52,7 @@ export const LoginMain = () => {
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-[10px]">
+          <div className="flex flex-col gap-[20px]">
             {LOGIN_TYPES.map(({provider, callback, color, textColor, logo, label, border}) => (
               <button
                 key={provider}
@@ -69,7 +69,7 @@ export const LoginMain = () => {
                 <p className={textColor}>{label}</p>
 
                 {localStorage.getItem('lastLogin') === provider && (
-                  <div className="absolute left-[10px] top-[4px] -translate-y-1/2 bg-primary rounded-[100px] px-[10px] py-[2px]
+                  <div className="absolute left-[10px] top-[0px] -translate-y-1/2 bg-primary rounded-[100px] px-[10px] py-[2px]
                     text-white font-c1-p shadow-sm
                     after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2
                     after:border-[5px] after:border-transparent after:border-t-primary">

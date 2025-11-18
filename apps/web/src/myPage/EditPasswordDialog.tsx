@@ -54,7 +54,7 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
       <div className="w-full flex justify-center">
         <div className="w-[420px] flex flex-col gap-[24px]">
           <div className="flex flex-col gap-[20px] p-[26px] rounded-[8px] border border-line-02">
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <h2 className="font-h3">비밀번호 변경</h2>
               <button onClick={onClose}><CloseIcon/></button>
             </div>

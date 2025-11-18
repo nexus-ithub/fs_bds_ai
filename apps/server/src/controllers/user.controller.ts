@@ -34,6 +34,24 @@ export const checkEmail = async (req: Request, res: Response) => {
   }
 };
 
+export const checkPassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const { password } = req.body;
+    console.log("userId: ", userId);
+    console.log("password: ", password);
+    const result = await UserModel.confirmPassword(userId, password);
+    if (!result) {
+      return res.status(400).json({ message: '현재 비밀번호가 맞지 않습니다. 다시 입력해주세요.' });
+    }
+    res.status(200).json({ message: '비밀번호가 일치합니다.' });
+  } catch (err) {
+    console.error('Check password error:', err);
+    Sentry.captureException(err);
+    res.status(500).json({ message: '비밀번호 확인 중 서버 오류가 발생했습니다.' });
+  }
+};
+
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { token, password } = req.body;

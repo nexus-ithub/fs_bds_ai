@@ -64,7 +64,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
             <form 
               className="flex flex-col gap-[20px]" 
               onSubmit={(e) => {
-                e.preventDefault(); // 페이지 새로고침 방지
+                e.preventDefault();
                 handleSubmit();
               }}
             >

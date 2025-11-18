@@ -1,28 +1,52 @@
 import { Avatar, Dialog } from "@mui/material";
-import { ChevronRightCustomIcon, HDivider, Switch } from "@repo/common";
-import { useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { Button, ChevronRightCustomIcon, CloseIcon, FormField, HDivider, Spinner } from "@repo/common";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import type { User } from "@repo/common";
 import { getAccessToken } from "../authutil";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { EditPasswordDialog } from "./EditPasswordDialog";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 export const Profile = () => {
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const navigate = useNavigate();
+  const axiosInstance = useAxiosWithAuth();
 
   const [email, setEmail] = useState<string>(config?.email ?? "");
   const [name, setName] = useState<string>(config?.name ?? "");
   const [phone, setPhone] = useState<string | null>(config?.phone ?? null);
-  const [login, setLogin] = useState(null);
-  const [alarm, setAlarm] = useState<boolean>(false);
+
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const [openEditPasswordDialog, setOpenEditPasswordDialog] = useState<boolean>(false);
+  const [openPasswordConfirm, setOpenPasswordConfirm] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   console.log(">>>config ", config)
 
+  const handleConfirmPassword = async() => {
+    try {
+      setLoading(true);
+      await axiosInstance.post('/api/user/check-password', {password});
+      navigate('/delete-account', {state: {pwConfirm: true}});
+    } catch (error) {
+      setError("비밀번호가 일치하지 않습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!openPasswordConfirm) {
+      setPassword('');
+      setError('');
+    }
+  }, [openPasswordConfirm]);
   
   return (
     <div className="w-full flex justify-center">
@@ -45,7 +69,6 @@ export const Profile = () => {
               <p className="font-s2 text-text-02">고객명</p>
               <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${name ? "border-line-04" : "border-line-03"}`}>
                 <p className="font-b1 text-text-05">{name}</p>
-                {/* <ChevronRightCustomIcon size={16} /> */}
               </div>
             </div>
             <div className="flex flex-col gap-[12px]">
@@ -56,22 +79,10 @@ export const Profile = () => {
                 >
                 <p className={`font-b1 ${phone ? "" : "text-text-04"}`}>{phone ?? "휴대폰 번호를 입력하세요."}</p>
                 <ChevronRightCustomIcon size={16}/>
-                {/* <ChevronRightCustomIcon size={16}/> */}
               </div>
             </div>
-            {/* <div className="flex flex-col gap-[12px]">
-              <p className="font-s2 text-text-02">간편 로그인</p>
-              <div className={`py-[12px] font-b1 border-b flex items-center justify-between gap-[8px] ${login ? "border-line-04" : "border-line-03"}`}>
-                <p className={`font-b1 ${login ? "" : "text-text-04"}`}>{login ?? "간편 로그인 수단을 등록해 주세요."}</p>
-                <ChevronRightCustomIcon size={16} />
-              </div>
-            </div> */}
           </div>
         </div>
-        {/* <div className="flex justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02">
-          <p className="font-s2 text-text-02">알림설정</p>
-          <Switch checked={alarm} onChange={(checked) => setAlarm(checked)}/>
-        </div> */}
         {config?.provider 
         ? null
         : <div 
@@ -86,13 +97,53 @@ export const Profile = () => {
         <div 
           className="flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 cursor-pointer"
           // onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
-          onClick={() => navigate('/delete-account')}
+          onClick={() => setOpenPasswordConfirm(true)}
           >
           <p className="font-s2 text-text-02">회원 탈퇴</p>
           <ChevronRightCustomIcon size={16}/>
         </div>
       </div>
       <EditPasswordDialog open={openEditPasswordDialog} onClose={() => setOpenEditPasswordDialog(false)}/>
+      <Dialog
+        open={openPasswordConfirm}
+        onClose={() => setOpenPasswordConfirm(false)}
+      >
+        <div className="w-[420px] flex flex-col gap-[24px]">
+          <div className="flex flex-col rounded-[8px] border border-line-02">
+            <div className="flex items-center justify-between px-[16px] py-[12px]">
+              <h2 className="font-h3">비밀번호 확인</h2>
+              <button onClick={() => setOpenPasswordConfirm(false)}><CloseIcon/></button>
+            </div>
+            <HDivider/>
+            <div className="p-[16px]">
+              <form 
+              className="flex flex-col" 
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleConfirmPassword();
+              }}
+            >
+              <FormField 
+                label="현재 비밀번호" 
+                type={showPassword ? 'text' : 'password'} 
+                placeholder="비밀번호를 입력하세요." 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                rightElement={
+                  <span onClick={() => setShowPassword(!showPassword)} className="cursor-pointer">
+                    {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/> }
+                  </span>
+                }
+              />
+              {error && (
+                <p className="font-s3 text-secondary-050 pt-[2px]">{error}</p>
+              )}
+              <Button className="w-full mt-[12px]" size="semiMedium" onClick={() => handleConfirmPassword()}>{loading ? <Spinner />: "확인"}</Button>
+            </form>
+            </div>
+          </div>
+        </div>
+      </Dialog>
     </div>
   )
 }
