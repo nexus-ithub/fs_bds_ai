@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { CloseIcon, getAreaStrWithPyeong, getShortAddress, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
+import { CloseIcon, getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
 import React from "react";
 import { CircularProgress, Dialog, DialogContent } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
@@ -14,45 +14,72 @@ import { analytics } from "../firebaseConfig";
 import * as Sentry from "@sentry/react";
 
 const FILTER_TABS = [
-  // '👍 빌딩샵 추천 TOP5',
-  '👍 핫플레이스 추천매물',
-  '💸 역세권 추천매물',
-  '💰 수익용 추천매물'
+  // {
+  //   label: '👍 빌딩샵 추천 TOP5',
+  //   value: 'recommend'
+  // },
+  {
+    label: '👍 핫플레이스',
+    value: 'hotplace'
+  },
+  {
+    label: '🚇 역세권',
+    value: 'subway'
+  },
+  {
+    label: '💰 수익용',
+    value: 'income'
+  },
+  {
+    label: '🏢 사옥용',
+    value: 'office'
+  },
+  {
+    label: '🆕 신축빌딩',
+    value: 'newbuild'
+  },
+  {
+    label: '🏡 개발부지/토지',
+    value: 'development'
+  },
 ]
 
-const ORDER = [
-  // 'recommend',
-  'hotplace',
-  'subway',
-  'income'
-]
+// const ORDER = [
+//   // 'recommend',
+//   'hotplace',
+//   'subway',
+//   'income',
+//   'office',
+//   'newbuild',
+//   'development',
+// // ]
 
-const BUILDING_LIST_FILTER_TABS = [
-  '실거래 슈퍼빌딩',
-  '핫플레이스',
-  '역세권',
-  '수익용',
-  '사옥용',
-  '신축빌딩',
-  '개발부지/토지',
-  '꼬마빌딩'
-]
+// const BUILDING_LIST_FILTER_TABS = [
+//   // '실거래 슈퍼빌딩',
+//   '핫플레이스',
+//   '역세권',
+//   '수익용',
+//   '사옥용',
+//   '신축빌딩',
+//   '개발부지/토지',
+//   '꼬마빌딩'
+// ]
 
-const BUILDING_LIST_ORDER = [
-  'recommend',
-  'hotplace',
-  'subway',
-  'income',
-  'office',
-  'newbuild',
-  'development',
-  'minibuild'
-]
+// const BUILDING_LIST_ORDER = [
+//   // 'recommend',
+//   'hotplace',
+//   'subway',
+//   'income',
+//   'office',
+//   'newbuild',
+//   'development',
+//   'minibuild'
+// ]
 
 export const BuildingList = () => {
   const [buildings, setBuildings] = useState<BdsSale[]>([]);
-  const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
-  const [order, setOrder] = useState<string>(ORDER[0]);
+  const [selectedFilterTab, setSelectedFilterTab] = useState<{label: string, value: string}>(FILTER_TABS[0]);
+  // const [order, setOrder] = useState<string>(ORDER[0]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
 
@@ -63,7 +90,7 @@ export const BuildingList = () => {
       setLoading(true);
       setIsError(false);
       // const res = await axiosWithAuth.get('/api/bds/list', {params: {filter: order}});
-      const res = await axios.get(`${API_HOST}/api/bds/list`, {params: {filter: order}});
+      const res = await axios.get(`${API_HOST}/api/bds/list`, {params: {filter: selectedFilterTab.value}});
       setBuildings(res.data as BdsSale[]);
     } catch (error) {
       console.error(error);
@@ -77,7 +104,7 @@ export const BuildingList = () => {
 
   useEffect(() => {
     getBuildings();
-  }, [order]);
+  }, [selectedFilterTab]);
 
   useEffect(() => {
     console.log("selectedBuilding", selectedBuilding);
@@ -90,20 +117,20 @@ export const BuildingList = () => {
         <button onClick={() => setShowBuildingListDialog(true)} className="font-h6 text-primary">전체매물보기</button>
       </div>
       <p className="px-[20px] mt-[7px] font-s2 text-text-03">빌딩샵에서 추천하는 실거래 매물을 소개해 드려요.</p>
-      <div className="mt-[12px] flex w-full px-[20px]">
-        <div className="flex w-full items-center border-t border-b border-line-02">
+      <div className="mt-[12px] gap-[8px] flex flex-col w-full border-t border-b border-line-02 py-[14px] px-[20px]">
+        <div className="flex w-full items-center">
           {
-            FILTER_TABS.map((tab, index) => (
+            FILTER_TABS.slice(0, 3).map((tab, index) => (
               <React.Fragment key={index}>
                 <SubTabButton
-                  className="py-[14px] flex items-center justify-center"
-                  selected={index === selectedFilterTab}
-                  onClick={() => { setSelectedFilterTab(index); setOrder(ORDER[index]) }}
+                  className="flex-1 flex items-center justify-center"
+                  selected={tab.value === selectedFilterTab.value}
+                  onClick={() => { setSelectedFilterTab(tab); }}
                 >
-                  {tab}
+                  {tab.label}
                 </SubTabButton>
-                {index < FILTER_TABS.length - 1 && (
-                  <div className="flex flex-1 items-center justify-center">
+                {index < 2 && (
+                  <div className="flex items-center justify-center">
                     <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
                   </div>
                 )}
@@ -111,6 +138,26 @@ export const BuildingList = () => {
             ))
           }
         </div>
+        <div className="mt-[4px] flex w-full items-center">
+          {
+            FILTER_TABS.slice(3, 6).map((tab, index) => (
+              <React.Fragment key={index}>
+                <SubTabButton
+                  className="flex-1 flex items-center justify-center"
+                  selected={tab.value === selectedFilterTab.value}
+                  onClick={() => { setSelectedFilterTab(tab); }}
+                >
+                  {tab.label}
+                </SubTabButton>
+                {index < 2 && (
+                  <div className="flex items-center justify-center">
+                    <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
+                  </div>
+                )}
+              </React.Fragment>
+            ))
+          }
+        </div>        
       </div>      
       <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full divide-y divide-line-02">
         {loading ? (  

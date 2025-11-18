@@ -1,7 +1,7 @@
 
 
 import { Dialog } from "@mui/material";
-import { AIReportLogo, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getRatioStr, HDivider, krwUnit, VDivider, type AIReportDetail } from "@repo/common";
+import { AIReportLogo, BuildingShopBIMain, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getRatioStr, HDivider, krwUnit, VDivider, type AIReportDetail } from "@repo/common";
 import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
@@ -222,7 +222,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
       onClose={onClose}
       >
         <div className="px-[24px] h-[64px] flex items-center gap-[8px]">
-          <BuildingShopBIText/>
+          <BuildingShopBIMain/>
           <AIReportLogo/>
         </div>
         <HDivider/>
