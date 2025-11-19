@@ -5,6 +5,7 @@ export interface ChatInfo {
   title?: string;
   question: string;
   answer: string;
+  score?: number;
   created_at?: string;
   updated_at?: string;
 }

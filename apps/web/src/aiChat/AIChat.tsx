@@ -34,6 +34,7 @@ interface CustomAccordionProps {
 interface ChatMessage {
   role: 'user' | 'ai';
   content: string;
+  score?: number;
 }
 
 interface ChatHistory {
@@ -169,7 +170,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     if (!inputToUse) return;
 
     const newSessionId = currentSessionId || uuidv4();
-    const userMessage: ChatMessage = { role: "user", content: inputToUse };
+    const userMessage: ChatMessage = { role: "user", content: inputToUse, score: 0 };
 
     setChatHistory(prev => {
       const existing = prev.find(c => c.sessionId === newSessionId);
@@ -197,8 +198,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     try {
       const response = await axios.post(`${API_HOST}/api/chat/ask`, 
         { question: question || questionInput, userId: config?.id, titleExists: !!currentSessionId, sessionId: newSessionId });
-
-      const aiMessage: ChatMessage = { role: "ai", content: response.data.answer };
+      console.log("response", response.data)
+      const aiMessage: ChatMessage = { role: "ai", content: response.data.answer, score: response.data.score };
 
       setChatHistory(prev =>
         prev.map((c, index) => 
@@ -250,10 +251,12 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         grouped[row.session_id].messages.push({
           role: "user",
           content: row.question,
+          score: row.score,
         });
         grouped[row.session_id].messages.push({
           role: "ai",
           content: row.answer,
+          score: row.score,
         });
       });
 
@@ -365,7 +368,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
             </div>
             <div className="flex items-center gap-[12px]">
-              <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null);}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
+              <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null); setQuestionInput('')}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
               <button onClick={onClose}><CloseIcon/></button>
             </div>
           </div>    
@@ -415,7 +418,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                         <div className="flex justify-end w-full py-[24px]">
                           <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p whitespace-pre-line">{msg.content}</p>
                         </div>}
-                      {msg.role === 'ai' && <p className="w-full font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">{msg.content}</p>}
+                      {msg.role === 'ai' && 
+                        <p className="w-full font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">
+                          {msg.content}
+                          <span className="ml-[8px] bg-surface-third px-[5px] py-[2px] rounded-[2px] font-b3">
+                            {msg.score >= 0.6 ? "★★★" : msg.score >= 0.5 ? "★★" : msg.score >= 0.4 ? "★" : ""}
+                          </span>
+                        </p>}
                     </div>
                   ))
                 )}

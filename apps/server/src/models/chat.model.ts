@@ -6,8 +6,8 @@ export class ChatModel {
   static async saveChat(chat: ChatInfo): Promise<boolean> {
     try {
       await db.query(
-        `INSERT INTO ai_chat (session_id, user_id, title, question, answer) VALUES (?, ?, ?, ?, ?)`,
-        [chat.session_id, chat.user_id, chat.title, chat.question, chat.answer]
+        `INSERT INTO ai_chat (session_id, user_id, title, question, answer, score) VALUES (?, ?, ?, ?, ?, ?)`,
+        [chat.session_id, chat.user_id, chat.title, chat.question, chat.answer, chat.score]
       );
       return true;
     } catch (error) {

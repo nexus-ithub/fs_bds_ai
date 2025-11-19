@@ -29,9 +29,7 @@ export const askChat = async (req: Request, res: Response) => {
         timeout: 30000,
       }
     );
-    console.log("response>>>", response.data);
     answerObj = JSON.parse(response.data.answer);
-    // answerObj = response.data;  //로컬에서 돌릴 때
 
     await ChatModel.saveChat({
       session_id: sessionId,
@@ -39,11 +37,13 @@ export const askChat = async (req: Request, res: Response) => {
       title: titleExists ? null : answerObj.summary_question,
       question: question,
       answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
+      score: response.data.avg_score,
     });
 
     return res.json({
       title: titleExists ? null : answerObj.summary_question,
       answer: answerObj.answer ? answerObj.answer : "부동산 관련 질문 아니면 답할 수 없습니다.",
+      score: response.data.avg_score,
     }); 
   } catch (error) {
     Sentry.captureException(error);
