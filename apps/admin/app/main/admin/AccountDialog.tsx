@@ -11,6 +11,7 @@ interface AccountDialogProps {
   setOpen: (open: boolean) => void;
   selectedAdmin: Admin | null;
   setSelectedAdmin: (selectedAdmin: Admin | null) => void;
+  ownerAdminType: 'M' | 'N';
   getUsers?: () => void;
   updateSession?: () => void;
   isLoading?: boolean;
@@ -21,6 +22,7 @@ export const AccountDialog = ({
   setOpen,
   selectedAdmin,
   setSelectedAdmin,
+  ownerAdminType,
   getUsers,
   isLoading=false,
 }: AccountDialogProps) => {
@@ -200,7 +202,7 @@ export const AccountDialog = ({
                 onChange={handlePhoneChange}
                 />
             </div>
-            {session?.user?.adminType === 'M' && (
+            {ownerAdminType === 'M' && (
               <form className="flex items-center justify-center gap-[120px] px-[14px] py-[15px] rounded-[2px] border border-line-03">
                 <Radio
                   label="마스터"

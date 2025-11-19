@@ -29,6 +29,7 @@ export default function Admin() {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [myAdminType, setMyAdminType] = useState<'M' | 'N' >('N');
   const didRunRef = useRef(false);
 
   const [openAddAccount, setOpenAddAccount] = useState<boolean>(false);
@@ -47,49 +48,49 @@ export default function Admin() {
 
   const getUsers = async () => {
     try {
-      setInitialLoading(true);
       const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: searchKeyword, page: currentPage, size: pageSize } });
       const data = await response.data;
       setAdmins(data.users);
       setTotalCount(data.totalCount);
     } catch (error) {
       toast.error("관리자 계정 조회 중 오류가 발생했습니다.");
-    } finally {
-      setInitialLoading(false);
     }
   }
-
-  useEffect(() => {
-    if (status === 'authenticated' && session?.accessToken) {
-      getUsers();
-    }
-  }, [status, session?.accessToken, currentPage, pageSize]);
 
   const getMyAccount = async () => {
     try {
       const response = await axiosInstance.get("/admin", { params: { action: "list", keyword: session?.user?.email, page: 1, size: 1 } });
       const data = await response.data;
       const userInfo = data.users[0];
-      if (session?.user.adminType !== userInfo.adminType) {
-        alert("권한이 변경되었습니다. 다시 로그인 해주세요.");
-        signOut();
-      }
+      setMyAdminType(userInfo.adminType);
     } catch (error) {
       toast.error("내 계정 조회 실패");
     }
   }
 
+  const fetchAll = async () => {
+    try {
+      setInitialLoading(true);
+
+      await Promise.all([getUsers(), getMyAccount()]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (didRunRef.current) return;
-    getMyAccount();
-    didRunRef.current = true;
-  }, []);
+    if (status === 'authenticated' && session?.accessToken) {
+      fetchAll();
+    }
+  }, [status, session?.accessToken, currentPage, pageSize]);
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
       <div className="flex items-center justify-between gap-[16px]">
         <h2 className="font-h2">관리자 계정</h2>
-        {session?.user?.adminType === 'M' && (
+        {myAdminType === 'M' && (
           <Button variant="outline" size="small" fontSize="font-s4" onClick={() => setOpenAddAccount(true)}>관리자 추가</Button>
         )}
       </div>
@@ -142,7 +143,7 @@ export default function Admin() {
                 <th className="pl-[12px] py-[14px] font-s3">연락처</th>
                 <th className="pl-[12px] py-[14px] font-s3">권한</th>
                 <th className="pl-[12px] py-[14px] font-s3">등록일</th>
-                {session?.user?.adminType === 'M' && (
+                {myAdminType === 'M' && (
                   <th className="pl-[12px] pr-[16px] py-[14px] w-[52px]">{" "}</th>
                 )}
               </tr>
@@ -155,7 +156,7 @@ export default function Admin() {
                   <td className="pl-[12px]">{account.phone}</td>
                   <td className="pl-[12px]">{account.adminType === 'M' ? '마스터' : '일반'}</td>
                   <td className="pl-[12px]">{format(new Date(account.createdAt), "yyyy.MM.dd")}</td>
-                  {session?.user?.adminType === 'M' && (
+                  {myAdminType === 'M' && (
                     <td className="pl-[12px] pr-[16px] w-[52px]">
                       <div className="flex items-center gap-[12px]">
                         <button
@@ -184,6 +185,7 @@ export default function Admin() {
         setOpen={setOpenAddAccount}
         selectedAdmin={selectedAdmin}
         setSelectedAdmin={setSelectedAdmin}
+        ownerAdminType={myAdminType}
         getUsers={getUsers}
       />
       <Dialog open={openDeleteConfirm} onClose={() => setOpenDeleteConfirm(false)}>

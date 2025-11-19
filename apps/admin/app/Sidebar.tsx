@@ -152,6 +152,7 @@ export const Sidebar = () => {
         setOpen={setOpenMyAccount}
         selectedAdmin={selectedAdmin}
         setSelectedAdmin={setSelectedAdmin}
+        ownerAdminType={selectedAdmin?.adminType as 'M' | 'N'}
         isLoading={isLoading}
       />
     </div>
