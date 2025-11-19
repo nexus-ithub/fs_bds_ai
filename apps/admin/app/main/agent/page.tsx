@@ -364,7 +364,7 @@ export default function Agent() {
     if (!openQuestionSetting) {
       setQuestionEdit(setting?.questions ?? []);
     }
-  }, [openQuestionSetting]);
+  }, [openQuestionSetting, setting?.questions]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -192,8 +192,8 @@ export const SignupInfo = () => {
           rightElement={
             <button
               type="button"
-              onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
-              // onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");}}
+              // onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
+              onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");}}
               className={`font-s2 ${phone.length < 10 ? 'text-text-04' : phoneValid ? 'text-green-500' : 'text-primary'}`}
               disabled={phone.length < 10}
             >

@@ -5,8 +5,6 @@ export class ChatModel {
 
   static async saveChat(chat: ChatInfo): Promise<boolean> {
     try {
-      console.log("여긴 솔직히 올거아냐.. 누구때매 오는데?")
-      console.log(chat)
       await db.query(
         `INSERT INTO ai_chat (session_id, user_id, title, question, answer) VALUES (?, ?, ?, ?, ?)`,
         [chat.session_id, chat.user_id, chat.title, chat.question, chat.answer]

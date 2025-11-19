@@ -3,7 +3,7 @@
 import { BuildingShopBIMain } from "@repo/common";
 import { Button, FormField } from "@repo/common";
 import { Check, Eye, EyeOff } from "lucide-react";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@mui/material";
 import { useSearchParams } from "next/navigation";
@@ -44,10 +44,10 @@ function ResetPasswordForm() {
     }
   }
 
-  const goToLogin = () => {
+  const goToLogin = useCallback(() => {
     setOpenSuccess(false);
     router.push('/login');
-  };
+  }, [router]);
 
   useEffect(() => {
     console.log("openSuccess", openSuccess);
