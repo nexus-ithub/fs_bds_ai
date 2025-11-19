@@ -23,6 +23,7 @@ export const LoginMain = () => {
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
   useEffect(() => {
+    
     if (config) {
       navigate('/main')
     }

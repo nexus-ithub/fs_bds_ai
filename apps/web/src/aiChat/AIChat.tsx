@@ -177,6 +177,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         url: 'https://instagram.com/god.of.building'
       },
       { 
+        text: 'tiktok.com/@godofbuilding',
+        url: 'https://tiktok.com/@godofbuilding'
+      },
+      { 
+        text: '@god.of.building',
+        url: 'https://instagram.com/god.of.building'
+      },
+      { 
         text: '@godofbuilding',
         url: 'https://www.tiktok.com/@godofbuilding'
       }
