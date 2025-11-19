@@ -117,43 +117,44 @@ export const BuildingList = () => {
         <button onClick={() => setShowBuildingListDialog(true)} className="font-h6 text-primary">전체매물보기</button>
       </div>
       <p className="px-[20px] mt-[7px] font-s2 text-text-03">빌딩샵에서 추천하는 실거래 매물을 소개해 드려요.</p>
-      <div className="mt-[12px] gap-[8px] flex flex-col w-full border-t border-b border-line-02 py-[14px] px-[20px]">
-        <div className="flex w-full items-center">
+      <div className="mt-[12px] flex flex-col w-full border-t border-b border-line-02">
+        <div className="flex w-full items-center divide-x divide-line-03">
           {
             FILTER_TABS.slice(0, 3).map((tab, index) => (
               <React.Fragment key={index}>
                 <SubTabButton
-                  className="flex-1 flex items-center justify-center"
+                  className="flex-1 flex items-center justify-center py-[12px]"
                   selected={tab.value === selectedFilterTab.value}
                   onClick={() => { setSelectedFilterTab(tab); }}
                 >
                   {tab.label}
                 </SubTabButton>
-                {index < 2 && (
+                {/* {index < 2 && (
                   <div className="flex items-center justify-center">
-                    <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
+                    <VDivider colorClassName="bg-line-03" className="h-[12px]"/>
                   </div>
-                )}
+                )} */}
               </React.Fragment>
             ))
           }
         </div>
-        <div className="mt-[4px] flex w-full items-center">
+        <HDivider colorClassName="bg-line-02"/>
+        <div className="flex w-full items-center divide-x divide-line-03">
           {
             FILTER_TABS.slice(3, 6).map((tab, index) => (
               <React.Fragment key={index}>
                 <SubTabButton
-                  className="flex-1 flex items-center justify-center"
+                  className="flex-1 flex items-center justify-center py-[12px]"
                   selected={tab.value === selectedFilterTab.value}
                   onClick={() => { setSelectedFilterTab(tab); }}
                 >
                   {tab.label}
                 </SubTabButton>
-                {index < 2 && (
+                {/* {index < 2 && (
                   <div className="flex items-center justify-center">
                     <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
                   </div>
-                )}
+                )} */}
               </React.Fragment>
             ))
           }
