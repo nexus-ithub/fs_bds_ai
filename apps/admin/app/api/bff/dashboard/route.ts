@@ -21,6 +21,7 @@ export async function GET(req: Request) {
           ],
           interval: "day",
           date_from: "-6d",
+          date_to: new Date().toISOString().split("T")[0],
           display: "Table",
           breakdown: "region",
           properties: [],
@@ -38,6 +39,7 @@ export async function GET(req: Request) {
           ],
           interval: "day",
           date_from: "-6d",
+          date_to: new Date().toISOString().split("T")[0],
           display: "Table",
           breakdown: "region",
           properties: [],
@@ -57,6 +59,7 @@ export async function GET(req: Request) {
           ],
           interval: "day",
           date_from: "-6d",
+          date_to: new Date().toISOString().split("T")[0],
           display: "ActionsLineGraph",
           properties: [],
           aggregation: "total"
@@ -73,13 +76,15 @@ export async function GET(req: Request) {
           ],
           interval: "day",
           date_from: "-6d",
+          date_to: new Date().toISOString().split("T")[0],
           properties: [],
-          aggregation: "total"
+          aggregation: "total",
         }, 
         {
           headers: { Authorization: `Bearer ${process.env.POSTHOG_PERSONAL_KEY}` },
         },
       )
+      console.log("countResponse: ", countResponse.data.result[0]);
       const combinedResult = {
         report: reportResponse.data.result,
         bds: bdsResponse.data.result,

@@ -4,16 +4,9 @@ import { ChatModel } from "../models/chat.model";
 import { Sentry } from "../instrument";
 
 export const askChat = async (req: Request, res: Response) => {
-  console.log("여기 오지??")
   const { question, userId, sessionId, titleExists } = req.body;
   const url = process.env.CHAT_URL;
   const apiKey = process.env.AICHAT_KEY;
-  console.log("question", question)
-  console.log("userId", userId)
-  console.log("sessionId", sessionId)
-  console.log("titleExists", titleExists)
-  console.log("url", url)
-  console.log("apiKey", apiKey)
 
   let answerObj = { answer: "응답 지연으로 답변을 받을 수 없습니다.", summary_question: "제목 없음" };
 
