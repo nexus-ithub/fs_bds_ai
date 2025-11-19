@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type JSX } from "react";
 import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User, DotProgress, EditIcon, DeleteIcon } from "@repo/common";
 import { Dialog, Menu, MenuItem } from "@mui/material";
 import axios from "axios";
@@ -13,6 +13,7 @@ import posthog from "posthog-js";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../firebaseConfig";
 import * as Sentry from "@sentry/react";
+import React from "react";
 
 interface AIChatProps {
   open: boolean;
@@ -163,6 +164,55 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         </Menu>
       </div>
     );
+  };
+
+  const convertSpecificLinks = (text: string) => {
+    const links = [
+      { 
+        text: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg',
+        url: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg'
+      },
+      { 
+        text: 'instagram.com/god.of.building',
+        url: 'https://instagram.com/god.of.building'
+      },
+      { 
+        text: '@godofbuilding',
+        url: 'https://www.tiktok.com/@godofbuilding'
+      }
+    ];
+
+    let parts: (string | JSX.Element)[] = [text];
+    
+    links.forEach(({ text: linkText, url }, linkIndex) => {
+      parts = parts.flatMap((part, partIndex) => {
+        if (typeof part !== 'string') return part;
+        
+        const splitParts = part.split(linkText);
+        const result: (string | JSX.Element)[] = [];
+        
+        splitParts.forEach((str, i) => {
+          result.push(str);
+          if (i < splitParts.length - 1) {
+            result.push(
+              <a
+                key={`link-${linkIndex}-${partIndex}-${i}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-b1"
+              >
+                {linkText}
+              </a>
+            );
+          }
+        });
+        
+        return result;
+      });
+    });
+    
+    return parts;
   };
 
   const handleAskChat = async(question?: string) => {
@@ -420,8 +470,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                         </div>}
                       {msg.role === 'ai' && 
                         <p className="w-full font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">
-                          {msg.content}
-                          <span className="ml-[8px] bg-surface-third px-[5px] py-[2px] rounded-[2px] font-b3">
+                          {convertSpecificLinks(msg.content)}
+                          <span className={`rounded-[2px] font-b3 ${msg.score >= 0.4 ? "ml-[8px] bg-surface-third px-[5px] py-[2px]" : ""}`}>
                             {msg.score >= 0.6 ? "★★★" : msg.score >= 0.5 ? "★★" : msg.score >= 0.4 ? "★" : ""}
                           </span>
                         </p>}
