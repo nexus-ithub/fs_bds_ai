@@ -92,6 +92,9 @@ app.use('/api/*', verifyToken);
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });
 });
+app.get("/debug-sentry", (req, res) => {
+  throw new Error("My first Sentry error!");
+});
 
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

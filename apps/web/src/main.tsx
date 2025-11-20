@@ -9,7 +9,8 @@ import { PostHogProvider } from 'posthog-js/react'
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
-  dsn: "https://c074e64ab4ab8ab4d051c8c8ac949ef4@o4510350730854400.ingest.us.sentry.io/4510350732689408",
+  // dsn: "https://c074e64ab4ab8ab4d051c8c8ac949ef4@o4510350730854400.ingest.us.sentry.io/4510350732689408",
+  dsn: "https://2894803047c969a2d2a4f38230cb632f@o4510396295675904.ingest.us.sentry.io/4510396379037696",
   environment: import.meta.env.MODE,
   tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
   sendDefaultPii: true,

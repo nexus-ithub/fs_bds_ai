@@ -270,9 +270,6 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
             : c
         )
       );
-      if (config?.id) {
-        posthog.identify(String(config?.id));
-      }
     } catch (error) {
       Sentry.captureException(error);
       toast.error('AI 응답 중 일시적 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.')

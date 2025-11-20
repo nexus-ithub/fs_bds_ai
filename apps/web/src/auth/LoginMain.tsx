@@ -119,7 +119,7 @@ export const LoginMain = () => {
                 onClick={() => {
                   localStorage.setItem('autoLogin', 'true');
                   if (callback === 'email') return navigate('/login/email');
-                  if (callback === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
+                  // if (callback === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
                   handleOAuth(callback);
                 }}
               >

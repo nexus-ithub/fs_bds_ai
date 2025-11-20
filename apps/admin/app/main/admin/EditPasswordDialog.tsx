@@ -1,9 +1,8 @@
 import { Dialog } from "@mui/material";
 import { CloseIcon, FormField } from "@repo/common";
-import { Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff } from "lucide-react";
 import { HDivider, Button, Spinner, Admin } from "@repo/common";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 
 interface EditPasswordDialogProps {
@@ -36,7 +35,6 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
     } catch (error: any) {
       // console.log(error)
       setError(error.response.data.message);
-      toast.error("비밀번호 변경에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -62,7 +60,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
             </div>
             <HDivider/>
             <form 
-              className="flex flex-col gap-[20px]" 
+              className="flex flex-col gap-[20px] relative" 
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSubmit();
@@ -81,7 +79,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
                 }
               />
               {error && (
-                <p className="font-s3 text-secondary-050">{error}</p>
+                <p className="font-s3 text-secondary-050 absolute top-[2px] right-[10px]">{error}</p>
               )}
 
               <HDivider/>
@@ -106,9 +104,20 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
                 value={newPasswordConfirm} 
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 rightElement={
-                  <span onClick={() => setShowNewPWConfirm(!showNewPWConfirm)} className="cursor-pointer">
+                  <div onClick={() => setShowNewPWConfirm(!showNewPWConfirm)} className="cursor-pointer flex items-center">
+                    <div
+                      className={`transition-opacity duration-200 pr-[6px] ${
+                        newPassword && newPasswordConfirm ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {newPassword === newPasswordConfirm ? (
+                        <Check className="text-green-500 w-5 h-5" />
+                      ) : (
+                        ""
+                      )}
+                    </div>
                     {showNewPWConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/> }
-                  </span>
+                  </div>
                 }
               />
 
