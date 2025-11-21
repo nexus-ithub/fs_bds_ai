@@ -36,6 +36,7 @@ export const LoginMain = () => {
         {},
         { withCredentials: true }
       );
+      console.log(response.data)
       
       if (response.data.url) {
         const width = 500;
@@ -79,6 +80,9 @@ export const LoginMain = () => {
             window.removeEventListener('message', messageHandler);
           }
         }, 500);
+      }
+      if (response.data.message) {
+        toast.error(response.data.message);
       }
     } catch (error) {
       toast.error('로그인 중 오류가 발생했습니다.');

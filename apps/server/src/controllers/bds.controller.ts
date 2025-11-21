@@ -3,6 +3,8 @@ import { AuthRequest } from 'src/middleware/auth.middleware';
 import { BdsModel } from '../models/bds.model';
 import { BdsSale } from '@repo/common';
 import { Sentry } from '../instrument';
+import path from 'path';
+import fs from 'fs';
 
 
 export const getList = async (req: AuthRequest, res: Response) => {
@@ -11,9 +13,14 @@ export const getList = async (req: AuthRequest, res: Response) => {
     if (!filter) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
-    const bdsList = await BdsModel.getList(filter);
+    const filePath = path.resolve(__dirname, '../../buildingshop/bds_sales.json');
+    const rawData = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    const jsonData = JSON.parse(rawData);
+    const filteredData = jsonData[filter];
+
+    // const bdsList = await BdsModel.getList(filter);
     
-    res.status(200).json(bdsList);
+    res.status(200).json(filteredData);
   } catch (err) {
     console.error('Get land info error:', err);
     Sentry.captureException(err);

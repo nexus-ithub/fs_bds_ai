@@ -11,7 +11,7 @@ import setting from "../../../admin/app/main/agent/setting.json"
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { logEvent } from "firebase/analytics";
-import { analytics } from "../firebaseConfig";
+import { analytics } from "../firebaseConfig"; 
 import * as Sentry from "@sentry/react";
 import React from "react";
 
@@ -170,29 +170,34 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     const links = [
       { 
         text: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg',
-        url: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg'
+        url: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg',
+        label: '빌딩의 신↗'
       },
       { 
         text: 'instagram.com/god.of.building',
-        url: 'https://instagram.com/god.of.building'
+        url: 'https://instagram.com/god.of.building',
+        label: '@god.of.building↗'
       },
       { 
         text: 'tiktok.com/@godofbuilding',
-        url: 'https://tiktok.com/@godofbuilding'
+        url: 'https://tiktok.com/@godofbuilding',
+        label: '@godofbuilding↗'
       },
       { 
         text: '@god.of.building',
-        url: 'https://instagram.com/god.of.building'
+        url: 'https://instagram.com/god.of.building',
+        label: '@god.of.building↗'
       },
       { 
         text: '@godofbuilding',
-        url: 'https://www.tiktok.com/@godofbuilding'
+        url: 'https://www.tiktok.com/@godofbuilding',
+        label: '@godofbuilding↗'
       }
     ];
 
     let parts: (string | JSX.Element)[] = [text];
     
-    links.forEach(({ text: linkText, url }, linkIndex) => {
+    links.forEach(({ text: linkText, url, label }, linkIndex) => {
       parts = parts.flatMap((part, partIndex) => {
         if (typeof part !== 'string') return part;
         
@@ -208,9 +213,9 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline font-b1"
+                className="font-b1 border-b border-dashed hover:text-primary"
               >
-                {linkText}
+                {label}
               </a>
             );
           }
