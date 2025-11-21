@@ -21,7 +21,37 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
   const [newPasswordConfirm, setNewPasswordConfirm] = useState<string>("");
   const [openSuccessDialog, setOpenSuccessDialog] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
+  const validatePassword = (passwordInput: string): string => {
+    if (!passwordInput) return "";
+    console.log("dhwl?")
+
+    if (/(.)\1{2,}/.test(passwordInput)) {
+      return '같은 문자를 3번 이상 연속 사용할 수 없습니다';
+    }
+    
+    if (passwordInput.length < 8) {
+      return '8자 이상 입력해주세요';
+    }
+    
+    const hasLetter = /[a-zA-Z]/.test(passwordInput);
+    const hasNumber = /[0-9]/.test(passwordInput);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordInput);
+    
+    if (!hasLetter || !hasNumber || !hasSpecial) {
+      return '영문, 숫자, 특수문자를 모두 포함해주세요';
+    }
+    
+    return "";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setPasswordError(validatePassword(newPassword));
+  };
 
   const handleSubmit = async () => {
     try {
@@ -89,7 +119,8 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
                 type={showNewPW ? 'text' : 'password'} 
                 placeholder="비밀번호를 입력하세요." 
                 value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)}
+                error={passwordError}
+                onChange={(e) => handlePasswordChange(e)}
                 rightElement={
                   <span onClick={() => setShowNewPW(!showNewPW)} className="cursor-pointer">
                     {showNewPW ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/> }
@@ -135,7 +166,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
                   type="submit"
                   className="h-[40px] w-[160px]"
                   fontSize="font-h5"
-                  disabled={!password || !newPassword || !newPasswordConfirm || newPassword !== newPasswordConfirm}
+                  disabled={!password || !newPassword || !newPasswordConfirm || newPassword !== newPasswordConfirm || !!passwordError}
                 >
                   {loading ? <Spinner /> : '변경'}
                 </Button>
