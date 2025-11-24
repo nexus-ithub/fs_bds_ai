@@ -107,7 +107,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 const startServer = async () => {
   try {
     await db.connect();
-    await bdsDb.connect();
+    // await bdsDb.connect();
     // app.listen(port, () => {
     //   console.log(`Server is running on port ${port}`);
     // });
