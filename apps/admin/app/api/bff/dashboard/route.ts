@@ -29,33 +29,6 @@ export async function GET(req: Request) {
   }
 
   if (action === "dashboard") {
-    try{
-      const testList = await axios.get(
-        `${process.env.POSTHOG_HOST}/api/projects/${process.env.POSTHOG_PROJECT_ID}/insights/`,
-        {
-          headers: { 
-            Authorization: `Bearer ${process.env.POSTHOG_PERSONAL_KEY}`,
-          },
-        }
-      )
-      const result = testList.data.results;
-      const wantedNames = [
-        "(수정금지)bds_viewed",
-        "(수정금지)ask_chat", 
-        "(수정금지)report_viewed",
-        "(수정금지)signup",
-        "(수정금지)pageview"
-      ];
-      const insightMap = result.reduce((map: any, insight: any) => {
-        if (wantedNames.includes(insight.name)) {
-          map[insight.name] = insight.id;
-        }
-        return map;
-      }, {});
-      console.log("insightMap : ", insightMap)
-    } catch(error) {
-      console.log(error)
-    }
     try {
       const [
         pageviewData,

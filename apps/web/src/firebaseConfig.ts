@@ -12,9 +12,9 @@ const firebaseConfig = {
   authDomain: `${import.meta.env.VITE_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: import.meta.env.VITE_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: `${import.meta.env.VITE_PUBLIC_FIREBASE_PROJECT_ID}.firebasestorage.app`,
-  messagingSenderId: "367830382363",
-  appId: "1:367830382363:web:f2a8a611b37cfa5b11c5be",
-  measurementId: "G-6LE7X9H12R"
+  messagingSenderId: "72056555308",
+  appId: "1:72056555308:web:0ba4b73ab575685b530e89",
+  measurementId: "G-LHXLRQKNXM"
 };
 
 // Initialize Firebase
