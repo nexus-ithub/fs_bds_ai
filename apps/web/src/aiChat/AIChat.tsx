@@ -277,6 +277,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       );
     } catch (error) {
       Sentry.captureException(error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      posthog.captureException(err, {
+        message: 'AI 응답 중 일시적 오류가 발생했습니다.',
+        endpoint: '/main',
+        file: 'AIChat.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      });
       toast.error('AI 응답 중 일시적 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.')
       setQuestionInput(inputToUse)
     } finally {
