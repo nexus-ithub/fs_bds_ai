@@ -79,6 +79,13 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(
+  '/static/images', // URL prefix
+  express.static('/mnt/static/images') // 실제 서버 디렉토리
+);
+
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
