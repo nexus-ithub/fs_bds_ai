@@ -29,6 +29,33 @@ export async function GET(req: Request) {
   }
 
   if (action === "dashboard") {
+    try{
+      const testList = await axios.get(
+        `${process.env.POSTHOG_HOST}/api/projects/${process.env.POSTHOG_PROJECT_ID}/insights/`,
+        {
+          headers: { 
+            Authorization: `Bearer ${process.env.POSTHOG_PERSONAL_KEY}`,
+          },
+        }
+      )
+      const result = testList.data.results;
+      const wantedNames = [
+        "(수정금지)bds_viewed",
+        "(수정금지)ask_chat", 
+        "(수정금지)report_viewed",
+        "(수정금지)signup",
+        "(수정금지)pageview"
+      ];
+      const insightMap = result.reduce((map: any, insight: any) => {
+        if (wantedNames.includes(insight.name)) {
+          map[insight.name] = insight.id;
+        }
+        return map;
+      }, {});
+      console.log("insightMap : ", insightMap)
+    } catch(error) {
+      console.log(error)
+    }
     try {
       const [
         pageviewData,
@@ -93,102 +120,3 @@ export async function GET(req: Request) {
     }
   }
 } 
-
-const PH = {
-  host: process.env.POSTHOG_HOST!,
-  projectId: process.env.POSTHOG_PROJECT_ID!,
-  key: process.env.POSTHOG_PERSONAL_KEY!,
-};
-
-async function runQuery(query: any) {
-  try {
-    const res = await axios.post(`${PH.host}/api/projects/${PH.projectId}/query/`, { query }, {
-      headers: { Authorization: `Bearer ${PH.key}` },
-    });
-    
-    console.log('Raw response:', res.data);  // 성공 시: { results: [{ date: "...", count: 123 }, ...] }
-    return res.data.results || res.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('HTTP Status:', error.response?.status);
-      console.error('Error Body:', error.response?.data);  // 다음 에러 대비
-      console.error('Full Error:', error.message);
-    }
-    throw error;
-  }
-}
-
-// // HogQL 쿼리 함수들 (TrendsQuery 에러 피함 – SQL로 직접 계산)
-// export const getPageviewsDAU = () => runQuery({
-//   kind: "HogQLQuery",
-//   query: `
-//     SELECT 
-//       toDate(timestamp) AS date,
-//       count(distinct person_id) AS dau
-//     FROM events 
-//     WHERE event = '$pageview' 
-//       AND timestamp >= now() - INTERVAL 6 DAY
-//     GROUP BY date 
-//     ORDER BY date ASC
-//   `,
-// });
-
-// export const getSignups = () => runQuery({
-//   kind: "HogQLQuery",
-//   query: `
-//     SELECT 
-//       toDate(timestamp) AS date,
-//       count() AS count
-//     FROM events 
-//     WHERE event = 'signup' 
-//       AND timestamp >= now() - INTERVAL 6 DAY
-//     GROUP BY date 
-//     ORDER BY date ASC
-//   `,
-// });
-
-// export const getAskChat = () => runQuery({
-//   kind: "HogQLQuery",
-//   query: `
-//     SELECT 
-//       toDate(timestamp) AS date,
-//       count() AS count
-//     FROM events 
-//     WHERE event = 'ask_chat' 
-//       AND timestamp >= now() - INTERVAL 6 DAY
-//     GROUP BY date 
-//     ORDER BY date ASC
-//   `,
-// });
-
-// export const getBdsViewedByRegion = () => runQuery({
-//   kind: "HogQLQuery",
-//   query: `
-//     SELECT 
-//       toDate(timestamp) AS date,
-//       JSONExtractString(properties, 'region') AS region,
-//       count() AS count
-//     FROM events 
-//     WHERE event = 'bds_viewed' 
-//       AND timestamp >= now() - INTERVAL 6 DAY
-//       AND JSONExtractString(properties, 'region') IS NOT NULL
-//     GROUP BY date, region 
-//     ORDER BY date ASC, region ASC
-//   `,
-// });
-
-// export const getReportViewedByRegion = () => runQuery({
-//   kind: "HogQLQuery",
-//   query: `
-//     SELECT 
-//       toDate(timestamp) AS date,
-//       JSONExtractString(properties, 'region') AS region,
-//       count() AS count
-//     FROM events 
-//     WHERE event = 'report_viewed' 
-//       AND timestamp >= now() - INTERVAL 6 DAY
-//       AND JSONExtractString(properties, 'region') IS NOT NULL
-//     GROUP BY date, region 
-//     ORDER BY date ASC, region ASC
-//   `,
-// });

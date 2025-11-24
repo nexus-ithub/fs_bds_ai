@@ -190,20 +190,20 @@ export const EmailLogin = () => {
             <p className="font-s2 text-text-03">or</p>
             <HDivider />
           </div>
-          {/* <Button 
+          <Button 
             onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
             variant='outline'
             size="medium"
             fontSize="font-h4"
             className=""
-          >이메일로 회원가입</Button> */}
-          <Button 
+          >이메일로 회원가입</Button>
+          {/* <Button 
             onClick={() => navigate('/signup')}
             variant='outline'
             size="medium"
             fontSize="font-h4"
             className=""
-          >이메일로 회원가입</Button>
+          >이메일로 회원가입</Button> */}
         </div>
       </div>
       <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>

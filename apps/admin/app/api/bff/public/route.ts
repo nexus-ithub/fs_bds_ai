@@ -67,7 +67,7 @@ export async function POST(req: Request) {
 
       try {
         await transporter.sendMail({
-          from: `"빌딩샵AI" <${process.env.SMTP_EMAIL}>`,
+          from: `"빌딩샵AI(발신전용)" <${process.env.SMTP_EMAIL}>`,
           to: email,
           subject: '비밀번호 재설정 안내',
           html: resetPasswordMailTemplate(resetLink, readableExpires),

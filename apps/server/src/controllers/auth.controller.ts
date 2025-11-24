@@ -260,7 +260,7 @@ export const pwFind = async (req: Request, res: Response) => {
         const logoPath = fs.existsSync(primary) ? primary : fallback;
         
         await transporter.sendMail({
-          from: `"빌딩샵AI" <${process.env.SMTP_EMAIL}>`,
+          from: `"빌딩샵AI(발신전용)" <${process.env.SMTP_EMAIL}>`,
           to: email,
           subject: '비밀번호 재설정 안내',
           html: resetPasswordMailTemplate(resetLink, readableExpires),
@@ -315,9 +315,9 @@ export const oAuthCallback = (req: Request, res: Response) => {
         redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
         break;
       case 'google':
-        if (process.env.NODE_ENV !== 'production') {
-          return res.json({ message: '⚠️ 정식 오픈 후 이용 가능합니다.' });
-        }
+        // if (process.env.NODE_ENV !== 'production') {
+        //   return res.json({ message: '⚠️ 정식 오픈 후 이용 가능합니다.' });
+        // }
         const stateGoogle = randomUUID();
         res.cookie("oauth_state", stateGoogle, {
           httpOnly: true,      
