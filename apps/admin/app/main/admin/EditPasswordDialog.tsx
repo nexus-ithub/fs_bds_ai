@@ -26,7 +26,6 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
 
   const validatePassword = (passwordInput: string): string => {
     if (!passwordInput) return "";
-    console.log("dhwl?")
 
     if (/(.)\1{2,}/.test(passwordInput)) {
       return '같은 문자를 3번 이상 연속 사용할 수 없습니다';
@@ -49,7 +48,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;
-    setPassword(newPassword);
+    setNewPassword(newPassword);
     setPasswordError(validatePassword(newPassword));
   };
 

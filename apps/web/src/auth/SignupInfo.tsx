@@ -28,10 +28,10 @@ export const SignupInfo = () => {
 
   const [emailValid, setEmailValid] = useState<boolean | null>(location.state?.email ? true : null);
   const [phoneValid, setPhoneValid] = useState<boolean>(location.state?.phone ? true : false);
-  const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm && !error);
 
   const [userId, setUserId] = useState<string>("");
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);

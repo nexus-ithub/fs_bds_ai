@@ -184,7 +184,7 @@ export const ResetPassword = () => {
                 className="w-full mt-[10px]"
                 size="medium"
                 fontSize="font-h5"
-                disabled={!password || !passwordConfirm || password !== passwordConfirm}
+                disabled={!password || !passwordConfirm || password !== passwordConfirm || !!passwordError}
               >비밀번호 재설정</Button>
             </div>
           }

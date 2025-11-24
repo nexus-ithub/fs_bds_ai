@@ -17,8 +17,37 @@ function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string>("");
   const [openTokenExpired, setOpenTokenExpired] = useState<boolean>(false);
   const [openSuccess, setOpenSuccess] = useState<boolean>(false);
+
+  const validatePassword = (passwordInput: string): string => {
+    if (!passwordInput) return "";
+
+    if (/(.)\1{2,}/.test(passwordInput)) {
+      return '같은 문자를 3번 이상 연속 사용할 수 없습니다';
+    }
+    
+    if (passwordInput.length < 8) {
+      return '8자 이상 입력해주세요';
+    }
+    
+    const hasLetter = /[a-zA-Z]/.test(passwordInput);
+    const hasNumber = /[0-9]/.test(passwordInput);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordInput);
+    
+    if (!hasLetter || !hasNumber || !hasSpecial) {
+      return '영문, 숫자, 특수문자를 모두 포함해주세요';
+    }
+    
+    return "";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setPasswordError(validatePassword(newPassword));
+  };
 
   const handleSubmit = async () => {
     if (!password || !passwordConfirm || password !== passwordConfirm) {
@@ -104,7 +133,8 @@ function ResetPasswordForm() {
               type={showPassword ? 'text' : 'password'} 
               placeholder="새 비밀번호를 입력하세요." 
               value={password} 
-              onChange={(e) => setPassword(e.target.value)}
+              error={passwordError}
+              onChange={(e) => handlePasswordChange(e)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSubmit();
@@ -122,6 +152,7 @@ function ResetPasswordForm() {
               placeholder="새 비밀번호를 다시 입력하세요." 
               value={passwordConfirm} 
               onChange={(e) => setPasswordConfirm(e.target.value)}
+
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSubmit();
@@ -151,7 +182,7 @@ function ResetPasswordForm() {
               className="w-full mt-[10px]"
               size="medium"
               fontSize="font-h5"
-              disabled={!password || !passwordConfirm || password !== passwordConfirm}
+              disabled={!password || !passwordConfirm || password !== passwordConfirm || !!passwordError}
             >비밀번호 재설정</Button>
           </div>
         </div>

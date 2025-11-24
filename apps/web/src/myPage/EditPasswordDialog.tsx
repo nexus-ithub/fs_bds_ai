@@ -1,6 +1,6 @@
 import { Button, FormField, HDivider, Spinner, CloseIcon } from "@repo/common"
 import { useState, useEffect } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { Check, Eye, EyeOff } from "lucide-react"
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Dialog } from "@mui/material";
 import { toast } from "react-toastify";
@@ -21,7 +21,36 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
   const [newPasswordConfirm, setNewPasswordConfirm] = useState<string>("");
   const [openSuccessDialog, setOpenSuccessDialog] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
+  const validatePassword = (passwordInput: string): string => {
+    if (!passwordInput) return "";
+
+    if (/(.)\1{2,}/.test(passwordInput)) {
+      return '같은 문자를 3번 이상 연속 사용할 수 없습니다';
+    }
+    
+    if (passwordInput.length < 8) {
+      return '8자 이상 입력해주세요';
+    }
+    
+    const hasLetter = /[a-zA-Z]/.test(passwordInput);
+    const hasNumber = /[0-9]/.test(passwordInput);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordInput);
+    
+    if (!hasLetter || !hasNumber || !hasSpecial) {
+      return '영문, 숫자, 특수문자를 모두 포함해주세요';
+    }
+    
+    return "";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setNewPassword(newPassword);
+    setPasswordError(validatePassword(newPassword));
+  };
 
   const handleSubmit = async () => {
     try {
@@ -46,6 +75,9 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
       setNewPassword('');
       setNewPasswordConfirm('');
       setError('');
+      setPasswordError('');
+      setShowNewPW(false);
+      setShowNewPWConfirm(false);
     }
   }, [open]);
 
@@ -89,7 +121,8 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
                 type={showNewPW ? 'text' : 'password'} 
                 placeholder="비밀번호를 입력하세요." 
                 value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)}
+                error={passwordError}
+                onChange={(e) => handlePasswordChange(e)}
                 rightElement={
                   <span onClick={() => setShowNewPW(!showNewPW)} className="cursor-pointer">
                     {showNewPW ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/> }
@@ -104,9 +137,22 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
                 value={newPasswordConfirm} 
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 rightElement={
-                  <span onClick={() => setShowNewPWConfirm(!showNewPWConfirm)} className="cursor-pointer">
-                    {showNewPWConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/> }
-                  </span>
+                  <>
+                    <div
+                      className={`transition-opacity duration-200 pr-[6px] ${
+                        newPassword && newPasswordConfirm ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {newPassword === newPasswordConfirm ? (
+                        <Check className="text-green-500 w-5 h-5" />
+                      ) : (
+                        ""
+                      )}
+                    </div>
+                    <span className="cursor-pointer" onClick={() => setShowNewPWConfirm(!showNewPWConfirm)}>
+                      {showNewPWConfirm ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
+                    </span>
+                  </>
                 }
               />
 
@@ -115,7 +161,7 @@ export const EditPasswordDialog = ({open, onClose}: {open: boolean, onClose: () 
                   type="submit"
                   className="h-[40px]"
                   fontSize="font-h5"
-                  disabled={!password || !newPassword || !newPasswordConfirm || newPassword !== newPasswordConfirm}
+                  disabled={!password || !newPassword || !newPasswordConfirm || newPassword !== newPasswordConfirm || !!passwordError}
                 >
                   {loading ? <Spinner /> : '변경'}
                 </Button>
