@@ -118,77 +118,77 @@ async function runQuery(query: any) {
   }
 }
 
-// HogQL 쿼리 함수들 (TrendsQuery 에러 피함 – SQL로 직접 계산)
-export const getPageviewsDAU = () => runQuery({
-  kind: "HogQLQuery",
-  query: `
-    SELECT 
-      toDate(timestamp) AS date,
-      count(distinct person_id) AS dau
-    FROM events 
-    WHERE event = '$pageview' 
-      AND timestamp >= now() - INTERVAL 6 DAY
-    GROUP BY date 
-    ORDER BY date ASC
-  `,
-});
+// // HogQL 쿼리 함수들 (TrendsQuery 에러 피함 – SQL로 직접 계산)
+// export const getPageviewsDAU = () => runQuery({
+//   kind: "HogQLQuery",
+//   query: `
+//     SELECT 
+//       toDate(timestamp) AS date,
+//       count(distinct person_id) AS dau
+//     FROM events 
+//     WHERE event = '$pageview' 
+//       AND timestamp >= now() - INTERVAL 6 DAY
+//     GROUP BY date 
+//     ORDER BY date ASC
+//   `,
+// });
 
-export const getSignups = () => runQuery({
-  kind: "HogQLQuery",
-  query: `
-    SELECT 
-      toDate(timestamp) AS date,
-      count() AS count
-    FROM events 
-    WHERE event = 'signup' 
-      AND timestamp >= now() - INTERVAL 6 DAY
-    GROUP BY date 
-    ORDER BY date ASC
-  `,
-});
+// export const getSignups = () => runQuery({
+//   kind: "HogQLQuery",
+//   query: `
+//     SELECT 
+//       toDate(timestamp) AS date,
+//       count() AS count
+//     FROM events 
+//     WHERE event = 'signup' 
+//       AND timestamp >= now() - INTERVAL 6 DAY
+//     GROUP BY date 
+//     ORDER BY date ASC
+//   `,
+// });
 
-export const getAskChat = () => runQuery({
-  kind: "HogQLQuery",
-  query: `
-    SELECT 
-      toDate(timestamp) AS date,
-      count() AS count
-    FROM events 
-    WHERE event = 'ask_chat' 
-      AND timestamp >= now() - INTERVAL 6 DAY
-    GROUP BY date 
-    ORDER BY date ASC
-  `,
-});
+// export const getAskChat = () => runQuery({
+//   kind: "HogQLQuery",
+//   query: `
+//     SELECT 
+//       toDate(timestamp) AS date,
+//       count() AS count
+//     FROM events 
+//     WHERE event = 'ask_chat' 
+//       AND timestamp >= now() - INTERVAL 6 DAY
+//     GROUP BY date 
+//     ORDER BY date ASC
+//   `,
+// });
 
-export const getBdsViewedByRegion = () => runQuery({
-  kind: "HogQLQuery",
-  query: `
-    SELECT 
-      toDate(timestamp) AS date,
-      JSONExtractString(properties, 'region') AS region,
-      count() AS count
-    FROM events 
-    WHERE event = 'bds_viewed' 
-      AND timestamp >= now() - INTERVAL 6 DAY
-      AND JSONExtractString(properties, 'region') IS NOT NULL
-    GROUP BY date, region 
-    ORDER BY date ASC, region ASC
-  `,
-});
+// export const getBdsViewedByRegion = () => runQuery({
+//   kind: "HogQLQuery",
+//   query: `
+//     SELECT 
+//       toDate(timestamp) AS date,
+//       JSONExtractString(properties, 'region') AS region,
+//       count() AS count
+//     FROM events 
+//     WHERE event = 'bds_viewed' 
+//       AND timestamp >= now() - INTERVAL 6 DAY
+//       AND JSONExtractString(properties, 'region') IS NOT NULL
+//     GROUP BY date, region 
+//     ORDER BY date ASC, region ASC
+//   `,
+// });
 
-export const getReportViewedByRegion = () => runQuery({
-  kind: "HogQLQuery",
-  query: `
-    SELECT 
-      toDate(timestamp) AS date,
-      JSONExtractString(properties, 'region') AS region,
-      count() AS count
-    FROM events 
-    WHERE event = 'report_viewed' 
-      AND timestamp >= now() - INTERVAL 6 DAY
-      AND JSONExtractString(properties, 'region') IS NOT NULL
-    GROUP BY date, region 
-    ORDER BY date ASC, region ASC
-  `,
-});
+// export const getReportViewedByRegion = () => runQuery({
+//   kind: "HogQLQuery",
+//   query: `
+//     SELECT 
+//       toDate(timestamp) AS date,
+//       JSONExtractString(properties, 'region') AS region,
+//       count() AS count
+//     FROM events 
+//     WHERE event = 'report_viewed' 
+//       AND timestamp >= now() - INTERVAL 6 DAY
+//       AND JSONExtractString(properties, 'region') IS NOT NULL
+//     GROUP BY date, region 
+//     ORDER BY date ASC, region ASC
+//   `,
+// });
