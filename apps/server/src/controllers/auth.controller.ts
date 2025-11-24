@@ -9,6 +9,7 @@ import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
 import path from 'path';
 import { Sentry } from '../instrument';
+import fs from 'fs';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -80,7 +81,8 @@ export const verifyResetToken = async (req: Request, res: Response) => {
   const { token } = req.query;
   try {
     const decoded = jwt.verify(token as string, authConfig.resetToken.secret as string);
-    if ((decoded as any).provider === null) {
+    console.log(decoded);
+    if ((decoded as any).provider === null || (decoded as any).provider === '') {
       res.status(200).json({ valid: true });
     } else {
       const provider = (decoded as any).provider === "k" ? "카카오" : (decoded as any).provider === "n" ? "네이버" : "구글";
@@ -252,6 +254,11 @@ export const pwFind = async (req: Request, res: Response) => {
       }
 
       try {
+        const primary = path.join(__dirname, '../utils/buildingshop_BI.png');
+        const fallback = path.join(__dirname, '../src/utils/buildingshop_BI.png');
+
+        const logoPath = fs.existsSync(primary) ? primary : fallback;
+        
         await transporter.sendMail({
           from: `"빌딩샵AI" <${process.env.SMTP_EMAIL}>`,
           to: email,
@@ -259,7 +266,7 @@ export const pwFind = async (req: Request, res: Response) => {
           html: resetPasswordMailTemplate(resetLink, readableExpires),
           attachments: [{
             filename: 'buildingshop_BI.png',
-            path: path.join(__dirname, '../utils/buildingshop_BI.png'),
+            path: logoPath,
             cid: 'logo'
           }]
         });

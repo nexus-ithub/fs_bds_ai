@@ -3,6 +3,7 @@ export const FormField = ({
   type="text",
   placeholder,
   value,
+  error = "",
   onChange,
   rightElement,
   required=false,
@@ -13,6 +14,7 @@ export const FormField = ({
   type?: string,
   placeholder?: string,
   value?: string,
+  error?: string,
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
   rightElement?: React.ReactNode,
   required?: boolean,
@@ -20,8 +22,8 @@ export const FormField = ({
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void,
 }) => {
   return (
-    <div className="flex flex-col gap-[12px]">
-      <label htmlFor={label} className="font-s2 text-text-02">{label} {required && <span className="text-secondary-050">*</span>}</label>
+    <div className="flex flex-col">
+      <label htmlFor={label} className="font-s2 text-text-02 pb-[12px]">{label} {required && <span className="text-secondary-050">*</span>}</label>
       <div className="relative">
         <input
           type={type}
@@ -41,6 +43,7 @@ export const FormField = ({
           </div>
         )}
       </div>
+      {error && <p className="text-secondary font-s4 pt-[4px]">{error}</p>}
     </div>
   )
 }

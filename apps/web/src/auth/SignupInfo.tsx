@@ -28,9 +28,10 @@ export const SignupInfo = () => {
 
   const [emailValid, setEmailValid] = useState<boolean | null>(location.state?.email ? true : null);
   const [phoneValid, setPhoneValid] = useState<boolean>(location.state?.phone ? true : false);
-  const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const passwordValid = location.state?.password ? true : (password && passwordConfirm && password === passwordConfirm && !error);
 
   const [userId, setUserId] = useState<string>("");
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
@@ -71,6 +72,35 @@ export const SignupInfo = () => {
       toast.error('이메일 중복 확인 중 오류가 발생했습니다.')
     }
   }
+
+  const validatePassword = (password: string): string => {
+    if (!password) return "";
+
+    if (/(.)\1{2,}/.test(password)) {
+      return '같은 문자를 3번 이상 연속 사용할 수 없습니다';
+    }
+    
+    if (password.length < 8) {
+      return '8자 이상 입력해주세요';
+    }
+    
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    
+    if (!hasLetter || !hasNumber || !hasSpecial) {
+      return '영문, 숫자, 특수문자를 모두 포함해주세요';
+    }
+    
+    return "";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    const error = validatePassword(newPassword);
+    setError(error);
+  };
 
   const handleSignup = async() => {
     try {
@@ -141,7 +171,8 @@ export const SignupInfo = () => {
                 type={showPassword ? 'text' : 'password'} 
                 placeholder="비밀번호를 입력하세요." 
                 value={password} 
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(e)}
+                error={error}
                 rightElement={
                   <span className="cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <Eye color="#9ea2a8" strokeWidth={1}/> : <EyeOff color="#9ea2a8" strokeWidth={1}/>}
