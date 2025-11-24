@@ -255,7 +255,7 @@ export const pwFind = async (req: Request, res: Response) => {
 
       try {
         const primary = path.join(__dirname, '../utils/buildingshop_BI.png');
-        const fallback = path.join(__dirname, '../../../utils/buildingshop_BI.png');
+        const fallback = path.join(__dirname, '../src/utils/buildingshop_BI.png');
 
         const logoPath = fs.existsSync(primary) ? primary : fallback;
         
