@@ -13,7 +13,13 @@ export const getList = async (req: AuthRequest, res: Response) => {
     if (!filter) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
-    const filePath = path.resolve(__dirname, '../../buildingshop/bds_sales.json');
+    let filePath = path.resolve(__dirname, '../../buildingshop/bds_sales.json');
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(__dirname, `../buildingshop/bds_sales.json`);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: `bds_sales.json 파일이 없습니다.` });
+      }
+    }
     const rawData = fs.readFileSync(filePath, { encoding: 'utf-8' });
     const jsonData = JSON.parse(rawData);
     const filteredData = jsonData[filter];
