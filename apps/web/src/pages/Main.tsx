@@ -14,6 +14,7 @@ import { SearchBar } from "../search/SearchBar";
 import { AIReport } from "../aiReport/AIReport";
 import { AIChat } from "../aiChat/AIChat";
 import { toast } from "react-toastify";
+import posthog from "posthog-js";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
