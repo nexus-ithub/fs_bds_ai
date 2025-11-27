@@ -20,33 +20,33 @@ export const Profile = () => {
   const [name, setName] = useState<string>(config?.name ?? "");
   const [phone, setPhone] = useState<string | null>(config?.phone ?? null);
 
-  const [password, setPassword] = useState<string>("");
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  // const [password, setPassword] = useState<string>("");
+  // const [showPassword, setShowPassword] = useState<boolean>(false);
+  // const [error, setError] = useState<string>("");
   const [openEditPasswordDialog, setOpenEditPasswordDialog] = useState<boolean>(false);
-  const [openPasswordConfirm, setOpenPasswordConfirm] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  // const [openPasswordConfirm, setOpenPasswordConfirm] = useState<boolean>(false);
+  // const [loading, setLoading] = useState<boolean>(false);
 
   console.log(">>>config ", config)
 
-  const handleConfirmPassword = async() => {
-    try {
-      setLoading(true);
-      await axiosInstance.post('/api/user/check-password', {password});
-      navigate('/delete-account', {state: {pwConfirm: true}});
-    } catch (error) {
-      setError("비밀번호가 일치하지 않습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  // const handleConfirmPassword = async() => {
+  //   try {
+  //     setLoading(true);
+  //     await axiosInstance.post('/api/user/check-password', {password});
+  //     navigate('/delete-account', {state: {pwConfirm: true}});
+  //   } catch (error) {
+  //     setError("비밀번호가 일치하지 않습니다.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
-  useEffect(() => {
-    if (!openPasswordConfirm) {
-      setPassword('');
-      setError('');
-    }
-  }, [openPasswordConfirm]);
+  // useEffect(() => {
+  //   if (!openPasswordConfirm) {
+  //     setPassword('');
+  //     setError('');
+  //   }
+  // }, [openPasswordConfirm]);
   
   return (
     <div className="w-full flex justify-center">
@@ -97,14 +97,15 @@ export const Profile = () => {
         <div 
           className="flex items-center justify-between gap-[12px] px-[32px] py-[28px] rounded-[8px] border border-line-02 cursor-pointer"
           // onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
-          onClick={() => setOpenPasswordConfirm(true)}
+          // onClick={() => setOpenPasswordConfirm(true)}
+          onClick={() => navigate('/delete-account')}
           >
           <p className="font-s2 text-text-02">회원 탈퇴</p>
           <ChevronRightCustomIcon size={16}/>
         </div>
       </div>
       <EditPasswordDialog open={openEditPasswordDialog} onClose={() => setOpenEditPasswordDialog(false)}/>
-      <Dialog
+      {/* <Dialog
         open={openPasswordConfirm}
         onClose={() => setOpenPasswordConfirm(false)}
       >
@@ -143,7 +144,7 @@ export const Profile = () => {
             </div>
           </div>
         </div>
-      </Dialog>
+      </Dialog> */}
     </div>
   )
 }

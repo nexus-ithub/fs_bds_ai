@@ -1,7 +1,7 @@
 import { Button, Checkbox, Spinner } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { toast } from "react-toastify";
 import { logout } from "../authutil";
@@ -14,10 +14,9 @@ import type { User } from "@repo/common";
 export const DeleteAccount = () => {
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
-  const { pwConfirm } = location.state ?? { pwConfirm: false };
+  // const { pwConfirm } = location.state ?? { pwConfirm: false };
   const [isChecked, setIsChecked] = useState<boolean>(false);
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
@@ -37,7 +36,7 @@ export const DeleteAccount = () => {
   }
 
   useEffect(() => {
-    if (!config || !pwConfirm) navigate("/")
+    if (!config) navigate("/")
   }, [config])
 
   return (
