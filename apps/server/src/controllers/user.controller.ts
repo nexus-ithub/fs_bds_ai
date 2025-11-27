@@ -89,6 +89,9 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 export const deleteAccount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
+    if (!userId) {
+      return res.status(400).json({ message: '사용자 정보가 없습니다.' });
+    }
     await UserModel.deleteAccount(userId);
     res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' });
   } catch (err) {
