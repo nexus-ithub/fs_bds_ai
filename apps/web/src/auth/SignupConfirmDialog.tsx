@@ -6,8 +6,7 @@ export const SignupConfirmDialog = ({open, onClose, userId}: {open: boolean, onC
   const navigate = useNavigate();
   const handleConfirm = () => {
     onClose(false);
-    // navigate('/signup/additional-info', { state: { userId } });
-    navigate('/');
+    navigate('/signup/additional-info', { state: { userId } });
   }
   return (
     <Dialog open={open} onClose={() => onClose(false)}>

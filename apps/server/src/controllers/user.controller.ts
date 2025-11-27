@@ -97,3 +97,29 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: '회원 탈퇴 중 서버 오류가 발생했습니다.' });
   }
 };
+
+export const getAdditionalInfo = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const additionalInfo = await UserModel.getAdditionalInfo(userId);
+    res.status(200).json(additionalInfo);
+  } catch (err) {
+    console.error('Get additional info error:', err);
+    Sentry.captureException(err);
+    res.status(500).json({ message: '추가 정보 조회 중 서버 오류가 발생했습니다.' });
+  }
+}
+
+export const insertAdditionalInfo = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const { gender, age, interests } = req.body;
+    console.log(`gender: ${gender}, age: ${age}, interests: ${interests}`);
+    await UserModel.insertAdditionalInfo(userId, gender, age, interests);
+    res.status(200).json({ message: '추가 정보가 저장되었습니다.' });
+  } catch (err) {
+    console.error('Insert additional info error:', err);
+    Sentry.captureException(err);
+    res.status(500).json({ message: '추가 정보 저장 중 서버 오류가 발생했습니다.' });
+  }
+};

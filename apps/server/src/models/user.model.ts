@@ -1,6 +1,7 @@
 import { db } from '../utils/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcryptjs';
+import { AdditionalInfo } from "@repo/common";
 
 export interface User extends RowDataPacket {
   id?: string;
@@ -144,12 +145,67 @@ export class UserModel {
   static async deleteAccount (id: number): Promise<void> {
     try {
       await db.query<User>(
-        'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ?, marketing_email = ?, marketing_sms = ? WHERE id = ? AND delete_yn = "N"',
-        ["Y", null, null, null, null, null, null, null, null, id]
-      );
+        'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ? AND delete_yn = "N"',
+        ["Y", `${id}@delete.com`, "-", "-", "-", "-", "-", id]
+      ); 
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
+    }
+  }
+
+  static async getAdditionalInfo (id: number): Promise<AdditionalInfo | null> {
+    try {
+      const userInfo = await db.query<AdditionalInfo>(
+        `SELECT gender, age FROM users_info WHERE user_id = ? AND delete_yn = 'N'`,
+        [id]
+      );
+      const userInfoMulti = await db.query<{item_type: string, item_id: number}[]>(
+        `SELECT item_type, item_id FROM users_info_multi WHERE user_id = ? AND delete_yn = 'N'`,
+        [id]
+      ) as [{ item_type: string; item_id: number }[], any];
+      const interests = userInfoMulti
+        .filter(obj => obj.item_type === 'INTEREST')
+        .map(obj => obj.item_id);
+      const result: AdditionalInfo = {
+        ...userInfo[0],
+        interests,
+      };
+      console.log(result)
+      return result || null;
+    } catch (error) {
+      console.error('Error finding user by id:', error);
+      throw error;
+    }
+  }
+
+  static async insertAdditionalInfo (userId: number, gender: string, age: number, interests: string[]): Promise<void> {
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      if (gender || age) {
+        await connection.query(`UPDATE users_info SET delete_yn = 'Y' WHERE user_id = ?`, [userId])
+        await connection.query(
+          'INSERT INTO users_info (user_id, gender, age) VALUES (?, ?, ?)',
+          [userId, gender, age]
+        );
+      }
+
+      await connection.query(`UPDATE users_info_multi SET delete_yn = 'Y' WHERE user_id = ?`, [userId])
+      if (interests.length > 0) {
+        const values = interests.map(id => [userId, 'INTEREST', id]);
+        await connection.query(
+          'INSERT INTO users_info_multi (user_id, item_type, item_id) VALUES ?',
+          [values]
+        );
+      }
+      await connection.commit();
+    } catch (error) {
+      console.error('Error inserting additional info:', error);
+      throw error;
+    } finally {
+      connection.release();
     }
   }
 }

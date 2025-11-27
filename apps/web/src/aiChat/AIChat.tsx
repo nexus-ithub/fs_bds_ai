@@ -336,6 +336,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     } catch (error) {
       console.error("채팅 이력 조회 중 오류가 발생했습니다.", error);
       Sentry.captureException(error);
+      posthog.captureException(error, {
+        message: '채팅 이력 조회 중 오류가 발생했습니다.',
+        endpoint: '/main',
+        file: 'AIChat.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      });
       toast.error('채팅 이력 조회 중 오류가 발생했습니다.\n다시 시도하거나 관리자에게 문의하세요.')
     } finally {
       setChatHistoryLoading(false);
