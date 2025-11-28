@@ -24,7 +24,7 @@ export function Button({
     outlinegray: 'border border-[1px] border-line-03 text-text-03',
     outlinesecondary: 'border border-[1px] border-secondary text-secondary',
     bggray: 'bg-surface-third',
-    bgsecondary: 'bg-secondary text-white'
+    bgsecondary: 'bg-secondary text-white hover:bg-secondary/90'
   };
   
 
