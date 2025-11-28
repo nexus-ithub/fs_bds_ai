@@ -1,4 +1,3 @@
-import { CadastralIcon } from './../../../../packages/common/src/icons/index';
 import { db } from '../utils/database';
 import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo } from '@repo/common';
 import OpenAI from "openai";
@@ -744,11 +743,14 @@ function makeProjectCost(
       debugExtraInfo.push(`[해체감리비] 0원`);
     }
   }else{
-    projectCost.demolitionCost = currentFloorArea * 0.3025 * getDemolitionCostPerPy(currentFloorArea);
-    projectCost.demolitionManagementCost = getDemolitionManagementCost(currentFloorArea);
+    if(currentFloorArea > 0){
+      projectCost.demolitionCost = currentFloorArea * 0.3025 * getDemolitionCostPerPy(currentFloorArea);
+      projectCost.demolitionManagementCost = getDemolitionManagementCost(currentFloorArea);
+    }
+
     if(debug){
       debugExtraInfo.push(`[해체공사비] ${krwUnit(projectCost.demolitionCost)} (${( 0.3025 * currentFloorArea ).toFixed(2)}(건물연면적(평)) * ${getDemolitionCostPerPy(currentFloorArea).toLocaleString()}(평당금액))`);
-      debugExtraInfo.push(`[해체감리비] ${krwUnit(projectCost.demolitionManagementCost)}원`);
+      debugExtraInfo.push(`[해체감리비] ${krwUnit(projectCost.demolitionManagementCost)}`);
     }
   }
 
