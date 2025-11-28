@@ -104,13 +104,14 @@ export const DeleteAccount = () => {
             나중에 하기
           </Button>
           <Button 
+            variant="bgsecondary"
             size="semiMedium" 
             fontSize="font-h4" 
             className="flex-1" 
             disabled={!isChecked} 
             onClick={() => setOpenConfirmDialog(true)}
           >
-            {loading ? <Spinner/> : '탈퇴하기'}
+            탈퇴하기
           </Button>
         </div>
       </div>
@@ -118,21 +119,23 @@ export const DeleteAccount = () => {
         open={openConfirmDialog}
         onClose={() => setOpenConfirmDialog(false)}
       >
-        <div className="flex flex-col items-center p-[28px] gap-[20px]">
+        <div className="flex flex-col items-center px-[34px] py-[28px] gap-[16px]">
+          <div className="mx-auto p-[8px] bg-secondary-020 font-h2 rounded-full">❗</div>
           <div className="flex flex-col items-center gap-[10px]">
             <h2 className="font-h2">정말 탈퇴하시겠습니까?</h2>
             <p className="font-s1 text-text-02">탈퇴 후에는 복구가 불가능합니다.</p>
           </div>
-          <div className="flex gap-[12px]">
-            <Button variant="bggray" fontSize="font-h5" className="w-[96px]" onClick={() => setOpenConfirmDialog(false)}>
+          <div className="flex gap-[12px] mt-[8px]">
+            <Button variant="bggray" fontSize="font-h5" className="w-[96px]" onClick={() => setOpenConfirmDialog(false)} disabled={loading}>
               취소
             </Button>
             <Button 
               onClick={() => handleSubmit()}
+              variant="bgsecondary"
               fontSize="font-h5"
               className="w-[120px]"
             >
-              확인
+              {loading ? <Spinner/> : '확인'}
             </Button>
           </div>
         </div>

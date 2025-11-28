@@ -148,6 +148,14 @@ export class UserModel {
         'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ? AND delete_yn = "N"',
         ["Y", `${id}@delete.com`, "-", "-", "-", "-", "-", id]
       ); 
+      await db.query(
+        'UPDATE users_info SET delete_yn = ? WHERE user_id = ? AND delete_yn = "N"',
+        ["Y", id]
+      )
+      await db.query(
+        'UPDATE users_info_multi SET delete_yn = ? WHERE user_id = ? AND delete_yn = "N"',
+        ["Y", id]
+      )
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
