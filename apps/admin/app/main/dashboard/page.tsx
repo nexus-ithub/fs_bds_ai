@@ -55,7 +55,6 @@ export default function Dashboard() {
       try{
         const response = await axiosInstance.get('/dashboard?action=dashboard');
         const data = await response.data;
-        console.log(">>data", data)
         if (pageviewData) {
           const formatted = data.pageView.days.map((day: string, idx: number) => ({
               date: new Date(day)

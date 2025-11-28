@@ -27,6 +27,7 @@ export class BdConsultRequestModel {
           cr.name as name,
           cr.phone as phone,
           cr.content as content,
+          cr.consulted_yn as consultedYn,
           cr.created_at as createdAt
         FROM bds_consult_request as cr
         WHERE cr.delete_yn = 'N' 
@@ -39,5 +40,47 @@ export class BdConsultRequestModel {
       console.error('Error getting bd consult request list:', err);
       throw err;
     }      
+  }
+
+  static async updatePending(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE bds_consult_request SET consulted_yn = 'N' WHERE \`key\` IN (${keyIds});`, ids)
+
+      return true;
+    } catch (err) {
+      console.error("Error updating bds_consult pending: ", err)
+      throw err;
+    }
+  }
+
+  static async updateComplete(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE bds_consult_request SET consulted_yn = 'Y' WHERE \`key\` IN (${keyIds});`, ids)
+      
+      return true;
+    } catch (err) {
+      console.error("Error updating bds_consult complete: ", err)
+      throw err;
+    }
+  }
+
+  static async updateDelete(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE bds_consult_request SET delete_yn = 'Y' WHERE \`key\` IN (${keyIds});`, ids)
+      
+      return true;
+    } catch (err) {
+      console.error("Error updating bds_consult delete: ", err)
+      throw err;
+    }
   }
 }

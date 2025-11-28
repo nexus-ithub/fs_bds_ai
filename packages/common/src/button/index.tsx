@@ -3,7 +3,7 @@ import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: 'default' | 'outline' | 'bggray' | 'outlinegray';
+  variant?: 'default' | 'outline' | 'bggray' | 'outlinegray' | 'outlinesecondary' | 'bgsecondary';
   size?: 'default' | 'medium' | 'semiMedium' | 'small';
   fontSize?: string;
 }
@@ -22,7 +22,9 @@ export function Button({
     default: 'bg-primary text-white hover:bg-primary/90',
     outline: 'border border-[1px] border-primary text-primary',
     outlinegray: 'border border-[1px] border-line-03 text-text-03',
+    outlinesecondary: 'border border-[1px] border-secondary text-secondary',
     bggray: 'bg-surface-third',
+    bgsecondary: 'bg-secondary text-white'
   };
   
 

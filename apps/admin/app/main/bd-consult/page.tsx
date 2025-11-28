@@ -1,6 +1,6 @@
 'use client';
 
-import { type ConsultRequest, HDivider, Pagination, getJibunAddress, Button, DotProgress, BdConsultRequest } from "@repo/common";
+import { type ConsultRequest, HDivider, Pagination, getJibunAddress, Button, DotProgress, BdConsultRequest, Spinner } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { format } from "date-fns";
@@ -30,6 +30,9 @@ export default function ConsultRequest() {
   const [totalItems, setTotalItems] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedItem, setSelectedItem] = useState<BdConsultRequest | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   // const [sortedType, setSortedType] = useState<'email' | 'name' | 'recentLogin' | 'registerDate' | null>(null);
   const axiosInstance = useAxiosWithAuth();
 
@@ -59,7 +62,44 @@ export default function ConsultRequest() {
 
   useEffect(() => {
     getConsultRequest();
+    setSelectedIds([]);
   }, [currentPage, pageSize]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(list.map(item => item.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectItem = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleUpdate = async (action: string) => {
+    setLoadingAction(action);
+    try{
+      const response = await axiosInstance.put("/bd-consult", { action, ids: selectedIds });
+      const { success, message } = response.data;
+      if (success) {
+        toast.success(message);
+      } else {
+        toast.error(message);
+      }
+    } catch {
+      toast.error("처리 중 오류가 발생했습니다.")
+    } finally {
+      setLoadingAction(null);
+      setShowDeleteConfirm(false);
+      setSelectedIds([]);
+      getConsultRequest();
+    }
+  };
 
   return (
     <div className="w-[960px] flex flex-col gap-[16px] p-[40px]">
@@ -67,11 +107,6 @@ export default function ConsultRequest() {
         <h2 className="font-h2">빌딩 매입 상담</h2>
         <div className="flex items-center justify-between gap-[12px]">
           <p className="font-s2 text-text-02">사용자의 빌딩 매입 상담 요청 정보를 확인할 수 있습니다.</p>
-          {/* <div className="flex items-center gap-[6px]">
-            <p className="font-s3 text-primary">UPDATED</p>
-            <VDivider colorClassName="bg-line-04" className="!h-[10px]"/>
-            <p className="font-s3">2025.07.21 16:52:32</p>
-          </div> */}
         </div>
       </div>
       <HDivider className="!bg-line-02"/>
@@ -87,64 +122,68 @@ export default function ConsultRequest() {
           </div>
           :  
           <>
-            <div className="flex items-center justify-end gap-[16px]">
-              {/* <div className="flex items-center gap-[20px]">
-                <SearchBar
-                  placeholder="검색어를 입력해 주세요."
-                  value={searchKeyword}
-                  onChange={setSearchKeyword}
-                  variant="filled"
-                  prefixSize={14}
-                  className="font-b3 px-[8px] py-[6px]"
-                />
-                <div className="flex items-center gap-[8px]">
-                  <p className="font-s3 text-text-03">성별</p>
-                  <MenuDropdown<'M' | 'F' | ''> 
-                    options={[
-                      { value: '', label: "전체" },
-                      { value: "M", label: "남성" },
-                      { value: "F", label: "여성" },
-                    ]}
-                    value={selectedGender} 
-                    onChange={(value, option) => {
-                      setSelectedGender(value);
-                    }}
-                    placeholder="전체"
-                    width="w-[80px]"
-                  />
-                </div>
-                <div className="flex items-center gap-[8px]">
-                  <p className="font-s3 text-text-03">연령</p>
-                  <MenuDropdown
-                    options={[{ value: "", label: "전체" }, ...AGES]}
-                    value={selectedAge} 
-                    onChange={(value, option) => {
-                      setSelectedAge(value);
-                    }}
-                    placeholder="전체"
-                    width="w-[86px]"
-                  />
-                </div>
-              </div> */}
+            <div className="flex items-center justify-between gap-[16px]">
               <div className="flex items-center gap-[12px]">
-                {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><Refresh/></button> */}
-                {/* <button className="w-[32px] h-[32px] flex items-center justify-center p-[4px] rounded-[4px] border border-line-02"><DownloadIcon color="#585C64"/></button> */}
-                <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
-                  {COUNT_BUTTON.map((item) => (
-                    <button
-                      key={item.value}
-                      className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
-                      onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
+                {selectedIds.length > 0 && (
+                  <>
+                    <p className="font-s2 text-text-03">{selectedIds.length}개 선택됨</p>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="!text-error !border-error hover:!bg-error-010 w-[70px]"
+                      onClick={() => handleUpdate("complete")}
+                      disabled={loadingAction !== null}
                     >
-                      {item.label}
-                    </button>
-                  ))}
+                      {loadingAction === "complete" ? <Spinner/> : "상담 완료"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="small"
+                      className="!text-error !border-error hover:!bg-error-010 w-[70px]"
+                      onClick={() => handleUpdate("pending")}
+                      disabled={loadingAction !== null}
+                    >
+                      {loadingAction === "pending" ? <Spinner/> : "상담 대기"}
+                    </Button>
+                    <Button
+                      variant="outlinesecondary"
+                      size="small"
+                      className="!text-error !border-error hover:!bg-error-010 w-[70px]"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      disabled={loadingAction !== null}
+                    >
+                      선택 삭제
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-[16px]">
+                <div className="flex items-center gap-[12px]">
+                  <div className="flex items-center rounded-[4px] border border-line-02 divide-x divide-line-02">
+                    {COUNT_BUTTON.map((item) => (
+                      <button
+                        key={item.value}
+                        className={`w-[32px] h-[32px] flex items-center justify-center p-[4px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
+                        onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
             <table className="w-full">
               <thead className="text-text-03 bg-surface-second text-left">
                 <tr>
+                  <th className="pl-[12px] py-[14px]">
+                    <input
+                      type="checkbox"
+                      checked={list.length > 0 && selectedIds.length === list.length}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="w-[16px] h-[16px] cursor-pointer"
+                    />
+                  </th>
                   <th className="pl-[12px] py-[14px] font-s3">
                     이름
                   </th>
@@ -158,30 +197,49 @@ export default function ConsultRequest() {
                     등록일
                   </th>
                   <th className="pl-[12px] py-[14px] font-s3">
+                    상태
+                  </th>
+                  <th className="pl-[12px] py-[14px] font-s3">
                     바로가기
                   </th>                              
                 </tr>
               </thead>
               <tbody>
                 {list?.map((item : BdConsultRequest, index : number) => (
-                  <tr 
-                    key={index} 
-                    className="hover:bg-primary-010 cursor-pointer h-[56px] font-s2 border-b border-line-02"
-                    onClick={() => {setSelectedItem(item)}}
+                  <tr
+                    key={index}
+                    className="hover:bg-primary-010 h-[56px] font-s2 border-b border-line-02"
                   >
-                    <td className="pl-[12px]">{item.name}</td>
-                    <td className="pl-[12px]">{item.phone}</td>
-                    <td className="pl-[12px] truncate max-w-[20px]">{item.content}</td>
-                    <td className="pl-[12px]">{format(item.createdAt, 'yyyy-MM-dd HH:mm:ss')}</td>
-
                     <td className="pl-[12px]">
-                  <button
-                    
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`http://admin.buildingshop.co.kr/#/building/${item?.bdId}`, '_blank')
-                    }}
-                    className="hover:none w-full font-b1 px-[4px] py-[4px] rounded-[2px] items-center justify-between"><ExternalLinkIcon size={16} color="#585C64"/></button>                          
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleSelectItem(item.id, e.target.checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-[16px] h-[16px] cursor-pointer"
+                      />
+                    </td>
+                    <td className="pl-[12px] cursor-pointer" onClick={() => {setSelectedItem(item)}}>{item.name}</td>
+                    <td className="pl-[12px] cursor-pointer" onClick={() => {setSelectedItem(item)}}>{item.phone}</td>
+                    <td className="pl-[12px] truncate max-w-[240px] cursor-pointer" onClick={() => {setSelectedItem(item)}}>{item.content}</td>
+                    <td className="pl-[12px] cursor-pointer" onClick={() => {setSelectedItem(item)}}>{format(item.createdAt, 'yyyy.MM.dd HH:mm:ss')}</td>
+                    <td 
+                      className={`pl-[12px] cursor-pointer ${item.consultedYn === "N" ? "text-primary" : ""}`} 
+                      onClick={() => {setSelectedItem(item)}}>
+                        {item.consultedYn === 'Y' ? "완료" : "대기"}
+                    </td>
+                    <td className="pl-[12px]">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`http://admin.buildingshop.co.kr/#/building/${item?.bdId}`, '_blank')
+                        }}
+                        className="hover:none w-full font-b1 px-[4px] py-[4px] rounded-[2px] items-center justify-between">
+                        <ExternalLinkIcon size={16} color="#585C64"/>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -193,6 +251,37 @@ export default function ConsultRequest() {
           </>  
 
       }
+      <Dialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        aria-labelledby="delete-dialog-title"
+      >
+        <div className="flex flex-col gap-[16px] px-[16px] py-[8px]">
+          <div className="mt-[16px] mx-auto p-[8px] bg-secondary-020 font-h2 rounded-full">❗</div>
+          <h2 className="font-h2 px-[26px] text-center">선택 항목 삭제</h2>
+          <div className="px-[30px]">
+            <p className="font-s2 text-text-02 text-center">선택한 {selectedIds.length}개의 항목을 삭제하시겠습니까?</p>
+            <p className="font-s2 text-text-02 text-center">삭제된 항목은 복구할 수 없습니다.</p>
+          </div>
+          <div className="px-[24px] pt-[8px] pb-[20px] flex justify-end gap-[12px]">
+            <Button
+              variant="bggray"
+              className="w-[120px]"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              취소
+            </Button>
+            <Button
+              variant="bgsecondary"
+              className="w-[120px]"
+              onClick={() => handleUpdate("delete")}
+            >
+              {loadingAction === "delete" ? <Spinner/> : "삭제"}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
       <Dialog
         fullWidth
         open={selectedItem !== null}
