@@ -1,6 +1,7 @@
 import { db } from '../utils/database';
 import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo } from '@repo/common';
 import OpenAI from "openai";
+import { LandModel } from './land.model';
 const client = new OpenAI({
   timeout: 20 * 1000, 
 });
@@ -780,6 +781,7 @@ function makeProjectCost(
   }else{
     projectCost.constructionCost = totalFloorArea * 0.3025 * getConstructionCostPerPy(totalFloorArea);
   }
+
   if(debug){
     debugExtraInfo.push(`[건축설계비] ${krwUnit(projectCost.constructionDesignCost)} (${( totalFloorArea * 0.3025 ).toFixed(2)}(건물연면적(평)) * ${getConstructionDesignCostPerPy(totalFloorArea).toLocaleString()}(평당금액))`);
     if(type === 'remodel'){
@@ -1038,7 +1040,7 @@ function makeProfit(
   // console.log('makeProfit result', type, value);
 }
 
-function makeResult(value : ReportValue, tax : TaxInfo, debug : boolean = false, debugExtraInfo : string[] = []){
+function makeResult(value : ReportValue, tax : TaxInfo, publicPriceGrowthRate : number, debug : boolean = false, debugExtraInfo : string[] = []){
   if(debug){
     debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`최종`);
@@ -1050,10 +1052,10 @@ function makeResult(value : ReportValue, tax : TaxInfo, debug : boolean = false,
   if(debug){
     debugExtraInfo.push(`[임대수익률] ${(rentProfitRatio * 100).toFixed(1)}% (${krwUnit(annualProfit)}(연간순수익) / ${krwUnit(investmentCapital)}(실투자금))`);
   }
-  const investmentProfitRatio = (annualProfit + (value.landCost.purchaseCost * 0.045)) / investmentCapital;
-  if(debug){
-    debugExtraInfo.push(`[연간수익률] ${(investmentProfitRatio * 100).toFixed(1)}% (${krwUnit(annualProfit)}(연간순수익) + ${krwUnit(value.landCost.purchaseCost * 0.045)}(자산상승금액 (토지매입비 * 4.5%)) / ${krwUnit(investmentCapital)}(실투자금))`);
-  }
+  // const investmentProfitRatio = (annualProfit + (value.landCost.purchaseCost * 0.045)) / investmentCapital;
+  // if(debug){
+  //   debugExtraInfo.push(`[연간수익률] ${(investmentProfitRatio * 100).toFixed(1)}% (${krwUnit(annualProfit)}(연간순수익) + ${krwUnit(value.landCost.purchaseCost * 0.045)}(자산상승금액 (토지매입비 * 4.5%)) / ${krwUnit(investmentCapital)}(실투자금))`);
+  // }
   const expectedSaleAmount = (value.annualManagementProfit + value.annualRentProfit) / (3.5 / 100);
   if(debug){
     debugExtraInfo.push(`[매각금액] ${krwUnit(expectedSaleAmount)} (${krwUnit(value.annualManagementProfit)}(연간관리비수익) + ${krwUnit(value.annualRentProfit)}(연간임대수익) / (3.5%))`);
@@ -1061,11 +1063,20 @@ function makeResult(value : ReportValue, tax : TaxInfo, debug : boolean = false,
 
   return {
     grade: value.grade,
-    initialCapital: initialCapital,
+    // initialCapital: initialCapital,
     investmentCapital: investmentCapital,
+    totalProjectCost : 
+      value.projectCost.demolitionCost + 
+      value.projectCost.demolitionManagementCost + 
+      value.projectCost.constructionDesignCost + 
+      value.projectCost.constructionCost + 
+      value.projectCost.managementCost + 
+      value.projectCost.pmFee,
+
     annualProfit: annualProfit,
     rentProfitRatio: rentProfitRatio,
-    investmentProfitRatio: investmentProfitRatio,
+    avgPublicLandPriceGrowthRate: publicPriceGrowthRate,
+    // investmentProfitRatio: investmentProfitRatio,
     expectedSaleAmount: expectedSaleAmount
   } as ReportResult;
 }
@@ -1216,11 +1227,13 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
     const reportJson = {
       '등급': report.grade,
       '공사기간': report.duration.constructionDurationMonths + report.duration.designDurationMonths + report.duration.planningDurationMonths,
-      '초기준비자금': krwUnit(result.initialCapital, true),
+      // '초기준비자금': krwUnit(result.initialCapital, true),
       '실투자금': krwUnit(result.investmentCapital, true),
+      '총사업비' : krwUnit(result.totalProjectCost, true),
       '연간 순수익': krwUnit(result.annualProfit, true),
       '임대수익율': result.rentProfitRatio,
-      '연간수익율': result.investmentProfitRatio,
+      '근처5년 평균 공시지가 상승률': result.avgPublicLandPriceGrowthRate,
+      // '연간수익율': result.investmentProfitRatio,
       '매각금액': krwUnit(result.expectedSaleAmount, true),
     }
     return JSON.stringify(reportJson);
@@ -1261,6 +1274,7 @@ export class AIReportModel {
         analysisMessage: ''
       } as DevDetailInfo;
       
+      const publicPriceGrowthRate = await LandModel.calculatePublicPriceGrowthRate(landId);
       
       const buildingList = await db.query<BuildingData>(
         `
@@ -1746,7 +1760,7 @@ export class AIReportModel {
         //   devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.build.tax.comprehensiveRealEstateTax}원 (작업중..)`);
         // }
 
-        devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.build.tax, debug, devDetailInfo.debugBuildInfo);
+        devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
       }
       // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
@@ -1813,7 +1827,7 @@ export class AIReportModel {
         // }
 
 
-        devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.remodel.tax, debug, devDetailInfo.debugRemodelInfo);
+        devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
       }
 
 
@@ -1879,7 +1893,7 @@ export class AIReportModel {
         // }
 
         
-        devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.rent.tax, debug, devDetailInfo.debugRentInfo);
+        devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
       }
 
 
@@ -1996,11 +2010,13 @@ export class AIReportModel {
         },
         result: {
           grade: resultValue.grade,
-          initialCapital: resultValue.result.initialCapital,
+          // initialCapital: resultValue.result.initialCapital,
           investmentCapital: resultValue.result.investmentCapital,
+          totalProjectCost: resultValue.result.totalProjectCost,
           annualProfit: resultValue.result.annualProfit,
           rentProfitRatio: resultValue.result.rentProfitRatio,
-          investmentProfitRatio: resultValue.result.investmentProfitRatio,
+          // investmentProfitRatio: resultValue.result.investmentProfitRatio,
+          avgPublicLandPriceGrowthRate: resultValue.result.avgPublicLandPriceGrowthRate,
           expectedSaleAmount: resultValue.result.expectedSaleAmount
         },
         buildInfo: devDetailInfo.buildInfo,
