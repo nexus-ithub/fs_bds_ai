@@ -1179,7 +1179,7 @@ export class LandModel {
               AND l.price IS NOT NULL AND l.price <> ''
               ${checkUsage ? 'AND l.usage_name = base.usage1_name' : ''}
               AND l.jimok != '도로' AND l.jimok != '구거' 
-              AND l.area IS NOT NULL AND l.area >= 33
+              AND l.area IS NOT NULL AND l.area >= 33.3
               AND l.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${year} YEAR)
               AND (l.cancel_yn != 'O' OR l.cancel_yn IS NULL)
           ),
