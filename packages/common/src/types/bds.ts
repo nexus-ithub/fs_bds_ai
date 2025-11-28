@@ -20,6 +20,7 @@ export interface BdConsultRequest {
   name: string;
   phone: string;
   content: string;
+  consultedYn: string;
   createdAt: string;
 }
 

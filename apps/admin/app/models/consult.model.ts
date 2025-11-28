@@ -24,6 +24,7 @@ export class ConsultRequestModel {
           cr.key as id,
           cr.land_id as landId,
           cr.content as content,
+          cr.consulted_yn as consultedYn,
           cr.created_at as createdAt,
           cr.updated_at as updatedAt,
           cr.user_id as userId,
@@ -56,4 +57,47 @@ export class ConsultRequestModel {
       throw err;
     }      
   }
+
+  static async updatePending(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE consult_request SET consulted_yn = 'N' WHERE \`key\` IN (${keyIds});`, ids)
+
+      return true;
+    } catch (err) {
+      console.error("Error updating consult pending: ", err)
+      throw err;
+    }
+  }
+
+  static async updateComplete(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE consult_request SET consulted_yn = 'Y' WHERE \`key\` IN (${keyIds});`, ids)
+      
+      return true;
+    } catch (err) {
+      console.error("Error updating consult complete: ", err)
+      throw err;
+    }
+  }
+
+  static async updateDelete(ids: string[]) {
+    try {
+      if (ids.length === 0) return;
+      const keyIds = ids.map(() => '?').join(',');
+
+      await db.query(`UPDATE consult_request SET delete_yn = 'Y' WHERE \`key\` IN (${keyIds});`, ids)
+      
+      return true;
+    } catch (err) {
+      console.error("Error updating consult delete: ", err)
+      throw err;
+    }
+  }
+
 }

@@ -153,6 +153,7 @@ export interface ConsultRequest {
   user: User;
   land: LandInfo;
   content: string;
+  consultedYn: string;
   createdAt: string;
 }
 
