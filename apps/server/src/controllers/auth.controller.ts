@@ -525,3 +525,14 @@ export const oauth = async (req: Request, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+export const VerificationCallback = (req: Request, res: Response) => {
+  try{
+    const redirectUrl = "https://sa.inicis.com/auth"
+
+    res.json({ url: redirectUrl });
+  }catch(err){
+    Sentry.captureException(err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}

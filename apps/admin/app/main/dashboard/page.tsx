@@ -4,7 +4,7 @@ import { HDivider, ArrowUpLong, ArrowDownLong, MinusSmallIcon, Spinner, DotProgr
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { calculateChangeRate, ChangeRate } from "../../utils/dashboardUtil";
 import { DetailDialog } from "./DetailDialog";
 
@@ -33,6 +33,51 @@ const generateEmptyChartData = () => {
   
   return data;
 };
+
+// 샘플 데이터 (실제로는 API에서 가져온 count 데이터)
+const genderDataRaw = [
+  { name: '남성', value: 5847 },
+  { name: '여성', value: 4153 }
+];
+
+const ageDataRaw = [
+  { name: '20대 이하', value: 456 },
+  { name: '20대', value: 2345 },
+  { name: '30대', value: 3890 },
+  { name: '40대', value: 2456 },
+  { name: '50대', value: 1123 },
+  { name: '60대', value: 428 },
+  { name: '70대', value: 234 },
+  { name: '80대 이상', value: 68 }
+];
+
+const interestDataRaw = [
+  { name: '오피스', value: 3245 },
+  { name: '상가', value: 2890 },
+  { name: '토지', value: 1567 },
+  { name: '지식산업센터', value: 1234 },
+  { name: '물류센터', value: 892 },
+  { name: '기타', value: 456 }
+];
+
+// percentage 계산 함수
+const calculatePercentage = (data: { name: string; value: number }[]) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  return data.map(item => ({
+    ...item,
+    percentage: total > 0 ? Number(((item.value / total) * 100).toFixed(1)) : 0
+  }));
+};
+
+// percentage가 포함된 데이터
+const genderData = calculatePercentage(genderDataRaw);
+const ageData = calculatePercentage(ageDataRaw);
+const interestData = interestDataRaw; // 막대그래프는 percentage 불필요
+
+// 색상 팔레트
+const GENDER_COLORS = ['#4e52ff', '#a5a7ff'];
+const AGE_COLORS = ['#4e52ff', '#5f62ff', '#6f72ff', '#8084ff', '#9194ff', '#a2a4ff', '#b3b5ff', '#c4c5ff'];
+const INTEREST_COLOR = '#4e52ff';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -158,17 +203,49 @@ export default function Dashboard() {
     return null;
   };
 
+
+
+  const CustomBarTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white rounded-[8px] shadow-[0_6px_12px_0_rgba(0,0,0,0.06)] border border-line-02 px-[12px] py-[8px]">
+          <p className="font-s2">
+            {payload[0].payload.name}: <span className="font-s2-p">{payload[0].value.toLocaleString()}명</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white rounded-[8px] shadow-[0_6px_12px_0_rgba(0,0,0,0.06)] border border-line-02 px-[12px] py-[8px]">
+          <p className="font-s2">
+            {payload[0].name}: <span className="font-s2-p">{payload[0].value.toLocaleString()}명 ({payload[0].payload.percentage}%)</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderCenterLabel = (total: number, title: string) => {
+    return (
+      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle">
+        <tspan x="50%" dy="0" className="font-s2 fill-text-03">{title}</tspan>
+        <tspan x="50%" dy="1.8em" className="font-h3 fill-text-01">{total.toLocaleString()}명</tspan>
+      </text>
+    );
+  };
+
   return (
     <div className="w-[960px] flex flex-col gap-[32px] p-[40px] overflow-y-auto scrollbar-hover">
       <div className="flex flex-col gap-[4px]">
         <h2 className="font-h2">DASHBOARD</h2>
         <div className="flex items-center justify-between gap-[12px]">
           <p className="font-s2 text-text-02">사용자들의 데이터를 기반으로 다양한 지표를 제공합니다.</p>
-          {/* <div className="flex items-center gap-[6px]">
-            <p className="font-s3 text-primary">UPDATED</p>
-            <VDivider colorClassName="bg-line-04" className="!h-[10px]"/>
-            <p className="font-s3">2025.07.21 16:52:32</p>
-          </div> */}
         </div>
         <HDivider className="!bg-line-02 my-[12px]"/>
         {loading 
@@ -310,6 +387,141 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          {/* 새로운 통계 그래프 섹션 */}
+          {/* 파이차트 2개 */}
+          <div className="grid grid-cols-2 gap-[16px]">
+            {/* 성비 분포 */}
+            <div className="flex flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
+              <h4 className="font-h4">성비 분포</h4>
+              <div className="flex flex-col items-center gap-[20px]">
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      isAnimationActive={false}
+                      paddingAngle={2}
+                    >
+                      {genderData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={GENDER_COLORS[index % GENDER_COLORS.length]}
+                          className="hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomPieTooltip />} isAnimationActive={false} />
+                    {renderCenterLabel(
+                      genderData.reduce((sum, item) => sum + item.value, 0),
+                      '전체'
+                    )}
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex gap-[24px]">
+                  {genderData.map((item, index) => (
+                    <div key={item.name} className="flex items-center gap-[8px]">
+                      <div 
+                        className="w-[14px] h-[14px] rounded-full" 
+                        style={{ backgroundColor: GENDER_COLORS[index] }}
+                      />
+                      <span className="font-s1 text-text-02">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 연령대 분포 */}
+            <div className="flex flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
+              <h4 className="font-h4">연령대 분포</h4>
+              <div className="flex flex-col items-center gap-[20px]">
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={ageData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={110}
+                      fill="#8884d8"
+                      dataKey="value"
+                      isAnimationActive={false}
+                      paddingAngle={2}
+                    >
+                      {ageData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={AGE_COLORS[index % AGE_COLORS.length]}
+                          className="hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomPieTooltip />} isAnimationActive={false} />
+                    {renderCenterLabel(
+                      ageData.reduce((sum, item) => sum + item.value, 0),
+                      '전체'
+                    )}
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap gap-[12px] justify-center">
+                  {ageData.map((item, index) => (
+                    <div key={item.name} className="flex items-center gap-[6px]">
+                      <div 
+                        className="w-[12px] h-[12px] rounded-full" 
+                        style={{ backgroundColor: AGE_COLORS[index] }}
+                      />
+                      <span className="font-s2 text-text-02">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 관심분야 막대그래프 */}
+          <div className="flex flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
+            <h4 className="font-h4">관심분야</h4>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart
+                data={interestData}
+                margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 13, fill: '#6b7280' }}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 13 }}
+                  axisLine={false}
+                  tickLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  content={<CustomBarTooltip />} 
+                  isAnimationActive={false}
+                  cursor={false}
+                />
+                <Bar 
+                  dataKey="value" 
+                  fill={INTEREST_COLOR}
+                  radius={[4, 4, 0, 0]}
+                  isAnimationActive={false}
+                  activeBar={false}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
           <div className="flex flex-1 flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
             <h4 className="font-h4">일간 사용자 추이</h4>
             {loading ? <Spinner /> : (

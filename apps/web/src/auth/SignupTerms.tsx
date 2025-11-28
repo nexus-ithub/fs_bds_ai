@@ -24,6 +24,53 @@ export const SignupTerms = () => {
   const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
 
+  const handleIdentityVerification = async () => {
+    // TODO: 본인인증 URL 설정 필요
+    const response = await axios.post(`${API_HOST}/api/auth/identity-verification`);
+
+    const width = 400;
+    const height = 640;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    const popup = window.open(
+      response.data.url,
+      '본인인증',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+
+    if (!popup) {
+      toast.error('팝업이 차단되었습니다.');
+      return;
+    }
+
+    // 메시지 리스너 등록
+    const messageHandler = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+
+      if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
+        window.removeEventListener('message', messageHandler);
+        toast.success('본인인증이 완료되었습니다.');
+        // 본인인증 성공 후 회원가입 진행
+        navigate('/signup/info', {
+          state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})
+      } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
+        window.removeEventListener('message', messageHandler);
+        toast.error(event.data.message || '본인인증에 실패했습니다.');
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    // 팝업이 닫혔는지 주기적으로 확인
+    const checkPopup = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopup);
+        window.removeEventListener('message', messageHandler);
+      }
+    }, 500);
+  };
+
   const handleSignup = async() => {
     if (!serviceAgree || !privacyAgree) {
       return;
@@ -50,8 +97,7 @@ export const SignupTerms = () => {
         toast.error('회원가입 중 오류가 발생했습니다.')
       }
     } else {
-      navigate('/signup/info', {
-        state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})
+      handleIdentityVerification();
     }
   }
 

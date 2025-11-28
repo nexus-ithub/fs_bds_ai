@@ -65,7 +65,7 @@ export const Header = ({user} : {user : User}) => {
           <div className="flex items-center gap-[8px]">
             {/* <button ref={ProfileRef} className="w-[24px] h-[24px] bg-purple-300 rounded-full" onClick={() => {setAnchorEl(ProfileRef.current)}}>😁</button> */}
             <IconButton ref={ProfileRef} onClick={() => {setAnchorEl(ProfileRef.current)}} className="!p-0">
-              <Avatar alt="내 프로필" src={user?.profile} sx={{ width: 24, height: 24 }}/>
+              <Avatar alt="" src={user?.profile} sx={{ width: 24, height: 24 }}/>
             </IconButton>
             <p className="flex items-center gap-[4px] cursor-pointer" onClick={() => {setAnchorEl(ProfileRef.current)}}>
               <span className="font-s2-p">{user?.name}</span>
@@ -89,7 +89,7 @@ export const Header = ({user} : {user : User}) => {
         >
           <div className="flex flex-col gap-[12px]">
             <div className="flex items-center gap-[12px]">
-              <Avatar alt="내 프로필" src={user?.profile} sx={{ width: 48, height: 48 }}/>
+              <Avatar alt="" src={user?.profile} sx={{ width: 48, height: 48 }}/>
               <div className="flex flex-col gap-[2px]">
                 <p><span className="font-s1 mr-[4px]">{user?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
                 <p className="font-s1">{user?.email}</p>
