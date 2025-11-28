@@ -840,6 +840,49 @@ export class LandModel {
   // }
 
 
+  static async calculatePublicPriceGrowthRate(id: string): Promise<number | null> {
+    try {
+      const changeRates = await db.query<any>(
+        `WITH yearly_price AS (
+            -- 1) 연도별 평균 price 계산
+            SELECT
+                CAST(year AS INT) AS y,
+                AVG(CAST(price AS DECIMAL(15,0))) AS avg_price
+            FROM
+                individual_announced_price
+            WHERE
+                id = ?
+                AND year IS NOT NULL
+                AND CAST(year AS INT) BETWEEN YEAR(CURDATE()) - 4 AND YEAR(CURDATE())  -- 최근 5년
+            GROUP BY
+                CAST(year AS INT)
+        ),
+        yearly_with_prev AS (
+            -- 2) 전년도 가격 붙이기 (윈도우 함수 사용)
+            SELECT
+                y,
+                avg_price,
+                LAG(avg_price) OVER (ORDER BY y) AS prev_price
+            FROM
+                yearly_price
+        )
+        -- 3) 전년 대비 상승률의 평균 계산
+        SELECT
+            AVG( (avg_price - prev_price) / prev_price ) AS avg_growth_rate_pct
+        FROM
+            yearly_with_prev
+        WHERE
+            prev_price IS NOT NULL; 
+        `,
+        [id]
+      )
+      return changeRates[0]?.avg_growth_rate_pct || null;
+    } catch (error) {
+      console.error('Error finding change rate by id:', error);
+      throw error;
+    }
+  }
+
   static async calculateEstimatedPrice(id: string): Promise<EstimatedPrice | null> {
    
     try {

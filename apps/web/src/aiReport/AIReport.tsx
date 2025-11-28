@@ -468,14 +468,16 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
                 </div>
                 <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
                   <div className="flex-1 space-y-[14px]">
-                    <ReportItem title="초기준비자금" value={krwUnit(sortedItems?.[selectedTab]?.value.initialCapital || 0, true)}/>
+                    {/* <ReportItem title="초기준비자금" value={krwUnit(sortedItems?.[selectedTab]?.value.initialCapital || 0, true)}/> */}
                     <ReportItem title="실투자금" value={krwUnit(sortedItems?.[selectedTab]?.value.investmentCapital || 0, true)}/>
+                    <ReportItem title="총사업비" value={krwUnit(sortedItems?.[selectedTab]?.value.totalProjectCost || 0, true)}/>
                     <ReportItem title="연간 순수익" value={krwUnit(sortedItems?.[selectedTab]?.value.annualProfit || 0, true)}/>
                     {/* <ReportItem title="실투자금대비 임대수익률" value={(sortedItems?.[selectedTab]?.value.rentProfitRatio * 100).toFixed(1) + '%'}/> */}
-                    <ReportItem title="임대수익률" value={(sortedItems?.[selectedTab]?.value.rentProfitRatio * 100).toFixed(1) + '%'}/>
+                    <ReportItem title="임대수익률(실투자금대비)" value={(sortedItems?.[selectedTab]?.value.rentProfitRatio * 100).toFixed(1) + '%'}/>
+                    <ReportItem title="5년평균지가상승률" value={(sortedItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate * 100).toFixed(1) + '%'}/>
                     {/* <ReportItem title="연간 자산상승" value={krwUnit(sortedItems?.[selectedTab]?.value.assetGrowthAmount || 0, true)}/> */}
                     {/* <ReportItem title="실투자금대비 연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/> */}
-                    <ReportItem title="연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/>
+                    {/* <ReportItem title="연간수익율" value={(sortedItems?.[selectedTab]?.value.investmentProfitRatio * 100).toFixed(1) + '%'}/> */}
                   
                   </div>
                   <div className="w-[1px] bg-line-02"/>

@@ -184,18 +184,26 @@ export interface ReportResult {
   // message: string;
    
   // 초기준비자금 
-  initialCapital: number;
+  // initialCapital: number;
   // 실투자금
   investmentCapital: number;
+
+  // 총사업비 
+  totalProjectCost: number;
+
   // 연간 순수익
   annualProfit: number;
 
   // 실투자금대비 임대수익율 
   rentProfitRatio: number;
+
+  // 평균 공시지가 상승률 
+  avgPublicLandPriceGrowthRate: number;
+
   // 연간 자산상승금액
   // assetGrowthAmount: number;
   // 실투자금 대비 연간 수익율 
-  investmentProfitRatio: number;
+  // investmentProfitRatio: number;
 
   // 매각금액
   expectedSaleAmount: number;
