@@ -10,6 +10,7 @@ const { randomUUID } = require('node:crypto');
 import path from 'path';
 import { Sentry } from '../instrument';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -528,21 +529,86 @@ export const oauth = async (req: Request, res: Response) => {
 
 export const InitVerification = (req: Request, res: Response) => {
   try{
-    console.log("init start")
+    console.log("=== 본인인증 초기화 시작 ===");
+    const mid = process.env.KG_MID;
+    const apiKey = process.env.KG_API_KEY;
     const callbackUrl = process.env.KG_CALLBACK_URL;
 
-    res.json({
-      url: 'https://sa.inicis.com/id/auth',
-      params: {
-        mid: process.env.KG_MID,
-        apiKey: process.env.KG_API_KEY,
-        seedIv: process.env.KG_SEED_IV,
-        callbackUrl
-      }
-    });
+    console.log("MID:", mid);
+    console.log("API Key:", apiKey?.substring(0, 10) + "...");
+    console.log("Callback URL:", callbackUrl);
+
+    // KG이니시스 필수 파라미터 검증
+    if (!mid || !apiKey || !callbackUrl) {
+      console.error("필수 환경변수 누락:", { mid: !!mid, apiKey: !!apiKey, callbackUrl: !!callbackUrl });
+      return res.status(500).send(`
+        <html>
+          <body>
+            <h3>본인인증 설정 오류</h3>
+            <p>서버 설정이 올바르지 않습니다.</p>
+            <button onclick="window.close()">닫기</button>
+          </body>
+        </html>
+      `);
+    }
+
+    // 거래 고유 ID 생성 (최대 20byte)
+    const mTxId = `VRF${Date.now()}`;
+
+    // authHash 생성: SHA256(mid + mTxId + apiKey)
+    const hashData = mid + mTxId + apiKey;
+    const authHash = crypto.createHash('sha256').update(hashData).digest('hex');
+
+    console.log("거래 ID:", mTxId);
+    console.log("Hash Data:", hashData);
+    console.log("Auth Hash:", authHash);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>본인인증</title>
+        </head>
+        <body>
+          <form id="verificationForm" method="POST" action="https://sa.inicis.com/auth">
+            <input type="hidden" name="mid" value="${mid}" />
+            <input type="hidden" name="reqSvcCd" value="01" />
+            <input type="hidden" name="mTxId" value="${mTxId}" />
+            <input type="hidden" name="authHash" value="${authHash}" />
+            <input type="hidden" name="successUrl" value="${callbackUrl}" />
+            <input type="hidden" name="failUrl" value="${callbackUrl}" />
+            <input type="hidden" name="reservedMsg" value="isUseToken=Y" />
+          </form>
+          <div style="text-align: center; padding: 50px;">
+            <p>본인인증 페이지로 이동 중...</p>
+          </div>
+          <script>
+            console.log("폼 제출 시작");
+            console.log("MID:", "${mid}");
+            console.log("거래 ID:", "${mTxId}");
+            console.log("Auth Hash:", "${authHash}");
+            console.log("Callback URL:", "${callbackUrl}");
+            document.getElementById('verificationForm').submit();
+          </script>
+        </body>
+      </html>
+    `;
+
+    console.log("HTML 전송 완료");
+    res.send(html);
   }catch(err){
+    console.error("본인인증 초기화 에러:", err);
     Sentry.captureException(err);
-    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    res.status(500).send(`
+      <html>
+        <body>
+          <h3>오류가 발생했습니다</h3>
+          <p>${err.message}</p>
+          <button onclick="window.close()">닫기</button>
+        </body>
+      </html>
+    `);
   }
 }
 

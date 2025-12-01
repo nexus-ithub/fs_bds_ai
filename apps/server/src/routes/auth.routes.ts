@@ -11,7 +11,7 @@ router.post('/pwfind', pwFind);
 router.get('/verify-reset-token', verifyResetToken);
 router.post('/oauth', oauth);
 router.post('/oauth/callback/:provider', oAuthCallback);
-router.post('/init-verification', InitVerification);
+router.get('/init-verification', InitVerification);
 router.post('/verify-identity/callback', VerificationCallback);
 
 export default router;
