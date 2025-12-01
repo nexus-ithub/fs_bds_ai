@@ -142,6 +142,33 @@ export const SignupInfo = () => {
         </div>
         <div className="w-full flex flex-col gap-[20px]">
           <FormField 
+            label="고객명" 
+            type="text" 
+            placeholder="이름을 입력하세요." 
+            value={name} 
+            onChange={(e) => setName(e.target.value)}
+            disabled={!!location.state?.name}/>
+          <FormField 
+            label="휴대폰번호" 
+            type="tel" 
+            placeholder="휴대폰 번호를 입력하세요." 
+            value={phone} 
+            onChange={handlePhoneChange}
+            rightElement={
+              <button
+                type="button"
+                // onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
+                onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다."); setPhoneValid(true);}}
+                className={`font-s2 ${phone.length < 10 ? 'text-text-04' : phoneValid ? 'text-green-500' : 'text-primary'}`}
+                disabled
+              >
+                {phoneValid ? "인증완료" : "본인인증"}
+              </button>
+            }
+            disabled={!!location.state?.phone}
+          />
+          <HDivider colorClassName="bg-line-02"/>
+          <FormField 
             label="이메일" 
             type="email" 
             placeholder="이메일을 입력하세요." 
@@ -206,33 +233,6 @@ export const SignupInfo = () => {
                 />
             </>
           )}
-          <HDivider colorClassName="bg-line-02"/>
-          <FormField 
-          label="고객명" 
-          type="text" 
-          placeholder="이름을 입력하세요." 
-          value={name} 
-          onChange={(e) => setName(e.target.value)}
-          disabled={!!location.state?.name}/>
-          <FormField 
-          label="휴대폰번호" 
-          type="tel" 
-          placeholder="휴대폰 번호를 입력하세요." 
-          value={phone} 
-          onChange={handlePhoneChange}
-          rightElement={
-            <button
-              type="button"
-              // onClick={() => {setPhoneValid(true); alert("본인인증 호출(개발중)");}}
-              onClick={() => {alert("⚠️ 정식 오픈 후 이용 가능합니다.");setPhoneValid(true);}}
-              className={`font-s2 ${phone.length < 10 ? 'text-text-04' : phoneValid ? 'text-green-500' : 'text-primary'}`}
-              disabled={phone.length < 10}
-            >
-              {phoneValid ? "인증완료" : "본인인증"}
-            </button>
-          }
-          disabled={!!location.state?.phone}
-          />
         </div>
         <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px]">

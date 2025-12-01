@@ -13,6 +13,5 @@ router.post('/oauth', oauth);
 router.post('/oauth/callback/:provider', oAuthCallback);
 router.get('/init-verification', InitVerification);
 router.post('/verify-identity/callback', VerificationCallback);
-router.get('/verify-identity/callback', VerificationCallback);
 
 export default router;

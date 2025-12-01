@@ -56,7 +56,12 @@ export const SignupTerms = () => {
         window.removeEventListener('message', messageHandler);
         const verificationData = event.data.data;
         toast.success('본인인증이 완료되었습니다.');
-        // 본인인증 성공 후 회원가입 진행
+        console.log("location.state", location.state);
+        console.log("email", email);
+        if (email) {
+          completeSignup(verificationData.userName, verificationData.userPhone);
+          return;
+        }
         navigate('/signup/info', {
           state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name: verificationData.userName, password, phone: verificationData.userPhone, profile, provider}})
       } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
@@ -82,33 +87,33 @@ export const SignupTerms = () => {
       return;
     }
     if (email && name && phone) {
-      const response = await axios.post(`${API_HOST}/api/auth/signup`, {
-        user: {
-          email,
-          password,
-          name,
-          phone,
-          profile,
-          provider,
-          marketingEmail: marketingEmailAgree ? "Y" : "N",
-          marketingSms: marketingSmsAgree ? "Y" : "N"
-        }
-      })
-      if (response.data) {
-        setUserId(response.data.id);
-        setToken(response.data.accessToken);
-        setOpenCompleteDialog(true);
-      } else {
-        Sentry.captureException('회원가입 중 오류가 발생했습니다.');
-        toast.error('회원가입 중 오류가 발생했습니다.')
-      }
+      completeSignup(name, phone);
     } else {
-      if (name && phone) {
-        navigate('/signup/info', {
-        state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})
-      } else {
-        handleIdentityVerification();
+      handleIdentityVerification();
+    }
+  }
+
+  const completeSignup = async(verifiedName, verifiedPhone) => {
+    const response = await axios.post(`${API_HOST}/api/auth/signup`, {
+      user: {
+        email,
+        password,
+        name: verifiedName ?? name,
+        phone: verifiedPhone ?? phone,
+        profile,
+        provider,
+        marketingEmail: marketingEmailAgree ? "Y" : "N",
+        marketingSms: marketingSmsAgree ? "Y" : "N"
       }
+    })
+    if (response.data) {
+      setUserId(response.data.id);
+      setToken(response.data.accessToken);
+      setOpenCompleteDialog(true);
+      localStorage.setItem("lastLogin", provider);
+    } else {
+      Sentry.captureException('회원가입 중 오류가 발생했습니다.');
+      toast.error('회원가입 중 오류가 발생했습니다.')
     }
   }
 
@@ -215,7 +220,7 @@ export const SignupTerms = () => {
             fontSize="font-h4"
             className="flex-1"
             disabled={!serviceAgree || !privacyAgree}
-          >동의하고 계속하기</Button>
+          >{phone ? "동의하고 가입하기" : "동의하고 인증하기"}</Button>
         </div>
         <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px] mt-[8px] mx-auto">
