@@ -24,6 +24,59 @@ export const SignupTerms = () => {
   const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
 
+  const handleIdentityVerification = async () => {
+    const width = 400;
+    const height = 640;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    const popup = window.open(`${API_HOST}/api/auth/init-verification`, '본인인증', `width=${width},height=${height},left=${left},top=${top}`);
+
+
+    if (!popup) {
+      toast.error('팝업이 차단되었습니다.');
+      return;
+    }
+
+    // 메시지 리스너 등록
+    const messageHandler = (event: MessageEvent) => {
+      // origin 체크 - API 서버도 허용
+      const allowedOrigins = [
+        window.location.origin,
+        'https://api.buildingshopai.com',
+        'http://localhost:3002'
+      ];
+
+      if (!allowedOrigins.includes(event.origin)) {
+        console.log('❌ origin 불일치로 메시지 무시됨');
+        return;
+      }
+
+      if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
+        window.removeEventListener('message', messageHandler);
+        const verificationData = event.data.data;
+        toast.success('본인인증이 완료되었습니다.');
+        // 본인인증 성공 후 회원가입 진행
+        navigate('/signup/info', {
+          state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name: verificationData.userName, password, phone: verificationData.userPhone, profile, provider}})
+      } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
+        window.removeEventListener('message', messageHandler);
+        console.error('본인인증 실패:', event.data.message);
+        toast.error(event.data.message || '본인인증에 실패했습니다.');
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    // 팝업이 닫혔는지 주기적으로 확인
+    const checkPopup = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopup);
+        window.removeEventListener('message', messageHandler);
+      }
+    }, 500);
+  };
+
   const handleSignup = async() => {
     if (!serviceAgree || !privacyAgree) {
       return;
@@ -50,8 +103,12 @@ export const SignupTerms = () => {
         toast.error('회원가입 중 오류가 발생했습니다.')
       }
     } else {
-      navigate('/signup/info', {
+      if (name && phone) {
+        navigate('/signup/info', {
         state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name, password, phone, profile, provider}})
+      } else {
+        handleIdentityVerification();
+      }
     }
   }
 
@@ -158,7 +215,7 @@ export const SignupTerms = () => {
             fontSize="font-h4"
             className="flex-1"
             disabled={!serviceAgree || !privacyAgree}
-          >동의하고 본인인증하기</Button>
+          >동의하고 계속하기</Button>
         </div>
         <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px] mt-[8px] mx-auto">

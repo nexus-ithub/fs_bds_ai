@@ -10,6 +10,7 @@ const { randomUUID } = require('node:crypto');
 import path from 'path';
 import { Sentry } from '../instrument';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -525,3 +526,275 @@ export const oauth = async (req: Request, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+export const InitVerification = (req: Request, res: Response) => {
+  try{
+    console.log("=== 본인인증 초기화 시작 ===");
+    const mid = process.env.KG_MID;
+    const apiKey = process.env.KG_API_KEY;
+    const callbackUrl = process.env.KG_CALLBACK_URL;
+
+    console.log("MID:", mid);
+    console.log("API Key:", apiKey?.substring(0, 10) + "...");
+    console.log("Callback URL:", callbackUrl);
+
+    // KG이니시스 필수 파라미터 검증
+    if (!mid || !apiKey || !callbackUrl) {
+      console.error("필수 환경변수 누락:", { mid: !!mid, apiKey: !!apiKey, callbackUrl: !!callbackUrl });
+      return res.status(500).send(`
+        <html>
+          <body>
+            <h3>본인인증 설정 오류</h3>
+            <p>서버 설정이 올바르지 않습니다.</p>
+            <button onclick="window.close()">닫기</button>
+          </body>
+        </html>
+      `);
+    }
+
+    // 거래 고유 ID 생성 (최대 20byte)
+    const mTxId = `VRF${Date.now()}`;
+
+    // authHash 생성: SHA256(mid + mTxId + apiKey)
+    const hashData = mid + mTxId + apiKey;
+    const authHash = crypto.createHash('sha256').update(hashData).digest('hex');
+
+    console.log("거래 ID:", mTxId);
+    console.log("Hash Data:", hashData);
+    console.log("Auth Hash:", authHash);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>본인인증</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              background-color: #f5f5f5;
+            }
+            .dot-progress {
+              display: flex;
+              gap: 15px;
+              align-items: flex-end;
+              height: 40px;
+            }
+            .dot {
+              width: 8px;
+              height: 8px;
+              background-color: #0062db;
+              border-radius: 50%;
+              animation: bounce 1.35s ease-in-out infinite;
+            }
+            .dot:nth-child(1) { animation-delay: 0s; }
+            .dot:nth-child(2) { animation-delay: 0.15s; }
+            .dot:nth-child(3) { animation-delay: 0.3s; }
+            .dot:nth-child(4) { animation-delay: 0.45s; }
+            @keyframes bounce {
+              0%, 100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.25;
+              }
+              20% {
+                transform: translateY(-12px) scale(1.5);
+                opacity: 1;
+              }
+              40% {
+                transform: translateY(0) scale(1);
+                opacity: 0.25;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <form id="verificationForm" method="POST" action="https://sa.inicis.com/auth">
+            <input type="hidden" name="mid" value="${mid}" />
+            <input type="hidden" name="reqSvcCd" value="01" />
+            <input type="hidden" name="mTxId" value="${mTxId}" />
+            <input type="hidden" name="authHash" value="${authHash}" />
+            <input type="hidden" name="flgFixedUser" value="N" />
+            <input type="hidden" name="successUrl" value="${callbackUrl}" />
+            <input type="hidden" name="failUrl" value="${callbackUrl}" />
+          </form>
+          <div class="dot-progress">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          <script>
+            document.getElementById('verificationForm').submit();
+          </script>
+        </body>
+      </html>
+    `;
+
+    console.log("HTML 전송 완료");
+    res.send(html);
+  }catch(err){
+    console.error("본인인증 초기화 에러:", err);
+    Sentry.captureException(err);
+    res.status(500).send(`
+      <html>
+        <body>
+          <h3>오류가 발생했습니다</h3>
+          <p>${err.message}</p>
+          <button onclick="window.close()">닫기</button>
+        </body>
+      </html>
+    `);
+  }
+}
+
+// SEED 복호화 함수
+const decryptSeed = (encryptedData: string): string => {
+  try {
+    const key = Buffer.from(process.env.KG_API_KEY || '', 'base64');
+    const iv = Buffer.from(process.env.KG_SEED_IV || '');
+
+    const decipher = crypto.createDecipheriv('seed-cbc', key, iv);
+    let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+
+    return decrypted;
+  } catch (err) {
+    console.error("SEED 복호화 에러:", err);
+    return encryptedData;
+  }
+};
+
+export const VerificationCallback = async (req: Request, res: Response) => {
+  try{
+    console.log("=== 본인인증 콜백 시작 ===");
+    console.log("Request Method:", req.method);
+    console.log("Request Body:", req.body);
+    console.log("Request Query:", req.query);
+
+    // POST body 또는 GET query에서 데이터 가져오기
+    const callbackData = Object.keys(req.body).length > 0 ? req.body : req.query;
+
+    console.log(">>콜백 데이터:", callbackData);
+
+    const { resultCode, authRequestUrl, txId, token } = callbackData;
+
+    // 인증 실패 시
+    if (resultCode !== '0000') {
+      const errorMsg = decodeURIComponent(callbackData.resultMsg || '인증에 실패했습니다');
+      console.error("본인인증 실패:", errorMsg);
+
+      return res.send(`
+        <html>
+          <body>
+            <div style="text-align: center; padding: 50px;">
+              <p>본인인증에 실패했습니다.</p>
+            </div>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'IDENTITY_VERIFICATION_ERROR',
+                  message: '${errorMsg}'
+                }, '*');
+                setTimeout(() => window.close(), 500);
+              }
+            </script>
+          </body>
+        </html>
+      `);
+    }
+
+    // STEP 3: 사용자 정보 조회
+    console.log("=== 사용자 정보 조회 시작 ===");
+    console.log("authRequestUrl:", authRequestUrl);
+    console.log("txId:", txId);
+
+    const userInfoResponse = await axios.post(
+      authRequestUrl,
+      {
+        mid: process.env.KG_MID,
+        txId: txId
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        timeout: 5000
+      }
+    );
+
+    console.log("사용자 정보 응답:", userInfoResponse.data);
+
+    const userInfo = userInfoResponse.data;
+
+    // STEP 4: 사용자 정보 추출 (평문 또는 복호화)
+    if (userInfo.resultCode === '0000') {
+      // reservedMsg 제거로 평문 수신, 암호화된 경우만 복호화 시도
+      const needDecryption = userInfo.userName && userInfo.userName.includes('==');
+
+      const userData = {
+        resultCode: userInfo.resultCode,
+        userName: needDecryption ? decryptSeed(userInfo.userName) : userInfo.userName,
+        userPhone: needDecryption ? decryptSeed(userInfo.userPhone) : userInfo.userPhone,
+        userBirthday: needDecryption ? decryptSeed(userInfo.userBirthday) : userInfo.userBirthday,
+        userCi: userInfo.userCi || '',
+        userGender: userInfo.userGender || ''
+      };
+
+      console.log("사용자 정보:", userData);
+
+      // 부모 창으로 postMessage 전송
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>본인인증 완료</title>
+          </head>
+          <body>
+            <div style="text-align: center; padding: 50px;">
+              <p>본인인증이 완료되었습니다.</p>
+            </div>
+            <script>
+              console.log("본인인증 성공:", ${JSON.stringify(userData)});
+
+              if (window.opener) {
+                window.opener.postMessage({
+                  type: 'IDENTITY_VERIFICATION_SUCCESS',
+                  data: ${JSON.stringify(userData)}
+                }, '*');
+
+                setTimeout(() => {
+                  window.close();
+                }, 500);
+              } else {
+                console.error("부모 창을 찾을 수 없습니다.");
+              }
+            </script>
+          </body>
+        </html>
+      `;
+
+      res.send(html);
+    } else {
+      throw new Error(userInfo.resultMsg || '사용자 정보 조회 실패');
+    }
+
+  }catch(err){
+    console.error("본인인증 콜백 에러:", err);
+    Sentry.captureException(err);
+    res.status(500).send(`
+      <html>
+        <body>
+          <h3>오류가 발생했습니다</h3>
+          <p>${err.message}</p>
+          <button onclick="window.close()">닫기</button>
+        </body>
+      </html>
+    `);
+  }
+}

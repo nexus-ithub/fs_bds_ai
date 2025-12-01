@@ -1,4 +1,4 @@
-import { Button, HDivider, AGES, INTERESTS, ADDITIONAL_INFO } from "@repo/common";
+import { Button, HDivider, AGES, INTERESTS, ADDITIONAL_INFO, Spinner } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_HOST } from "../constants";
@@ -103,7 +103,7 @@ export const AdditionalInfo = () => {
   const [gender, setGender] = useState<"M" | "F" | null>(null);
   const [age, setAge] = useState<string | null>(null);
   const [interests, setInterests] = useState<number[]>([]);
-  // const [additionalInfo, setAdditionalInfo] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!location.state || !location.state.userId) {
@@ -125,6 +125,7 @@ export const AdditionalInfo = () => {
   
   const handleSubmit = async() => {
     try {
+      setLoading(true);
       await axiosInstance.post(`/api/user/additional-info`, {
         gender,
         age,
@@ -135,6 +136,8 @@ export const AdditionalInfo = () => {
       console.error(error);
       toast.error('서버 오류가 발생했습니다.')
       Sentry.captureException(error);
+    } finally { 
+      setLoading(false);
     }
   }
 
@@ -154,7 +157,9 @@ export const AdditionalInfo = () => {
         <HDivider colorClassName="bg-line-02"/>
         <div className="flex items-center gap-[12px]">
           {/* <Button variant="bggray" size="medium" className="w-[80px]" fontSize="font-h4">취소</Button> */}
-          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {handleSubmit()}}>입력 완료</Button>
+          <Button size="medium" className="flex-1" fontSize="font-h4" onClick={() => {handleSubmit()}} disabled={loading}>
+            {loading ? <Spinner/> : "입력 완료"}
+          </Button>
         </div>
       </div>
     </div>

@@ -4,19 +4,12 @@ import { QUERY_KEY_USER } from "../constants"
 import type { User } from "@repo/common"
 import { getAccessToken } from "../authutil"
 import { useEffect, useState } from "react"
-import { HDivider, Button, type AdditionalInfo } from "@repo/common"
+import { HDivider, Button, type AdditionalInfo, Spinner } from "@repo/common"
 import useAxiosWithAuth from "../axiosWithAuth";
 import { toast } from "react-toastify";
 import * as Sentry from "@sentry/react";
 
 export const MyAdditionalInfo = () => {
-  // const { data : config } = useQuery<User>({
-  //   queryKey: [QUERY_KEY_USER, getAccessToken()]
-  // })
-  // const [gender, setGender] = useState<"M" | "F" | null>(config?.gender ?? null);
-  // const [age, setAge] = useState<string | null>(config?.age ?? null);
-  // const [interests, setInterests] = useState<string[]>(config?.interests ?? []);
-  // const [additionalInfo, setAdditionalInfo] = useState<string[]>(config?.additionalInfo ?? []);
   const queryClient = useQueryClient()
   const axiosInstance = useAxiosWithAuth()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
@@ -24,11 +17,11 @@ export const MyAdditionalInfo = () => {
   const [gender, setGender] = useState<"M" | "F" | null>(null);
   const [age, setAge] = useState<number | null>(null);
   const [interests, setInterests] = useState<number[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const getAdditionalInfo = async() => {
     try {
       const response = await axiosInstance.get(`/api/user/additional-info/${config?.id}`)
-      console.log(response.data)
       setGender(response.data.gender)
       setAge((response.data.age))
       setInterests(response.data.interests)
@@ -42,7 +35,7 @@ export const MyAdditionalInfo = () => {
 
   const handleSubmit = async() => {
     try {
-      console.log(gender, age, interests)
+      setLoading(true);
       await axiosInstance.post(`/api/user/additional-info`, {
         gender,
         age,
@@ -54,6 +47,8 @@ export const MyAdditionalInfo = () => {
       console.error(error);
       toast.error('서버 오류가 발생했습니다.')
       Sentry.captureException(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -86,11 +81,11 @@ export const MyAdditionalInfo = () => {
       <div className="flex items-center gap-[12px]">
         <Button 
           size="medium" 
-          className="flex-1" 
+          className="flex-1 h-[48px]" 
           fontSize="font-h4" 
           onClick={() => {handleSubmit()}}
-          disabled={!isChanged()}
-        >입력 완료</Button>
+          disabled={!isChanged() || loading}
+        >{loading ? <Spinner/> : "입력 완료"}</Button>
       </div>
     </div>
   )
