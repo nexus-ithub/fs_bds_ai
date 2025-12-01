@@ -26,7 +26,7 @@ export const SignupTerms = () => {
 
   const handleIdentityVerification = async () => {
     // TODO: 본인인증 URL 설정 필요
-    const response = await axios.post(`${API_HOST}/api/auth/identity-verification`);
+    const response = await axios.post(`${API_HOST}/api/auth/init-verification`);
 
     const width = 400;
     const height = 640;
@@ -34,15 +34,62 @@ export const SignupTerms = () => {
     const top = window.screenY + (window.outerHeight - height) / 2;
 
     const popup = window.open(
-      response.data.url,
+      '',
       '본인인증',
       `width=${width},height=${height},left=${left},top=${top}`
     );
+
+    // const form = popup.document.createElement('form');
+    // form.method = 'POST';
+    // form.action = response.data.url;
+
+    // for (const key in response.data.params) {
+    //   const input = popup.document.createElement("input");
+    //   input.type = "hidden";
+    //   input.name = key;
+    //   input.value = response.data.params[key];
+    //   form.appendChild(input);
+    // }
+
 
     if (!popup) {
       toast.error('팝업이 차단되었습니다.');
       return;
     }
+
+    popup.document.write(`
+      <html>
+        <body>
+          <p>폼 준비중...</p>
+        </body>
+      </html>
+    `);
+    popup.document.close();
+
+    // 문서 준비 기다리기
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // 디버그 메시지(console)
+    (popup as any).console.log("폼 생성 시작");
+
+    const form = popup.document.createElement("form");
+    form.method = "POST";
+    form.action = response.data.url;
+
+    for (const key in response.data.params) {
+      (popup as any).console.log(`param ${key}: ${response.data.params[key]}`);
+
+      const input = popup.document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = response.data.params[key];
+      form.appendChild(input);
+    }
+
+    popup.document.body.appendChild(form);
+
+    (popup as any).console.log("폼 생성 완료 → 제출");
+    form.submit();
 
     // 메시지 리스너 등록
     const messageHandler = (event: MessageEvent) => {

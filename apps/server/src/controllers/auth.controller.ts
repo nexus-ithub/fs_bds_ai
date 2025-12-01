@@ -526,11 +526,32 @@ export const oauth = async (req: Request, res: Response) => {
   }
 };
 
+export const InitVerification = (req: Request, res: Response) => {
+  try{
+    console.log("init start")
+    const callbackUrl = "http://localhost:3002/api/auth/verify-identity/callback"
+
+    res.json({
+      url: 'https://sa.inicis.com/id/auth',
+      params: {
+        mid: process.env.KG_MID,
+        apiKey: process.env.KG_API_KEY,
+        seedIv: process.env.KG_SEED_IV,
+        callbackUrl
+      }
+    });
+  }catch(err){
+    Sentry.captureException(err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
 export const VerificationCallback = (req: Request, res: Response) => {
   try{
-    const redirectUrl = "https://sa.inicis.com/auth"
-
-    res.json({ url: redirectUrl });
+    console.log("callback start")
+    const result = req.body;
+    console.log(">>result: ", result);
+    res.status(200).json(result);
   }catch(err){
     Sentry.captureException(err);
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });

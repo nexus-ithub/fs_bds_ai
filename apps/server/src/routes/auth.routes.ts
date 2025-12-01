@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUser, login, refresh, logout, oauth, oAuthCallback, pwFind, verifyResetToken } from '../controllers/auth.controller';
+import { createUser, login, refresh, logout, oauth, oAuthCallback, pwFind, verifyResetToken, InitVerification, VerificationCallback } from '../controllers/auth.controller';
 
 const router: Router = Router();
 
@@ -11,5 +11,7 @@ router.post('/pwfind', pwFind);
 router.get('/verify-reset-token', verifyResetToken);
 router.post('/oauth', oauth);
 router.post('/oauth/callback/:provider', oAuthCallback);
+router.post('/init-verification', InitVerification);
+router.post('/verify-identity/callback', VerificationCallback);
 
 export default router;
