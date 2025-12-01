@@ -1,10 +1,12 @@
 
 import { db } from '../utils/database';
-import { BuildingInfo, ConsultRequest, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
+import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
 const MAX_CHECK = 4;
+
+const RENT_CANDIDATE_RADIUS = 1000;
 
 export class LandModel {
 
@@ -299,107 +301,6 @@ export class LandModel {
   }
 
 
-  // static async findPolygonWithSub(id: string, lat: number, lng: number): Promise<PolygonInfo[]> {
-  //   // where 절과 파라미터를 안전하게 구성
-  //   let whereSql = '';
-  //   const params: any[] = [];
-  //   if (id) {
-  //     whereSql = `ap.id = ?`;
-  //     params.push(id);
-  //   } else if (lat && lng) {
-  //     // SRID를 사용하지 않는 경우(=0)라면 아래 그대로 사용
-  //     // ST_GeomFromText( CONCAT('POINT(', ?, ' ', ?, ')') ) 형태로 안전하게 바인딩
-  //     whereSql = `ST_Contains(ap.polygon, ST_GeomFromText(CONCAT('POINT(', ?, ' ', ?, ')')))`;
-  //     params.push(lng, lat);
-  //   } else {
-  //     // 기준이 없으면 빈 배열 반환
-  //     return [];
-  //   }
-
-  //   const sql = `
-  //     WITH
-  //     base AS (
-  //       SELECT
-  //         ap.id,
-  //         ap.leg_dong_code,
-  //         ap.jibun,
-  //         LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
-  //         LPAD(CAST(CASE WHEN LOCATE('-', ap.jibun) > 0
-  //                       THEN SUBSTRING_INDEX(ap.jibun,'-',-1)
-  //                       ELSE '0' END AS UNSIGNED), 4, '0') AS ji_pad
-  //       FROM address_polygon ap
-  //       WHERE ${whereSql}
-  //       LIMIT 1
-  //     ),
-  //     cand_building_ids AS (
-  //       SELECT blh.building_id
-  //       FROM building_leg_headline blh
-  //       JOIN base b
-  //         ON blh.leg_dong_code_val = b.leg_dong_code
-  //       AND blh.bun = b.bun_pad
-  //       AND blh.ji  = b.ji_pad
-  //       UNION
-  //       SELECT bsa.building_id
-  //       FROM building_sub_addr bsa
-  //       JOIN base b
-  //         ON bsa.sub_leg_dong_code_val = b.leg_dong_code
-  //       AND bsa.sub_bun = b.bun_pad
-  //       AND bsa.sub_ji  = b.ji_pad
-  //     ),
-  //     rows_main AS (
-  //       SELECT blh.*
-  //       FROM building_leg_headline blh
-  //       JOIN cand_building_ids c USING (building_id)
-  //     ),
-  //     rows_sub AS (
-  //       SELECT bsa.*
-  //       FROM building_sub_addr bsa
-  //       JOIN cand_building_ids c USING (building_id)
-  //     ),
-  //     row_keys AS (
-  //       SELECT building_id, leg_dong_code_val AS leg_code, bun AS bun_pad, ji AS ji_pad
-  //       FROM rows_main
-  //       UNION ALL
-  //       SELECT building_id, sub_leg_dong_code_val AS leg_code, sub_bun AS bun_pad, sub_ji AS ji_pad
-  //       FROM rows_sub
-  //     ),
-  //     ap_keys AS (
-  //       SELECT
-  //         ap.*,
-  //         LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
-  //         LPAD(CAST(CASE WHEN LOCATE('-', ap.jibun) > 0
-  //                       THEN SUBSTRING_INDEX(ap.jibun,'-',-1)
-  //                       ELSE '0' END AS UNSIGNED), 4, '0') AS ji_pad
-  //       FROM address_polygon ap
-  //     ),
-  //     /* 여기서 polygon ID만 고유하게 수집 */
-  //     related_ap_ids AS (
-  //       SELECT DISTINCT ap.id AS ap_id
-  //       FROM base b
-  //       JOIN row_keys rk               ON 1=1
-  //       JOIN ap_keys ap
-  //         ON ap.leg_dong_code = rk.leg_code
-  //       AND ap.bun_pad       = rk.bun_pad
-  //       AND ap.ji_pad        = rk.ji_pad
-  //     )
-  //     /* 최종: 고유 ap_id로만 address_polygon 다시 조회 (중복 제거) */
-  //     SELECT
-  //       ap.id                           AS id,
-  //       ap.leg_dong_code                AS legDongCode,
-  //       ap.leg_dong_name                AS legDongName,
-  //       ap.jibun                        AS jibun,
-  //       ap.lat                          AS lat,
-  //       ap.lng                          AS lng,
-  //       ap.polygon                      AS polygon
-  //     FROM address_polygon ap
-  //     JOIN related_ap_ids r ON r.ap_id = ap.id
-  //     ORDER BY ap.id
-  //   `;
-
-  //   const rows = await db.query<PolygonInfo>(sql, params);
-  //   return rows ?? [];
-  // }  
-  
   static async findPolygon(id: string, lat: number, lng: number): Promise<PolygonInfo | null> {
 
     let where = '';
@@ -724,121 +625,64 @@ export class LandModel {
     }
   }
 
-  
-  // static async findLandIdByLatLng(lat: number, lng: number): Promise<LandInfo | null> {
-  //   try {
-  //     const lands = await db.query<LandInfo>(
-  //       `SELECT 
-  //         land_info.id AS id,
-  //         land_info.leg_dong_code as legDongCode,
-  //         address_polygon.leg_dong_name as legDongName,
-  //         address_polygon.jibun as jibun,
-  //         land_info.area AS area,
-  //         land_char.usage1_name AS usageName,
-  //         land_char.jimok_name AS jimokName,
-  //         land_char.cur_use AS curUse,
-  //         leg_land_usage_ratio.far,
-  //         leg_land_usage_ratio.bcr,
-  //         land_char.road_contact AS roadContact,
-  //         land_char.price AS price,
-  //         jibun.sido_name AS sidoName,
-  //         jibun.sigungu_name AS sigunguName,
-  //         jibun.jibun_main_num AS jibunMainNum,
-  //         jibun.jibun_sub_num AS jibunSubNum,
-  //         jibun.leg_eupmyeondong_name AS legEupmyeondongName,
-  //         jibun.leg_li_name AS legLiName,
-  //         road_info.road_name AS roadName,
-  //         addr.building_main_num AS buildingMainNum,
-  //         addr.building_sub_num AS buildingSubNum,
-  //         info.local_building_name AS localBuildingName,
-  //         info.building_leg_name AS buildingLegName,
-  //         CASE
-  //           WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-  //           WHEN ld_latest.deal_date IS NULL 
-  //               OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-  //             THEN bd_latest.deal_date
-  //           ELSE ld_latest.deal_date
-  //         END AS dealDate,
-  //         CASE
-  //           WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-  //           WHEN ld_latest.deal_date IS NULL 
-  //               OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-  //             THEN bd_latest.price
-  //           ELSE ld_latest.price
-  //         END AS dealPrice,
-  //         CASE
-  //           WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-  //           WHEN ld_latest.deal_date IS NULL 
-  //               OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-  //             THEN 'building'
-  //           ELSE 'land'
-  //         END AS dealType,          
-  //         address_polygon.polygon
-  //     FROM address_polygon AS address_polygon
-  //     LEFT JOIN land_info AS land_info 
-  //       ON address_polygon.id = land_info.id
-  //     LEFT JOIN land_char_info AS land_char
-  //       ON land_char.key = (
-  //         SELECT c.key 
-  //         FROM land_char_info AS c 
-  //         WHERE c.id = land_info.id 
-  //         ORDER BY c.create_date DESC 
-  //         LIMIT 1
-  //       )
-  //     LEFT JOIN leg_land_usage_ratio AS leg_land_usage_ratio
-  //       ON land_char.usage1_name = leg_land_usage_ratio.name
-  //     LEFT JOIN jibun_info AS jibun 
-  //       ON jibun.leg_dong_code = address_polygon.leg_dong_code
-  //       AND jibun.jibun_main_num = SUBSTRING_INDEX(address_polygon.jibun, '-', 1)
-  //       AND jibun.jibun_sub_num = CASE 
-  //                                WHEN address_polygon.jibun LIKE '%-%' 
-  //                                THEN SUBSTRING_INDEX(address_polygon.jibun, '-', -1)
-  //                                ELSE '0'
-  //                             END
-  //     LEFT JOIN address_info AS addr 
-  //       ON addr.address_id = jibun.address_id
-  //     LEFT JOIN additional_info AS info 
-  //       ON addr.address_id = info.address_id
-  //     LEFT JOIN road_code_info AS road_info 
-  //       ON addr.road_name_code = road_info.road_name_code 
-  //       AND addr.eupmyeondong_serial_num = road_info.eupmyeondong_serial_num        
-  //     LEFT JOIN (
-  //       SELECT id, deal_date, price
-  //       FROM (
-  //         SELECT 
-  //           id,
-  //           deal_date,
-  //           price,
-  //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-  //         FROM building_deal_list
-  //       ) t
-  //       WHERE t.rn = 1
-  //     ) AS bd_latest
-  //       ON bd_latest.id = land_info.id
-  //     LEFT JOIN (
-  //       SELECT id, deal_date, price
-  //       FROM (
-  //         SELECT 
-  //           id,
-  //           deal_date,
-  //           price,
-  //           ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-  //         FROM land_deal_list
-  //       ) t
-  //       WHERE t.rn = 1
-  //     ) AS ld_latest
-  //       ON ld_latest.id = land_info.id  
-  //     WHERE ST_CONTAINS(address_polygon.polygon, GeomFromText('Point(? ?)'))
-  //     GROUP BY address_polygon.id`,
-  //       [lng, lat]
-  //     )
-  //     return lands[0] || null;
-  //   } catch (error) {
-  //     console.error('Error finding land by lat and lng:', error);
-  //     throw error;
-  //   }
-  // }
+  static async findLatestDealInfo(id: string): Promise<DealInfo | null> {
+    console.log('findLatestDealInfo id', id);
+    try {
+      const dealList = await db.query<DealInfo>(
+        `
+        SELECT
+          ? AS id,
+          CASE
+              WHEN bd.deal_date IS NULL AND ld.deal_date IS NULL THEN NULL
+              WHEN ld.deal_date IS NULL 
+                  OR (bd.deal_date IS NOT NULL AND bd.deal_date >= ld.deal_date)
+                THEN bd.deal_date
+              ELSE ld.deal_date
+          END AS dealDate,
+          CASE
+              WHEN bd.deal_date IS NULL AND ld.deal_date IS NULL THEN NULL
+              WHEN ld.deal_date IS NULL 
+                  OR (bd.deal_date IS NOT NULL AND bd.deal_date >= ld.deal_date)
+                THEN bd.price
+              ELSE ld.price
+          END AS dealPrice,
+          CASE
+              WHEN bd.deal_date IS NULL AND ld.deal_date IS NULL THEN NULL
+              WHEN ld.deal_date IS NULL 
+                  OR (bd.deal_date IS NOT NULL AND bd.deal_date >= ld.deal_date)
+                THEN 'building'
+              ELSE 'land'
+          END AS dealType
+        FROM
+          (SELECT 1 AS dummy) d
+          LEFT JOIN (
+            SELECT deal_date, price
+            FROM building_deal_list
+            WHERE id = ?
+            ORDER BY deal_date DESC
+            LIMIT 1
+          ) AS bd ON 1=1
+          LEFT JOIN (
+            SELECT deal_date, price
+            FROM land_deal_list
+            WHERE id = ?
+            ORDER BY deal_date DESC
+            LIMIT 1
+          ) AS ld ON 1=1
+        `,
+        [id, id, id]
+      )
 
+      console.log('dealList', dealList);
+      if(dealList[0].dealDate){
+        return dealList[0];
+      }
+      return null;
+    } catch (error) {
+      console.error('Error finding deal list by id:', error);
+      throw error;
+    }
+  }
 
   static async calculatePublicPriceGrowthRate(id: string): Promise<number | null> {
     try {
@@ -876,12 +720,49 @@ export class LandModel {
         `,
         [id]
       )
-      return changeRates[0]?.avg_growth_rate_pct || null;
+      if(changeRates[0]?.avg_growth_rate_pct){
+        return Number(changeRates[0]?.avg_growth_rate_pct);
+      }
+      return null;
     } catch (error) {
       console.error('Error finding change rate by id:', error);
       throw error;
     }
   }
+
+
+
+  static async getAroundRentInfo(lat: number, lng: number): Promise<any | null> {
+    try {
+      const aroundRentInfo = await db.query<any>(
+        `WITH filtered AS (
+            SELECT
+                n.floor_type,
+                -- 평당 임대료 = rent_price / (전용면적 평)
+                (n.rent_price / (CAST(n.excl_area AS DECIMAL(10,4)) * 0.3025)) AS rent_per_py,
+                ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) AS distance_m
+            FROM naver_rent_info AS n
+            WHERE ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) <= ?
+          )
+          SELECT DISTINCT
+              floor_type,
+              PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_py) 
+                  OVER (PARTITION BY floor_type) AS median_rent_per_py
+          FROM filtered
+          ORDER BY floor_type;
+          `,
+        [lng, lat, lng, lat, RENT_CANDIDATE_RADIUS]
+      )
+
+      console.log('aroundRentInfo ', aroundRentInfo)
+
+      return aroundRentInfo;
+    } catch (error) {
+      console.error('Error finding around rent info by id:', error);
+      throw error;
+    }
+  }
+
 
   static async calculateEstimatedPrice(id: string): Promise<EstimatedPrice | null> {
    
@@ -1391,6 +1272,7 @@ export class LandModel {
       }        
 
       const result = {
+        baseLandId: land.repLandId,
         estimatedPrice,
         per,
       } as EstimatedPrice;

@@ -5,8 +5,8 @@ import { BuildingModel } from '../models/buliding.model';
 import { DistrictModel } from '../models/district.model';
 import axios from 'axios';
 import { getDistance } from 'geolib';
-import { BuildingInfo, EstimatedPrice, LandInfo } from '@repo/common';
-import { AIReportModel } from '../models/aireport.model';
+import { BuildingInfo, EstimatedPrice, EstimatedPriceV2, LandInfo } from '@repo/common';
+import { AIReportModel, getBuildingAge, krwUnit } from '../models/aireport.model';
 import { Sentry } from "../instrument"
 
 // const ESTIMATE_REFERENCE_DISTANCE = 300;
@@ -196,6 +196,85 @@ export const getBuildingList = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
+
+export const getEstimatedPriceV2 = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+
+    const estimatedPrice = await LandModel.calculateEstimatedPrice(id as string);
+    const dealInfo = await LandModel.findLatestDealInfo(estimatedPrice.baseLandId);
+    const growthRate = await LandModel.calculatePublicPriceGrowthRate(estimatedPrice.baseLandId);
+    const devDetailInfo = await AIReportModel.makeDevDetailInfo(id as string, estimatedPrice);
+    const priceByExpectedSaleAmount = devDetailInfo.devDetailInfo.build.result.expectedSaleAmount * 0.7;
+    
+    let priceByDealPrice = 0;
+    console.log('dealInfo', dealInfo);
+    console.log('growthRate', growthRate , typeof growthRate);
+    let debugText = [];
+
+    debugText.push(`[예상매각금액의 70%]`);
+    debugText.push(`${krwUnit(priceByExpectedSaleAmount, true)} (${krwUnit(devDetailInfo.devDetailInfo.build.result.expectedSaleAmount, true)}(예상매각금액) x 70%)`);
+
+    debugText.push(`[실거래 + 평균지가상승률반영가]`);
+    if(dealInfo){
+      const diffYear = new Date().getFullYear() - dealInfo.dealDate.getFullYear();
+      priceByDealPrice = (Number(dealInfo.dealPrice) * 10000) * Math.pow(1 + growthRate, diffYear);
+      debugText.push(`${krwUnit(priceByDealPrice, true)} (실거래가 ${krwUnit(dealInfo.dealPrice * 10000, true)} 에 ${diffYear}년 ${(growthRate * 100).toFixed(1)}% 복리 적용)`);
+    }else{
+      debugText.push(`실거래가가 없음`);
+    }
+
+    const totalProjectCost = 
+      devDetailInfo.devDetailInfo.build.projectCost.constructionCost + 
+      devDetailInfo.devDetailInfo.build.projectCost.constructionDesignCost + 
+      devDetailInfo.devDetailInfo.build.projectCost.demolitionCost + 
+      devDetailInfo.devDetailInfo.build.projectCost.demolitionManagementCost + 
+      devDetailInfo.devDetailInfo.build.projectCost.managementCost + 
+      devDetailInfo.devDetailInfo.build.projectCost.pmFee;
+
+    
+    let priceByProjectCost = estimatedPrice.estimatedPrice;
+
+    debugText.push(`[추정가 + 건물가격(사업비에 감가상각적용)]`);
+    if(devDetailInfo.buildingList?.length > 0){
+      console.log('devDetailInfo.buildingList', devDetailInfo.buildingList);
+      const buildingAge = getBuildingAge(devDetailInfo.buildingList[0].useApprovalDate);
+      priceByProjectCost += totalProjectCost * (1 - (buildingAge * 0.025));
+      debugText.push(`${krwUnit(priceByProjectCost, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + (사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.025)))`);
+    }else{
+      debugText.push(`건물이 없음`);
+    }
+    console.log('estimatedPrice', estimatedPrice);
+    console.log('dealInfo', dealInfo);
+    console.log('growthRate', growthRate);
+
+    console.log('priceByDealPrice ', priceByDealPrice);
+    console.log('priceByExpectedSaleAmount ', priceByExpectedSaleAmount);
+    console.log('priceByProjectCost ', priceByProjectCost);
+
+    const expectedPrice = Math.max(priceByDealPrice, priceByExpectedSaleAmount, priceByProjectCost);
+
+    // if(priceByExpectedSaleAmount > 0){
+    //   debugText.push(`최종 추정가 ${krwUnit(expectedPrice)} `);
+    // }
+    
+    const result = {
+      estimatedPrice: expectedPrice,
+      debugText
+    } as EstimatedPriceV2;
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Get estimated price error:', err);
+    // Sentry.captureException(err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 
 const MAX_CHECK = 4;
 

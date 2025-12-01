@@ -99,6 +99,7 @@ export interface BuildingInfo {
 }
 
 export interface EstimatedPrice {
+  baseLandId: string;
   estimatedPrice: number;
   per: number;
 }
@@ -157,6 +158,13 @@ export interface ConsultRequest {
   createdAt: string;
 }
 
+
+export interface DealInfo {
+  id: string;
+  dealPrice: number;
+  dealDate: Date;
+  dealType: string;
+}
 
 export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo?.legDongName} ${landInfo?.jibun}`;

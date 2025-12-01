@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2 } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -15,6 +15,7 @@ import { AIReport } from "../aiReport/AIReport";
 import { AIChat } from "../aiChat/AIChat";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
+import { IS_DEVELOPMENT } from "../constants";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
@@ -26,6 +27,7 @@ export default function Main() {
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
+  const [estimatedPriceV2, setEstimatedPriceV2] = useState<EstimatedPriceV2 | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
@@ -235,8 +237,25 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
-        toast.error("추정 가격 정보를 가져오는 중 오류가 발생했습니다.");
+        toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
       });
+      
+    if(IS_DEVELOPMENT){
+      axiosInstance.get(`/api/land/estimated-price-v2?id=${id}`)
+        .then((response) => {
+          // console.log(response.data);
+          const estimatedPriceV2 = response.data as EstimatedPriceV2;
+          // console.log(estimatedPrice);
+          setEstimatedPriceV2(estimatedPriceV2);
+        })
+        .catch((error) => {
+          console.error(error);
+          toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
+        });   
+    }else{
+      setEstimatedPriceV2(null);
+    }
+   
   }
   
   const getBusinessDistrict = (lat: number, lng: number) => {
@@ -301,8 +320,9 @@ export default function Main() {
             landInfo={landInfo} 
             buildingList={buildingList}
             businessDistrict={businessDistrict} 
-            place={place} 
             estimatedPrice={estimatedPrice}
+            estimatedPriceV2={estimatedPriceV2}
+            place={place} 
             onClose={() => {
               setLandInfo(null)
               setOpenAIReport(false)

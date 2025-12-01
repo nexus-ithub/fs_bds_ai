@@ -6,7 +6,7 @@ const client = new OpenAI({
   timeout: 20 * 1000, 
 });
 
-const krwUnit = (amount: number, firstUnit?: boolean) => {
+export const krwUnit = (amount: number, firstUnit?: boolean) => {
   const isNegative = amount < 0;
   const absAmount = Math.abs(amount);
   if (absAmount >= 100000000) {
@@ -68,8 +68,6 @@ const INSTRUCTION_PROMPT = `"""
 * 반드시 다음과 같은 JSON 형식을 지켜줘
 {"answer": "...", "summary": "..."}
 """`;
-
-const RENT_CANDIDATE_RADIUS = 1000;
 
 
 const BASE_FLOOR_AREA_RATIO = 0.85; // 대지대비지하비율 0.85 
@@ -647,7 +645,7 @@ function getComprehensiveRealEstateTax(price : number, area : number, propertyTa
 }
 
 
-function getBuildingAge (useApprovalDateStr: string){
+export function getBuildingAge (useApprovalDateStr: string){
   if (!useApprovalDateStr || useApprovalDateStr.length < 8) {
     return null; // 잘못된 입력 처리
   }
@@ -1243,7 +1241,7 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
 
 export class AIReportModel {
 
-  static async makeDevDetailInfo(
+static async makeDevDetailInfo(
     landId: string,
     estimatedPrice: EstimatedPrice,
     debug: boolean = false
@@ -1379,6 +1377,7 @@ export class AIReportModel {
               leg_code,
               bun_pad,
               ji_pad,
+              source,  -- main / sub 구분
               CONCAT(
                 CAST(bun_pad AS UNSIGNED),
                 CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
@@ -1387,19 +1386,37 @@ export class AIReportModel {
                 END
               ) AS jibun_norm
             FROM (
-              SELECT * FROM rows_main
+              SELECT 
+                rm.building_id,
+                rm.leg_code,
+                rm.bun_pad,
+                rm.ji_pad,
+                'MAIN' AS source
+              FROM rows_main rm
+
               UNION ALL
-              SELECT * FROM rows_sub
+
+              SELECT 
+                rs.building_id,
+                rs.leg_code,
+                rs.bun_pad,
+                rs.ji_pad,
+                'SUB' AS source
+              FROM rows_sub rs
             ) u
           ),
           /* land_info 매칭으로 관련 필지 id 수집 */
           related_li_ids AS (
-            SELECT DISTINCT li2.id AS li_id
+            SELECT
+              li2.id AS li_id,
+              MAX(CASE WHEN rk.source = 'MAIN' THEN 1 ELSE 0 END) AS is_main  -- ✅ main 여부
             FROM row_keys rk
             JOIN land_info li2
               ON li2.leg_dong_code = rk.leg_code
             AND li2.jibun         = rk.jibun_norm
-            JOIN base b        ON li2.div_code = b.div_code
+            JOIN base b
+              ON li2.div_code = b.div_code
+            GROUP BY li2.id
           ),
           /* 기준 필지 항상 포함 */
           final_ids AS (
@@ -1481,7 +1498,13 @@ export class AIReportModel {
           LEFT JOIN leg_land_usage_ratio llur
             ON lc.usage1_name = llur.name
           LEFT JOIN address_polygon ap
-            ON ap.id = li.id
+            ON ap.id = (
+              SELECT r.li_id
+              FROM related_li_ids r
+              WHERE r.is_main = 1         -- ✅ rows_main 에서 온 필지 중 하나
+              ORDER BY r.li_id            -- 필요하면 정렬 기준(예: 가장 작은 id) 추가
+              LIMIT 1
+            )
           /* 최신 거래가 1행씩 되도록 윈도우 사용 (필요시 아래 주석의 대안 참고) */
           LEFT JOIN (
             SELECT id, deal_date, price
@@ -1624,26 +1647,27 @@ export class AIReportModel {
         // makeReportValue(aiReport.rent, 'C', 'rent');
       }
 
-      const aroundRentInfo = await db.query<any>(
-        `WITH filtered AS (
-            SELECT
-                n.floor_type,
-                -- 평당 임대료 = rent_price / (전용면적 평)
-                (n.rent_price / (CAST(n.excl_area AS DECIMAL(10,4)) * 0.3025)) AS rent_per_py,
-                ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) AS distance_m
-            FROM naver_rent_info AS n
-            WHERE ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) <= ?
-          )
-          SELECT DISTINCT
-              floor_type,
-              PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_py) 
-                  OVER (PARTITION BY floor_type) AS median_rent_per_py
-          FROM filtered
-          ORDER BY floor_type;
-          `,
-        [curLandInfo.lng, curLandInfo.lat, curLandInfo.lng, curLandInfo.lat, RENT_CANDIDATE_RADIUS]
-      )
+       // const aroundRentInfo = await db.query<any>(
+      //   `WITH filtered AS (
+      //       SELECT
+      //           n.floor_type,
+      //           -- 평당 임대료 = rent_price / (전용면적 평)
+      //           (n.rent_price / (CAST(n.excl_area AS DECIMAL(10,4)) * 0.3025)) AS rent_per_py,
+      //           ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) AS distance_m
+      //       FROM naver_rent_info AS n
+      //       WHERE ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) <= ?
+      //     )
+      //     SELECT DISTINCT
+      //         floor_type,
+      //         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_py) 
+      //             OVER (PARTITION BY floor_type) AS median_rent_per_py
+      //     FROM filtered
+      //     ORDER BY floor_type;
+      //     `,
+      //   [curLandInfo.lng, curLandInfo.lat, curLandInfo.lng, curLandInfo.lat, RENT_CANDIDATE_RADIUS]
+      // )
 
+      const aroundRentInfo = await LandModel.getAroundRentInfo(curLandInfo.lat, curLandInfo.lng)
       console.log('aroundRentInfo ', aroundRentInfo)
 
       makeBuildInfo(devDetailInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr, debug);
