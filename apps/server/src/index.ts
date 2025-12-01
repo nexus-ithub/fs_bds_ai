@@ -56,11 +56,13 @@ httpServer = http.createServer(app);
 const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'https://buildingshopai.com',
   'https://www.buildingshopai.com',
-  'https://sa.inicis.com'
+  'https://sa.inicis.com',
+  'https://kssa.inicis.com'
 ] : [
   'http://localhost:3000',
   'http://nexusnas.iptime.org:7500',
-  'https://sa.inicis.com'
+  'https://sa.inicis.com',
+  'https://kssa.inicis.com'
 ];
 
 // app.use(cors());
