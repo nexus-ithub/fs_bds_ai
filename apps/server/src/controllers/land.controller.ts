@@ -243,7 +243,7 @@ export const getEstimatedPriceV2 = async (req: AuthRequest, res: Response) => {
     if(devDetailInfo.buildingList?.length > 0){
       console.log('devDetailInfo.buildingList', devDetailInfo.buildingList);
       const buildingAge = getBuildingAge(devDetailInfo.buildingList[0].useApprovalDate);
-      priceByProjectCost += totalProjectCost * (1 - (buildingAge * 0.025));
+      priceByProjectCost += totalProjectCost * (Math.max(1 - (buildingAge * 0.025), 0));
       debugText.push(`${krwUnit(priceByProjectCost, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + (사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.025)))`);
     }else{
       debugText.push(`건물이 없음`);
