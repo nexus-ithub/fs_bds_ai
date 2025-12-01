@@ -529,7 +529,7 @@ export const oauth = async (req: Request, res: Response) => {
 export const InitVerification = (req: Request, res: Response) => {
   try{
     console.log("init start")
-    const callbackUrl = "http://localhost:3002/api/auth/verify-identity/callback"
+    const callbackUrl = process.env.KG_CALLBACK_URL;
 
     res.json({
       url: 'https://sa.inicis.com/id/auth',
