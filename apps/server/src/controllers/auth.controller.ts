@@ -576,6 +576,7 @@ export const InitVerification = (req: Request, res: Response) => {
             <input type="hidden" name="reqSvcCd" value="01" />
             <input type="hidden" name="mTxId" value="${mTxId}" />
             <input type="hidden" name="authHash" value="${authHash}" />
+            <input type="hidden" name="flgFixedUser" value="N" />
             <input type="hidden" name="successUrl" value="${callbackUrl}" />
             <input type="hidden" name="failUrl" value="${callbackUrl}" />
             <input type="hidden" name="reservedMsg" value="isUseToken=Y" />
@@ -614,12 +615,63 @@ export const InitVerification = (req: Request, res: Response) => {
 
 export const VerificationCallback = (req: Request, res: Response) => {
   try{
-    console.log("callback start")
-    const result = req.body;
-    console.log(">>result: ", result);
-    res.status(200).json(result);
+    console.log("=== 본인인증 콜백 시작 ===");
+    console.log("Request Method:", req.method);
+    console.log("Request Body:", req.body);
+    console.log("Request Query:", req.query);
+    console.log("Request Headers:", req.headers);
+
+    // POST body 또는 GET query에서 데이터 가져오기
+    const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+
+    console.log(">>최종 데이터:", data);
+
+    // 부모 창으로 postMessage 전송하는 HTML 반환
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>본인인증 결과</title>
+        </head>
+        <body>
+          <div style="text-align: center; padding: 50px;">
+            <p>본인인증 처리 중...</p>
+          </div>
+          <script>
+            console.log("콜백 데이터:", ${JSON.stringify(data)});
+
+            // 부모 창으로 메시지 전송
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'IDENTITY_VERIFICATION_SUCCESS',
+                data: ${JSON.stringify(data)}
+              }, '*');
+
+              // 팝업 닫기
+              setTimeout(() => {
+                window.close();
+              }, 500);
+            } else {
+              console.error("부모 창을 찾을 수 없습니다.");
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    res.send(html);
   }catch(err){
+    console.error("본인인증 콜백 에러:", err);
     Sentry.captureException(err);
-    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    res.status(500).send(`
+      <html>
+        <body>
+          <h3>오류가 발생했습니다</h3>
+          <p>${err.message}</p>
+          <button onclick="window.close()">닫기</button>
+        </body>
+      </html>
+    `);
   }
 }
