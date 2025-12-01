@@ -65,10 +65,10 @@ export const BuildingDetailDialog = ({
             <p className="font-h3">빌딩샵 <span className="text-primary">추천 매물</span></p>
           </div>
           <div className="flex items-center font-s3 text-text-03 divide-x-[1px] divide-line-03">
-            <button className="flex items-center px-[16px] gap-[4px]">
+            {/* <button className="flex items-center px-[16px] gap-[4px]">
               공유하기
               <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
-            </button>
+            </button> */}
             <button 
               className="flex items-center px-[16px] gap-[4px]"
               onClick={addBookmark}
