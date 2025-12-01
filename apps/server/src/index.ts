@@ -55,18 +55,20 @@ httpServer = http.createServer(app);
 // 허용할 도메인 목록
 const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'https://buildingshopai.com',
-  'https://www.buildingshopai.com'
+  'https://www.buildingshopai.com',
+  'https://sa.inicis.com'
 ] : [
   'http://localhost:3000',
   'http://nexusnas.iptime.org:7500',
+  'https://sa.inicis.com'
 ];
 
 // app.use(cors());
 app.use(cors({
   origin: (origin, callback) => {
     console.log('request origin', origin);
-    // origin이 없는 경우 (예: Postman, 서버 내부 요청 등)
-    if (!origin) return callback(null, true);
+    // origin이 없는 경우 (예: Postman, 서버 내부 요청, 팝업 등)
+    if (!origin || origin === 'null') return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
