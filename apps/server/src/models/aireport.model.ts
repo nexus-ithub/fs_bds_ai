@@ -1464,8 +1464,8 @@ static async makeDevDetailInfo(
             lc.price AS price,
             llur.far,
             llur.bcr,
-            ap.lat,
-            ap.lng,
+            COALESCE(ap_main.lat, ap_base.lat) AS lat,
+            COALESCE(ap_main.lng, ap_base.lng) AS lng,
             CASE
               WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
               WHEN ld_latest.deal_date IS NULL 
@@ -1497,14 +1497,16 @@ static async makeDevDetailInfo(
             ON lc.id = li.id
           LEFT JOIN leg_land_usage_ratio llur
             ON lc.usage1_name = llur.name
-          LEFT JOIN address_polygon ap
-            ON ap.id = (
+          LEFT JOIN address_polygon ap_main
+            ON ap_main.id = (
               SELECT r.li_id
               FROM related_li_ids r
               WHERE r.is_main = 1         -- ✅ rows_main 에서 온 필지 중 하나
               ORDER BY r.li_id            -- 필요하면 정렬 기준(예: 가장 작은 id) 추가
               LIMIT 1
             )
+          LEFT JOIN address_polygon ap_base
+            ON ap_base.id = li.id
           /* 최신 거래가 1행씩 되도록 윈도우 사용 (필요시 아래 주석의 대안 참고) */
           LEFT JOIN (
             SELECT id, deal_date, price
