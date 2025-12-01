@@ -104,6 +104,11 @@ export interface EstimatedPrice {
   per: number;
 }
 
+export interface EstimatedPriceV2 {
+  estimatedPrice: number;
+  debugText: string[];
+}
+
 
 export interface DistrictInfo {
   code: string;
