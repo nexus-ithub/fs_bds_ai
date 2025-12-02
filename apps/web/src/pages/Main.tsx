@@ -550,7 +550,7 @@ export default function Main() {
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
                 <CustomOverlayMap position={{ lat: polygon.lat, lng: polygon.lng }}>
-                  <div className="p-[8px] text-sm flex flex-col text-[#2c387e] font-bold">
+                  <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
                     <span>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
                     <span>{polygon.repairCreateDate}</span>
                   </div>
