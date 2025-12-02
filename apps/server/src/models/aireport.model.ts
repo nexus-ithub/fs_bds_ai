@@ -708,7 +708,7 @@ function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, 
 
   detailInfo.buildInfo.lowerFloorCount = 1; // 임대층수는 1로 고정 
   // 주차층 추가 
-  detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far);
+  detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far) - 1;
 
   const lowerAreaPerFloor = area * BASE_FLOOR_AREA_RATIO;
 
