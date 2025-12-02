@@ -1,4 +1,4 @@
-import { Admin, ConsultRequest, User } from "@repo/common";
+import { Admin, ConsultRequest, User, AGES, INTERESTS } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 
@@ -39,5 +39,59 @@ export class UserModel {
       console.error('Error getting consult request list:', err);
       throw err;
     }      
+  }
+
+  static async genderCount(): Promise<{name: string, value: number}[]> {
+    try {
+      const rows = await db.query<({ gender: string, value: number } & RowDataPacket)[]>(
+        'SELECT gender, COUNT(*) as value FROM users_info WHERE delete_yn="N" GROUP BY gender'
+      );
+
+      return rows.map(row => ({
+        name: row.gender === 'M' ? '남성' : '여성',
+        value: Number(row.value)
+      }));
+    } catch (error) {
+      console.error('Error getting gender count:', error);
+      throw error;
+    }
+  }
+
+  static async ageCount(): Promise<{name: string, value: number}[]> {
+    try {
+      const rows = await db.query<({ age: number, value: number } & RowDataPacket)[]>(
+        'SELECT age, COUNT(*) as value FROM users_info WHERE delete_yn="N" GROUP BY age'
+      );
+
+      return rows.map(row => {
+        const ageInfo = AGES.find(a => a.id === row.age);
+        return {
+          name: ageInfo?.label || '알 수 없음',
+          value: Number(row.value)
+        };
+      });
+    } catch (error) {
+      console.error('Error getting age count:', error);
+      throw error;
+    }
+  }
+
+  static async interestCount(): Promise<{name: string, value: number}[]> {
+    try {
+      const rows = await db.query<({ item_id: string, value: number } & RowDataPacket)[]>(
+        'SELECT item_id, COUNT(*) as value FROM users_info_multi WHERE delete_yn="N" AND item_type="INTEREST" GROUP BY item_id'
+      );
+
+      return rows.map(row => {
+        const interestInfo = INTERESTS.find(i => i.id === Number(row.item_id));
+        return {
+          name: interestInfo?.label || '알 수 없음',
+          value: Number(row.value)
+        };
+      });
+    } catch (error) {
+      console.error('Error getting interest count:', error);
+      throw error;
+    }
   }
 }

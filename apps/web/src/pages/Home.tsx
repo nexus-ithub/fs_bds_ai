@@ -1,7 +1,7 @@
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
-import { getAccessToken, setToken } from "../authutil";
+import { getAccessToken, setToken, logout } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
@@ -32,6 +32,8 @@ export const Home = () => {
     },
     onError: (error) => {
       console.error("config onError ", error);
+      logout();
+      navigate('/');
       // navigate('/login')
     },
     refetchIntervalInBackground: false,

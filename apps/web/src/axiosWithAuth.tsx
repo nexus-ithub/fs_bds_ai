@@ -1,6 +1,6 @@
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
-import {getAccessToken, getRefreshToken, setToken} from "./authutil";
+import {getAccessToken, getRefreshToken, setToken, logout} from "./authutil";
 import { API_HOST } from "./constants";
 import * as Sentry from "@sentry/react";
 
@@ -46,12 +46,16 @@ const useAxiosWithAuth = () => {
           }
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
-          setToken(null);
+          // setToken(null);
+          logout();
+          navigate('/');
           // navigate('/login');
         }
         return Promise.reject(error);
       }else if(statusCode === 403){
         // navigate('/login');
+        logout();
+        navigate('/');
         return Promise.reject(error);
       }
       if (statusCode && statusCode >= 400 && statusCode !== 404) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import axios from 'axios'
+import { UserModel } from "../../../models/user.model";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -88,6 +89,27 @@ export async function GET(req: Request) {
         }
       );
       return NextResponse.json(bdsResponse.data.result);
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: error.response?.status || 500 });
+    }
+  } else if (action === "genderCount") {
+    try {
+      const genderResponse = await UserModel.genderCount();
+      return NextResponse.json(genderResponse);
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: error.response?.status || 500 });
+    }
+  } else if (action === "ageCount") {
+    try {
+      const ageResponse = await UserModel.ageCount();
+      return NextResponse.json(ageResponse);
+    } catch (error: any) {
+      return NextResponse.json({ error: error.message }, { status: error.response?.status || 500 });
+    }
+  } else if (action === "interestCount") {
+    try {
+      const interestResponse = await UserModel.interestCount();
+      return NextResponse.json(interestResponse);
     } catch (error: any) {
       return NextResponse.json({ error: error.message }, { status: error.response?.status || 500 });
     }

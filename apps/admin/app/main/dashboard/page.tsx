@@ -69,14 +69,13 @@ const calculatePercentage = (data: { name: string; value: number }[]) => {
   }));
 };
 
-// percentage가 포함된 데이터
-const genderData = calculatePercentage(genderDataRaw);
-const ageData = calculatePercentage(ageDataRaw);
-const interestData = interestDataRaw; // 막대그래프는 percentage 불필요
-
 // 색상 팔레트
-const GENDER_COLORS = ['#4e52ff', '#a5a7ff'];
-const AGE_COLORS = ['#4e52ff', '#5f62ff', '#6f72ff', '#8084ff', '#9194ff', '#a2a4ff', '#b3b5ff', '#c4c5ff'];
+// const GENDER_COLORS = ['#4091FF', '#FF8E94'];
+const GENDER_COLORS = ['#446FFF', '#FF6870']
+const AGE_COLORS = ['#4E52FF', '#5A70FF', '#688EFF', '#76ABFF', '#84C9FF', '#5FC4E0', '#7bdaff', '#cffeff'];
+
+
+
 const INTEREST_COLOR = '#4e52ff';
 
 export default function Dashboard() {
@@ -90,99 +89,129 @@ export default function Dashboard() {
   const [bdsRanking, setBdsRanking] = useState<any[]>([]);
   const [askChatData, setAskChatData] = useState<UserCountData[]>([]);
 
+  const [genderDataRaw, setGenderDataRaw] = useState<{name: string, value: number}[]>([]);
+  const [ageDataRaw, setAgeDataRaw] = useState<{name: string, value: number}[]>([]);
+  const [interestDataRaw, setInterestDataRaw] = useState<{name: string, value: number}[]>([]);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [openReportDetail, setOpenReportDetail] = useState<boolean>(false);
   const [openBdsDetail, setOpenBdsDetail] = useState<boolean>(false);
 
+  // percentage가 포함된 데이터
+  const genderData = calculatePercentage(genderDataRaw);
+  const ageData = calculatePercentage(ageDataRaw);
+  const interestData = interestDataRaw;
+
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setLoading(true);
-      try{
-        const response = await axiosInstance.get('/dashboard?action=dashboard');
-        const data = await response.data;
-        if (pageviewData) {
-          const formatted = data.pageView.days.map((day: string, idx: number) => ({
+      const response = await axiosInstance.get('/dashboard?action=dashboard');
+      const data = await response.data;
+
+      if (pageviewData) {
+        const formatted = data.pageView.days.map((day: string, idx: number) => ({
+            date: new Date(day)
+              .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+              .replace(/\.$/, ''),
+            users: data.pageView.data[idx]
+          }));
+        setPageviewData(formatted);
+
+        const reportViewedItems = data.report
+          .filter((item: any) => item.action.id === 'report_viewed')
+          .filter((item: any) =>
+            item.breakdown_value !== '$$_posthog_breakdown_null_$$' &&
+            item.breakdown_value !== 'null null'
+          );
+        if (reportViewedItems.length > 0) {
+          const todayTotal = reportViewedItems.reduce((sum: number, item: any) =>
+            sum + item.data[item.data.length - 1], 0
+          );
+
+          const yesterdayTotal = reportViewedItems.reduce((sum: number, item: any) =>
+            sum + (item.data[item.data.length - 2] || 0), 0
+          );
+
+          setReportViewCount({ today: todayTotal, yesterday: yesterdayTotal });
+        }
+
+        const reportViewedByRegion = reportViewedItems
+          .map((item: any) => ({
+            name: item.breakdown_value,
+            value: item.count,
+            todayCount: item.data[item.data.length - 1],
+            yesterdayCount: item.data[item.data.length - 2] || 0
+          }))
+          .sort((a: any, b: any) => b.value - a.value)
+        setReportRanking(reportViewedByRegion);
+
+        const bdsViewedItems = data.bds
+          .filter((item: any) => item.action.id === 'bds_viewed')
+          .filter((item: any) =>
+            item.breakdown_value !== '$$_posthog_breakdown_null_$$' &&
+            item.breakdown_value !== 'null null'
+          );
+
+        const bdsViewedByRegion = bdsViewedItems
+          .map((item: any) => ({
+            name: item.breakdown_value,
+            value: item.count,
+            todayCount: item.data[item.data.length - 1],
+            yesterdayCount: item.data[item.data.length - 2] || 0
+          }))
+          .sort((a: any, b: any) => b.value - a.value)
+        setBdsRanking(bdsViewedByRegion);
+
+        const signupData = data.signup;
+        if (signupData) {
+          const formatted = signupData.days.map((day: string, idx: number) => ({
               date: new Date(day)
                 .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
                 .replace(/\.$/, ''),
-              users: data.pageView.data[idx]
+              users: signupData.data[idx]
             }));
-          setPageviewData(formatted);
-          
-          const reportViewedItems = data.report
-            .filter((item: any) => item.action.id === 'report_viewed')
-            .filter((item: any) => 
-              item.breakdown_value !== '$$_posthog_breakdown_null_$$' && 
-              item.breakdown_value !== 'null null'
-            );
-          if (reportViewedItems.length > 0) {
-            const todayTotal = reportViewedItems.reduce((sum: number, item: any) => 
-              sum + item.data[item.data.length - 1], 0
-            );
-            
-            const yesterdayTotal = reportViewedItems.reduce((sum: number, item: any) => 
-              sum + (item.data[item.data.length - 2] || 0), 0
-            );
-            
-            setReportViewCount({ today: todayTotal, yesterday: yesterdayTotal });
-          }
-
-          const reportViewedByRegion = reportViewedItems
-            .map((item: any) => ({
-              name: item.breakdown_value,
-              value: item.count,
-              todayCount: item.data[item.data.length - 1],
-              yesterdayCount: item.data[item.data.length - 2] || 0
-            }))
-            .sort((a: any, b: any) => b.value - a.value)
-          setReportRanking(reportViewedByRegion);
-
-          const bdsViewedItems = data.bds
-            .filter((item: any) => item.action.id === 'bds_viewed')
-            .filter((item: any) => 
-              item.breakdown_value !== '$$_posthog_breakdown_null_$$' && 
-              item.breakdown_value !== 'null null'
-            );
-
-          const bdsViewedByRegion = bdsViewedItems
-            .map((item: any) => ({
-              name: item.breakdown_value,
-              value: item.count,
-              todayCount: item.data[item.data.length - 1],
-              yesterdayCount: item.data[item.data.length - 2] || 0
-            }))
-            .sort((a: any, b: any) => b.value - a.value)
-          setBdsRanking(bdsViewedByRegion);
-
-          const signupData = data.signup;
-          if (signupData) {
-            const formatted = signupData.days.map((day: string, idx: number) => ({
-                date: new Date(day)
-                  .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
-                  .replace(/\.$/, ''),
-                users: signupData.data[idx]
-              }));
-            setSignupData(formatted);
-          }
-
-          const askChatData = data.askChat;
-          if (askChatData) {
-            const formatted = askChatData.days.map((day: string, idx: number) => ({
-                date: new Date(day)
-                  .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
-                  .replace(/\.$/, ''),
-                users: askChatData.data[idx]
-              }));
-            setAskChatData(formatted);
-          }
+          setSignupData(formatted);
         }
-      } catch(error) {
-        console.log(error)
+
+        const askChatData = data.askChat;
+        if (askChatData) {
+          const formatted = askChatData.days.map((day: string, idx: number) => ({
+              date: new Date(day)
+                .toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+                .replace(/\.$/, ''),
+              users: askChatData.data[idx]
+            }));
+          setAskChatData(formatted);
+        }
+      }
+    }
+
+    const fetchUserStatistics = async () => {
+      const [genderResponse, ageResponse, interestResponse] = await Promise.all([
+        axiosInstance.get('/dashboard?action=genderCount'),
+        axiosInstance.get('/dashboard?action=ageCount'),
+        axiosInstance.get('/dashboard?action=interestCount')
+      ]);
+
+      setGenderDataRaw(genderResponse.data);
+      setAgeDataRaw(ageResponse.data);
+      setInterestDataRaw(interestResponse.data);
+    }
+
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchDashboardData(),
+          fetchUserStatistics()
+        ]);
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     }
-    fetchDashboardData();
+
+    fetchAllData();
   }, []);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -233,8 +262,8 @@ export default function Dashboard() {
 
   const renderCenterLabel = (total: number, title: string) => {
     return (
-      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle">
-        <tspan x="50%" dy="0" className="font-s2 fill-text-03">{title}</tspan>
+      <text x="50%" y="44%" textAnchor="middle" dominantBaseline="middle">
+        <tspan x="50%" dy="0" className="font-h4 fill-text-03">{title}</tspan>
         <tspan x="50%" dy="1.8em" className="font-h3 fill-text-01">{total.toLocaleString()}명</tspan>
       </text>
     );
@@ -395,7 +424,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
               <h4 className="font-h4">성비 분포</h4>
               <div className="flex flex-col items-center gap-[20px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={genderData}
@@ -441,7 +470,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-[20px] p-[20px] rounded-[8px] border border-line-02 shadow-[0_6px_12px_0_rgba(0,0,0,0.06)]">
               <h4 className="font-h4">연령대 분포</h4>
               <div className="flex flex-col items-center gap-[20px]">
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={ageData}
