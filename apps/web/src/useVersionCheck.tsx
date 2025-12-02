@@ -1,52 +1,57 @@
-import { useEffect, useState } from 'react';
+import { useState, useRef } from 'react';
+import { useQuery } from 'react-query';
 
 const VERSION_KEY = 'app_version';
-const CHECK_INTERVAL = 10 * 1 * 1000; // 10분
+
+interface VersionData {
+  version: string;
+}
+
+const fetchVersion = async (): Promise<VersionData> => {
+  const timestamp = new Date().getTime();
+  const res = await fetch(`/version.json?t=${timestamp}`, { cache: 'no-cache' });
+
+  if (!res.ok) throw new Error('Version file load error');
+  const data = await res.json();
+
+  if (!data?.version) throw new Error('Invalid version data');
+
+  return data;
+};
 
 export function useVersionCheck() {
   const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
+  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    const checkVersion = async (isInitialCheck = false) => {
-      
-      try {
-        const timestamp = new Date().getTime();
-        const res = await fetch(`/version.json?t=${timestamp}`, { cache: 'no-cache' });
+  useQuery<VersionData>('appVersion', fetchVersion, {
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    onSuccess: (data) => {
+      const current = localStorage.getItem(VERSION_KEY);
 
-        if (!res.ok) throw new Error('Version file load error');
-        const data = await res.json();
-
-        if (!data?.version) return;
-
-        const current = localStorage.getItem(VERSION_KEY);
-
-        if (!current) {
-          localStorage.setItem(VERSION_KEY, data.version);
-          return;
-        }
-
-        if (current !== data.version) {
-          if (isInitialCheck) {
-            localStorage.setItem(VERSION_KEY, data.version);
-          } else {
-            setUpdateAvailable(true);
-          }
-        }
-      } catch (e) {
-        console.error('❌ 에러:', e);
+      if (!current) {
+        localStorage.setItem(VERSION_KEY, data.version);
+        isInitialMount.current = false;
+        return;
       }
-    };
 
-    checkVersion(true);
-    const interval = setInterval(() => checkVersion(false), CHECK_INTERVAL);
+      if (current !== data.version) {
+        if (isInitialMount.current) {
+          localStorage.setItem(VERSION_KEY, data.version);
+          isInitialMount.current = false;
+        } else {
+          setUpdateAvailable(true);
+        }
+      } else {
+        isInitialMount.current = false;
+      }
+    },
+  });
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  const refresh = async() => {
-    fetch(`/version.json?t=${new Date().getTime()}`, { cache: 'no-cache' })
+  const refresh = () => {
+    const timestamp = new Date().getTime();
+    fetch(`/version.json?t=${timestamp}`, { cache: 'no-cache' })
       .then(res => res.json())
       .then(data => {
         if (data?.version) {
