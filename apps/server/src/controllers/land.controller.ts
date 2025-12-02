@@ -128,6 +128,33 @@ export const getPolygonWithSub = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const getBuildingRepairedPolygon = async (req: AuthRequest, res: Response) => {
+  try {
+    const { neLat, neLng, swLat, swLng } = req.query;
+    console.log(req.query)
+    if (!neLat || !neLng || !swLat || !swLng) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const polygon = await LandModel.findBuildingRepairedPolygon(
+      Number(neLat),
+      Number(neLng),
+      Number(swLat),
+      Number(swLng)
+    );
+    if (!polygon) {
+      return res.status(404).json({ message: '위치를 찾을수 없습니다.' });
+    }
+
+    res.status(200).json(polygon);
+  } catch (err) {
+    console.error('Get polygon info error:', err);
+    Sentry.captureException(err);
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
+
 export const getFilteredPolygon = async (req: AuthRequest, res: Response) => {
   try {
     const { neLat, neLng, swLat, swLng, startArea, endArea, startFar, endFar, startBdAge, endBdAge, usages } = req.query;

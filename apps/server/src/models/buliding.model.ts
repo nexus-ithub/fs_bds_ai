@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { BuildingInfo, LandInfo } from '@repo/common';
+import { BuildingInfo, BuildingRepairInfo, LandInfo } from '@repo/common';
 
 
 export class BuildingModel {
@@ -176,4 +176,28 @@ export class BuildingModel {
  
 
 
+  
+
+  static async buildingRepair(buildingId: string){
+    try {
+      const result = await db.query<BuildingRepairInfo>(
+        `SELECT 
+         br.id,
+         br.repair_div_code AS repairDivCode,
+         br.repair_div_name AS repairDivName,
+         br.repair_change_div_code AS repairChangeDivCode,
+         br.repair_change_div_name AS repairChangeDivName,
+         br.create_date AS createDate
+        FROM building_repair AS br WHERE br.building_id = ?`,
+        [buildingId]
+      )
+      // console.log(result);
+     
+
+      return result || [];
+    } catch (error) {
+      console.error('Error finding land by lat and lng:', error);
+      throw error;
+    }
+  }
 }

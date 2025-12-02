@@ -33,6 +33,14 @@ export interface PolygonInfo {
   current: 'Y' | 'N' | null;
 }
 
+export interface PolygonInfoWithRepairInfo extends PolygonInfo {
+  repairDivCode: string;
+  repairDivName: string;
+  repairChangeDivCode: string;
+  repairChangeDivName: string;
+  repairCreateDate: string;
+}
+
 export interface LandInfo {
   id: string; 
   legDongCode: string;
@@ -96,6 +104,15 @@ export interface BuildingInfo {
   useApprovalDate : string;
   gndFloorNumber: string;
   baseFloorNumber: string;
+}
+
+export interface BuildingRepairInfo {
+  id: string;
+  repairDivCode: string;
+  repairDivName: string;
+  repairChangeDivCode: string;
+  repairChangeDivName: string;
+  createDate: string;
 }
 
 export interface EstimatedPrice {
