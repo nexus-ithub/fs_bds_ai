@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon, MapTypeId, MapMarker } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2 } from "@repo/common";
+import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -16,6 +16,7 @@ import { AIChat } from "../aiChat/AIChat";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
+import React from "react";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
@@ -23,7 +24,8 @@ export default function Main() {
   const axiosInstance = useAxiosWithAuth();
   const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
   const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
-
+  const [showRemodel, setShowRemodel] = useState<boolean>(false);
+  const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
@@ -69,7 +71,7 @@ export default function Main() {
   const [rangeLatDiff, setRangeLatDiff] = useState<number>(0);
   useEffect(() => {
     if(filter.on) {
-        const bounds = mapRef.current?.getBounds();
+      const bounds = mapRef.current?.getBounds();
       const ne = bounds.getNorthEast();
       const sw = bounds.getSouthWest();
       
@@ -95,7 +97,30 @@ export default function Main() {
     }else{
       setFilteredPolygonList([]);
     }
-  }, [filter, filterCenter, level]);
+
+    if(IS_DEVELOPMENT && showRemodel){
+      const bounds = mapRef.current?.getBounds();
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      
+      const neLat = ne.getLat();
+      const swLat = sw.getLat();
+
+      const diff = neLat - swLat;
+      setRangeLatDiff(diff);    
+      console.log('diff ', diff);
+      if(diff > MAX_FILTER_DIFF * 3) {
+        setRemodelPolygonList([]);
+        toast.error('대수선 결과를 보려면 지도를 조금더 확대 하세요');
+        return;
+      }
+
+      getRemodelPolygon();
+    }else{
+      setRemodelPolygonList([]);
+    }
+
+  }, [filter, filterCenter, level, showRemodel]);
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
@@ -137,6 +162,33 @@ export default function Main() {
       });
      
   }
+
+  const getRemodelPolygon = () => {
+    const bounds = mapRef.current?.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    
+    axiosInstance.get(`/api/land/polygon-repaired`, {
+      params: {
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+      },
+    })
+      .then((response) => {
+        // console.log(response.data);
+        const polygon = response.data as PolygonInfoWithRepairInfo[];
+        console.log('polygon', polygon);
+        setRemodelPolygonList(polygon);
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("대수선 중 오류가 발생했습니다.");
+      });
+     
+  }
+
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
@@ -486,7 +538,26 @@ export default function Main() {
                 strokeWeight={1.5}
                 path={convertXYtoLatLng(polygon?.polygon || [])} />
             ))
-          )}          
+          )}        
+          {remodelPolygonList && (
+            remodelPolygonList.map((polygon) => (
+              <React.Fragment key={polygon.id}>
+                <Polygon
+                  fillColor="green" 
+                  fillOpacity={0.3}
+                  strokeColor="green" 
+                  strokeOpacity={1}
+                  strokeWeight={1.5}
+                  path={convertXYtoLatLng(polygon?.polygon || [])} />
+                <CustomOverlayMap position={{ lat: polygon.lat, lng: polygon.lng }}>
+                  <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
+                    <span>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
+                    <span>{polygon.repairCreateDate}</span>
+                  </div>
+                </CustomOverlayMap>
+              </React.Fragment>
+            ))
+          )}                    
           <AreaOverlay
             isDrawingArea={isDrawingArea}
             areaPaths={areaPaths}
@@ -544,6 +615,24 @@ export default function Main() {
               <p className="font-s3 text-text-02">
                 필터 결과를 보려면 지도를 더 확대 해주세요. 
               </p>
+            </div>
+          )
+        }
+        {
+          IS_DEVELOPMENT && (
+            <div
+              // variant={showRemodel ? 'primary' : 'bggray'}
+              // onClick={() => setShowRemodel(!showRemodel)}
+              className="fixed z-30 left-[420px] bottom-[44px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]"
+            >
+              <div className="flex items-center gap-[8px]">
+                <p className="font-s2-p">대수선</p>
+                <Switch
+                  checked={showRemodel}
+                  onChange={() => {setShowRemodel(!showRemodel)}}
+                  isLabel={true}
+                />
+              </div>
             </div>
           )
         }

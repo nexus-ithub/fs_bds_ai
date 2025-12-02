@@ -708,7 +708,7 @@ function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, 
 
   detailInfo.buildInfo.lowerFloorCount = 1; // 임대층수는 1로 고정 
   // 주차층 추가 
-  detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far);
+  detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far) - 1;
 
   const lowerAreaPerFloor = area * BASE_FLOOR_AREA_RATIO;
 
@@ -1971,7 +1971,7 @@ static async makeDevDetailInfo(
           최대건폐율 : ${landInfo.relWeightedBcr} %
           최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
           현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
-          신축시 개발 가능 층수 : ${devDetailInfo.buildInfo.upperFloorCount + devDetailInfo.buildInfo.lowerFloorCount}
+          신축시 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}
           신축정보 : ${reportValueToJsonString(devDetailInfo.build, aiReportResult.build)}
           리모델링정보 : ${reportValueToJsonString(devDetailInfo.remodel, aiReportResult.remodel)}
           임대정보 : ${reportValueToJsonString(devDetailInfo.rent, aiReportResult.rent)}

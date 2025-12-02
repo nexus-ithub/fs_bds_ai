@@ -1,6 +1,6 @@
 
 import { db } from '../utils/database';
-import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo } from '@repo/common';
+import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo, PolygonInfoWithRepairInfo } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
@@ -9,6 +9,88 @@ const MAX_CHECK = 4;
 const RENT_CANDIDATE_RADIUS = 1000;
 
 export class LandModel {
+
+  static async findBuildingRepairedPolygon(    
+    neLat: number,
+    neLng: number,
+    swLat: number,
+    swLng: number): Promise<PolygonInfoWithRepairInfo[]> {
+    console.log(
+      'findBuildingRepairedPolygon',
+      neLat, neLng, swLat, swLng
+    );
+
+    const params: any[] = [];
+
+    const where: string[] = [];
+    where.push(`
+      MBRIntersects(
+        ap.polygon,
+        ST_GeomFromText(
+          CONCAT(
+            'POLYGON((',
+            ?, ' ', ?, ',',  -- swLng swLat
+            ?, ' ', ?, ',',  -- neLng swLat
+            ?, ' ', ?, ',',  -- neLng neLat
+            ?, ' ', ?, ',',  -- swLng neLat
+            ?, ' ', ?,       -- swLng swLat (닫기)
+            '))'
+          )
+        )
+      )
+    `);
+    params.push(swLng, swLat, neLng, swLat, neLng, neLat, swLng, neLat, swLng, swLat);
+
+    const sql = `
+      SELECT
+        ap.id            AS id,
+        ap.leg_dong_code AS legDongCode,
+        ap.leg_dong_name AS legDongName,
+        ap.jibun         AS jibun,
+        ap.lat           AS lat,
+        ap.lng           AS lng,
+        ap.polygon       AS polygon,
+        NULL             AS current,
+        br.repair_div_code          AS repairDivCode,
+        br.repair_div_code_name     AS repairDivName,
+        br.repair_change_div_code   AS repairChangeDivCode,
+        br.repair_change_div_code_name AS repairChangeDivName,
+        br.create_date              AS repairCreateDate
+      FROM address_polygon ap
+      JOIN (
+        SELECT
+          leg_dong_code_val,
+          bun,
+          ji,
+          repair_div_code,
+          repair_div_code_name,
+          repair_change_div_code,
+          repair_change_div_code_name,
+          create_date
+        FROM (
+          SELECT
+            br.*, 
+            ROW_NUMBER() OVER (
+              PARTITION BY leg_dong_code_val, bun, ji
+              ORDER BY create_date DESC
+            ) AS rn
+          FROM building_repair br
+          WHERE br.repair_div_code = 13
+        ) t
+        WHERE t.rn = 1
+      ) br
+        ON br.leg_dong_code_val = ap.leg_dong_code
+       AND br.bun = LPAD(CAST(SUBSTRING_INDEX(ap.jibun,'-', 1) AS UNSIGNED), 4, '0')
+       AND br.ji  = LPAD(CAST(IF(LOCATE('-', ap.jibun) > 0, SUBSTRING_INDEX(ap.jibun,'-',-1), '0') AS UNSIGNED), 4, '0')
+      ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    `;
+
+    const polygons = await db.query<PolygonInfoWithRepairInfo>(sql, params);
+
+    console.log('repaired polygons', polygons.length);
+
+    return polygons;
+  }
 
   static async findFilteredPolygon(
     neLat: number,
