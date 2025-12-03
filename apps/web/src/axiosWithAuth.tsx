@@ -2,7 +2,7 @@ import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import {getAccessToken, getRefreshToken, setToken, logout} from "./authutil";
 import { API_HOST } from "./constants";
-import * as Sentry from "@sentry/react";
+import { trackError } from "./utils/analytics";
 
 // console.log(API_HOST)
 const useAxiosWithAuth = () => {
@@ -59,7 +59,12 @@ const useAxiosWithAuth = () => {
         return Promise.reject(error);
       }
       if (statusCode && statusCode >= 400 && statusCode !== 404) {
-        Sentry.captureException(error);
+        trackError(error, {
+          message: 'Web interceptor 오류 발생',
+          file: 'axiosWithAuth.tsx',
+          page: window.location.pathname,
+          severity: 'error'
+        })
       }
       return Promise.reject(error);
     }

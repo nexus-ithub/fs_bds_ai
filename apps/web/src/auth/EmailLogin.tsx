@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 interface LoginResponse {
   id: string;
@@ -67,8 +67,14 @@ export const EmailLogin = () => {
       localStorage.setItem("lastLogin", 'em');
       navigate('/');
     } catch (err) {
-      console.log(`로그인 중 오류: ${err}`)
-      Sentry.captureException(err);
+      console.error(`로그인 중 오류: ${err}`)
+      trackError(error, {
+        message: '이메일 로그인 중 오류 발생',
+        endpoint: '/login/email',
+        file: 'EmailLogin.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       setError("오류가 발생하였습니다. 잠시 후 다시 시도해주세요.")
     }
   };
@@ -81,8 +87,14 @@ export const EmailLogin = () => {
       setOpenPWFind(false);
       setOpenPWFindSuccess(true);
     } catch(err){
-      console.log("비밀번호 찾기 중 오류: ", err)
-      Sentry.captureException(err);
+      console.error("비밀번호 찾기 중 오류: ", err)
+      trackError(error, {
+        message: '비밀번호 재설정 중 오류 발생',
+        endpoint: '/login/email',
+        file: 'EmailLogin.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error("비밀번호 찾기 중 오류가 발생했습니다.");
     } finally {
       setSendEmailLoading(false);

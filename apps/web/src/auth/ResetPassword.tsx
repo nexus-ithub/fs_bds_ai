@@ -6,7 +6,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { Dialog } from "@mui/material";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 export const ResetPassword = () => {
   const navigate = useNavigate();
@@ -62,7 +62,13 @@ export const ResetPassword = () => {
       setOpenSuccess(true);
     } catch (error) {
       console.error(error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '비밀번호 재설정 페이지에서 오류 발생',
+        endpoint: '/reset-password',
+        file: 'ResetPassword.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       setError("오류가 발생했습니다. 다시 시도해주세요.");
     }
   }

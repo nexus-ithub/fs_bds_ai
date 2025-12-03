@@ -2,7 +2,6 @@ import { Button, Checkbox, Spinner } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
-import * as Sentry from "@sentry/react";
 import { toast } from "react-toastify";
 import { logout } from "../authutil";
 import { Dialog } from "@mui/material";
@@ -10,6 +9,7 @@ import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import type { User } from "@repo/common";
+import { trackError } from "../utils/analytics";
 
 export const DeleteAccount = () => {
   const axiosInstance = useAxiosWithAuth();
@@ -28,7 +28,13 @@ export const DeleteAccount = () => {
       await axiosInstance.put('/api/user/delete');
       setOpenCompleteDialog(true);
     } catch (err) {
-      Sentry.captureException(err);
+      trackError(err, {
+        message: '회원 탈퇴 중 오류 발생',
+        endpoint: '/delete-account',
+        file: 'DeleteAccount.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('회원 탈퇴 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

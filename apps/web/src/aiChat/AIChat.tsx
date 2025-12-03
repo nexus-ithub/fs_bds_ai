@@ -9,11 +9,8 @@ import { getAccessToken } from "../authutil";
 import { v4 as uuidv4 } from 'uuid';
 import setting from "../../../admin/app/main/agent/setting.json"
 import { toast } from "react-toastify";
-import posthog from "posthog-js";
-import { logEvent } from "firebase/analytics";
-import { analytics } from "../firebaseConfig"; 
-import * as Sentry from "@sentry/react";
 import React from "react";
+import { trackError, trackEvent } from "../utils/analytics";
 
 interface AIChatProps {
   open: boolean;
@@ -276,20 +273,17 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         )
       );
     } catch (error) {
-      Sentry.captureException(error);
-      const err = error instanceof Error ? error : new Error(String(error));
-      posthog.captureException(err, {
+      trackError(error, {
         message: 'AI 응답 중 일시적 오류가 발생했습니다.',
         endpoint: '/main',
         file: 'AIChat.tsx',
         page: window.location.pathname,
         severity: 'error'
-      });
+      })
       toast.error('AI 응답 중 일시적 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.')
       setQuestionInput(inputToUse)
     } finally {
-      posthog.capture('ask_chat')
-      logEvent(analytics, 'ask_chat')
+      trackEvent('ask_chat');
       setLoading(false);
     }
   }
@@ -335,14 +329,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       setChatHistory(chatHistories);
     } catch (error) {
       console.error("채팅 이력 조회 중 오류가 발생했습니다.", error);
-      Sentry.captureException(error);
-      posthog.captureException(error, {
-        message: '채팅 이력 조회 중 오류가 발생했습니다.',
+      trackError(error, {
+        message: '채팅 이력 조회 중 오류 발생',
         endpoint: '/main',
         file: 'AIChat.tsx',
         page: window.location.pathname,
         severity: 'error'
-      });
+      })
       toast.error('채팅 이력 조회 중 오류가 발생했습니다.\n다시 시도하거나 관리자에게 문의하세요.')
     } finally {
       setChatHistoryLoading(false);
@@ -372,7 +365,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       setEditingSessionId(null);
     } catch (error) {
       console.error('제목 수정 실패:', error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '채팅 제목 수정 중 오류 발생',
+        endpoint: '/main',
+        file: 'AIChat.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('제목 수정 실패\n다시 시도하거나 관리자에게 문의하세요.')
     }
   };
@@ -390,7 +389,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
       );
     } catch (error) {
       console.error('채팅 삭제 실패:', error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '채팅 삭제 중 오류 발생',
+        endpoint: '/main',
+        file: 'AIChat.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('채팅 삭제 실패\n다시 시도하거나 관리자에게 문의하세요.')
     }
     setOpenDeleteConfirm(false);

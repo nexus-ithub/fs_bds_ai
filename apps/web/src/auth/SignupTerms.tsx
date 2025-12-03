@@ -8,7 +8,7 @@ import { API_HOST } from "../constants";
 import { SignupConfirmDialog } from "./SignupConfirmDialog";
 import { setToken } from "../authutil";
 import { toast } from "react-toastify";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 export const SignupTerms = () => {
   const navigate = useNavigate();
@@ -113,7 +113,13 @@ export const SignupTerms = () => {
       setOpenCompleteDialog(true);
       localStorage.setItem("lastLogin", provider);
     } else {
-      Sentry.captureException('회원가입 중 오류가 발생했습니다.');
+      trackError("회원 약관 동의 중 오류 발생", {
+        message: '회원 약관 동의 중 요류 발생',
+        endpoint: '/signup/terms',
+        file: 'SignupTerms.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('회원가입 중 오류가 발생했습니다.')
     }
   }

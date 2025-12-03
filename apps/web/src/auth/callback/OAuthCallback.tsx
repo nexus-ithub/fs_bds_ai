@@ -5,9 +5,7 @@ import axios from "axios";
 import { API_HOST } from "../../constants";
 import { setToken } from "../../authutil";
 import posthog from 'posthog-js';
-import { logEvent } from "firebase/analytics";
-import { analytics } from "../../firebaseConfig";
-import * as Sentry from "@sentry/react";
+import { trackError, trackEvent } from "../../utils/analytics";
 
 export const OAuthCallback = () => {
   const location = useLocation();
@@ -54,8 +52,7 @@ export const OAuthCallback = () => {
         
         if (res.status === 206) {  // 완전 신규회원
           posthog.identify(res.data.id);
-          posthog.capture('signup');
-          logEvent(analytics, 'signup');
+          trackEvent('signup')
           
           if (window.opener) {
             window.opener.postMessage(
@@ -108,10 +105,14 @@ export const OAuthCallback = () => {
         window.close();
         
       } catch (err) {
-        console.log("err : ", err.response?.status);
-        console.log("err : ", err.response?.data?.message);
-        console.error("OAuth 로그인 실패:", err);
-        Sentry.captureException(err);
+        console.error("OAuth 로그인 실패:", err.response);
+        trackError(err.response, {
+          message: 'OAuth 로그인 실패',
+          endpoint: '/callback/oauth',
+          file: 'OAuthCallback.tsx',
+          page: window.location.pathname,
+          severity: 'error'
+        })
         
         if (window.opener) {
           window.opener.postMessage(

@@ -10,8 +10,7 @@ import { Place } from "./Place";
 import { CompanyInfo } from "../footer/CompanyInfo";
 import { format } from "date-fns";
 import { usePostHog } from 'posthog-js/react'
-import { logEvent, getAnalytics } from "firebase/analytics";
-import { analytics } from "../firebaseConfig";
+import { trackEvent } from "../utils/analytics";
 
 const TABS = [
   "토지",
@@ -64,10 +63,7 @@ export const LandInfoCard = ({
       });
       return;
     }
-    posthog.capture('report_viewed', {
-      region: landInfo?.sidoName + ' ' + landInfo?.sigunguName,
-    })
-    logEvent(analytics, 'report_viewed', {
+    trackEvent('report_viewed', {
       region: landInfo?.sidoName + ' ' + landInfo?.sigunguName,
     })
   }

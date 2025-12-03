@@ -12,7 +12,7 @@
 
 import axios from "axios";
 import { API_HOST } from "./constants";
-import * as Sentry from "@sentry/react";
+import { trackError } from "./utils/analytics";
 
 
 export function setToken(accessToken : string | null) {
@@ -71,7 +71,12 @@ export const logout = async() => {
     return Promise.resolve();
   } catch (error) {
     console.error("Logout failed:", error);
-    Sentry.captureException(error);
+    trackError(error, {
+      message: '로그아웃 중 오류 발생',
+      file: 'authutil.tsx',
+      page: window.location.pathname,
+      severity: 'error'
+    })
     return Promise.reject(error);
   }
 };

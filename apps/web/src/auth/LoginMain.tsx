@@ -4,7 +4,7 @@ import { API_HOST } from "../constants";
 import { BuildingShopBIMain, GoogleLogo, HDivider, KakaoLogo, NaverLogo, VDivider, type User } from "@repo/common";
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 import { useQueryClient } from 'react-query';
 import { QUERY_KEY_USER } from '../constants';
 import { getAccessToken } from '../authutil';
@@ -86,7 +86,13 @@ export const LoginMain = () => {
       }
     } catch (error) {
       toast.error('로그인 중 오류가 발생했습니다.');
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '소셜 로그인 중 오류 발생',
+        endpoint: '/login',
+        file: 'LoginMain.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     }
   };
 

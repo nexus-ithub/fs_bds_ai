@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { HDivider, Button, type AdditionalInfo, Spinner } from "@repo/common"
 import useAxiosWithAuth from "../axiosWithAuth";
 import { toast } from "react-toastify";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 export const MyAdditionalInfo = () => {
   const queryClient = useQueryClient()
@@ -29,7 +29,13 @@ export const MyAdditionalInfo = () => {
     } catch (error) {
       console.error(error);
       toast.error('서버 오류가 발생했습니다.')
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '내 추가 정보 조회 중 오류 발생',
+        endpoint: '/mypage/additional-info',
+        file: 'MyAdditionalInfo.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     }
   }
 
@@ -46,7 +52,13 @@ export const MyAdditionalInfo = () => {
     } catch (error) {
       console.error(error);
       toast.error('서버 오류가 발생했습니다.')
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '내 추가 정보 저장 중 오류 발생',
+        endpoint: '/mypage/additional-info',
+        file: 'MyAdditionalInfo.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     } finally {
       setLoading(false);
     }

@@ -13,7 +13,7 @@ import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 interface MenuItemType {
   label: string;
@@ -107,7 +107,13 @@ export const MyPage = () => {
       setBdsCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '빌딩샵 북마크 총 개수 조회 중 오류 발생',
+        endpoint: '/myPage',
+        file: 'MyPage.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     }
   }
 
@@ -117,7 +123,13 @@ export const MyPage = () => {
       setReportCount(response.data);
     } catch (error) {
       console.error('Failed to fetch total bookmarked:', error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '관심물건 북마크 총 개수 조회 중 오류 발생',
+        endpoint: '/myPage',
+        file: 'MyPage.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     }
   }
 

@@ -8,7 +8,7 @@ import type { YoutubeVideo } from "@repo/common";
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { formatTimeAgo, formatDuration } from "../../utils";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 import { toast } from "react-toastify";
 export const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
@@ -60,7 +60,13 @@ export const YoutubeList = ({
       setVideos(res.data);
     } catch (error) {
       console.error(error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: 'Youtube 리스트 조회 중 오류 발생',
+        endpoint: '/main',
+        file: 'YoutubeList.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('영상 정보를 가져오는데 실패했습니다.')
     }
   };
@@ -71,7 +77,13 @@ export const YoutubeList = ({
       setMainVideo(res.data);
     } catch (error) {
       console.error(error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: 'Youtube 대표 영상 조회 중 오류 발생',
+        endpoint: '/main',
+        file: 'YoutubeList.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       toast.error('대표 영상 정보를 가져오는데 실패했습니다.')
     }
   }

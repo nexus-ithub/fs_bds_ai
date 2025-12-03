@@ -1,11 +1,9 @@
 import { Button, HDivider, AGES, INTERESTS, ADDITIONAL_INFO, Spinner } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { API_HOST } from "../constants";
-import axios from "axios";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { toast } from "react-toastify";
-import * as Sentry from "@sentry/react";
+import { trackError } from "../utils/analytics";
 
 export const AdditionalInfoContent = ({
   gender,
@@ -18,8 +16,6 @@ export const AdditionalInfoContent = ({
   // setAdditionalInfo,
 }) => {
   const location = useLocation();
-  console.log("AdditionalInfo state >>>>> ", location.state)
-  console.log("INTERESTS >>>>> ", INTERESTS)
   return (
     <>
       <div className="flex flex-col items-center gap-[6px]">
@@ -133,9 +129,14 @@ export const AdditionalInfo = () => {
       });
       navigate('/');
     } catch (error) {
-      console.error(error);
+      console.log(error);
       toast.error('서버 오류가 발생했습니다.')
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '추가정보 입력 중 오류 발생',
+        file: 'AdditionalInfo.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
     } finally { 
       setLoading(false);
     }

@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
-import useAxiosWithAuth from "../axiosWithAuth";
-import { CloseIcon, getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
+import { getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, SubTabButton, type BdsSale } from "@repo/common";
 import React from "react";
-import { CircularProgress, Dialog, DialogContent } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
 import { BuildingDetailDialog } from "./BuildingDetail";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { CompanyInfo } from "../footer/CompanyInfo";
-import posthog from "posthog-js";
-import { logEvent } from "firebase/analytics";
-import { analytics } from "../firebaseConfig";
-import * as Sentry from "@sentry/react";
+import { trackError, trackEvent } from "../utils/analytics";
 
 const FILTER_TABS = [
   // {
@@ -94,7 +90,13 @@ export const BuildingList = () => {
       setBuildings(res.data as BdsSale[]);
     } catch (error) {
       console.error(error);
-      Sentry.captureException(error);
+      trackError(error, {
+        message: '빌딩샵 매물 정보 조회 중 오류 발생',
+        endpoint: '/main',
+        file: 'BuildingList.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
       setIsError(true);
     } finally {
       setLoading(false);
@@ -186,8 +188,7 @@ export const BuildingList = () => {
               key={index} 
               onClick={() => {
                 setSelectedBuilding(building); 
-                posthog.capture('bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") });
-                logEvent(analytics, 'bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") });
+                trackEvent('bds_viewed', { region: building.addr.split(" ").slice(0, 2).join(" ") })
               }}
               className="space-y-[12px] px-[20px] py-[20px] text-start hover:bg-primary-010">
               <div className="flex items-center gap-[12px]">
