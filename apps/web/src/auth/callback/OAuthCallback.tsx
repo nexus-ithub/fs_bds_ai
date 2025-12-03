@@ -65,7 +65,7 @@ export const OAuthCallback = () => {
                 state: {
                   email: res.data.email,
                   name: res.data.name,
-                  password: res.data.password,
+                  socialId: res.data.social_id,
                   phone: res.data.phone,
                   profile: res.data.profile,
                   provider: res.data.provider

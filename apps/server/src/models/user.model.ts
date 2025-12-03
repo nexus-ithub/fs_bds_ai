@@ -2,6 +2,7 @@ import { db } from '../utils/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcryptjs';
 import { AdditionalInfo } from "@repo/common";
+import axios from 'axios';
 
 export interface User extends RowDataPacket {
   id?: string;
@@ -11,6 +12,7 @@ export interface User extends RowDataPacket {
   phone: string;
   profile?: string;
   provider?: string;
+  socialId?: string;
   marketingEmail?: string;
   marketingSms?: string;
   deleteYn?: string;
@@ -77,18 +79,19 @@ export class UserModel {
       const hashedPassword = bcrypt.hashSync(String(user.password), salt);
       const result = await db.query(
         `
-        INSERT INTO users (email, password, name, phone, profile, provider, marketing_email, marketing_sms)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password, name, phone, profile, provider, social_id, marketing_email, marketing_sms)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           password = VALUES(password),
           name = VALUES(name),
           phone = VALUES(phone),
           profile = VALUES(profile),
           provider = VALUES(provider),
+          social_id = VALUES(social_id), 
           marketing_email = VALUES(marketing_email),
           marketing_sms = VALUES(marketing_sms)
         `,
-        [user.email, hashedPassword, user.name, user.phone, user.profile, user.provider, user.marketingEmail, user.marketingSms]
+        [user.email, hashedPassword, user.name, user.phone, user.profile, user.provider, user.socialId, user.marketingEmail, user.marketingSms]
       );
 
       const newUser: User = {
@@ -106,8 +109,8 @@ export class UserModel {
     console.log('user:', user);
     try {
       await db.query<User>(
-        'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ? AND delete_yn = "N"',
-        [user.password, user.name, user.phone, user.profile, user.provider, user.id]
+        'UPDATE users SET password = ?, name = ?, phone = ?, profile = ?, provider = ?, social_id = ? WHERE id = ? AND delete_yn = "N"',
+        [user.password, user.name, user.phone, user.profile, user.provider, user.socialId, user.id]
       );
     } catch (error) {
       console.error('Error updating user:', error);
@@ -142,11 +145,30 @@ export class UserModel {
     }
   }
 
-  static async deleteAccount (id: number): Promise<void> {
+  static async deleteAccount (id: number): Promise<boolean> {
     try {
+      const userInfo = await db.query<User>(
+        'SELECT provider, social_id FROM users WHERE id = ? AND delete_yn = "N"',
+        [id]
+      )
+      if (userInfo[0].provider === "k") {
+        const res = await axios.post(
+          "https://kapi.kakao.com/v1/user/unlink",
+          null,
+          {
+            params: {
+              target_id_type: "user_id",
+              target_id: userInfo[0].social_id
+            },
+            headers: {
+              Authorization: `KakaoAK ${process.env.KAKAO_ADMIN_KEY}`,
+            },
+          }
+        )
+      }
       await db.query<User>(
-        'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ? WHERE id = ? AND delete_yn = "N"',
-        ["Y", `${id}@delete.com`, "-", "-", "-", "-", "-", id]
+        'UPDATE users SET delete_yn = ?, email = ?, password = ?, name = ?, phone = ?, profile = ?, provider = ?, social_id = ? WHERE id = ? AND delete_yn = "N"',
+        ["Y", `${id}@delete.com`, "-", "-", "-", "-", "-", "-", id]
       ); 
       await db.query(
         'UPDATE users_info SET delete_yn = ? WHERE user_id = ? AND delete_yn = "N"',
@@ -156,6 +178,7 @@ export class UserModel {
         'UPDATE users_info_multi SET delete_yn = ? WHERE user_id = ? AND delete_yn = "N"',
         ["Y", id]
       )
+      return true;
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;

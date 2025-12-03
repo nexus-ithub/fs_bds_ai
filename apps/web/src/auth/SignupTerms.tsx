@@ -19,7 +19,7 @@ export const SignupTerms = () => {
   const [marketingSmsAgree, setMarketingSmsAgree] = useState<boolean>(false);
   const [openMarketingAgree, setOpenMarketingAgree] = useState<boolean>(false);
   const [userId, setUserId] = useState<string>("");
-  const { email = "", name = "", password = "", phone = "", profile = "", provider = ""} = location.state ?? {};
+  const { email = "", name = "", password = "", phone = "", profile = "", provider = "", socialId = ""} = location.state ?? {};
 
   const [openServiceTerms, setOpenServiceTerms] = useState<boolean>(false);
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
@@ -63,7 +63,7 @@ export const SignupTerms = () => {
           return;
         }
         navigate('/signup/info', {
-          state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name: verificationData.userName, password, phone: verificationData.userPhone, profile, provider}})
+          state: {serviceAgree, privacyAgree, marketingEmailAgree, marketingSmsAgree, email, name: verificationData.userName, password, phone: verificationData.userPhone, profile, provider, socialId}})
       } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
         window.removeEventListener('message', messageHandler);
         console.error('본인인증 실패:', event.data.message);
@@ -103,7 +103,8 @@ export const SignupTerms = () => {
         profile,
         provider,
         marketingEmail: marketingEmailAgree ? "Y" : "N",
-        marketingSms: marketingSmsAgree ? "Y" : "N"
+        marketingSms: marketingSmsAgree ? "Y" : "N",
+        socialId
       }
     })
     if (response.data) {

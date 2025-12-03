@@ -46,11 +46,10 @@ const generateRefreshToken = (userId: number, auto: boolean): string => {
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { user } = req.body;
+    console.log("user", user);
     const response = await UserModel.create(user);
     const accessToken = generateAccessToken(Number(response?.id ?? user.id), false);
     const refreshToken = generateRefreshToken(Number(response?.id ?? user.id), false);
-    console.log("accessToken:", accessToken);
-    console.log("refreshToken:", refreshToken);
     if (!accessToken || !refreshToken) {
       return res.status(500).json({ message: '토큰 생성에 실패했습니다.' });
     }
@@ -366,7 +365,7 @@ const handleKakao = async (code: string) => {
   const account = userRes.data.kakao_account;
   console.log('account:', account);
   return {
-    password: userRes.data.id,
+    social_id: userRes.data.id,
     email: account.email,
     name: account.name,
     phone: formatPhoneNumber(account.phone_number),
@@ -401,7 +400,7 @@ const handleNaver = async (code: string) => {
   const account = userRes.data.response;
   console.log('account:', account);
   return {
-    password: account.id,
+    social_id: account.id,
     email: account.email,
     name: account.name,
     phone: formatPhoneNumber(account.mobile),
@@ -437,7 +436,7 @@ const handleGoogle = async(code: string) => {
   const account = userRes.data;
   console.log('account:', account);
   return {
-    password: account.id,
+    social_id: account.id,
     email: account.email,
     name: account.name,
     phone: null,
@@ -490,12 +489,10 @@ export const oauth = async (req: Request, res: Response) => {
         return res.status(208).json({ message: '회원을 찾을 수 없습니다.\n다른 방법으로 로그인하세요.' });
       } else {
         console.log("이미 소셜회원가입 했던 회원")
-        await UserModel.update({...existingUser, profile: user.profile});
+        await UserModel.update({...existingUser, profile: user.profile, socialId: user.social_id});
         console.log("existingUser.id:", existingUser?.id);
         const accessToken = generateAccessToken(Number(existingUser?.id), keepLoggedIn);
         const refreshToken = generateRefreshToken(Number(existingUser?.id), keepLoggedIn);
-        console.log("accessToken:", accessToken);
-        console.log("refreshToken:", refreshToken);
 
         const refreshExpiry = new Date();
         if (keepLoggedIn) {

@@ -36,7 +36,7 @@ export const SignupInfo = () => {
   const [userId, setUserId] = useState<string>("");
   const [openCompleteDialog, setOpenCompleteDialog] = useState<boolean>(false);
 
-  const { serviceAgree=false, privacyAgree=false, marketingEmailAgree=false, marketingSmsAgree=false, profile="", provider="" } = location.state || {};
+  const { serviceAgree=false, privacyAgree=false, marketingEmailAgree=false, marketingSmsAgree=false, profile="", provider="", socialId="" } = location.state || {};
 
   useEffect(() => {
     if (!serviceAgree || !privacyAgree || !location.state) {
@@ -112,6 +112,7 @@ export const SignupInfo = () => {
           phone,
           profile,
           provider,
+          socialId,
           marketingEmail: marketingEmailAgree ? "Y" : "N",
           marketingSms: marketingSmsAgree ? "Y" : "N"
         }

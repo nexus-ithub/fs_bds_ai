@@ -16,7 +16,6 @@ export const Home = () => {
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
   const accessToken = getAccessToken();
-  console.log("accessToken", accessToken);
   const {
     isLoading: checkingConfig,
     data: config,
