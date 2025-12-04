@@ -1,6 +1,7 @@
 import { Agent } from "@repo/common";
 import fs from 'fs';
 import path from 'path';
+import { trackError } from "../utils/analytics";
 
 export class AgentModel {
   static async getSetting(): Promise<Agent> {
@@ -15,6 +16,12 @@ export class AgentModel {
       return setting;
     } catch (error) {
       console.error('AgentModel.getSetting error:', error);
+      trackError(error,{
+        message: "Agent 설정 조회 중 오류가 발생했습니다.",
+        file: "agent.model.ts",
+        function: "getSetting",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -38,6 +45,12 @@ export class AgentModel {
       return true;
     } catch (error) {
       console.error('AgentModel.update error:', error);
+      trackError(error,{
+        message: "Agent 설정 수정 중 오류가 발생했습니다.",
+        file: "agent.model.ts",
+        function: "update",
+        severity: "error"
+      })
       throw error;
     }
   }

@@ -2,6 +2,7 @@ import { Admin } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 import bcrypt from "bcryptjs";
+import { trackError } from "../utils/analytics";
 
 export class AdminModel {
   static async findAll(keyword: string, page: number, size: number): Promise<{ users: Admin[]; totalCount: number } | null> {
@@ -24,6 +25,12 @@ export class AdminModel {
       return { users, totalCount };
     } catch (error) {
       console.error('Error finding user:', error);
+      trackError(error,{
+        message: "관리자 계정 목록 조회 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "findAll",
+        severity: "error"
+      })
       throw error; 
     }
   }
@@ -37,6 +44,12 @@ export class AdminModel {
       return true;
     } catch (error) {
       console.error('Error registering user:', error);
+      trackError(error,{
+        message: "관리자 계정 생성 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "register",
+        severity: "error"
+      })
       return false; 
     }
   } 
@@ -50,6 +63,12 @@ export class AdminModel {
       return true;
     } catch (error) {
       console.error('Error updating user:', error);
+      trackError(error,{
+        message: "관리자 계정 수정 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "update",
+        severity: "error"
+      })
       return false; 
     }
   }
@@ -63,6 +82,12 @@ export class AdminModel {
       return true;
     } catch (error) {
       console.error('Error deleting user:', error);
+      trackError(error,{
+        message: "관리자 계정 삭제 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "delete",
+        severity: "error"
+      })
       return false; 
     }
   }
@@ -77,6 +102,12 @@ export class AdminModel {
       return bcrypt.compareSync(String(password), user?.[0]?.password ?? "");
     } catch (error) {
       console.error('Error comparing password:', error);
+      trackError(error,{
+        message: "관리자 계정 비밀번호 확인 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "confirmPassword",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -91,6 +122,12 @@ export class AdminModel {
       return true;
     } catch (error) {
       console.error('Error updating user password:', error);
+      trackError(error,{
+        message: "관리자 계정 비밀번호 수정 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "updatePassword",
+        severity: "error"
+      })
       return false; 
     }
   }
@@ -105,6 +142,12 @@ export class AdminModel {
       return true;
     } catch (error) {
       console.error('Error updating user password:', error);
+      trackError(error,{
+        message: "관리자 계정 비밀번호 재설정 중 오류가 발생했습니다.",
+        file: "admin.model.ts",
+        function: "resetPassword",
+        severity: "error"
+      })
       return false; 
     }
   }

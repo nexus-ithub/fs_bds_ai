@@ -1,6 +1,7 @@
 import { ConsultRequest } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
+import { trackError } from "../utils/analytics";
 
 export class ConsultRequestModel {
   static async getTotalConsultRequest(): Promise<number> {
@@ -12,6 +13,12 @@ export class ConsultRequestModel {
       return total;
     } catch (error) {
       console.error('Error getting total consult request:', error);
+      trackError(error,{
+        message: "설계상담 요청 목록 개수 조회 중 오류가 발생했습니다.",
+        file: "consult.model.ts",
+        function: "getTotalConsultRequest",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -54,6 +61,12 @@ export class ConsultRequestModel {
       return {total, response};
     } catch (err : any) {
       console.error('Error getting consult request list:', err);
+      trackError(err,{
+        message: "설계상담 요청 목록 조회 중 오류가 발생했습니다.",
+        file: "consult.model.ts",
+        function: "getList",
+        severity: "error"
+      })
       throw err;
     }      
   }
@@ -68,6 +81,12 @@ export class ConsultRequestModel {
       return true;
     } catch (err) {
       console.error("Error updating consult pending: ", err)
+      trackError(err,{
+        message: "설계상담 대기 상태 변경 중 오류가 발생했습니다.",
+        file: "consult.model.ts",
+        function: "updatePending",
+        severity: "error"
+      })
       throw err;
     }
   }
@@ -82,6 +101,12 @@ export class ConsultRequestModel {
       return true;
     } catch (err) {
       console.error("Error updating consult complete: ", err)
+      trackError(err,{
+        message: "설계상담 완료 상태 변경 중 오류가 발생했습니다.",
+        file: "consult.model.ts",
+        function: "updateComplete",
+        severity: "error"
+      })
       throw err;
     }
   }
@@ -96,6 +121,12 @@ export class ConsultRequestModel {
       return true;
     } catch (err) {
       console.error("Error updating consult delete: ", err)
+      trackError(err,{
+        message: "설계상담 삭제 중 오류가 발생했습니다.",
+        file: "consult.model.ts",
+        function: "updateDelete",
+        severity: "error"
+      })
       throw err;
     }
   }

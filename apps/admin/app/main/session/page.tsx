@@ -1,12 +1,13 @@
 'use client';
 
 import { DownloadIcon, HDivider, Pagination, Refresh, SearchBar, VDivider, MenuDropdown, AGES, SortIcon, MenuIcon, DotProgress, ChatInfo, Button, CloseIcon } from "@repo/common";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type JSX } from "react";
 import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { SessionList } from "@repo/common";
 import { Dialog } from "@mui/material";
 import { toast } from "react-toastify";
+import { trackError } from "../../utils/analytics";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -17,7 +18,7 @@ const COUNT_BUTTON = [
 export default function Session() {
   const axiosInstance = useAxiosWithAuth();
   const [sessions, setSessions] = useState<SessionList[]>([]);
-  const [searchKeyword, setSearchKeyword] = useState<string>('');
+  // const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -25,14 +26,76 @@ export default function Session() {
   const [chatContent, setChatContent] = useState<ChatInfo[]>([]);
 
   const [sortedSessions, setSortedSessions] = useState(sessions);
-  const [selectedGender, setSelectedGender] = useState<'M' | 'F' | ''>('');
-  const [selectedAge, setSelectedAge] = useState<string>('');
+  // const [selectedGender, setSelectedGender] = useState<'M' | 'F' | ''>('');
+  // const [selectedAge, setSelectedAge] = useState<string>('');
   const [sortedType, setSortedType] = useState<'email' | 'name' | 'recentLogin' | 'registerDate' | null>(null);
 
   const [openChatContent, setOpenChatContent] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
-  
+
+  const convertSpecificLinks = (text: string) => {
+    const links = [
+      {
+        text: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg',
+        url: 'https://www.youtube.com/channel/UC8fLp2MqsnYqcNwpG-jzyFg',
+        label: '빌딩의 신↗'
+      },
+      {
+        text: 'instagram.com/god.of.building',
+        url: 'https://instagram.com/god.of.building',
+        label: '@god.of.building↗'
+      },
+      {
+        text: 'tiktok.com/@godofbuilding',
+        url: 'https://tiktok.com/@godofbuilding',
+        label: '@godofbuilding↗'
+      },
+      {
+        text: '@god.of.building',
+        url: 'https://instagram.com/god.of.building',
+        label: '@god.of.building↗'
+      },
+      {
+        text: '@godofbuilding',
+        url: 'https://www.tiktok.com/@godofbuilding',
+        label: '@godofbuilding↗'
+      }
+    ];
+
+    let parts: (string | JSX.Element)[] = [text];
+
+    links.forEach(({ text: linkText, url, label }, linkIndex) => {
+      parts = parts.flatMap((part, partIndex) => {
+        if (typeof part !== 'string') return part;
+
+        const splitParts = part.split(linkText);
+        const result: (string | JSX.Element)[] = [];
+
+        splitParts.forEach((str, i) => {
+          result.push(str);
+          if (i < splitParts.length - 1) {
+            result.push(
+              <a
+                key={`link-${linkIndex}-${partIndex}-${i}`}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-b1 border-b border-dashed hover:text-primary"
+              >
+                {label}
+              </a>
+            );
+          }
+        });
+
+        return result;
+      });
+    });
+
+    return parts;
+  };
+
   const getSession = async () => {
     setLoading(true);
     try {
@@ -50,6 +113,12 @@ export default function Session() {
       setUpdateDate(new Date());
     } catch (error) {
       console.error("세션 조회 실패", error);
+      trackError(error, {
+        message: "세션 조회 실패",
+        file: "/session/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("세션 조회 실패");
     } finally {
       setLoading(false);
@@ -65,6 +134,12 @@ export default function Session() {
       setChatContent(data);
     } catch (error) {
       console.error("채팅 내용 조회 실패", error);
+      trackError(error, {
+        message: "채팅 내용 조회 실패",
+        file: "/session/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("채팅 내용 조회 실패");
     } finally {
       setChatLoading(false);
@@ -222,7 +297,7 @@ export default function Session() {
                     </div>
                   </div>
                   <div className="w-full py-[20px] border-t border-line-02">
-                    <p className="font-b1-p whitespace-pre-line">{chat.answer}</p>
+                    <p className="font-b1-p whitespace-pre-line">{convertSpecificLinks(chat.answer)}</p>
                   </div>
                 </div>
               ))

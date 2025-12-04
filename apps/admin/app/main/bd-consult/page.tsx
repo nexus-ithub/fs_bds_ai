@@ -8,6 +8,8 @@ import { Dialog, DialogTitle } from "@mui/material";
 import Link from "next/link";
 import { ExternalLinkIcon } from "lucide-react";
 import { toast } from "react-toastify";
+import { trackError } from "../../utils/analytics";
+
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
   { value: 20, label: '20' },
@@ -54,6 +56,12 @@ export default function ConsultRequest() {
       // setList([]);
     } catch (error) {
       console.error(error);
+      trackError(error, {
+        message: "빌딩 매입 상담 요청 조회에 실패했습니다.",
+        file: "/bd-consult/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error('빌딩 매입 상담 요청 조회에 실패했습니다.');
     } finally {
       setLoading(false);
@@ -91,7 +99,13 @@ export default function ConsultRequest() {
       } else {
         toast.error(message);
       }
-    } catch {
+    } catch (error) {
+      trackError(error, {
+        message: "빌딩 매입 상담 상태 변경에 실패했습니다.",
+        file: "/bd-consult/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("처리 중 오류가 발생했습니다.")
     } finally {
       setLoadingAction(null);
@@ -200,7 +214,7 @@ export default function ConsultRequest() {
                     상태
                   </th>
                   <th className="pl-[12px] py-[14px] font-s3">
-                    바로가기
+                    빌딩 ID
                   </th>                              
                 </tr>
               </thead>
@@ -231,15 +245,15 @@ export default function ConsultRequest() {
                       onClick={() => {setSelectedItem(item)}}>
                         {item.consultedYn === 'Y' ? "완료" : "대기"}
                     </td>
-                    <td className="pl-[12px]">
-                      <button
+                    <td className="pl-[12px]">{item?.bdId}
+                      {/* <button
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`http://admin.buildingshop.co.kr/#/building/${item?.bdId}`, '_blank')
                         }}
                         className="hover:none w-full font-b1 px-[4px] py-[4px] rounded-[2px] items-center justify-between">
                         <ExternalLinkIcon size={16} color="#585C64"/>
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))}
@@ -301,12 +315,13 @@ export default function ConsultRequest() {
                 <Item title="연락처" value={selectedItem? selectedItem?.phone : ""}/>
               </div>
               <div className="flex gap-[20px]">
-                <Item title="날짜" value={selectedItem? format(selectedItem?.createdAt, 'yyyy-MM-dd HH:mm:ss') : ""}/>
+                <Item title="날짜" value={selectedItem? format(selectedItem?.createdAt, 'yyyy.MM.dd HH:mm:ss') : ""}/>
                 <div className="flex-1 space-y-[10px]">
                   <p className="font-s2 text-text-03">빌딩샵 빌딩 ID</p>
-                  <button
+                  <div className="w-full font-b1 px-[14px] py-[12px] rounded-[2px] border border-line-04">{selectedItem?.bdId}</div>
+                  {/* <button
                     onClick={() => window.open(`http://admin.buildingshop.co.kr/#/building/${selectedItem?.bdId}`, '_blank')}
-                    className="w-full font-b1 px-[14px] py-[12px] rounded-[2px] border border-line-04 flex items-center justify-between">{selectedItem?.bdId} <ExternalLinkIcon size={16} color="#585C64"/></button>         
+                    className="w-full font-b1 px-[14px] py-[12px] rounded-[2px] border border-line-04 flex items-center justify-between">{selectedItem?.bdId} <ExternalLinkIcon size={16} color="#585C64"/></button>          */}
                 </div>                
               </div>
             </div>

@@ -7,6 +7,7 @@ import { User } from "@repo/common";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { formatDate } from "date-fns";
 import { toast } from "react-toastify";
+import { trackError } from "../../utils/analytics";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -58,6 +59,12 @@ export default function Users() {
       // setList([]);
     } catch (error) {
       console.error(error);
+      trackError(error, {
+        message: "회원 목록 조회 실패",
+        file: "/users/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error('회원 조회에 실패했습니다.');
     } finally {
       setLoading(false);

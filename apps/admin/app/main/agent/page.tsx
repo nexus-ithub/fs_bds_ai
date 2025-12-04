@@ -9,6 +9,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { MenuDropdown } from "@repo/common";
 import { Dialog, Menu } from "@mui/material";
 import { toast } from "react-toastify";
+import { trackError } from "../../utils/analytics";
 
 const emojis = [
   "🏠", "🏢", "🏣", "🏛️", "🏦", "🏗️", "🏭", "🪜", "🛠", 
@@ -59,22 +60,36 @@ export default function Agent() {
   const modifiers = [restrictToParentElement];
 
   useEffect(() => {
-    setGetSettingLoading(true);
-    axiosInstance.get("/agent").then((response) => {
-      if (response.data.success) {
-        setSetting(response.data.data);
-        setQuestionEdit(response.data.data.questions);
-        setAgentName(response.data.data.agentName);
-        setNameDesc(response.data.data.nameDesc);
-        setNewchatLabel(response.data.data.newchatLabel);
-        setChatTitle(response.data.data.chatTitle);
-        setChatSubtitle(response.data.data.chatSubtitle);
-        setPlaceholder(response.data.data.placeholder);
-        setWarningMsg(response.data.data.warningMsg);
+    const fetchAgentSettings = async () => {
+      setGetSettingLoading(true);
+      try {
+        const response = await axiosInstance.get("/agent");
+        if (response.data.success) {
+          setSetting(response.data.data);
+          setQuestionEdit(response.data.data.questions);
+          setAgentName(response.data.data.agentName);
+          setNameDesc(response.data.data.nameDesc);
+          setNewchatLabel(response.data.data.newchatLabel);
+          setChatTitle(response.data.data.chatTitle);
+          setChatSubtitle(response.data.data.chatSubtitle);
+          setPlaceholder(response.data.data.placeholder);
+          setWarningMsg(response.data.data.warningMsg);
+        }
+      } catch (error) {
+        console.error('에이전트 설정 조회 실패:', error);
+        trackError(error, {
+          message: '에이전트 설정 조회 실패',
+          file: '/agent/page.tsx',
+          page: window.location.pathname,
+          severity: 'error'
+        });
+        toast.error('설정 조회에 실패했습니다.');
+      } finally {
+        setGetSettingLoading(false);
       }
-    }).finally(() => {
-      setGetSettingLoading(false);
-    })
+    };
+
+    fetchAgentSettings();
   }, [])
 
   useEffect(() => {
@@ -129,15 +144,25 @@ export default function Agent() {
       warningMsg,
       questions: questionEdit,
     }
-    
-    setSaveSettingLoading(true);
-    const response = await axiosInstance.put("/agent", newSetting);
-    if (response.data.success) {
-      setSetting(newSetting);
-    } else {
+    try{
+      setSaveSettingLoading(true);
+      const response = await axiosInstance.put("/agent", newSetting);
+      if (response.data.success) {
+        setSetting(newSetting);
+      } else {
+        toast.error("저장 실패");
+      }
+    } catch (error) {
+      trackError(error, {
+        message: "에이전트 설정 저장 실패",
+        file: "/agent/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("저장 실패");
+    } finally {
+      setSaveSettingLoading(false);
     }
-    setSaveSettingLoading(false);
   }
 
   const handleSaveQuestions = async () => {
@@ -152,8 +177,13 @@ export default function Agent() {
         questions: questionEdit,
       } as Agent);
     } catch (error) {
-      console.log("저장 실패", error);
-      toast.error("저장 실패");
+      trackError(error, {
+        message: "에이전트 질문 저장 실패",
+        file: "/agent/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
+      toast.error("질문 저장 실패");
     } finally {
       setSaveSettingLoading(false);
     }

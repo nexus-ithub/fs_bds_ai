@@ -1,4 +1,5 @@
 import { db } from "../utils/db";
+import { trackError } from "../utils/analytics";
 
 export class SessionModel {
   static async getList(page: number, size: number) {
@@ -22,6 +23,12 @@ export class SessionModel {
       return {total: parseInt(total![0]!.totalCount), data: result};
     } catch (error) {
       console.error('SessionModel.getList error:', error);
+      trackError(error,{
+        message: "채팅 세션 목록 조회 중 오류가 발생했습니다.",
+        file: "session.model.ts",
+        function: "getList",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -36,6 +43,12 @@ export class SessionModel {
       return result;
     } catch (error) {
       console.error('SessionModel.getChatContent error:', error);
+      trackError(error,{
+        message: "채팅 내용 조회 중 오류가 발생했습니다.",
+        file: "session.model.ts",
+        function: "getChatContent",
+        severity: "error"
+      })
       throw error;
     }
   }

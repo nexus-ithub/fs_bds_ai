@@ -1,6 +1,7 @@
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
 import { Admin } from "@repo/common";
+import { trackError } from "../utils/analytics";
 
 export class AuthModel {
 
@@ -13,24 +14,52 @@ export class AuthModel {
       return users[0] || null;
     } catch (error) {
       console.error('Error finding user by email:', error);
+      trackError(error,{
+        message: "이메일로 관리자 계정 조회 중 오류가 발생했습니다.",
+        file: "auth.model.ts",
+        function: "findByEmail",
+        severity: "error"
+      })
       throw error; 
     }
   } 
 
   static async checkEmail(email: string): Promise<boolean> {
-    const users = await db.query<(RowDataPacket & Admin)[]>(
+    try{
+      const users = await db.query<(RowDataPacket & Admin)[]>(
         'SELECT * FROM admins WHERE email = ? LIMIT 1',
         [email]
       );
-    return users[0] ? true : false;
+      return users[0] ? true : false;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      trackError(error,{
+        message: "이메일로 관리자 계정 조회 중 오류가 발생했습니다.",
+        file: "auth.model.ts",
+        function: "checkEmail",
+        severity: "error"
+      })
+      throw error; 
+    }
   }
 
   static async findById(id: string): Promise<any> {
-    const [rows] = await db.query<RowDataPacket[]>(
-      "SELECT * FROM admins WHERE id = ? AND delete_yn = 'N' LIMIT 1",
-      [id]
-    );
-    return (rows as any)[0] || null;
+    try{
+      const [rows] = await db.query<RowDataPacket[]>(
+        "SELECT * FROM admins WHERE id = ? AND delete_yn = 'N' LIMIT 1",
+        [id]
+      );
+      return (rows as any)[0] || null;
+    } catch (error) {
+      console.error('Error finding user by id:', error);
+      trackError(error,{
+        message: "ID로 관리자 계정 조회 중 오류가 발생했습니다.",
+        file: "auth.model.ts",
+        function: "findById",
+        severity: "error"
+      })
+      throw error; 
+    }
   }
 
   static async updateRefreshToken(adminId: string, refreshToken: string | null, expiresAt: Date): Promise<void> {
@@ -63,12 +92,21 @@ export class AuthModel {
 
 
   static async findByToken(token: string): Promise<any> {
-    console.log(">>>token : ", token)
-    const [rows] = await db.query<RowDataPacket[]>(
-      "SELECT token, expires_at as expiresAt FROM admin_refresh_tokens WHERE token = ? AND expires_at > NOW()",
-      [token]
-    );
-    console.log(">>>rows : ", rows)
-    return (rows as any) || null;
+    try{
+      const [rows] = await db.query<RowDataPacket[]>(
+        "SELECT token, expires_at as expiresAt FROM admin_refresh_tokens WHERE token = ? AND expires_at > NOW()",
+        [token]
+      );
+      return (rows as any) || null;
+    } catch (error) {
+      console.error('Error finding user by token:', error);
+      trackError(error,{
+        message: "토큰으로 관리자 계정 조회 중 오류가 발생했습니다.",
+        file: "auth.model.ts",
+        function: "findByToken",
+        severity: "error"
+      })
+      throw error; 
+    }
   }
 }

@@ -5,6 +5,7 @@ import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { EditPasswordDialog } from "./EditPasswordDialog";
+import { trackError } from "../../utils/analytics";
 
 interface AccountDialogProps {
   open: boolean;
@@ -47,13 +48,23 @@ export const AccountDialog = ({
 
   const handleEmailValidation = async () => {
     if (emailValid !== null) return;
-    setEmailLoading(true);
-
-    const res = await fetch(`/api/bff/public?action=check-email&email=${email}`);
-    const data = await res.json();
-
-    setEmailValid(!data.success)
-    setEmailLoading(false);
+    try{
+      setEmailLoading(true);
+      const res = await fetch(`/api/bff/public?action=check-email&email=${email}`);
+      const data = await res.json();
+      setEmailValid(!data.success)
+    } catch (error) {
+      console.error(error);
+      trackError(error, {
+        message: "이메일 중복 확인 중 오류가 발생했습니다.",
+        file: "/admin/AccountDialog.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
+      toast.error("이메일 중복 확인 중 오류가 발생했습니다.");
+    } finally {
+      setEmailLoading(false);
+    }
   }
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +103,12 @@ export const AccountDialog = ({
         updateSession();
       }
     } catch (error) {
+      trackError(error, {
+        message: "관리자 계정 추가/수정 중 오류가 발생했습니다.",
+        file: "/admin/AccountDialog.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("관리자 계정 추가/수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);

@@ -4,6 +4,7 @@ import { Check, Eye, EyeOff } from "lucide-react";
 import { HDivider, Button, Spinner, Admin } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
+import { trackError } from "../../utils/analytics";
 
 interface EditPasswordDialogProps {
   open: boolean;
@@ -62,7 +63,12 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
       setError('');
       setOpenSuccessDialog(true);
     } catch (error: any) {
-      // console.log(error)
+      trackError(error, {
+        message: "비밀번호 변경 중 오류가 발생했습니다.",
+        file: "/admin/EditPasswordDialog.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       setError(error.response.data.message);
     } finally {
       setLoading(false);

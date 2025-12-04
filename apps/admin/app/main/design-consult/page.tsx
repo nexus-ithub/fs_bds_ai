@@ -6,6 +6,7 @@ import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { format } from "date-fns";
 import { Dialog, DialogTitle } from "@mui/material";
 import { toast } from "react-toastify";
+import { trackError } from "../../utils/analytics";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -47,12 +48,17 @@ export default function ConsultRequest() {
         },
       });
       const data = await response.data;
-      console.log(data);
       setList(data.data.response);
       setTotalItems(data.data.total);
       // setList([]);
     } catch (error) {
       console.error(error);
+      trackError(error, {
+        message: "설계 상담 요청 조회에 실패했습니다.",
+        file: "/design-consult/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error('설계 상담 요청 조회에 실패했습니다.');
     } finally {
       setLoading(false);
@@ -90,7 +96,13 @@ export default function ConsultRequest() {
       } else {
         toast.error(message);
       }
-    } catch {
+    } catch (error) {
+      trackError(error, {
+        message: "설계 상담 요청 상태 변경에 실패했습니다.",
+        file: "/design-consult/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("처리 중 오류가 발생했습니다.")
     } finally {
       setLoadingAction(null);

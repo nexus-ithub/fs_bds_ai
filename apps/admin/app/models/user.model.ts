@@ -1,6 +1,7 @@
 import { Admin, ConsultRequest, User, AGES, INTERESTS } from "@repo/common";
 import { db } from "../utils/db";
 import { RowDataPacket } from "mysql2";
+import { trackError } from "../utils/analytics";
 
 export class UserModel {
   static async getTotalUser(): Promise<number> {
@@ -12,6 +13,12 @@ export class UserModel {
       return total;
     } catch (error) {
       console.error('Error getting total consult request:', error);
+      trackError(error,{
+        message: "사용자 목록 개수 조회 중 오류가 발생했습니다.",
+        file: "user.model.ts",
+        function: "getTotalUser",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -37,6 +44,12 @@ export class UserModel {
       return {total, response};
     } catch (err : any) {
       console.error('Error getting consult request list:', err);
+      trackError(err,{
+        message: "사용자 목록 조회 중 오류가 발생했습니다.",
+        file: "user.model.ts",
+        function: "getList",
+        severity: "error"
+      })
       throw err;
     }      
   }
@@ -53,6 +66,12 @@ export class UserModel {
       }));
     } catch (error) {
       console.error('Error getting gender count:', error);
+      trackError(error,{
+        message: "사용자 성별 통계 조회 중 오류가 발생했습니다.",
+        file: "user.model.ts",
+        function: "genderCount",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -72,6 +91,12 @@ export class UserModel {
       });
     } catch (error) {
       console.error('Error getting age count:', error);
+      trackError(error,{
+        message: "사용자 연령 통계 조회 중 오류가 발생했습니다.",
+        file: "user.model.ts",
+        function: "ageCount",
+        severity: "error"
+      })
       throw error;
     }
   }
@@ -91,6 +116,12 @@ export class UserModel {
       });
     } catch (error) {
       console.error('Error getting interest count:', error);
+      trackError(error,{
+        message: "사용자 관심분야 통계 조회 중 오류가 발생했습니다.",
+        file: "user.model.ts",
+        function: "interestCount",
+        severity: "error"
+      })
       throw error;
     }
   }

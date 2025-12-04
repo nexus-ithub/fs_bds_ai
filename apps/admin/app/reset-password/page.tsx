@@ -7,6 +7,7 @@ import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@mui/material";
 import { useSearchParams } from "next/navigation";
+import { trackError } from "../utils/analytics";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -69,6 +70,12 @@ function ResetPasswordForm() {
       }
     } catch (error) {
       console.error(error);
+      trackError(error, {
+        message: "비밀번호 재설정 실패",
+        file: "/reset-password/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       setError("오류가 발생했습니다. 다시 시도해주세요.");
     }
   }
@@ -79,8 +86,6 @@ function ResetPasswordForm() {
   }, [router]);
 
   useEffect(() => {
-    console.log("openSuccess", openSuccess);
-    console.log("openTokenExpired", openTokenExpired);
     if (!openSuccess && !openTokenExpired) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -104,6 +109,12 @@ function ResetPasswordForm() {
           setOpenTokenExpired(true);
         }
       } catch (error) {
+        trackError(error, {
+          message: "비밀번호 재설정 토큰 검증 실패",
+          file: "/reset-password/page.tsx",
+          page: window.location.pathname,
+          severity: "error"
+        })
         setOpenTokenExpired(true);
       }
     };

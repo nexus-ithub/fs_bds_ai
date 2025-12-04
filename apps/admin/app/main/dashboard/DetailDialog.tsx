@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { ArrowDownLong, ArrowUpLong, CloseIcon, DotProgress, MinusSmallIcon } from '@repo/common';
 import { calculateChangeRate } from "../../utils/dashboardUtil";
+import { trackError } from "../../utils/analytics";
 
 const tabs = ['일간', '주간', '월간'];
 
@@ -30,7 +31,13 @@ export const DetailDialog = ({open, onClose, type}: {open: boolean, onClose: () 
           );
         setRawData(Items);
       } catch(error) {
-        console.log(error)
+        console.error(error)
+        trackError(error, {
+          message: "대시보드 리포트 조회 지역/빌딩샵 매물 조회 순 전체보기 조회에 실패했습니다.",
+          file: "/dashboard/DetailDialog.tsx",
+          page: window.location.pathname,
+          severity: "error"
+        })
       } finally {
         setLoading(false);
       }

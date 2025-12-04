@@ -5,6 +5,7 @@ import "./globals.css";
 import { useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { ToastContainer, Flip } from 'react-toastify';
+import { PostHogInit } from './utils/posthog-init';
 
 function SessionErrorHandler({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="">
       <body suppressHydrationWarning>
+        <PostHogInit />
         <SessionProvider>
           <SessionErrorHandler>
             <LoadingProvider>{children}</LoadingProvider>

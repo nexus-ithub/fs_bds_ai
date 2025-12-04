@@ -7,6 +7,7 @@ import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { calculateChangeRate, ChangeRate } from "../../utils/dashboardUtil";
 import { DetailDialog } from "./DetailDialog";
+import { trackError } from "../../utils/analytics";
 
 
 interface UserCountData {
@@ -34,32 +35,6 @@ const generateEmptyChartData = () => {
   return data;
 };
 
-// 샘플 데이터 (실제로는 API에서 가져온 count 데이터)
-const genderDataRaw = [
-  { name: '남성', value: 5847 },
-  { name: '여성', value: 4153 }
-];
-
-const ageDataRaw = [
-  { name: '20대 이하', value: 456 },
-  { name: '20대', value: 2345 },
-  { name: '30대', value: 3890 },
-  { name: '40대', value: 2456 },
-  { name: '50대', value: 1123 },
-  { name: '60대', value: 428 },
-  { name: '70대', value: 234 },
-  { name: '80대 이상', value: 68 }
-];
-
-const interestDataRaw = [
-  { name: '오피스', value: 3245 },
-  { name: '상가', value: 2890 },
-  { name: '토지', value: 1567 },
-  { name: '지식산업센터', value: 1234 },
-  { name: '물류센터', value: 892 },
-  { name: '기타', value: 456 }
-];
-
 // percentage 계산 함수
 const calculatePercentage = (data: { name: string; value: number }[]) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
@@ -79,7 +54,6 @@ const AGE_COLORS = ['#4E52FF', '#5A70FF', '#688EFF', '#76ABFF', '#84C9FF', '#5FC
 const INTEREST_COLOR = '#4e52ff';
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
   const axiosInstance = useAxiosWithAuth();
   const emptyChartData = generateEmptyChartData();
   const [pageviewData, setPageviewData] = useState<UserCountData[]>(emptyChartData);
@@ -206,6 +180,12 @@ export default function Dashboard() {
         ]);
       } catch (error) {
         console.error(error);
+        trackError(error, {
+          message: "대시보드 조회에 실패했습니다.",
+          file: "/dashboard/page.tsx",
+          page: window.location.pathname,
+          severity: "error"
+        })
       } finally {
         setLoading(false);
       }

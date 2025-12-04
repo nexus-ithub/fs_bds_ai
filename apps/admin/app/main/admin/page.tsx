@@ -10,8 +10,8 @@ import { format } from "date-fns";
 import useAxiosWithAuth from "../../utils/axiosWithAuth";
 import { AccountDialog } from "./AccountDialog";
 import { toast } from "react-toastify";
-import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { trackError } from "../../utils/analytics";
 
 const COUNT_BUTTON = [
   { value: 10, label: '10' },
@@ -30,7 +30,6 @@ export default function Admin() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [myAdminType, setMyAdminType] = useState<'M' | 'N' >('N');
-  const didRunRef = useRef(false);
 
   const [openAddAccount, setOpenAddAccount] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
@@ -39,11 +38,22 @@ export default function Admin() {
 
   const handleDelete = async () => {
     if (!selectedAdmin) return;
-    setLoading(true);
-    await axiosInstance.put("/admin", { action: "delete", id: selectedAdmin.id });
-    setOpenDeleteConfirm(false);
-    getUsers();
-    setLoading(false);
+    try{
+      setLoading(true);
+      await axiosInstance.put("/admin", { action: "delete", id: selectedAdmin.id });
+      setOpenDeleteConfirm(false);
+      getUsers();
+    } catch (error) {
+      trackError(error, {
+        message: "관리자 계정 삭제 중 오류가 발생했습니다.",
+        file: "/admin/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
+      toast.error("관리자 계정 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const getUsers = async () => {
@@ -53,6 +63,12 @@ export default function Admin() {
       setAdmins(data.users);
       setTotalCount(data.totalCount);
     } catch (error) {
+      trackError(error, {
+        message: "관리자 계정 조회 중 오류가 발생했습니다.",
+        file: "/admin/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("관리자 계정 조회 중 오류가 발생했습니다.");
     }
   }
@@ -64,6 +80,12 @@ export default function Admin() {
       const userInfo = data.users[0];
       setMyAdminType(userInfo.adminType);
     } catch (error) {
+      trackError(error, {
+        message: "내 계정 조회 실패",
+        file: "/admin/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       toast.error("내 계정 조회 실패");
     }
   }
@@ -74,6 +96,12 @@ export default function Admin() {
 
       await Promise.all([getUsers(), getMyAccount()]);
     } catch (error) {
+      trackError(error, {
+        message: "관리자 계정 목록 조회 중 오류가 발생했습니다.",
+        file: "/admin/page.tsx",
+        page: window.location.pathname,
+        severity: "error"
+      })
       console.error(error);
     } finally {
       setInitialLoading(false);
