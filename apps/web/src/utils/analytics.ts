@@ -4,7 +4,7 @@ import { logEvent } from "firebase/analytics";
 import { analytics as firebaseAnalytics } from "../firebaseConfig";
 
 export interface EventProperties {
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: any;
 }
 
 export interface ErrorContext {

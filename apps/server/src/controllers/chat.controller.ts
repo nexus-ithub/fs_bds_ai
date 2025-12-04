@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { ChatModel } from "../models/chat.model";
-import { Sentry } from "../instrument";
+import { trackError } from "../utils/analytics";
 
 export const askChat = async (req: Request, res: Response) => {
   const { question, userId, sessionId, titleExists } = req.body;
@@ -39,7 +39,13 @@ export const askChat = async (req: Request, res: Response) => {
       score: response.data.avg_score,
     }); 
   } catch (error) {
-    Sentry.captureException(error);
+    trackError(error, {
+      message: '챗봇 응답 중 오류 발생',
+      userId: req.body?.userId || "",
+      file: 'chat.controller.ts',
+      function: 'askChat',
+      severity: 'error'
+    })
     await ChatModel.saveChat({
       session_id: sessionId,
       user_id: userId ?? null,
@@ -61,7 +67,13 @@ export const getChatHistory = async (req: Request, res: Response) => {
       throw new Error('Error getting chat history');
     }
   } catch (error) {
-    Sentry.captureException(error);
+    trackError(error, {
+      message: '챗봇 응답 중 오류 발생',
+      userId: req.query?.userId ?? "",
+      file: 'chat.controller.ts',
+      function: 'getChatHistory',
+      severity: 'error'
+    })
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -76,7 +88,13 @@ export const updateTitle = async (req: Request, res: Response) => {
       throw new Error('Error updating title');
     }
   } catch (error) {
-    Sentry.captureException(error);
+    trackError(error, {
+      message: '채팅 제목 수정 중 오류 발생',
+      userId: req.body?.userId ?? "",
+      file: 'chat.controller.ts',
+      function: 'updateTitle',
+      severity: 'error'
+    })
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -91,7 +109,13 @@ export const deleteChat = async (req: Request, res: Response) => {
       throw new Error('Error deleting chat');
     }
   } catch (error) {
-    Sentry.captureException(error);
+    trackError(error, {
+      message: '채팅 삭제 중 오류 발생',
+      userId: req.body?.userId ?? "",
+      file: 'chat.controller.ts',
+      function: 'deleteChat',
+      severity: 'error'
+    })
     return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }

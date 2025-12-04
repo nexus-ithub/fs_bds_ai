@@ -8,9 +8,9 @@ import axios from 'axios';
 import { resetPasswordMailTemplate, transporter } from "../utils/nodemailer";
 const { randomUUID } = require('node:crypto');
 import path from 'path';
-import { Sentry } from '../instrument';
 import fs from 'fs';
 import crypto from 'crypto';
+import { trackError } from 'src/utils/analytics';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{
@@ -23,7 +23,13 @@ const generateAccessToken = (userId: number, auto: boolean): string => {
     );
   } catch (err) {
     console.error('Generate access token error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: 'AccessToken 생성 중 오류 발생',
+      userId: userId,
+      file: 'auth.controller.ts',
+      function: 'generateAccessToken',
+      severity: 'error'
+    })
     return null;
   }
 };
@@ -38,7 +44,13 @@ const generateRefreshToken = (userId: number, auto: boolean): string => {
     );
   } catch (err) {
     console.error('Generate refresh token error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: 'RefreshToken 생성 중 오류 발생',
+      userId: userId,
+      file: 'auth.controller.ts',
+      function: 'generateRefreshToken',
+      severity: 'error'
+    })
     return null;
   }
 };
@@ -46,7 +58,6 @@ const generateRefreshToken = (userId: number, auto: boolean): string => {
 export const createUser = async (req: Request, res: Response) => {
   try {
     const { user } = req.body;
-    console.log("user", user);
     const response = await UserModel.create(user);
     const accessToken = generateAccessToken(Number(response?.id ?? user.id), false);
     const refreshToken = generateRefreshToken(Number(response?.id ?? user.id), false);
@@ -72,7 +83,13 @@ export const createUser = async (req: Request, res: Response) => {
     // res.status(201).json(response);
   } catch (err) {
     console.error('Create user error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '사용자 생성 중 오류 발생',
+      userId: req.body?.user?.id,
+      file: 'auth.controller.ts',
+      function: 'createUser',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -89,7 +106,13 @@ export const verifyResetToken = async (req: Request, res: Response) => {
       res.status(201).json({ valid: true, message: `${provider} 계정으로 가입된 사용자입니다.`});
     }
   } catch (err) {
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '비밀번호 재설정 토큰 검증 중 오류 발생',
+      token: req.query?.token,
+      file: 'auth.controller.ts',
+      function: 'verifyResetToken',
+      severity: 'error'
+    })
     res.status(500).json({ valid: false });
   }
 };
@@ -143,7 +166,13 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '로그인 중 오류 발생',
+      email: req.body?.email,
+      file: 'auth.controller.ts',
+      function: 'login',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -198,7 +227,12 @@ export const refresh = async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('Token refresh error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '토큰 리프레시 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'refresh',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -220,7 +254,12 @@ export const logout = async (req: Request, res: Response) => {
     res.status(200).json({ message: '로그아웃되었습니다.' });
   } catch (err) {
     console.error('Logout error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '로그아웃 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'logout',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -281,7 +320,12 @@ export const pwFind = async (req: Request, res: Response) => {
     res.status(200).json({ message: '비밀번호 재설정 메일이 발송되었습니다.' });
   } catch (err) {
     console.error('Password find error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '비밀번호 재설정 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'pwFind',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -334,7 +378,12 @@ export const oAuthCallback = (req: Request, res: Response) => {
 
     res.json({ url: redirectUrl });
   }catch(err){
-    Sentry.captureException(err);
+    trackError(err, {
+      message: 'OAuth 콜백 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'oAuthCallback',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -519,8 +568,13 @@ export const oauth = async (req: Request, res: Response) => {
       }
     }
   } catch (err) {
-    console.error('회원가입 실패', err);
-    Sentry.captureException(err);
+    console.error('소셜 로그인/회원가입 실패', err);
+    trackError(err, {
+      message: '소셜로그인 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'oauth',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -637,7 +691,12 @@ export const InitVerification = (req: Request, res: Response) => {
     res.send(html);
   }catch(err){
     console.error("본인인증 초기화 에러:", err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '본인인증 초기화 오류',
+      file: 'auth.controller.ts',
+      function: 'InitVerification',
+      severity: 'error'
+    })
 
     const scriptContent = `
       if (window.opener) {
@@ -667,6 +726,12 @@ const decryptSeed = (encryptedData: string): string => {
     return decrypted;
   } catch (err) {
     console.error("SEED 복호화 에러:", err);
+    trackError(err, {
+      message: 'SEED 복호화 오류',
+      file: 'auth.controller.ts',
+      function: 'decryptSeed',
+      severity: 'error'
+    })
     return encryptedData;
   }
 };
@@ -741,7 +806,12 @@ export const VerificationCallback = async (req: Request, res: Response) => {
 
   }catch(err){
     console.error("본인인증 콜백 에러:", err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '본인인증 콜백 중 오류 발생',
+      file: 'auth.controller.ts',
+      function: 'VerificationCallback',
+      severity: 'error'
+    })
 
     const scriptContent = `
       if (window.opener) {

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthRequest } from 'src/middleware/auth.middleware';
 import { BdsModel } from '../models/bds.model';
 import { BdsSale } from '@repo/common';
-import { Sentry } from '../instrument';
+import { trackError } from '../utils/analytics';
 import path from 'path';
 import fs from 'fs';
 
@@ -29,7 +29,12 @@ export const getList = async (req: AuthRequest, res: Response) => {
     res.status(200).json(filteredData);
   } catch (err) {
     console.error('Get land info error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '빌딩샵 매물 리스트 조회 중 오류 발생',
+      file: 'bds.controller.ts',
+      function: 'getList',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
@@ -47,7 +52,14 @@ export const addConsultRequest = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ message: '건물 상담 요청 추가 성공' });
   } catch (err) {
     console.error('Add consult request error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '건물 상담 요청 추가 중 오류 발생',
+      bdId: req.body?.bdId,
+      userId: req.body?.userId || "",
+      file: 'bds.controller.ts',
+      function: 'addConsultRequest',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -60,7 +72,14 @@ export const isBookmarked = async (req: AuthRequest, res: Response) => {
     res.status(200).json(isBookmarked);
   } catch (err) {
     console.error('Check bookmarked error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '빌딩샵 북마크 여부 조회 중 오류 발생',
+      userId: req.userId,
+      bdsId: req.query?.bdsId,
+      file: 'bds.controller.ts',
+      function: 'isBookmarked',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -76,7 +95,14 @@ export const addBookmark = async (req: AuthRequest, res: Response) => {
     res.status(200).json({ message: '즐겨찾기 추가 성공' });
   } catch (err) {
     console.error('Add bookmark error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '빌딩샵 북마크 추가 중 오류 발생',
+      userId: req.userId,
+      bdsId: req.body?.building?.id,
+      file: 'bds.controller.ts',
+      function: 'addBookmark',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -88,7 +114,13 @@ export const getTotalBookmarked = async (req: AuthRequest, res: Response) => {
     res.status(200).json(total);
   } catch (err) {
     console.error('Get total bookmarked error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '빌딩샵 북마크 전체 개수 조회 중 오류 발생',
+      userId: req.userId,
+      file: 'bds.controller.ts',
+      function: 'getTotalBookmarked',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
@@ -102,7 +134,13 @@ export const getBookmarkList = async (req: AuthRequest, res: Response) => {
     res.status(200).json(bookmarkList);
   } catch (err) {
     console.error('Get bookmark list error:', err);
-    Sentry.captureException(err);
+    trackError(err, {
+      message: '빌딩샵 북마크 리스트 조회 중 오류 발생',
+      userId: req.userId,
+      file: 'bds.controller.ts',
+      function: 'getBookmarkList',
+      severity: 'error'
+    })
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }

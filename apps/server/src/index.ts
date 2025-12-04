@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import https from 'https';
 import cookieParser from 'cookie-parser';
-import { Server } from 'socket.io'; 
+import { Server } from 'socket.io';
 import authRoutes from './routes/auth.routes';
 import { db } from './utils/database';
 import {verifyToken} from "./middleware/auth.middleware";
@@ -17,6 +17,8 @@ import bdsRoutes from './routes/bds.routes';
 import { bdsDb } from './utils/bds-database';
 import searchRoutes from './routes/search.routes';
 import chatRoutes from './routes/chat.routes';
+import { posthog } from './utils/analytics';
+import { setupExpressErrorHandler } from 'posthog-node';
 dotenv.config();
 
 const app = express();
@@ -104,9 +106,9 @@ app.use('/api/*', verifyToken);
 app.get('/', (req, res) => {
   res.json({ message: 'Server is running' });
 });
-app.get("/debug-sentry", (req, res) => {
-  throw new Error("My first Sentry error!");
-});
+
+// PostHog error handler (자동 에러 캡처)
+setupExpressErrorHandler(posthog, app);
 
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -58,9 +58,9 @@ export const LandInfoCard = ({
   const handleOpenAIReport = () => {
     onOpenAIReport?.();
     if (!landInfo?.sidoName || !landInfo?.sigunguName) {
-      posthog.capture('report_viewed_missing_region', {
+      trackEvent('report_viewed_missing_region', {
         landInfo: landInfo,
-      });
+      })
       return;
     }
     trackEvent('report_viewed', {
