@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from 'src/middleware/auth.middleware';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { LandModel } from '../models/land.model';
 import { BuildingModel } from '../models/buliding.model';
 import { DistrictModel } from '../models/district.model';

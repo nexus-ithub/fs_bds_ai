@@ -3,7 +3,7 @@ import { SearchModel } from '../models/search.model';
 import { BuildingInfo, LandInfo } from '@repo/common';
 import { BuildingModel } from '../models/buliding.model';
 import { LandModel } from '../models/land.model';
-import { AuthRequest } from 'src/middleware/auth.middleware';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { trackError } from '../utils/analytics';
 
 

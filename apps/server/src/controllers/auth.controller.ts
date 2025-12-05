@@ -10,7 +10,7 @@ const { randomUUID } = require('node:crypto');
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { trackError } from 'src/utils/analytics';
+import { trackError } from '../utils/analytics';
 
 const generateAccessToken = (userId: number, auto: boolean): string => {
   try{

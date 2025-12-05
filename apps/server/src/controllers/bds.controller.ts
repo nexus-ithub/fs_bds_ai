@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from 'src/middleware/auth.middleware';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { BdsModel } from '../models/bds.model';
 import { BdsSale } from '@repo/common';
 import { trackError } from '../utils/analytics';

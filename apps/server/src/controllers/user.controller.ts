@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AuthRequest } from 'src/middleware/auth.middleware';
+import { AuthRequest } from '../middleware/auth.middleware';
 import { UserModel } from '../models/user.model';
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../config/auth.config';
