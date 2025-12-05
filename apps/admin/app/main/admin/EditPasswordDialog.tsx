@@ -38,7 +38,7 @@ export const EditPasswordDialog = ({ open, onClose, selectedAdmin }: EditPasswor
     
     const hasLetter = /[a-zA-Z]/.test(passwordInput);
     const hasNumber = /[0-9]/.test(passwordInput);
-    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordInput);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(passwordInput);
     
     if (!hasLetter || !hasNumber || !hasSpecial) {
       return '영문, 숫자, 특수문자를 모두 포함해주세요';
