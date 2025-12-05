@@ -1521,6 +1521,7 @@ static async makeDevDetailInfo(
                 price,
                 ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
               FROM building_deal_list
+              WHERE land_area < building_area
             ) t
             WHERE t.rn = 1
           ) AS bd_latest
