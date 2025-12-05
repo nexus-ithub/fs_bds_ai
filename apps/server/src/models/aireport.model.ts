@@ -715,10 +715,14 @@ function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, 
   detailInfo.buildInfo.lowerFloorArea = lowerAreaPerFloor * detailInfo.buildInfo.lowerFloorCount;
 
   const areaPerFloor = detailInfo.buildInfo.upperFloorArea / detailInfo.buildInfo.upperFloorCount;
-  detailInfo.buildInfo.firstFloorExclusiveArea = areaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor);
-  detailInfo.buildInfo.secondFloorExclusiveArea = detailInfo.buildInfo.upperFloorArea - detailInfo.buildInfo.firstFloorExclusiveArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1));
+  detailInfo.buildInfo.firstFloorExclusiveArea = Math.max(areaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor), 0);
+  detailInfo.buildInfo.secondFloorExclusiveArea = 
+    Math.max( 
+    detailInfo.buildInfo.upperFloorArea - detailInfo.buildInfo.firstFloorExclusiveArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
+    0
+    );
   // detailInfo.buildInfo.lowerFloorExclusiveArea = detailInfo.buildInfo.lowerFloorArea - (detailInfo.buildInfo.publicAreaPerFloor * detailInfo.buildInfo.lowerFloorCount);
-  detailInfo.buildInfo.lowerFloorExclusiveArea = lowerAreaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor );
+  detailInfo.buildInfo.lowerFloorExclusiveArea = Math.max(lowerAreaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor ), 0);
 
   if(debug){
     detailInfo.debugExtraInfo.push("\n")
