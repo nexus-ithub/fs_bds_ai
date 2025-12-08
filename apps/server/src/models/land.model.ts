@@ -663,6 +663,7 @@ export class LandModel {
                 price,
                 ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
               FROM building_deal_list
+              WHERE land_area < building_area
             ) t
             WHERE t.rn = 1
           ) AS bd_latest
@@ -741,6 +742,7 @@ export class LandModel {
             SELECT deal_date, price
             FROM building_deal_list
             WHERE id = ?
+            AND land_area < building_area
             ORDER BY deal_date DESC
             LIMIT 1
           ) AS bd ON 1=1
@@ -1119,6 +1121,7 @@ export class LandModel {
               AND b.land_area IS NOT NULL AND b.land_area > 0
               AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${year} YEAR)
               AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
+              AND b.land_area < b.building_area
           ),
           
           /* 2) 반경 300m 내 최근 3년 토지 실거래 → 원/㎡ + 총액(원) + 면적 + 거리(m) */
@@ -1427,6 +1430,7 @@ export class LandModel {
             AND b.land_area IS NOT NULL AND b.land_area > 0
             AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL ${referenceYear} YEAR)
             AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
+            AND b.land_area < b.building_area
         ),
         
         /* 2) 반경 300m 내 최근 3년 토지 실거래 → 원/㎡ + 총액(원) + 면적 + 거리(m) */
