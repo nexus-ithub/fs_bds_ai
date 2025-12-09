@@ -1002,7 +1002,6 @@ function makeProfit(
     }  
   }else{
 
-
     // 신축기준으로 수익률 계산 
     console.log('makeProfit with buildInfo ', type);
     // 월 임대료 수익 
@@ -1046,7 +1045,7 @@ function makeProfit(
   // console.log('makeProfit result', type, value);
 }
 
-function makeResult(value : ReportValue, tax : TaxInfo, publicPriceGrowthRate : number, debug : boolean = false, debugExtraInfo : string[] = []){
+function makeResult(land : LandData, value : ReportValue, tax : TaxInfo, publicPriceGrowthRate : number, debug : boolean = false, debugExtraInfo : string[] = []){
   if(debug){
     debugExtraInfo.push(`\n`);
     debugExtraInfo.push(`최종`);
@@ -1067,9 +1066,45 @@ function makeResult(value : ReportValue, tax : TaxInfo, publicPriceGrowthRate : 
   // if(debug){
   //   debugExtraInfo.push(`[연간수익률] ${(investmentProfitRatio * 100).toFixed(1)}% (${krwUnit(annualProfit)}(연간순수익) + ${krwUnit(value.landCost.purchaseCost * 0.045)}(자산상승금액 (토지매입비 * 4.5%)) / ${krwUnit(investmentCapital)}(실투자금))`);
   // }
-  const expectedSaleAmount = (value.annualManagementProfit + value.annualRentProfit) / (3.5 / 100);
+  let rentProfitBase = 4.0;
+  if(land.legDongName.includes('강남구')
+    || land.legDongName.includes('용산구')
+    || land.legDongName.includes('성동구')
+    || land.legDongName.includes('마포구')
+    || land.legDongName.includes('종로구')
+    || land.legDongName.includes('서초구')
+    || land.legDongName.includes('송파구')
+    || land.legDongName.includes('광진구')
+    || land.legDongName.includes('영등포구')
+    || land.legDongName.includes('중구')
+  ){
+    rentProfitBase = 3.0;
+  } else if(land.legDongName.includes('동대문구')
+    || land.legDongName.includes('관악구')
+    || land.legDongName.includes('강서구')
+    || land.legDongName.includes('구로구')
+    || land.legDongName.includes('금천구')
+    || land.legDongName.includes('양천구')
+    || land.legDongName.includes('강동구')
+  ){
+    rentProfitBase = 3.25;
+  } else if(land.legDongName.includes('동작구')
+    || land.legDongName.includes('서대문구')
+    || land.legDongName.includes('노원구')
+  ){
+    rentProfitBase = 3.50;
+  } else if(land.legDongName.includes('중랑구')
+    || land.legDongName.includes('강북구')
+    || land.legDongName.includes('성북구')
+    || land.legDongName.includes('은평구')
+    || land.legDongName.includes('도봉구')
+  ){
+    rentProfitBase = 4.00;
+  }
+  
+  const expectedSaleAmount = (value.annualManagementProfit + value.annualRentProfit) / (rentProfitBase / 100);
   if(debug){
-    debugExtraInfo.push(`[매각금액] ${krwUnit(expectedSaleAmount)} (${krwUnit(value.annualManagementProfit)}(연간관리비수익) + ${krwUnit(value.annualRentProfit)}(연간임대수익) / (3.5%))`);
+    debugExtraInfo.push(`[매각금액] ${krwUnit(expectedSaleAmount)} (${krwUnit(value.annualManagementProfit)}(연간관리비수익) + ${krwUnit(value.annualRentProfit)}(연간임대수익) / (${rentProfitBase.toFixed(2)}%))`);
   }
 
   return {
@@ -1105,19 +1140,19 @@ function calculateInitialCapital(value : ReportValue, debug : boolean = false, d
   return result;
 }
 
-function calculateRealInvestmentCapital(value : ReportValue, totalProjectCost : number, debug : boolean = false, debugExtraInfo : string[] = []){
+// function calculateRealInvestmentCapital(value : ReportValue, totalProjectCost : number, debug : boolean = false, debugExtraInfo : string[] = []){
 
-  const result = totalProjectCost - value.loan.loanAmount - value.annualDepositProfit;
+//   const result = totalProjectCost - value.loan.loanAmount - value.annualDepositProfit;
 
-  if(debug){
-    debugExtraInfo.push(
-      `[실투자금] ${krwUnit(result)} (` +
-      `총사업비 (${krwUnit(totalProjectCost)}) - 보증금 (${krwUnit(value.annualDepositProfit)}) - 금융차입금 (${krwUnit(value.loan.loanAmount)}))`
-    );
-  }
+//   if(debug){
+//     debugExtraInfo.push(
+//       `[실투자금] ${krwUnit(result)} (` +
+//       `총사업비 (${krwUnit(totalProjectCost)}) - 보증금 (${krwUnit(value.annualDepositProfit)}) - 금융차입금 (${krwUnit(value.loan.loanAmount)}))`
+//     );
+//   }
 
-  return result
-}
+//   return result
+// }
 
 
 
@@ -1146,15 +1181,15 @@ function calculateTotalProjectCost(value: ReportValue, debug : boolean = false, 
   return result
 }
 
-function calculateAnnualProfit(value : ReportValue, tax : TaxInfo, debug : boolean = false, debugExtraInfo : string[] = []){
+// function calculateAnnualProfit(value : ReportValue, tax : TaxInfo, debug : boolean = false, debugExtraInfo : string[] = []){
 
-  const result = value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax + value.loan.loanInterestPerYear);
+//   const result = value.annualRentProfit + value.annualManagementProfit - (tax.propertyTax + tax.propertyTaxForBuilding + tax.comprehensiveRealEstateTax + value.loan.loanInterestPerYear);
 
-  if(debug){
-    debugExtraInfo.push(`[연간 순수익] ${krwUnit(result)} (${krwUnit(value.annualRentProfit)}(연간임대수익) + ${krwUnit(value.annualManagementProfit)}(연간관리비수익) - (${krwUnit(tax.propertyTax)}(토지재산세) + ${krwUnit(tax.propertyTaxForBuilding)}(건물재산세) + ${krwUnit(tax.comprehensiveRealEstateTax)}(종합부동산세) + ${krwUnit(value.loan.loanInterestPerYear)}(금융차입이자))`);
-  }
-  return result;
-}
+//   if(debug){
+//     debugExtraInfo.push(`[연간 순수익] ${krwUnit(result)} (${krwUnit(value.annualRentProfit)}(연간임대수익) + ${krwUnit(value.annualManagementProfit)}(연간관리비수익) - (${krwUnit(tax.propertyTax)}(토지재산세) + ${krwUnit(tax.propertyTaxForBuilding)}(건물재산세) + ${krwUnit(tax.comprehensiveRealEstateTax)}(종합부동산세) + ${krwUnit(value.loan.loanInterestPerYear)}(금융차입이자))`);
+//   }
+//   return result;
+// }
 
 
 function calculateAnnualRentProfit(value : ReportValue, tax : TaxInfo, debug : boolean = false, debugExtraInfo : string[] = []){
@@ -1781,35 +1816,8 @@ static async makeDevDetailInfo(
           devDetailInfo.debugBuildInfo
         );
 
-        // if(debug){
-        //   devDetailInfo.debugBuildInfo.push(`---------------------------------------`);
-        //   devDetailInfo.debugBuildInfo.push(`🧾 세금`);
-        // }        
-
-        // devDetailInfo.build.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugBuildInfo);
-        
-        // const today = new Date();
-        // const formattedToday =
-        //   today.getFullYear().toString() +
-        //   (today.getMonth() + 1).toString().padStart(2, '0') +
-        //   today.getDate().toString().padStart(2, '0');
-
-
-        // devDetailInfo.build.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-        //   curLandInfo.relTotalPrice, 
-        //   devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
-        //   "철근콘크리트구조",
-        //   formattedToday,
-        //   debug, devDetailInfo.debugBuildInfo);
-        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        // if(debug){
-        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-        //   devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.build.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        // }
-
-        devDetailInfo.build.result = makeResult(devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
+        devDetailInfo.build.result = makeResult(curLandInfo, devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
       }
-      // console.log('aiReport.build.projectCost ', aiReport.build.projectCost);
       
       ////////////////////////////////////////////////////////////////
       // 리모델링   
@@ -1853,28 +1861,7 @@ static async makeDevDetailInfo(
           debug,
           devDetailInfo.debugRemodelInfo
         );
-        // if(debug){
-        //   devDetailInfo.debugRemodelInfo.push(`---------------------------------------`);
-        //   devDetailInfo.debugRemodelInfo.push(`🧾 세금`);
-        // }        
-        // devDetailInfo.remodel.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRemodelInfo);
-  
-        // const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
-        // const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;
-        // devDetailInfo.remodel.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-        //   curLandInfo.relTotalPrice, 
-        //   totalFloorArea, 
-        //   buildingList[0].structureCodeName,
-        //   buildingList[0].useApprovalDate,
-        //   debug, devDetailInfo.debugRemodelInfo);
-        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        // if(debug){
-        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-        //   devDetailInfo.debugRemodelInfo.push(`<종합부동산세> ${devDetailInfo.remodel.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        // }
-
-
-        devDetailInfo.remodel.result = makeResult(devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
+        devDetailInfo.remodel.result = makeResult(curLandInfo, devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
       }
 
 
@@ -1921,39 +1908,10 @@ static async makeDevDetailInfo(
           debug,
           devDetailInfo.debugRentInfo
         );
-        // if(debug){
-        //   devDetailInfo.debugRentInfo.push(`---------------------------------------`);
-        //   devDetailInfo.debugRentInfo.push(`🧾 세금`);
-        // }        
-        
-        // devDetailInfo.rent.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugRentInfo);
-        // devDetailInfo.rent.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(
-        //   curLandInfo.relTotalPrice, 
-        //   devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, 
-        //   buildingList[0].structureCodeName,
-        //   buildingList[0].useApprovalDate,
-        //   debug, devDetailInfo.debugRentInfo);
-        // // devDetailInfo.build.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(curLandInfo.relTotalPrice, devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugExtraInfo);
-        // if(debug){
-        //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-        //   devDetailInfo.debugRentInfo.push(`<종합부동산세> ${devDetailInfo.rent.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        // }
-
-        
-        devDetailInfo.rent.result = makeResult(devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
+    
+        devDetailInfo.rent.result = makeResult(curLandInfo, devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
       }
 
-
-
-      // TODO : 건물과세는 건축물 시가표준액으로 계산해야 함 
-      // aiReport.tax.propertyTaxForBuilding = getPropertyTax(taxBase);
-      // TODO : 종합부동산세 계산 
-      // aiReport.tax.comprehensiveRealEstateTax = getComprehensiveRealEstateTax(taxBase);
-      
-
-      // console.log('aiReport', aiReport);
-
-      
       return {
         landInfo : curLandInfo,
         buildingList : buildingList,
