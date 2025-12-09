@@ -6,7 +6,6 @@ import { QueryClientProvider, QueryClient } from 'react-query'
 import { Flip, Slide, ToastContainer, Zoom } from 'react-toastify'
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { PostHogProvider } from 'posthog-js/react'
-import posthog from 'posthog-js'
 import * as Sentry from "@sentry/react";
 
 Sentry.init({
@@ -17,12 +16,6 @@ Sentry.init({
   sendDefaultPii: true,
   debug: import.meta.env.MODE !== 'production',
 });
-
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-  autocapture: true,
-  capture_exceptions: true,
-})
 
 const theme = createTheme({
   components: {
