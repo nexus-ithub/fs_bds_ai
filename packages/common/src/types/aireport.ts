@@ -106,7 +106,7 @@ export interface BuildInfo {
 export interface Loan {
   // 차입비
   loanAmount: number;
-  // 총차입이자
+  // 사업기간내금융이자
   loanInterest: number;
   // 연간 차입이자
   loanInterestPerYear: number;
@@ -183,19 +183,24 @@ export interface ReportResult {
   grade: string;
   // message: string;
    
-  // 초기준비자금 
-  // initialCapital: number;
-  // 실투자금
-  investmentCapital: number;
-
   // 총사업비 
   totalProjectCost: number;
 
-  // 연간 순수익
-  annualProfit: number;
+  // 초기준비자금 
+  initialCapital: number;
+  // 실투자금
+  // investmentCapital: number;
+
+  // // 연간 순수익
+  // annualProfit: number;
+  // 연간 임대수익
+  annualRentProfit: number;
 
   // 실투자금대비 임대수익율 
-  rentProfitRatio: number;
+  // rentProfitRatio: number;
+
+  // 개발후 임대수익률
+  profitRatio: number;
 
   // 평균 공시지가 상승률 
   avgPublicLandPriceGrowthRate: number;
