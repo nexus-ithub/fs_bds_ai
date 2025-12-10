@@ -369,7 +369,7 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
                   <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{(aiReportDetail?.result?.avgPublicLandPriceGrowthRate * 100).toFixed(1)}%</p>                       
                 </div>                
                 <div className="flex-1 flex flex-col space-y-[12px]">
-                  <p className="font-h4 text-center">5년후 예상 매각금액</p>
+                  <p className="font-h4 text-center">예상 매각금액</p>
                   <HDivider/>
                   <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.expectedSaleAmount, true)}</p>                       
                 </div>                            
