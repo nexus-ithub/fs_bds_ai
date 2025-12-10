@@ -217,13 +217,18 @@ export const AIReport = ({ landId, onClose }: AIReportProps) => {
 
   const sortedItems = useMemo(() => {
     if(aiReportResult){
-      return [
+      const list = [
         {title: '신축', value: aiReportResult.build}, 
         {title: '리모델링', value: aiReportResult.remodel}, 
         {title: '임대', value: aiReportResult.rent}
-      ]
-      .filter((item) => item.value !== null)
+      ].filter((item) => item.value !== null)
       .sort((a, b) => b.value.grade > a.value.grade ? -1 : 1)
+      if(IS_DEVELOPMENT){
+        return list
+      }else{
+        return [list[0]]
+      }
+
     }
     return []
   }, [aiReportResult])

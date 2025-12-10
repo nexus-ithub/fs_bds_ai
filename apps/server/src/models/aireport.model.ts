@@ -1,3 +1,4 @@
+
 import { db } from '../utils/database';
 import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo } from '@repo/common';
 import OpenAI from "openai";
@@ -5,6 +6,19 @@ import { LandModel } from './land.model';
 const client = new OpenAI({
   timeout: 20 * 1000, 
 });
+
+
+
+export const getAreaStrWithPyeong = (area ?: any) => {
+  // console.log(area);
+  if(!area) {
+    return '-m² (-평)';
+  }
+
+  const areaNum = Number(area);
+  // const area = Number(area);
+  return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
+}
 
 export const krwUnit = (amount: number, firstUnit?: boolean) => {
   const isNegative = amount < 0;
@@ -49,12 +63,11 @@ const INSTRUCTION_PROMPT = `"""
 - 건물 특징(위치, 용도, 임대료, 준공연도)을 포함하고 건물이 없으면 "현재 건축물 없는 상태"라고 작성 
 - 주용도에 따른 제한사항/고려해야할점/긍정적인면 등 지식을 동원해서 용도에 대한 이야기 작성, 만약 주용도가 
   특별한게 없다면 작성하지 않아도 됨  
+- 등급 이야기는 하지 말고 추천되는 개발형태에 대해서 설명해줘 
+- 매각금액/투자금/순수익등 데이터를 설명해줘
 - 주소를 보고 지식을 동원해서 주변 랜드마크, 대중교통, 개발계획, 개발호재등의 입지의 특징을 설명해주고, 만약 주변입지가 특별한게 없다면 작성하지 않아도 됨 
 - 기타로 현재 데이터를 기반으로 추가 내용이 있다면 간단하게 첨부해도 됨
-- 신축 / 리모델링 / 임대중 등급이 'A' 는 가장 추천하는 개발 방향이고, 'B'는 두번째로 추천하는 개발 방향이고, 'C'는 가장 추천하지 않는 개발 방향임.
-- 등급 이야기는 하지 말고 추천/두번째로 추천/추천하지 않음 용어로 설명해줘 
-- 매각금액/투자금/순수익등의 설명은 등급이 "A" 인 것을 기준으로 설명
-- 신축 / 리모델링 / 임대중 등급 A, B 까지만 설명 하고 C 에 대해서는 굳이 설명하지 않아도 됨
+
 
 *** 중요 *** 
 - 응답 텍스트는 너무 길지 않게 800자 이내로 작성해줘 
@@ -1705,25 +1718,6 @@ static async makeDevDetailInfo(
         // makeReportValue(aiReport.rent, 'C', 'rent');
       }
 
-       // const aroundRentInfo = await db.query<any>(
-      //   `WITH filtered AS (
-      //       SELECT
-      //           n.floor_type,
-      //           -- 평당 임대료 = rent_price / (전용면적 평)
-      //           (n.rent_price / (CAST(n.excl_area AS DECIMAL(10,4)) * 0.3025)) AS rent_per_py,
-      //           ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) AS distance_m
-      //       FROM naver_rent_info AS n
-      //       WHERE ST_Distance_Sphere(POINT(?, ?), POINT(n.lng, n.lat)) <= ?
-      //     )
-      //     SELECT DISTINCT
-      //         floor_type,
-      //         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_py) 
-      //             OVER (PARTITION BY floor_type) AS median_rent_per_py
-      //     FROM filtered
-      //     ORDER BY floor_type;
-      //     `,
-      //   [curLandInfo.lng, curLandInfo.lat, curLandInfo.lng, curLandInfo.lat, RENT_CANDIDATE_RADIUS]
-      // )
 
       const aroundRentInfo = await LandModel.getAroundRentInfo(curLandInfo.lat, curLandInfo.lng)
       console.log('aroundRentInfo ', aroundRentInfo)
@@ -1752,25 +1746,14 @@ static async makeDevDetailInfo(
         devDetailInfo.debugExtraInfo.push(`2층 이상: ${Number(Number(upperFloorRentProfitPerPy).toFixed(0)).toLocaleString()}원`);
         devDetailInfo.debugExtraInfo.push(`지하층: ${Number(Number(baseFloorRentProfitPerPy).toFixed(0)).toLocaleString()}원`);
       }
-      // if(debug){
-      //   devDetailInfo.debugExtraInfo.push(`---`);
-      //   devDetailInfo.debugExtraInfo.push(`🧾 세금`);
-
-      // }
-
-      // devDetailInfo.tax.propertyTax = getPropertyTax(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugExtraInfo);
-      // // devDetailInfo.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(curLandInfo.relTotalPrice, curLandInfo.relTotalArea, debug, devDetailInfo.debugExtraInfo);
-      // if(debug){
-      //   // devDetailInfo.debugExtraInfo.push(`<재산세(건물)> ${devDetailInfo.tax.propertyTaxForBuilding}원 (작업중..)`);
-      //   devDetailInfo.debugExtraInfo.push(`<종합부동산세> ${devDetailInfo.tax.comprehensiveRealEstateTax}원 (작업중..)`);
-        
-
-      // }
-      // devDetailInfo.tax.propertyTaxForBuilding = getPropertyTaxForBuilding(taxBase);
       
+      const recommendedGradeOnly = (process.env.NODE_ENV !== 'development')
+
+      console.log('recommendedGradeOnly ', recommendedGradeOnly)
       ////////////////////////////////////////////////////////////////
       // 신축 
-      if(devDetailInfo.build){
+      if(devDetailInfo.build && (!recommendedGradeOnly || devDetailInfo.build.grade === 'A')){
+        
         if(debug){
           devDetailInfo.debugBuildInfo = [];
           devDetailInfo.debugBuildInfo.push(`🏢 신축`);
@@ -1821,7 +1804,7 @@ static async makeDevDetailInfo(
       
       ////////////////////////////////////////////////////////////////
       // 리모델링   
-      if(devDetailInfo.remodel){
+      if(devDetailInfo.remodel && (!recommendedGradeOnly || devDetailInfo.remodel.grade === 'A')){
         if(debug){
           devDetailInfo.debugRemodelInfo = [];
           devDetailInfo.debugRemodelInfo.push(`🔨리모델링`);
@@ -1867,7 +1850,7 @@ static async makeDevDetailInfo(
 
       ////////////////////////////////////////////////////////////////
       // 임대
-      if(devDetailInfo.rent){
+      if(devDetailInfo.rent && (!recommendedGradeOnly || devDetailInfo.rent.grade === 'A')){
         if(debug){
           devDetailInfo.debugRentInfo = [];
           devDetailInfo.debugRentInfo.push(`⛺ 임대`);
@@ -1939,23 +1922,56 @@ static async makeDevDetailInfo(
         summary: '',
       };
 
+      let recommended = '';
+      let recommendedInfo;
+      let recommendedResult;
+      if(aiReportResult.build?.grade === 'A'){
+        recommended = '신축';
+        recommendedInfo = devDetailInfo.build
+        recommendedResult = aiReportResult.build
+      }else if(aiReportResult.remodel?.grade === 'A'){
+        recommended = '리모델링';
+        recommendedInfo = devDetailInfo.remodel
+        recommendedResult = aiReportResult.remodel
+      }else if(aiReportResult.rent?.grade === 'A'){
+        recommended = '임대';
+        recommendedInfo = devDetailInfo.rent
+        recommendedResult = aiReportResult.rent
+      }
+
+      // const input = `"""
+      //     아래 데이터를 참고해서 설명글 작성해줘 
+      //     추정가 : ${krwUnit(estimatedPrice.estimatedPrice, true)}
+      //     주소 : ${landInfo.legDongName + ' ' + landInfo.jibun}
+      //     주용도 : ${landInfo.usageName}
+      //     대지면적 : ${landInfo.relTotalArea}
+      //     공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
+      //     최대용적율 : ${landInfo.relWeightedFar} %
+      //     최대건폐율 : ${landInfo.relWeightedBcr} %
+      //     최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
+      //     현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
+      //     신축시 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}
+      //     신축정보 : ${reportValueToJsonString(devDetailInfo.build, aiReportResult.build)}
+      //     리모델링정보 : ${reportValueToJsonString(devDetailInfo.remodel, aiReportResult.remodel)}
+      //     임대정보 : ${reportValueToJsonString(devDetailInfo.rent, aiReportResult.rent)}
+      //        """`;
       const input = `"""
           아래 데이터를 참고해서 설명글 작성해줘 
           추정가 : ${krwUnit(estimatedPrice.estimatedPrice, true)}
           주소 : ${landInfo.legDongName + ' ' + landInfo.jibun}
           주용도 : ${landInfo.usageName}
-          대지면적 : ${landInfo.relTotalArea}
-          공시지가 : ${krwUnit(landInfo.price, true)}원 / m2
+          대지면적 : ${getAreaStrWithPyeong(landInfo.relTotalArea)}
+          공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
           최대용적율 : ${landInfo.relWeightedFar} %
           최대건폐율 : ${landInfo.relWeightedBcr} %
           최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
           현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
-          신축시 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}
-          신축정보 : ${reportValueToJsonString(devDetailInfo.build, aiReportResult.build)}
-          리모델링정보 : ${reportValueToJsonString(devDetailInfo.remodel, aiReportResult.remodel)}
-          임대정보 : ${reportValueToJsonString(devDetailInfo.rent, aiReportResult.rent)}
-             """`;
+          개발 추천항목 : ${recommended}
+          설계리포트 : ${reportValueToJsonString(recommendedInfo, recommendedResult)}
+          ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
+             """`;      
 
+       console.log(input)       
         // const input = `"""
         //   아래 데이터를 참고해서 설명글 작성해줘 
         //   추정가 : ${estimatedPrice.estimatedPrice}
