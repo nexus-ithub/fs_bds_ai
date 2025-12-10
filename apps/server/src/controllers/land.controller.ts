@@ -269,63 +269,106 @@ export const getEstimatedPriceV2 = async (req: AuthRequest, res: Response) => {
 
     const estimatedPrice = await LandModel.calculateEstimatedPrice(id as string);
     const dealInfo = await LandModel.findLatestDealInfo(estimatedPrice.baseLandId);
-    const growthRate = await LandModel.calculatePublicPriceGrowthRate(estimatedPrice.baseLandId);
-    const devDetailInfo = await AIReportModel.makeDevDetailInfo(id as string, estimatedPrice);
-    const priceByExpectedSaleAmount = devDetailInfo.devDetailInfo.build.result.expectedSaleAmount * 0.7;
+    // const growthRate = await LandModel.calculatePublicPriceGrowthRate(estimatedPrice.baseLandId);
+    const { 
+      totalProjectCost,
+      landInfo,
+      buildingList 
+    } = await AIReportModel.getBuildProjectCost(id as string);
+    // const devDetailInfo = await AIReportModel.makeDevDetailInfo(id as string, estimatedPrice);
+    // const priceByExpectedSaleAmount = devDetailInfo.devDetailInfo.build.result.expectedSaleAmount * 0.7;
     
-    let priceByDealPrice = 0;
-    console.log('dealInfo', dealInfo);
-    console.log('growthRate', growthRate , typeof growthRate);
+    
+    // let priceByDealPrice = 0;
+    // console.log('dealInfo', dealInfo);
+    // console.log('growthRate', growthRate , typeof growthRate);
     let debugText = [];
 
-    debugText.push(`[예상매각금액의 70%]`);
-    debugText.push(`${krwUnit(priceByExpectedSaleAmount, true)} (${krwUnit(devDetailInfo.devDetailInfo.build.result.expectedSaleAmount, true)}(예상매각금액) x 70%)`);
+    // debugText.push(`[예상매각금액의 70%]`);
+    // debugText.push(`${krwUnit(priceByExpectedSaleAmount, true)} (${krwUnit(devDetailInfo.devDetailInfo.build.result.expectedSaleAmount, true)}(예상매각금액) x 70%)`);
 
-    debugText.push(`[실거래 + 평균지가상승률반영가]`);
-    if(dealInfo){
-      const diffYear = new Date().getFullYear() - dealInfo.dealDate.getFullYear();
-      priceByDealPrice = (Number(dealInfo.dealPrice) * 10000) * Math.pow(1 + growthRate, diffYear);
-      debugText.push(`${krwUnit(priceByDealPrice, true)} (실거래가 ${krwUnit(dealInfo.dealPrice * 10000, true)} 에 ${diffYear}년 ${(growthRate * 100).toFixed(1)}% 복리 적용)`);
-    }else{
-      debugText.push(`실거래가가 없음`);
-    }
+    // debugText.push(`[실거래 + 평균지가상승률반영가]`);
+    // if(dealInfo){
+    //   const diffYear = new Date().getFullYear() - dealInfo.dealDate.getFullYear();
+    //   priceByDealPrice = (Number(dealInfo.dealPrice) * 10000) * Math.pow(1 + growthRate, diffYear);
+    //   debugText.push(`${krwUnit(priceByDealPrice, true)} (실거래가 ${krwUnit(dealInfo.dealPrice * 10000, true)} 에 ${diffYear}년 ${(growthRate * 100).toFixed(1)}% 복리 적용)`);
+    // }else{
+    //   debugText.push(`실거래가가 없음`);
+    // }
 
-    const totalProjectCost = 
-      devDetailInfo.devDetailInfo.build.projectCost.constructionCost + 
-      devDetailInfo.devDetailInfo.build.projectCost.constructionDesignCost + 
-      devDetailInfo.devDetailInfo.build.projectCost.demolitionCost + 
-      devDetailInfo.devDetailInfo.build.projectCost.demolitionManagementCost + 
-      devDetailInfo.devDetailInfo.build.projectCost.managementCost + 
-      devDetailInfo.devDetailInfo.build.projectCost.pmFee;
+    // const totalProjectCost = 
+    //   devDetailInfo.devDetailInfo.build.projectCost.constructionCost + 
+    //   devDetailInfo.devDetailInfo.build.projectCost.constructionDesignCost + 
+    //   devDetailInfo.devDetailInfo.build.projectCost.demolitionCost + 
+    //   devDetailInfo.devDetailInfo.build.projectCost.demolitionManagementCost + 
+    //   devDetailInfo.devDetailInfo.build.projectCost.managementCost + 
+    //   devDetailInfo.devDetailInfo.build.projectCost.pmFee;
 
     
-    let priceByProjectCost = estimatedPrice.estimatedPrice;
+    let resultPrice = estimatedPrice.estimatedPrice;
 
     debugText.push(`[추정가 + 건물가격(사업비에 감가상각적용)]`);
-    if(devDetailInfo.buildingList?.length > 0){
-      console.log('devDetailInfo.buildingList', devDetailInfo.buildingList);
-      const buildingAge = getBuildingAge(devDetailInfo.buildingList[0].useApprovalDate);
-      priceByProjectCost += totalProjectCost * (Math.max(1 - (buildingAge * 0.025), 0));
-      debugText.push(`${krwUnit(priceByProjectCost, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + (사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.025)))`);
+    if(buildingList?.length > 0){
+      console.log('devDetailInfo.buildingList', buildingList);
+      const buildingAge = getBuildingAge(buildingList[0].useApprovalDate);
+      let discountRate = 1.0;
+      let textDiscountRate = ''
+      if(buildingAge < 5){
+        discountRate = 1.0
+        debugText.push(`준공 5년미만`);
+        textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)})`
+      }else if(buildingAge < 10){
+        discountRate = Math.max(1 - (buildingAge * 0.020), 0)
+        debugText.push(`준공 5년이상 10년미만`);
+        textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.020)))`
+      }else{
+        discountRate = Math.max(1 - (buildingAge * 0.025), 0)
+        debugText.push(`준공 10년이상`);
+        textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.025)))`
+      }
+      resultPrice += totalProjectCost * discountRate;
+      debugText.push(`${krwUnit(resultPrice, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + ${textDiscountRate}`);
     }else{
       debugText.push(`건물이 없음`);
     }
-    console.log('estimatedPrice', estimatedPrice);
+
+    // console.log('estimatedPrice', estimatedPrice);
     console.log('dealInfo', dealInfo);
-    console.log('growthRate', growthRate);
+    // console.log('growthRate', growthRate);
 
-    console.log('priceByDealPrice ', priceByDealPrice);
-    console.log('priceByExpectedSaleAmount ', priceByExpectedSaleAmount);
-    console.log('priceByProjectCost ', priceByProjectCost);
+    // console.log('priceByDealPrice ', priceByDealPrice);
+    // console.log('priceByExpectedSaleAmount ', priceByExpectedSaleAmount);
+    // console.log('resultPrice ', resultPrice);
+    // console.log('landInfo.dealPrice ', Number(dealInfo?.dealPrice) * 10000);
 
-    const expectedPrice = Math.max(priceByDealPrice, priceByExpectedSaleAmount, priceByProjectCost);
+    
+    if(dealInfo?.dealPrice && (Number(dealInfo.dealPrice) * 10000) > resultPrice){
+      debugText.push(`💰[추정가 보다 실거래가가 더 큼]`);
+      const dealPrice = Number(landInfo.dealPrice) * 10000;
+      // const diffYear = new Date().getFullYear() - dealInfo.dealDate.getFullYear();
+      const diffPrice = await LandModel.getPublicPriceDifference(estimatedPrice.baseLandId, dealInfo.dealDate.getFullYear());
+      console.log('dealInfo.dealDate.getFullYear() ', dealInfo.dealDate.getFullYear())
+      console.log('dealPrice ', dealPrice)
+      console.log('diffPrice ', diffPrice)
+      console.log('estimatedPrice.baseLandId ', estimatedPrice.baseLandId)
+
+      debugText.push(`실거래가 ${krwUnit(dealPrice, true)}`);
+      debugText.push(`${dealInfo.dealDate.getFullYear()}년 대비 토지 공시지가 차액 ${krwUnit(diffPrice, true)}`);
+
+      
+      resultPrice = dealPrice + ((diffPrice * landInfo.relTotalArea) * estimatedPrice.per);
+      debugText.push(`추정가 ${krwUnit(resultPrice, true)} = ${krwUnit(dealPrice, true)}(실거래가) + (${krwUnit(diffPrice, true)}(공시지가 차액) x ${Number(landInfo.relTotalArea).toFixed(1)}(토지면적) x ${estimatedPrice.per}(PER))`);
+    }
+    // const expectedPrice = Math.max(priceByDealPrice, priceByExpectedSaleAmount, priceByProjectCost);
+    // const expectedPrice = Math.max(priceByDealPrice, priceByProjectCost);
 
     // if(priceByExpectedSaleAmount > 0){
     //   debugText.push(`최종 추정가 ${krwUnit(expectedPrice)} `);
     // }
     
     const result = {
-      estimatedPrice: expectedPrice,
+      estimatedPrice: resultPrice,
+      per: (resultPrice / (landInfo.relTotalPrice * landInfo.relTotalArea)),
       debugText
     } as EstimatedPriceV2;
 

@@ -814,7 +814,46 @@ export class LandModel {
     }
   }
 
+  static async getPublicPriceDifference(id: string, year: number): Promise<number | null> {
+    try {
+      const result = await db.query<any>(
+        `WITH latest AS (
+            SELECT 
+                id,
+                year,
+                month,
+                price
+            FROM individual_announced_price
+            WHERE id = ?
+            ORDER BY year DESC, LPAD(month, 2, '0') DESC
+            LIMIT 1
+        )
+        SELECT
+            base.id,
+            base.year AS base_year,
+            base.month AS base_month,
+            CAST(base.price AS UNSIGNED) AS base_price,
+            latest.year AS latest_year,
+            latest.month AS latest_month,
+            CAST(latest.price AS UNSIGNED) AS latest_price,
+            (CAST(latest.price AS UNSIGNED) - CAST(base.price AS UNSIGNED)) AS price_diff
+        FROM individual_announced_price base
+        JOIN latest ON latest.id = base.id
+        WHERE base.id = ?
+          AND base.year = ?;
+        `,
+        [id, id, year]
+      );
 
+      if (result[0]?.price_diff !== undefined && result[0]?.price_diff !== null) {
+        return Number(result[0].price_diff);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error to get public price difference:', error);
+      throw error;
+    }
+  }
 
   static async getAroundRentInfo(lat: number, lng: number): Promise<any | null> {
     try {

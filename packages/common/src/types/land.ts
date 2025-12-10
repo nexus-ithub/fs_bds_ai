@@ -123,6 +123,7 @@ export interface EstimatedPrice {
 
 export interface EstimatedPriceV2 {
   estimatedPrice: number;
+  per: number;
   debugText: string[];
 }
 

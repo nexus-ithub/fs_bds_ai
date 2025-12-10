@@ -241,7 +241,8 @@ export const LandInfoCard = ({
         {
           estimatedPriceV2 && (
             <div className="mt-[16px] flex flex-col border border-line-02 rounded-[4px] py-[14px] px-[8px]">
-              <p className="font-h2-p">추정가 : {krwUnit(estimatedPriceV2?.estimatedPrice, true)}</p>
+              <p className="font-h4-p">추정가 : {krwUnit(estimatedPriceV2?.estimatedPrice, true)} , 공시지가 대비 {estimatedPriceV2.per.toFixed(1)}배</p>
+              
               <div className="flex flex-col text-[14px]">
                 {
                   estimatedPriceV2?.debugText.map((text, index) => (

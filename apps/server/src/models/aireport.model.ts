@@ -1309,7 +1309,353 @@ function reportValueToJsonString(report: ReportValue, result: ReportResult): str
 
 export class AIReportModel {
 
-static async makeDevDetailInfo(
+  static async getBuildingDataList(landId : string){
+
+    const buildingList = await db.query<BuildingData>(
+      `
+      WITH
+      /* 1) 기준 토지 한 개 선택 */
+      base AS (
+        SELECT
+            li.id,
+            li.leg_dong_code,
+            li.jibun,
+            li.div_code,
+            LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+            LPAD(
+              CAST(
+                IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0'
+              ) AS UNSIGNED), 4, '0'
+            ) AS ji_pad
+        FROM land_info li
+        WHERE li.id = ?
+        LIMIT 1
+      ),
+
+      /* 2) 토지 지번과 매칭되는 건물 ID 수집 (메인주소 + 보조주소) */
+      cand_building_ids AS (
+        SELECT blh.building_id
+        FROM building_leg_headline blh
+        JOIN base b
+          ON blh.leg_dong_code_val = b.leg_dong_code
+        AND blh.bun = b.bun_pad
+        AND blh.ji  = b.ji_pad
+        UNION   -- 중복 제거를 위해 UNION 사용
+        SELECT bsa.building_id
+        FROM building_sub_addr bsa
+        JOIN base b
+          ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+        AND bsa.sub_bun = b.bun_pad
+        AND bsa.sub_ji  = b.ji_pad
+      )
+
+      /* 3) 최종 건물 정보 리스트 */
+      SELECT 
+        blh.building_id       AS id,
+        blh.floor_area_ratio  AS floorAreaRatio,
+        blh.arch_land_ratio AS archLandRatio,
+        blh.use_approval_date AS useApprovalDate,
+        blh.total_floor_area  AS totalFloorArea,
+        blh.arch_area         AS archArea,
+        blh.land_area         AS landArea,
+        blh.gnd_floor_number  AS gndFloorNumber,
+        blh.base_floor_number AS baseFloorNumber,
+        blh.structure_code_name AS structureCodeName
+      FROM building_leg_headline blh
+      JOIN cand_building_ids c
+        ON c.building_id = blh.building_id
+      ORDER BY blh.total_floor_area DESC;
+      `,
+      [landId]
+    )    
+
+    return buildingList;  
+  }
+
+  static async getLandDataList(landId : string){
+    const landDataList = await db.query<LandData>(
+      `
+        WITH
+        /* 1) 기준 land_info 한 개 선택 */
+        base AS (
+          SELECT
+              li.id, li.leg_dong_code, li.jibun, li.div_code,
+              LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
+              LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
+          FROM land_info li
+          WHERE li.id = ?
+          LIMIT 1
+        ),
+        cand_building_ids AS (
+          SELECT blh.building_id
+          FROM building_leg_headline blh
+          JOIN base b
+            ON blh.leg_dong_code_val = b.leg_dong_code
+          AND blh.bun = b.bun_pad
+          AND blh.ji  = b.ji_pad
+          UNION
+          SELECT bsa.building_id
+          FROM building_sub_addr bsa
+          JOIN base b
+            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
+          AND bsa.sub_bun = b.bun_pad
+          AND bsa.sub_ji  = b.ji_pad
+        ),
+        rows_main AS (
+          SELECT blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
+          FROM building_leg_headline blh
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        rows_sub AS (
+          SELECT bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
+          FROM building_sub_addr bsa
+          JOIN cand_building_ids c USING (building_id)
+        ),
+        /* 0패딩 제거 후 'bun[-ji]' 정규 지번 키 생성 */
+        row_keys AS (
+          SELECT
+            building_id,
+            leg_code,
+            bun_pad,
+            ji_pad,
+            source,  -- main / sub 구분
+            CONCAT(
+              CAST(bun_pad AS UNSIGNED),
+              CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
+                  THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
+                  ELSE ''
+              END
+            ) AS jibun_norm
+          FROM (
+            SELECT 
+              rm.building_id,
+              rm.leg_code,
+              rm.bun_pad,
+              rm.ji_pad,
+              'MAIN' AS source
+            FROM rows_main rm
+
+            UNION ALL
+
+            SELECT 
+              rs.building_id,
+              rs.leg_code,
+              rs.bun_pad,
+              rs.ji_pad,
+              'SUB' AS source
+            FROM rows_sub rs
+          ) u
+        ),
+        /* land_info 매칭으로 관련 필지 id 수집 */
+        related_li_ids AS (
+          SELECT
+            li2.id AS li_id,
+            MAX(CASE WHEN rk.source = 'MAIN' THEN 1 ELSE 0 END) AS is_main  -- ✅ main 여부
+          FROM row_keys rk
+          JOIN land_info li2
+            ON li2.leg_dong_code = rk.leg_code
+          AND li2.jibun         = rk.jibun_norm
+          JOIN base b
+            ON li2.div_code = b.div_code
+          GROUP BY li2.id
+        ),
+        /* 기준 필지 항상 포함 */
+        final_ids AS (
+          SELECT li_id AS id FROM related_li_ids
+          UNION
+          SELECT id FROM base
+        ),
+        /* land_char_info의 id별 최신 1건을 파생 테이블로 준비 (LATERAL 미사용) */
+        land_char_latest AS (
+          SELECT c.*
+          FROM land_char_info c
+          JOIN (
+            SELECT id, MAX(create_date) AS max_cd
+            FROM land_char_info
+            GROUP BY id
+          ) m
+            ON m.id = c.id
+          AND m.max_cd = c.create_date
+        ),
+        /* 관련(+기준) 모든 필지 집계 */
+        rel_agg AS (
+          SELECT
+            SUM(li.area)                        AS relTotalArea,     -- 1) area 합
+            AVG(lc.price)                       AS relTotalPrice,    -- 2) price 평균
+            /* 3) FAR 면적 가중 평균 */
+            SUM(CASE WHEN llur.far IS NOT NULL THEN llur.far * li.area ELSE 0 END)
+              / NULLIF(SUM(CASE WHEN llur.far IS NOT NULL THEN li.area END), 0) AS relWeightedFar,
+            /* 4) BCR 면적 가중 평균 */
+            SUM(CASE WHEN llur.bcr IS NOT NULL THEN llur.bcr * li.area ELSE 0 END)
+              / NULLIF(SUM(CASE WHEN llur.bcr IS NOT NULL THEN li.area END), 0) AS relWeightedBcr,
+            COUNT(*)                            AS relParcelCount    -- 5) 필지 개수
+          FROM final_ids f
+          JOIN land_info li       ON li.id = f.id
+          LEFT JOIN land_char_latest lc ON lc.id = li.id
+          LEFT JOIN leg_land_usage_ratio llur
+                ON lc.usage1_name = llur.name
+        )
+        /* ===== 메인 상세 조회 + 집계치 ===== */
+        SELECT 
+          li.id AS id,
+          li.leg_dong_name AS legDongName,
+          li.jibun AS jibun,
+          li.area AS area,
+          lc.usage1_name AS usageName,
+          lc.price AS price,
+          llur.far,
+          llur.bcr,
+          COALESCE(ap_main.lat, ap_base.lat) AS lat,
+          COALESCE(ap_main.lng, ap_base.lng) AS lng,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN bd_latest.deal_date
+            ELSE ld_latest.deal_date
+          END AS dealDate,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN bd_latest.price
+            ELSE ld_latest.price
+          END AS dealPrice,
+          CASE
+            WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
+            WHEN ld_latest.deal_date IS NULL 
+                OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
+              THEN 'building'
+            ELSE 'land'
+          END AS dealType,
+          ra.relTotalArea   AS relTotalArea,
+          ra.relTotalPrice  AS relTotalPrice,
+          ra.relWeightedFar      AS relWeightedFar,
+          ra.relWeightedBcr      AS relWeightedBcr,
+          ra.relParcelCount AS relParcelCount
+        FROM land_info li
+        LEFT JOIN land_char_latest lc
+          ON lc.id = li.id
+        LEFT JOIN leg_land_usage_ratio llur
+          ON lc.usage1_name = llur.name
+        LEFT JOIN address_polygon ap_main
+          ON ap_main.id = (
+            SELECT r.li_id
+            FROM related_li_ids r
+            WHERE r.is_main = 1         -- ✅ rows_main 에서 온 필지 중 하나
+            ORDER BY r.li_id            -- 필요하면 정렬 기준(예: 가장 작은 id) 추가
+            LIMIT 1
+          )
+        LEFT JOIN address_polygon ap_base
+          ON ap_base.id = li.id
+        /* 최신 거래가 1행씩 되도록 윈도우 사용 (필요시 아래 주석의 대안 참고) */
+        LEFT JOIN (
+          SELECT id, deal_date, price
+          FROM (
+            SELECT 
+              id,
+              deal_date,
+              price,
+              ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+            FROM building_deal_list
+            WHERE land_area < building_area
+          ) t
+          WHERE t.rn = 1
+        ) AS bd_latest
+          ON bd_latest.id = li.id
+        LEFT JOIN (
+          SELECT id, deal_date, price
+          FROM (
+            SELECT 
+              id,
+              deal_date,
+              price,
+              ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
+            FROM land_deal_list
+          ) t
+          WHERE t.rn = 1
+        ) AS ld_latest
+          ON ld_latest.id = li.id
+        CROSS JOIN rel_agg ra
+        WHERE li.id = ?;
+      `,
+      [landId, landId]
+    )    
+
+    return landDataList;
+  }
+
+  static async getBuildProjectCost(
+    landId: string,
+  ): Promise<{
+    landInfo: LandData;
+    buildingList: BuildingData[];
+    totalProjectCost: number;
+  }> {
+    const devDetailInfo = {
+      rent: newReportValue(),
+      remodel: newReportValue(),
+      build: newReportValue(),
+      buildInfo: {
+        buildingArea: 0,
+        upperFloorArea: 0,
+        lowerFloorArea: 0,
+        publicAreaPerFloor: 0,
+        upperFloorCount: 0,
+        lowerFloorCount: 0,
+        firstFloorExclusiveArea: 0,
+        secondFloorExclusiveArea: 0,
+        lowerFloorExclusiveArea: 0,
+      },
+      analysisMessage: ''
+    } as DevDetailInfo;
+    
+    const buildingList = await this.getBuildingDataList(landId);
+      
+    const landList = await this.getLandDataList(landId);
+
+    console.log('landInfo ', landList)
+    console.log('currBuildingList ', buildingList)
+
+    const curLandInfo = landList[0];
+      
+    // const curBuildingInfo = (buildingList && buildingList.length > 0) ? buildingList[0] : null;
+    // const curBuildingFar = curBuildingInfo?.floorAreaRatio ? parseFloat(curBuildingInfo.floorAreaRatio) : 0.00; // 용적률
+
+    // const curBuildingUseApprovalDate = curBuildingInfo?.useApprovalDate.trim(); // 준공연도 
+    // const curBuildingAge = curBuildingUseApprovalDate ? getBuildingAge(curBuildingUseApprovalDate) : 40; // 준공연도가 없으면 건물노후(40년)로 설정
+
+      // const curBuildingTotalFloorArea = curBuildingInfo?.totalFloorArea ? parseFloat(curBuildingInfo.totalFloorArea) : 0.00;
+    const curBuildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
+
+    makeBuildInfo(devDetailInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr, false);
+    devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, false, null);
+
+    makeProjectCost(
+      'build',
+      devDetailInfo.build.projectCost,
+      curBuildingTotalFloorArea,
+      devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+      devDetailInfo.build.duration,
+      false,
+      null
+    );
+    const totalProjectCost = 
+      devDetailInfo.build.projectCost.demolitionCost + 
+      devDetailInfo.build.projectCost.demolitionManagementCost + 
+      devDetailInfo.build.projectCost.constructionDesignCost + 
+      devDetailInfo.build.projectCost.constructionCost + 
+      devDetailInfo.build.projectCost.managementCost + 
+      devDetailInfo.build.projectCost.pmFee;
+  
+    return {
+      landInfo: curLandInfo,
+      buildingList,
+      totalProjectCost
+    }
+  }
+
+  static async makeDevDetailInfo(
     landId: string,
     estimatedPrice: EstimatedPrice,
     debug: boolean = false
@@ -1342,276 +1688,14 @@ static async makeDevDetailInfo(
       
       const publicPriceGrowthRate = await LandModel.calculatePublicPriceGrowthRate(landId);
       
-      const buildingList = await db.query<BuildingData>(
-        `
-        WITH
-        /* 1) 기준 토지 한 개 선택 */
-        base AS (
-          SELECT
-              li.id,
-              li.leg_dong_code,
-              li.jibun,
-              li.div_code,
-              LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
-              LPAD(
-                CAST(
-                  IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0'
-                ) AS UNSIGNED), 4, '0'
-              ) AS ji_pad
-          FROM land_info li
-          WHERE li.id = ?
-          LIMIT 1
-        ),
-
-        /* 2) 토지 지번과 매칭되는 건물 ID 수집 (메인주소 + 보조주소) */
-        cand_building_ids AS (
-          SELECT blh.building_id
-          FROM building_leg_headline blh
-          JOIN base b
-            ON blh.leg_dong_code_val = b.leg_dong_code
-          AND blh.bun = b.bun_pad
-          AND blh.ji  = b.ji_pad
-          UNION   -- 중복 제거를 위해 UNION 사용
-          SELECT bsa.building_id
-          FROM building_sub_addr bsa
-          JOIN base b
-            ON bsa.sub_leg_dong_code_val = b.leg_dong_code
-          AND bsa.sub_bun = b.bun_pad
-          AND bsa.sub_ji  = b.ji_pad
-        )
-
-        /* 3) 최종 건물 정보 리스트 */
-        SELECT 
-          blh.building_id       AS id,
-          blh.floor_area_ratio  AS floorAreaRatio,
-          blh.arch_land_ratio AS archLandRatio,
-          blh.use_approval_date AS useApprovalDate,
-          blh.total_floor_area  AS totalFloorArea,
-          blh.arch_area         AS archArea,
-          blh.land_area         AS landArea,
-          blh.gnd_floor_number  AS gndFloorNumber,
-          blh.base_floor_number AS baseFloorNumber,
-          blh.structure_code_name AS structureCodeName
-        FROM building_leg_headline blh
-        JOIN cand_building_ids c
-          ON c.building_id = blh.building_id
-        ORDER BY blh.total_floor_area DESC;
-        `,
-        [landId]
-      )
+      const buildingList = await this.getBuildingDataList(landId);
       
-      const landInfo = await db.query<LandData>(
-        `
-          WITH
-          /* 1) 기준 land_info 한 개 선택 */
-          base AS (
-            SELECT
-                li.id, li.leg_dong_code, li.jibun, li.div_code,
-                LPAD(CAST(SUBSTRING_INDEX(li.jibun,'-', 1) AS UNSIGNED), 4, '0') AS bun_pad,
-                LPAD(CAST(IF(LOCATE('-', li.jibun) > 0, SUBSTRING_INDEX(li.jibun,'-',-1), '0') AS UNSIGNED), 4, '0') AS ji_pad
-            FROM land_info li
-            WHERE li.id = ?
-            LIMIT 1
-          ),
-          cand_building_ids AS (
-            SELECT blh.building_id
-            FROM building_leg_headline blh
-            JOIN base b
-              ON blh.leg_dong_code_val = b.leg_dong_code
-            AND blh.bun = b.bun_pad
-            AND blh.ji  = b.ji_pad
-            UNION
-            SELECT bsa.building_id
-            FROM building_sub_addr bsa
-            JOIN base b
-              ON bsa.sub_leg_dong_code_val = b.leg_dong_code
-            AND bsa.sub_bun = b.bun_pad
-            AND bsa.sub_ji  = b.ji_pad
-          ),
-          rows_main AS (
-            SELECT blh.building_id, blh.leg_dong_code_val AS leg_code, blh.bun AS bun_pad, blh.ji AS ji_pad
-            FROM building_leg_headline blh
-            JOIN cand_building_ids c USING (building_id)
-          ),
-          rows_sub AS (
-            SELECT bsa.building_id, bsa.sub_leg_dong_code_val AS leg_code, bsa.sub_bun AS bun_pad, bsa.sub_ji AS ji_pad
-            FROM building_sub_addr bsa
-            JOIN cand_building_ids c USING (building_id)
-          ),
-          /* 0패딩 제거 후 'bun[-ji]' 정규 지번 키 생성 */
-          row_keys AS (
-            SELECT
-              building_id,
-              leg_code,
-              bun_pad,
-              ji_pad,
-              source,  -- main / sub 구분
-              CONCAT(
-                CAST(bun_pad AS UNSIGNED),
-                CASE WHEN CAST(ji_pad AS UNSIGNED) > 0
-                    THEN CONCAT('-', CAST(ji_pad AS UNSIGNED))
-                    ELSE ''
-                END
-              ) AS jibun_norm
-            FROM (
-              SELECT 
-                rm.building_id,
-                rm.leg_code,
-                rm.bun_pad,
-                rm.ji_pad,
-                'MAIN' AS source
-              FROM rows_main rm
+      const landList = await this.getLandDataList(landId);
 
-              UNION ALL
-
-              SELECT 
-                rs.building_id,
-                rs.leg_code,
-                rs.bun_pad,
-                rs.ji_pad,
-                'SUB' AS source
-              FROM rows_sub rs
-            ) u
-          ),
-          /* land_info 매칭으로 관련 필지 id 수집 */
-          related_li_ids AS (
-            SELECT
-              li2.id AS li_id,
-              MAX(CASE WHEN rk.source = 'MAIN' THEN 1 ELSE 0 END) AS is_main  -- ✅ main 여부
-            FROM row_keys rk
-            JOIN land_info li2
-              ON li2.leg_dong_code = rk.leg_code
-            AND li2.jibun         = rk.jibun_norm
-            JOIN base b
-              ON li2.div_code = b.div_code
-            GROUP BY li2.id
-          ),
-          /* 기준 필지 항상 포함 */
-          final_ids AS (
-            SELECT li_id AS id FROM related_li_ids
-            UNION
-            SELECT id FROM base
-          ),
-          /* land_char_info의 id별 최신 1건을 파생 테이블로 준비 (LATERAL 미사용) */
-          land_char_latest AS (
-            SELECT c.*
-            FROM land_char_info c
-            JOIN (
-              SELECT id, MAX(create_date) AS max_cd
-              FROM land_char_info
-              GROUP BY id
-            ) m
-              ON m.id = c.id
-            AND m.max_cd = c.create_date
-          ),
-          /* 관련(+기준) 모든 필지 집계 */
-          rel_agg AS (
-            SELECT
-              SUM(li.area)                        AS relTotalArea,     -- 1) area 합
-              AVG(lc.price)                       AS relTotalPrice,    -- 2) price 평균
-              /* 3) FAR 면적 가중 평균 */
-              SUM(CASE WHEN llur.far IS NOT NULL THEN llur.far * li.area ELSE 0 END)
-                / NULLIF(SUM(CASE WHEN llur.far IS NOT NULL THEN li.area END), 0) AS relWeightedFar,
-              /* 4) BCR 면적 가중 평균 */
-              SUM(CASE WHEN llur.bcr IS NOT NULL THEN llur.bcr * li.area ELSE 0 END)
-                / NULLIF(SUM(CASE WHEN llur.bcr IS NOT NULL THEN li.area END), 0) AS relWeightedBcr,
-              COUNT(*)                            AS relParcelCount    -- 5) 필지 개수
-            FROM final_ids f
-            JOIN land_info li       ON li.id = f.id
-            LEFT JOIN land_char_latest lc ON lc.id = li.id
-            LEFT JOIN leg_land_usage_ratio llur
-                  ON lc.usage1_name = llur.name
-          )
-          /* ===== 메인 상세 조회 + 집계치 ===== */
-          SELECT 
-            li.id AS id,
-            li.leg_dong_name AS legDongName,
-            li.jibun AS jibun,
-            li.area AS area,
-            lc.usage1_name AS usageName,
-            lc.price AS price,
-            llur.far,
-            llur.bcr,
-            COALESCE(ap_main.lat, ap_base.lat) AS lat,
-            COALESCE(ap_main.lng, ap_base.lng) AS lng,
-            CASE
-              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-              WHEN ld_latest.deal_date IS NULL 
-                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-                THEN bd_latest.deal_date
-              ELSE ld_latest.deal_date
-            END AS dealDate,
-            CASE
-              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-              WHEN ld_latest.deal_date IS NULL 
-                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-                THEN bd_latest.price
-              ELSE ld_latest.price
-            END AS dealPrice,
-            CASE
-              WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
-              WHEN ld_latest.deal_date IS NULL 
-                  OR (bd_latest.deal_date IS NOT NULL AND bd_latest.deal_date >= ld_latest.deal_date)
-                THEN 'building'
-              ELSE 'land'
-            END AS dealType,
-            ra.relTotalArea   AS relTotalArea,
-            ra.relTotalPrice  AS relTotalPrice,
-            ra.relWeightedFar      AS relWeightedFar,
-            ra.relWeightedBcr      AS relWeightedBcr,
-            ra.relParcelCount AS relParcelCount
-          FROM land_info li
-          LEFT JOIN land_char_latest lc
-            ON lc.id = li.id
-          LEFT JOIN leg_land_usage_ratio llur
-            ON lc.usage1_name = llur.name
-          LEFT JOIN address_polygon ap_main
-            ON ap_main.id = (
-              SELECT r.li_id
-              FROM related_li_ids r
-              WHERE r.is_main = 1         -- ✅ rows_main 에서 온 필지 중 하나
-              ORDER BY r.li_id            -- 필요하면 정렬 기준(예: 가장 작은 id) 추가
-              LIMIT 1
-            )
-          LEFT JOIN address_polygon ap_base
-            ON ap_base.id = li.id
-          /* 최신 거래가 1행씩 되도록 윈도우 사용 (필요시 아래 주석의 대안 참고) */
-          LEFT JOIN (
-            SELECT id, deal_date, price
-            FROM (
-              SELECT 
-                id,
-                deal_date,
-                price,
-                ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-              FROM building_deal_list
-              WHERE land_area < building_area
-            ) t
-            WHERE t.rn = 1
-          ) AS bd_latest
-            ON bd_latest.id = li.id
-          LEFT JOIN (
-            SELECT id, deal_date, price
-            FROM (
-              SELECT 
-                id,
-                deal_date,
-                price,
-                ROW_NUMBER() OVER (PARTITION BY id ORDER BY deal_date DESC) AS rn
-              FROM land_deal_list
-            ) t
-            WHERE t.rn = 1
-          ) AS ld_latest
-            ON ld_latest.id = li.id
-          CROSS JOIN rel_agg ra
-          WHERE li.id = ?;
-        `,
-        [landId, landId]
-      )
-      console.log('landInfo ', landInfo)
+      console.log('landInfo ', landList)
       console.log('currBuildingList ', buildingList)
 
-      const curLandInfo = landInfo[0];
+      const curLandInfo = landList[0];
       
       const curBuildingInfo = (buildingList && buildingList.length > 0) ? buildingList[0] : null;
       const curBuildingFar = curBuildingInfo?.floorAreaRatio ? parseFloat(curBuildingInfo.floorAreaRatio) : 0.00; // 용적률
