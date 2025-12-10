@@ -307,7 +307,7 @@ export const getEstimatedPriceV2 = async (req: AuthRequest, res: Response) => {
     
     let resultPrice = estimatedPrice.estimatedPrice;
 
-    debugText.push(`[추정가 + 건물가격(사업비에 감가상각적용)]`);
+    debugText.push(`[토지추정가 + 건물가격(사업비에 감가상각적용)]`);
     if(buildingList?.length > 0){
       console.log('devDetailInfo.buildingList', buildingList);
       const buildingAge = getBuildingAge(buildingList[0].useApprovalDate);
@@ -315,15 +315,15 @@ export const getEstimatedPriceV2 = async (req: AuthRequest, res: Response) => {
       let textDiscountRate = ''
       if(buildingAge < 5){
         discountRate = 1.0
-        debugText.push(`준공 5년미만`);
+        debugText.push(`* 준공 5년미만`);
         textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)})`
       }else if(buildingAge < 10){
         discountRate = Math.max(1 - (buildingAge * 0.020), 0)
-        debugText.push(`준공 5년이상 10년미만`);
+        debugText.push(`* 준공 5년이상 10년미만`);
         textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.020)))`
       }else{
         discountRate = Math.max(1 - (buildingAge * 0.025), 0)
-        debugText.push(`준공 10년이상`);
+        debugText.push(`* 준공 10년이상`);
         textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x (1 - (${buildingAge}년 x 0.025)))`
       }
       resultPrice += totalProjectCost * discountRate;
