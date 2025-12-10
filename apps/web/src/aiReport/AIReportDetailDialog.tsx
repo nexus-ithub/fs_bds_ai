@@ -300,28 +300,23 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
                   <ItemRow title="토지비" value={krwUnit(aiReportDetail?.value?.landCost.purchaseCost + aiReportDetail?.value?.landCost.agentFee + aiReportDetail?.value?.landCost.acquisitionCost)}/>
                   <ItemRow title="해체관련 비용" value={krwUnit(aiReportDetail?.value?.projectCost.demolitionCost + aiReportDetail?.value?.projectCost.demolitionManagementCost)}/>
                   <ItemRow title="ENG 관련비용 (설계, 감리, PM)" value={krwUnit(aiReportDetail?.value?.projectCost.constructionCost + aiReportDetail?.value?.projectCost.managementCost + aiReportDetail?.value?.projectCost.pmFee)}/>
-                  <ItemRow title="금융비용/이자" value={`${krwUnit(aiReportDetail?.value?.loan.loanAmount)} / ${krwUnit(aiReportDetail?.value?.loan.loanInterestPerYear)}`}/>
+                  <ItemRow title="금융비용/이자" value={`${krwUnit(aiReportDetail?.value?.loan.loanAmount)} / ${krwUnit(aiReportDetail?.value?.loan.loanInterest)}`}/>
                   <ItemRow title="기타비용 및 예비비" value={krwUnit(aiReportDetail?.value?.projectCost.reserveFee + aiReportDetail?.value?.projectCost.acquisitionTax)}/>
+
+                  {/* <ItemRow title="토지비" value={krwUnit(aiReportDetail?.value?.landCost.purchaseCost + aiReportDetail?.value?.landCost.agentFee + aiReportDetail?.value?.landCost.acquisitionCost)}/>
+                  <ItemRow title="해체관련 비용" value={krwUnit(aiReportDetail?.value?.projectCost.demolitionCost + aiReportDetail?.value?.projectCost.demolitionManagementCost)}/>
+                  <ItemRow title="ENG 관련비용 (설계, 감리, PM)" value={krwUnit(aiReportDetail?.value?.projectCost.constructionCost + aiReportDetail?.value?.projectCost.managementCost + aiReportDetail?.value?.projectCost.pmFee)}/>
+                  <ItemRow title="금융비용/이자" value={`${krwUnit(aiReportDetail?.value?.loan.loanAmount)} / ${krwUnit(aiReportDetail?.value?.loan.loanInterest)}`}/>
+                  <ItemRow title="기타비용 및 예비비" value={krwUnit(aiReportDetail?.value?.projectCost.reserveFee + aiReportDetail?.value?.projectCost.acquisitionTax)}/> */}
                 </div>
                 <div className="flex flex-col flex-1 pl-[16px] divide-y-[1px] divide-line-02">
                   <div className="flex items-center justify-center pb-[12px]">
-                    <p className="font-h4">사업비 합계</p>
+                    <p className="font-h4">총사업비</p>
                   </div>
                   <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{
                     krwUnit(
-                      aiReportDetail?.value?.landCost.purchaseCost + 
-                      aiReportDetail?.value?.landCost.agentFee + 
-                      aiReportDetail?.value?.landCost.acquisitionCost + 
-                      aiReportDetail?.value?.projectCost.demolitionCost + 
-                      aiReportDetail?.value?.projectCost.demolitionManagementCost + 
-                      aiReportDetail?.value?.projectCost.constructionCost + 
-                      aiReportDetail?.value?.projectCost.managementCost + 
-                      aiReportDetail?.value?.projectCost.pmFee 
-                      // aiReportDetail?.value?.loan.loanAmount + 
-                      // aiReportDetail?.value?.loan.loanInterest + 
-                      // aiReportDetail?.value?.projectCost.reserveFee + 
-                      // aiReportDetail?.value?.projectCost.acquisitionTax
-                    )
+                      aiReportDetail?.value?.result.totalProjectCost
+                    )                    
                   }</p>                
                 </div>
               </div>
@@ -339,9 +334,9 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
                 </div>
                 <div className="flex flex-col flex-1 pl-[16px] divide-y-[1px] divide-line-02">
                   <div className="flex items-center justify-center pb-[12px]">
-                    <p className="font-h4">연간 순이익</p>
+                    <p className="font-h4">연간 임대수익</p>
                   </div>
-                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.annualProfit, true)}</p>                
+                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.annualRentProfit, true)}</p>                
                 </div>
               </div>
             </div>   
@@ -349,14 +344,14 @@ export const AIReportDetailDialog = ({open, landId, estimatedPrice, onClose}: AI
               <p className="font-h3">최종</p>
               <div className="p-[16px] gap-[16px] flex rounded-[8px] border-[1px] border-line-03 divide-x-[1px] divide-line-02">
                 <div className="flex-1 flex flex-col space-y-[12px] pr-[16px]">
-                  <p className="font-h4 text-center">연간 순이익</p>
+                  <p className="font-h4 text-center">초기자본금</p>
                   <HDivider/>
-                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.annualProfit, true)}</p>                       
+                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.initialCapital, true)}</p>                       
                 </div>
                 <div className="flex-1 flex flex-col space-y-[12px] pr-[16px]">
-                  <p className="font-h4 text-center">임대 수익률</p>
+                  <p className="font-h4 text-center">임대수익률</p>
                   <HDivider/>
-                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{(aiReportDetail?.result?.rentProfitRatio * 100).toFixed(1)}%</p>                       
+                  <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{(aiReportDetail?.result?.profitRatio * 100).toFixed(1)}%</p>                       
                 </div>
                 {/* <div className="flex-1 flex flex-col space-y-[12px] pr-[16px]">
                   <p className="font-h4 text-center">실투자금 대비 연간수익률</p>
