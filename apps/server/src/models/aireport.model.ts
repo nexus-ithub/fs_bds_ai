@@ -305,31 +305,31 @@ const getBuildProjectDuration = (floorArea : number, debug : boolean = false, de
   if(areaPerPy < 500){
     if(debug){
       debugExtraInfo.push(`* 소규모 (총연면적 ${areaPerPy.toFixed(1)}평 < 500평)`);
-      debugExtraInfo.push(`[개발기간] 19.5개월 (기획 : 1.5개월, 설계 : 6개월, 공사 : 12개월)`);
+      debugExtraInfo.push(`[개발기간] 18개월 (기획 : 1개월, 설계 : 5개월, 공사 : 12개월)`);
     }
     return {
-      planningDurationMonths: 1.5,
-      designDurationMonths: 6,
+      planningDurationMonths: 1,
+      designDurationMonths: 5,
       constructionDurationMonths: 12
     }
   }else if(areaPerPy < 1500){
     if(debug){
       debugExtraInfo.push(`* 중규모 (총연면적 ${areaPerPy.toFixed(1)}평 < 1500평)`);
-      debugExtraInfo.push(`[개발기간] 26개월 (기획 : 2개월, 설계 : 8개월, 공사 : 16개월)`);
+      debugExtraInfo.push(`[개발기간] 24개월 (기획 : 2개월, 설계 : 6개월, 공사 : 16개월)`);
     }
     return {
       planningDurationMonths: 2,
-      designDurationMonths: 8,
+      designDurationMonths: 6,
       constructionDurationMonths: 16
     }
   }else{
     if(debug){
       debugExtraInfo.push(`* 대규모 (총연면적 ${areaPerPy.toFixed(1)}평 >= 1500평)`);
-      debugExtraInfo.push(`[개발기간] 34개월 (기획 : 3개월, 설계 : 9개월, 공사 : 22개월)`);
+      debugExtraInfo.push(`[개발기간] 31개월 (기획 : 2개월, 설계 : 7개월, 공사 : 22개월)`);
     }
     return {
-      planningDurationMonths: 3,
-      designDurationMonths: 9,
+      planningDurationMonths: 2,
+      designDurationMonths: 7,
       constructionDurationMonths: 22
     }
   }
@@ -340,36 +340,44 @@ const getRemodelProjectDuration = (floorArea : number, debug : boolean = false, 
   if(areaPerPy < 500){
     if(debug){
       debugExtraInfo.push(`* 소규모 (총연면적 ${areaPerPy.toFixed(1)}평 < 500평)`);
-      debugExtraInfo.push(`[개발기간] 13.5개월 (기획 : 1.5개월, 설계 : 6개월, 공사 : 6개월)`);
+      debugExtraInfo.push(`[개발기간] 11개월 (기획 : 1개월, 설계 : 4개월, 공사 : 6개월)`);
     }
     return {
-      planningDurationMonths: 1.5,
-      designDurationMonths: 6,
+      planningDurationMonths: 1,
+      designDurationMonths: 4,
       constructionDurationMonths: 6
     }
   }else if(areaPerPy < 1500){
     if(debug){
       debugExtraInfo.push(`* 중규모 (총연면적 ${areaPerPy.toFixed(1)}평 < 1500평)`);
-      debugExtraInfo.push(`[개발기간] 20개월 (기획 : 2개월, 설계 : 8개월, 공사 : 10개월)`);
+      debugExtraInfo.push(`[개발기간] 17개월 (기획 : 2개월, 설계 : 5개월, 공사 : 10개월)`);
     }
     return {
       planningDurationMonths: 2,
-      designDurationMonths: 8,
+      designDurationMonths: 5,
       constructionDurationMonths: 10
     }
   }else{
     if(debug){
       debugExtraInfo.push(`* 대규모 (총연면적 ${areaPerPy.toFixed(1)}평 >= 1500평)`);
-      debugExtraInfo.push(`[개발기간] 28개월 (기획 : 3개월, 설계 : 9개월, 공사 : 16개월)`);
+      debugExtraInfo.push(`[개발기간] 20개월 (기획 : 2개월, 설계 : 6개월, 공사 : 12개월)`);
     }
     return {
-      planningDurationMonths: 3,
-      designDurationMonths: 9,
-      constructionDurationMonths: 16
+      planningDurationMonths: 2,
+      designDurationMonths: 6,
+      constructionDurationMonths: 12
     }
   }
 }
 
+const getPMFeePerMonth = (floorArea : number) => {
+  const areaPerPy = floorArea * 0.3025;
+  if(areaPerPy < 500){
+    return 15000000;
+  }
+
+  return 20000000;
+}
 
 const getDefaultPublicArea = (floorArea : number, floorCount : number) => {
 
@@ -407,9 +415,9 @@ const getConstructionDesignCostPerPy = (floorArea : number) => {
   if(areaPerPy < 500){
     return 250000;
   }else if(areaPerPy < 1500){
-    return 350000;
+    return 300000;
   }else{
-    return 500000;
+    return 400000;
   }
 }
 
@@ -428,13 +436,20 @@ const getConstructionCostPerPy = (floorArea : number) => {
 
 const getRemodelingCostPerPy = (floorArea : number) => {
   const areaPerPy = floorArea * 0.3025;
+  // if(areaPerPy < 500){
+  //   return 5000000;
+  // }else if(areaPerPy < 1500){
+  //   return 7000000;
+  // }else{
+  //   return 8000000;
+  // }
   if(areaPerPy < 500){
-    return 5000000;
+    return 4000000;
   }else if(areaPerPy < 1500){
-    return 7000000;
+    return 4300000;
   }else{
-    return 8000000;
-  }
+    return 4800000;
+  }  
 }
 
 const getDemolitionManagementCost = (floorArea : number) => {
@@ -807,7 +822,7 @@ function makeProjectCost(
   }
   projectCost.managementCost = projectCost.constructionDesignCost * MANAGEMENT_FEE_RATIO;
   
-  projectCost.pmFee = (projectDuration.planningDurationMonths + projectDuration.designDurationMonths + projectDuration.constructionDurationMonths) * PM_FEE_PER_MONTH;
+  projectCost.pmFee = (projectDuration.planningDurationMonths + projectDuration.designDurationMonths + projectDuration.constructionDurationMonths) * getPMFeePerMonth(totalFloorArea);
   
   const totalProjectCost = projectCost.demolitionCost + projectCost.demolitionManagementCost + projectCost.constructionDesignCost + projectCost.constructionCost + projectCost.managementCost + projectCost.pmFee;
   projectCost.acquisitionTax = totalProjectCost * ACQUISITION_TAX_RATIO;
@@ -816,7 +831,7 @@ function makeProjectCost(
 
   if(debug){
     debugExtraInfo.push(`[감리비] ${krwUnit(projectCost.managementCost)} (${Number(projectCost.constructionDesignCost.toFixed(1)).toLocaleString()}(건축설계비) * ${MANAGEMENT_FEE_RATIO.toFixed(2)}(감리비율))`);
-    debugExtraInfo.push(`[PM 용역비] ${krwUnit(projectCost.pmFee)} (${projectDuration.planningDurationMonths + projectDuration.designDurationMonths + projectDuration.constructionDurationMonths}(프로젝트기간) * ${PM_FEE_PER_MONTH.toFixed(0)}(PM용역비))`);
+    debugExtraInfo.push(`[PM 용역비] ${krwUnit(projectCost.pmFee)} (${projectDuration.planningDurationMonths + projectDuration.designDurationMonths + projectDuration.constructionDurationMonths}(프로젝트기간) * ${getPMFeePerMonth(totalFloorArea).toFixed(0)}(PM용역비))`);
     debugExtraInfo.push(`<사업비> ${krwUnit(projectCost.demolitionCost + projectCost.demolitionManagementCost + projectCost.constructionDesignCost + projectCost.constructionCost + projectCost.managementCost + projectCost.pmFee)} (해체공사비 + 해체감리비 + 건축설계비 + 건축공사비 + 감리비 + PM 용역비)`);
     debugExtraInfo.push(`[취득세] ${krwUnit(projectCost.acquisitionTax)} (${Number(totalProjectCost.toFixed(0)).toLocaleString()}(총사업비) * ${(ACQUISITION_TAX_RATIO * 100)}%(취득세율))`);
     debugExtraInfo.push(`[예비비] ${krwUnit(projectCost.reserveFee)} (${Number(totalProjectCost.toFixed(0)).toLocaleString()}(총사업비) * ${(RESERVE_FEE_RATIO * 100)}%(예비비율))`);
@@ -2046,8 +2061,8 @@ export class AIReportModel {
           주용도 : ${landInfo.usageName}
           대지면적 : ${getAreaStrWithPyeong(landInfo.relTotalArea)}
           공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
-          최대용적율 : ${landInfo.relWeightedFar} %
-          최대건폐율 : ${landInfo.relWeightedBcr} %
+          최대용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %
+          최대건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %
           최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
           현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
           개발 추천항목 : ${recommended}
