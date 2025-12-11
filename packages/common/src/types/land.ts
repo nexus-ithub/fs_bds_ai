@@ -115,10 +115,22 @@ export interface BuildingRepairInfo {
   createDate: string;
 }
 
+export interface RefDealInfo {
+  id: string;
+  dealPrice: number;
+  dealDate: Date;
+  dealType: string;
+  usageName: string;
+  area: number;
+  position: Coords;
+}
+
+
 export interface EstimatedPrice {
   baseLandId: string;
   estimatedPrice: number;
   per: number;
+  refDealList : RefDealInfo[]; 
 }
 
 export interface EstimatedPriceV2 {
