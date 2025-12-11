@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo } from "@repo/common";
+import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
 import React from "react";
+import { formatDate } from "date-fns";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
@@ -25,6 +26,7 @@ export default function Main() {
   const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
   const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
   const [showRemodel, setShowRemodel] = useState<boolean>(false);
+  const [showDeal, setShowDeal] = useState<boolean>(true);
   const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
@@ -549,15 +551,47 @@ export default function Main() {
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                <CustomOverlayMap position={{ lat: polygon.lat, lng: polygon.lng }}>
-                  <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
+                  
+                <CustomOverlayMap 
+                  yAnchor={1.1}
+                  position={{ lat: polygon.lat, lng: polygon.lng }}>
+                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <span className={`flex items-center font-bold text-green-900 `}>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
+                    <span className="flex items-center text-gray-500 text-[12px]">{polygon.repairCreateDate}</span>
+                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                  </div>                  
+                  {/* <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
                     <span>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
                     <span>{polygon.repairCreateDate}</span>
-                  </div>
+                  </div> */}
                 </CustomOverlayMap>
               </React.Fragment>
             ))
-          )}                    
+          )}
+          {
+            IS_DEVELOPMENT && estimatedPrice && showDeal && (
+              estimatedPrice.refDealList?.map((deal : RefDealInfo, index) => (
+                <CustomOverlayMap
+                  key={deal.id + index}
+                  position={{
+                    lat : deal.position.y,
+                    lng : deal.position.x
+                  }}
+                  yAnchor={1.1}
+                  xAnchor={0.5}
+                >
+                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <span className={`flex items-center font-bold ${deal.dealType === 'building' ? 'text-blue-600' : 'text-green-600'}`}>{krwUnit(deal.dealPrice, true)}  {deal.dealType === 'building' ? '빌딩' : '토지'}</span>
+                    <span className="flex items-center text-gray-500 text-[12px]">{formatDate(new Date(deal.dealDate), "yy.MM")} {deal.usageName?.replace('지역', '')}</span>
+                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                  </div>
+                </CustomOverlayMap>
+              ))
+
+            )
+          }                    
           <AreaOverlay
             isDrawingArea={isDrawingArea}
             areaPaths={areaPaths}
@@ -623,16 +657,27 @@ export default function Main() {
             <div
               // variant={showRemodel ? 'primary' : 'bggray'}
               // onClick={() => setShowRemodel(!showRemodel)}
-              className="fixed z-30 left-[420px] bottom-[44px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]"
+              className="fixed z-30 left-[420px] bottom-[44px] "
             >
-              <div className="flex items-center gap-[8px]">
-                <p className="font-s2-p">대수선</p>
-                <Switch
-                  checked={showRemodel}
-                  onChange={() => {setShowRemodel(!showRemodel)}}
-                  isLabel={true}
-                />
+              <div className="flex gap-[4px]">
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">실거래</p>
+                  <Switch
+                    checked={showDeal}
+                    onChange={() => {setShowDeal(!showDeal)}}
+                    isLabel={true}
+                  />
+                </div>
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">대수선</p>
+                  <Switch
+                    checked={showRemodel}
+                    onChange={() => {setShowRemodel(!showRemodel)}}
+                    isLabel={true}
+                  />
+              </div>   
               </div>
+           
             </div>
           )
         }

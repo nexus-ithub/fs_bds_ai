@@ -1,6 +1,7 @@
 
+import { IS_DEVELOPMENT } from '../constants';
 import { db } from '../utils/database';
-import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo, PolygonInfoWithRepairInfo } from '@repo/common';
+import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo, PolygonInfoWithRepairInfo, RefDealInfo } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
@@ -1097,7 +1098,7 @@ export class LandModel {
         return null;
       }
       const land = lands[0];
-
+      let results;
       let summary = null;
       let finalRatio = null;
       for(let i = 0; i < MAX_CHECK; i++) {
@@ -1108,7 +1109,7 @@ export class LandModel {
         // const estimatedValues = await this.calcuateEstimatedPrice(id as string, distance, year, checkUsage);
 
         console.log('estimate ', distance, year, checkUsage)
-        const results = await db.query<any>(`
+        results = await db.query<any>(`
           -- 조회할 대상 id
           WITH
           /* 0) 대상 필지 좌표 + 최신 공시지가(원/㎡) + 면적(㎡) */
@@ -1147,6 +1148,7 @@ export class LandModel {
               b.jibun,
               b.deal_date,
               b.usage_name,
+              b.position,
               CAST(b.land_area AS DECIMAL(20,4)) AS area_m2,
               (CAST(REPLACE(b.price, ',', '') AS DECIMAL(20,0)) * 10000) AS deal_total_price_won,
               (CAST(REPLACE(b.price, ',', '') AS DECIMAL(20,0)) * 10000) / NULLIF(b.land_area, 0) AS deal_price_per_m2,
@@ -1173,6 +1175,7 @@ export class LandModel {
               l.jibun,
               l.deal_date,
               l.usage_name,
+              l.position,
               CAST(l.area AS DECIMAL(20,4)) AS area_m2,
               (CAST(REPLACE(l.price, ',', '') AS DECIMAL(20,0)) * 10000) AS deal_total_price_won,
               (CAST(REPLACE(l.price, ',', '') AS DECIMAL(20,0)) * 10000) / NULLIF(l.area, 0) AS deal_price_per_m2,
@@ -1222,6 +1225,7 @@ export class LandModel {
               nb.deal_total_price_won,
               nb.deal_price_per_m2,
               nb.distance_m,
+              nb.position,
               lo.official_price_per_m2,
               (lo.official_price_per_m2 * nb.area_m2) AS official_total_price_won,
               nb.deal_price_per_m2 / lo.official_price_per_m2 AS ratio_to_official,
@@ -1242,6 +1246,7 @@ export class LandModel {
               nl.deal_total_price_won,
               nl.deal_price_per_m2,
               nl.distance_m,
+              nl.position,
               lo.official_price_per_m2,
               (lo.official_price_per_m2 * nl.area_m2) AS official_total_price_won,
               nl.deal_price_per_m2 / lo.official_price_per_m2 AS ratio_to_official,
@@ -1307,6 +1312,7 @@ export class LandModel {
             NULL AS ref_date,
             NULL AS ref_usage_name,
             NULL AS ref_area_m2,
+            NULL AS ref_position,
             NULL AS ref_deal_total_price_won,
             NULL AS ref_official_total_price_won,
             NULL AS ref_deal_price_per_m2,
@@ -1340,6 +1346,7 @@ export class LandModel {
             d.deal_date AS ref_date,
             d.usage_name AS ref_usage_name,
             d.area_m2 AS ref_area_m2,
+            d.position AS ref_position,
             d.deal_total_price_won AS ref_deal_total_price_won,
             d.official_total_price_won AS ref_official_total_price_won,
             d.deal_price_per_m2 AS ref_deal_price_per_m2,
@@ -1363,6 +1370,8 @@ export class LandModel {
       
       let per = 3.0;
       let estimatedPrice = 0;
+      let refDealList: RefDealInfo[] = [];
+
       if(finalRatio){
         let adjustFactor = 1
         if(finalRatio <= 1.8){
@@ -1385,6 +1394,20 @@ export class LandModel {
         const adjusted = summary.avg_ratio_to_official * adjustFactor
         per = Math.floor(adjusted * 10) / 10;
         estimatedPrice = Math.floor(summary.target_official_price_per_m2 * per * summary.target_area_m2)
+        if(IS_DEVELOPMENT){
+          refDealList = results?.filter(r => r.row_type === 'detail').map(r => {
+            return {
+              id: r.ref_id,
+              dealPrice: r.ref_deal_total_price_won,
+              dealDate: r.ref_date,
+              dealType: r.deal_kind,
+              usageName: r.ref_usage_name,
+              area: r.ref_area_m2,
+              position: r.ref_position
+            }
+        })
+        }
+
       }else{
         if(summary){
           estimatedPrice = summary.target_official_price_per_m2 * 3.0 * summary.target_area_m2;
@@ -1399,6 +1422,7 @@ export class LandModel {
         baseLandId: land.repLandId,
         estimatedPrice,
         per,
+        refDealList,
       } as EstimatedPrice;
 
       return result;
