@@ -26,7 +26,7 @@ export default function Main() {
   const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
   const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
   const [showRemodel, setShowRemodel] = useState<boolean>(false);
-  const [showDeal, setShowDeal] = useState<boolean>(true);
+  const [showDeal, setShowDeal] = useState<boolean>(false);
   const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
