@@ -41,6 +41,14 @@ export interface PolygonInfoWithRepairInfo extends PolygonInfo {
   repairCreateDate: string;
 }
 
+export interface LandUsageInfo {
+usageName: string;
+  usageCode: string;
+  lawCode: string;
+  lawName: string;
+  conflict: string;
+}
+
 export interface LandInfo {
   id: string; 
   legDongCode: string;
@@ -56,7 +64,7 @@ export interface LandInfo {
   roadContact: string;
   price: number;
   shape: string;
-  // usageList: string;
+  usageList: LandUsageInfo[];
   sidoName: string;
   sigunguName: string;
   jibunMainNum: string;
@@ -283,4 +291,33 @@ export const getBuildingRelInfoText = (landInfo : LandInfo) => {
     arr.push(floorInfo)
   }
   return arr.join(' · ')
+}
+
+
+export function getUsageString(list : LandUsageInfo[], conflictName, lawForPlan) {
+  if (list != null) {
+    const result = lawForPlan
+      ? list
+          .filter(
+            (u) =>
+              u.conflict === conflictName &&
+              u.lawName &&
+              u.lawName.includes("국토의 계획 및 이용에 관한 법률")
+          )
+          .map((u) => u.usageName)
+      : list
+          .filter(
+            (u) =>
+              u.conflict === conflictName &&
+              (u.lawName === null ||
+                !u.lawName.includes("국토의 계획 및 이용에 관한 법률"))
+          )
+          .map((u) => u.usageName);
+
+    if (result.length > 0) {
+      return [...new Set(result)].join(", ");
+    }
+  }
+
+  return "-";
 }
