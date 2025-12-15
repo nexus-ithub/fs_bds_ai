@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -18,6 +18,8 @@ import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
 import React from "react";
 import { formatDate } from "date-fns";
+import { pointOnFeature } from "@turf/turf";
+
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
@@ -27,7 +29,9 @@ export default function Main() {
   const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
   const [showRemodel, setShowRemodel] = useState<boolean>(false);
   const [showDeal, setShowDeal] = useState<boolean>(false);
+  const [showUsage, setShowUsage] = useState<boolean>(false);
   const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
+  const [usagePolygonList, setUsagePolygonList] = useState<UsagePolygon[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
@@ -122,7 +126,13 @@ export default function Main() {
       setRemodelPolygonList([]);
     }
 
-  }, [filter, filterCenter, level, showRemodel]);
+    if(IS_DEVELOPMENT && showUsage){
+      getUsagePolygon();
+    }else{
+      setUsagePolygonList([]);
+    }
+
+  }, [filter, filterCenter, level, showRemodel, showUsage]);
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
@@ -190,6 +200,32 @@ export default function Main() {
       });
      
   }
+
+  const getUsagePolygon = () => {
+    const bounds = mapRef.current?.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    
+    axiosInstance.get(`/api/land/polygon-usage`, {
+      params: {
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+      },
+    })
+      .then((response) => {
+        // console.log(response.data);
+        const polygon = response.data as UsagePolygon[];
+        console.log('polygon', polygon);
+        setUsagePolygonList(polygon);
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("대수선 중 오류가 발생했습니다.");
+      });
+     
+  }  
 
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
@@ -364,6 +400,58 @@ export default function Main() {
       setAreaPaths([]);
     }
   }, [mapType]);
+
+  const getUsageColor = (code : string) => {
+    // pointOnFeature
+    switch(code){
+      case 'UQA123':
+        return "#FFEB3B";
+      case 'UQA111':
+        return "#B2EBF2";
+      case 'UQA122':
+        return "#E6EE9C";
+      case 'UQA220':
+        return "#E53935";
+    }
+
+    return "#FFECB3";
+  }
+
+  const getPolygonCenter = (polygon: Coords[] | Coords[][]) => {
+    if (!polygon || polygon.length === 0) {
+      return { lat: 0, lng: 0 };
+    }
+
+    const ring = Array.isArray(polygon[0]) ? (polygon[0] as Coords[]) : (polygon as Coords[]);
+
+    const coordinates = ring
+      .map((point) => [Number(point.x), Number(point.y)] as [number, number])
+      .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+
+    if (coordinates.length < 3) {
+      return { lat: 0, lng: 0 };
+    }
+
+    const first = coordinates[0];
+    const last = coordinates[coordinates.length - 1];
+    if (first[0] !== last[0] || first[1] !== last[1]) {
+      coordinates.push(first);
+    }
+
+    const feature = {
+      type: "Feature" as const,
+      geometry: {
+        type: "Polygon" as const,
+        coordinates: [coordinates]
+      },
+      properties: {}
+    };
+
+    const center = pointOnFeature(feature);
+    const [lng, lat] = center.geometry.coordinates;
+    return { lat, lng };
+  
+  }
 
   // console.log(landInfo?.polygon[0]);
   return (
@@ -569,6 +657,27 @@ export default function Main() {
               </React.Fragment>
             ))
           )}
+          {usagePolygonList && (
+            usagePolygonList.map((polygon) => (
+              <React.Fragment key={polygon.id}>
+                <Polygon
+                  // fillColor={polygon.usageCode === 'UQA123' ? 'green' : 'red'} 
+                  fillColor={getUsageColor(polygon.usageCode)} 
+                  fillOpacity={0.3}
+                  strokeColor="grey" 
+                  strokeOpacity={0.3}
+                  strokeWeight={1.5}
+                  path={convertXYtoLatLng(polygon?.polygon || [])} />
+                  
+                <CustomOverlayMap 
+                  position={getPolygonCenter(polygon?.polygon)}>
+                  <div className="relative text-sm flex flex-col">
+                    <span className={`flex items-center font-bold text-gray-500 `}>{polygon.usageName}</span>
+                  </div>                  
+                </CustomOverlayMap>
+              </React.Fragment>
+            ))
+          )}          
           {
             IS_DEVELOPMENT && estimatedPrice && showDeal && (
               estimatedPrice.refDealList?.map((deal : RefDealInfo, index) => (
@@ -659,23 +768,43 @@ export default function Main() {
               // onClick={() => setShowRemodel(!showRemodel)}
               className="fixed z-30 left-[420px] bottom-[44px] "
             >
-              <div className="flex gap-[4px]">
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">실거래</p>
-                  <Switch
-                    checked={showDeal}
-                    onChange={() => {setShowDeal(!showDeal)}}
-                    isLabel={true}
-                  />
+              <div className="flex flex-col gap-[4px]">
+                <div className="flex gap-[4px]">
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">용도</p>
+                    <Switch
+                      checked={showUsage}
+                      onChange={() => {setShowUsage(!showUsage)}}
+                      isLabel={true}
+                    />
+                  </div>
+                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">임대</p>
+                    <Switch
+                      checked={showRemodel}
+                      onChange={() => {setShowRemodel(!showRemodel)}}
+                      isLabel={true}
+                    />
+                  </div> */}
+                </div>                
+                <div className="flex gap-[4px]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">실거래</p>
+                    <Switch
+                      checked={showDeal}
+                      onChange={() => {setShowDeal(!showDeal)}}
+                      isLabel={true}
+                    />
+                  </div>
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">대수선</p>
+                    <Switch
+                      checked={showRemodel}
+                      onChange={() => {setShowRemodel(!showRemodel)}}
+                      isLabel={true}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">대수선</p>
-                  <Switch
-                    checked={showRemodel}
-                    onChange={() => {setShowRemodel(!showRemodel)}}
-                    isLabel={true}
-                  />
-              </div>   
               </div>
            
             </div>

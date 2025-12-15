@@ -172,6 +172,38 @@ export const getBuildingRepairedPolygon = async (req: AuthRequest, res: Response
   }
 };
 
+export const getUsagePolygon = async (req: AuthRequest, res: Response) => {
+  try {
+    const { neLat, neLng, swLat, swLng } = req.query;
+    console.log(req.query)
+    if (!neLat || !neLng || !swLat || !swLng) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+    
+    const polygon = await LandModel.findUsagePolygon(
+      Number(neLat),
+      Number(neLng),
+      Number(swLat),
+      Number(swLng)
+    );
+    if (!polygon) {
+      return res.status(404).json({ message: '위치를 찾을수 없습니다.' });
+    }
+
+    res.status(200).json(polygon);
+  } catch (err) {
+    console.error('Get polygon info error:', err);
+    trackError(err, {
+      message: 'BuildingRepairedPolygon 정보 조회 중 오류 발생',
+      query: req.query,
+      file: 'land.controller.ts',
+      function: 'getBuildingRepairedPolygon',
+      severity: 'error'
+    })
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+};
+
 
 export const getFilteredPolygon = async (req: AuthRequest, res: Response) => {
   try {

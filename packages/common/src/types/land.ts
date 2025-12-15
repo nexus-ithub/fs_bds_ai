@@ -42,11 +42,26 @@ export interface PolygonInfoWithRepairInfo extends PolygonInfo {
 }
 
 export interface LandUsageInfo {
-usageName: string;
+  usageName: string;
   usageCode: string;
   lawCode: string;
   lawName: string;
   conflict: string;
+}
+
+export interface UsagePolygon {
+  id: string;
+  usageCode: string;
+  usageName: string;
+  polygon: Coords[] | Coords[][];
+}
+
+export interface OverlappingUsageInfo {
+  id: string;
+  usageCode: string;
+  usageName: string;
+  intersectArea: number;
+  pct: number;
 }
 
 export interface LandInfo {

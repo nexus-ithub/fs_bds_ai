@@ -1,7 +1,7 @@
 
 import { IS_DEVELOPMENT } from '../constants';
 import { db } from '../utils/database';
-import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, PolygonInfo, PolygonInfoWithRepairInfo, RefDealInfo } from '@repo/common';
+import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, OverlappingUsageInfo, PolygonInfo, PolygonInfoWithRepairInfo, RefDealInfo, UsagePolygon } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
@@ -10,6 +10,55 @@ const MAX_CHECK = 4;
 const RENT_CANDIDATE_RADIUS = 1000;
 
 export class LandModel {
+
+  static async findUsagePolygon(    
+    neLat: number,
+    neLng: number,
+    swLat: number,
+    swLng: number): Promise<UsagePolygon[]> {
+    console.log(
+      'findUsagePolygon',
+      neLat, neLng, swLat, swLng
+    );
+
+    const params: any[] = [];
+
+    const where: string[] = [];
+    where.push(`
+      MBRIntersects(
+        lu.polygon,
+        ST_GeomFromText(
+          CONCAT(
+            'POLYGON((',
+            ?, ' ', ?, ',',  -- swLng swLat
+            ?, ' ', ?, ',',  -- neLng swLat
+            ?, ' ', ?, ',',  -- neLng neLat
+            ?, ' ', ?, ',',  -- swLng neLat
+            ?, ' ', ?,       -- swLng swLat (닫기)
+            '))'
+          )
+        )
+      )
+    `);
+    // where.push(`lu.usage_code IN ('UQA123')`);
+    params.push(swLng, swLat, neLng, swLat, neLng, neLat, swLng, neLat, swLng, swLat);
+
+    const sql = `
+      SELECT
+        lu.key as id,
+        usage_code as usageCode,
+        usage_name as usageName,
+        polygon
+      FROM land_usage_polygon lu
+      ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    `;
+
+    const polygons = await db.query<UsagePolygon>(sql, params);
+
+    console.log('usage polygons', polygons);
+
+    return polygons;
+  }
 
   static async findBuildingRepairedPolygon(    
     neLat: number,
@@ -91,6 +140,57 @@ export class LandModel {
     console.log('repaired polygons', polygons.length);
 
     return polygons;
+  }
+
+  static async getOverlappingUsageInfo(landId : number) {
+    
+    const sql = `
+      WITH
+      t AS (
+        SELECT ap.id, ap.polygon, ST_Area(ap.polygon) AS address_area,
+              LEFT(ap.leg_dong_code, 5) AS sigungu_code5
+        FROM address_polygon ap
+        WHERE ap.id = '1168010700105390011'
+        LIMIT 1
+      ),
+      cand AS (
+        SELECT
+          lup.key, lup.shape_id, lup.usage_code, lup.usage_name, lup.polygon
+        FROM land_usage_polygon lup
+        JOIN t
+          ON lup.sigungu_code = t.sigungu_code5              -- (중요) 행정코드로 강력 사전 필터
+        AND MBRIntersects(lup.polygon, t.polygon)           -- 공간 인덱스 1차 필터
+      ),
+      x AS (
+        SELECT
+          t.id AS address_id,
+          t.address_area,
+          c.key AS land_usage_key,
+          c.shape_id,
+          c.usage_code,
+          c.usage_name,
+          ST_Area(ST_Intersection(t.polygon, c.polygon)) AS inter_area
+        FROM t
+        JOIN cand c
+          ON ST_Intersects(t.polygon, c.polygon)             -- 정확 교차
+      )
+      SELECT
+        address_id,
+        land_usage_key,
+        shape_id,
+        usage_code,
+        usage_name,
+        inter_area AS intersect_area,
+        address_area,
+        ROUND(100 * inter_area / NULLIF(address_area, 0), 6) AS pct_of_address
+      FROM x
+      WHERE inter_area > 0
+      ORDER BY pct_of_address DESC;
+ 
+    `;
+
+    const result = await db.query<OverlappingUsageInfo>(sql, [landId]);
+    return result;
   }
 
   static async findFilteredPolygon(
