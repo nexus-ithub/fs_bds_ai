@@ -29,6 +29,9 @@ export interface LandData{
   area: number; // 대지면적 
   usageName: string; // 주용도 
   price: number; // 공시지가 
+  jimokName: string; // 지목명 
+  curUse: string; // 현재용도 
+  roadContact: string; // 도로접함
   far: number; // 최대용적율
   bcr: number; // 최대건폐율
   lat: number; 

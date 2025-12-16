@@ -770,14 +770,14 @@ export default function Main() {
             >
               <div className="flex flex-col gap-[4px]">
                 <div className="flex gap-[4px]">
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">용도</p>
                     <Switch
                       checked={showUsage}
                       onChange={() => {setShowUsage(!showUsage)}}
                       isLabel={true}
                     />
-                  </div>
+                  </div> */}
                   {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">임대</p>
                     <Switch

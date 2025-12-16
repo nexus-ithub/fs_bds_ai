@@ -385,7 +385,7 @@ const getDefaultPublicArea = (floorArea : number, floorCount : number) => {
   // m2 면적으로 계산 
   if (floorArea < 500) {
     return 20;
-  } else if (floorArea < 1000) {
+  } else if (floorArea < 1200) {
     return 40;
   } else if (floorArea < 2000) {
     return 70;
@@ -395,6 +395,17 @@ const getDefaultPublicArea = (floorArea : number, floorCount : number) => {
   return (floorArea / floorCount) * 0.25;
 };
 
+const getMinExclusiveArea = (floorArea : number, floorCount : number) => {
+
+  // m2 면적으로 계산 
+  if (floorArea < 500) {
+    return 20;
+  } else if (floorArea < 1200) {
+    return 40;
+  }
+
+  return 70;
+};
 
 
 const getDemolitionCostPerPy = (floorArea : number) => {
@@ -727,47 +738,144 @@ function makeLandCost(landCost : LandCost, estimatedPrice : EstimatedPrice, debu
 
 
 
-function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, bcr : number, debug : boolean){
+function makeBuildInfo(detailInfo : DevDetailInfo, landInfo:LandData, debug : boolean){
 
-  detailInfo.buildInfo.buildingArea = area * (bcr / 100);
-  detailInfo.buildInfo.upperFloorArea = area * (far / 100);
   
-  detailInfo.buildInfo.upperFloorCount = Math.ceil(Number(detailInfo.buildInfo.upperFloorArea) / Number(detailInfo.buildInfo.buildingArea));
-  detailInfo.buildInfo.publicAreaPerFloor = getDefaultPublicArea(detailInfo.buildInfo.upperFloorArea, detailInfo.buildInfo.upperFloorCount);
+  const bcr = landInfo.relWeightedBcr;
+  const far = landInfo.relWeightedFar;
+  const area = landInfo.relTotalArea;
+  
+  detailInfo.buildInfo.buildingArea = area * (bcr / 100);
+  const maxUpperFloorArea = area * (far / 100);
+  const maxFloorCount = Math.ceil(Number(maxUpperFloorArea) / Number(detailInfo.buildInfo.buildingArea));
+  detailInfo.buildInfo.publicAreaPerFloor = getDefaultPublicArea(maxUpperFloorArea, maxFloorCount);
 
-  detailInfo.buildInfo.lowerFloorCount = 1; // 임대층수는 1로 고정 
+  console.log('makeBuildInfo', landInfo.usageName, landInfo.roadContact);
+  let firstFloorArea;
+
+  if(debug){
+    detailInfo.debugExtraInfo.push("\n")
+    detailInfo.debugExtraInfo.push(`용도 (${landInfo.usageName}, 도로 ${landInfo.roadContact})`);
+    detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
+    detailInfo.debugExtraInfo.push(`[건축면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.buildingArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
+  }
+
+  if((landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역')
+    && (!landInfo.roadContact.includes('지정되지않음') && !landInfo.roadContact.includes('광대')) 
+  ){
+    ///////////////////////////////////////////
+    //정북일조 적용시 
+    const minExclusiveArea = getMinExclusiveArea(maxUpperFloorArea, maxFloorCount);
+    if(debug){
+      detailInfo.debugExtraInfo.push(`☀️ 정북일조 적용`);
+      detailInfo.debugExtraInfo.push(`[(최대)지상층연면적] ${getAreaStrWithPyeong(maxUpperFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
+      // detailInfo.debugExtraInfo.push(`[최대층수] ${maxFloorCount.toFixed(1)}층 (${maxUpperFloorArea.toFixed(1)}m² / ${detailInfo.buildInfo.buildingArea.toFixed(1)}m²)`);
+      detailInfo.debugExtraInfo.push(`[공용면적] ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m²`);
+      detailInfo.debugExtraInfo.push(`[최소지상층별면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.publicAreaPerFloor + minExclusiveArea)}m² (${minExclusiveArea.toFixed(1)}m²(최소전용면적) + ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m²(공용면적))`);
+    }
+    
+    let remainingArea = maxUpperFloorArea;
+
+    let floorNumber = 1;
+    const floors = []
+    let minFloorArea = detailInfo.buildInfo.publicAreaPerFloor + minExclusiveArea
+
+    while(
+      remainingArea >= minFloorArea
+    ){
+      let area
+      if(floorNumber == 1){
+        area = detailInfo.buildInfo.buildingArea * 0.7; // 1층 건폐율면적의 70%
+        remainingArea -= area;
+      }else if(floorNumber == 2){
+        area = detailInfo.buildInfo.buildingArea; // 2층 건폐율면적의 100% 
+      }else if(floorNumber == 3){
+        area = detailInfo.buildInfo.buildingArea; // 3층 건폐율면적의 100% 
+      }else if(floorNumber == 4){
+        area = detailInfo.buildInfo.buildingArea * 0.75; // 건폐율면적의 75% 
+      }else {
+        area = floors[floors.length - 1] * 0.85; // 직전층의 85%
+      }
+      if(area < minFloorArea){
+        break;
+      }
+      remainingArea -= area;
+      floors.push(area);
+      
+      if(debug){
+        if(floorNumber == 1){
+          detailInfo.debugExtraInfo.push(`- 1층 ${getAreaStrWithPyeong(area)} (건축면적의 70%)`);
+        }else if(floorNumber == 2){
+          detailInfo.debugExtraInfo.push(`- 2층 ${getAreaStrWithPyeong(area)} (건축면적의 100%)`);
+        }else if(floorNumber == 3){
+          detailInfo.debugExtraInfo.push(`- 3층 ${getAreaStrWithPyeong(area)} (건축면적의 100%)`);
+        }else if(floorNumber == 4){
+          detailInfo.debugExtraInfo.push(`- 4층 ${getAreaStrWithPyeong(area)} (건축면적의 75%)`);
+        }else {
+          detailInfo.debugExtraInfo.push(`- ${floorNumber}층 ${getAreaStrWithPyeong(area)} (직전층의 85%)`);
+        }
+      }
+     
+      floorNumber += 1;
+
+    }
+    detailInfo.buildInfo.upperFloorCount = floors.length;
+    detailInfo.buildInfo.upperFloorArea = floors.reduce((a, b)=> a + b, 0);
+    firstFloorArea = floors[0]; 
+    detailInfo.buildInfo.firstFloorExclusiveArea = Math.max(firstFloorArea - detailInfo.buildInfo.publicAreaPerFloor, 0);
+    detailInfo.buildInfo.secondFloorExclusiveArea = 
+      Math.max( 
+      detailInfo.buildInfo.upperFloorArea - firstFloorArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
+      0
+    );
+    console.log('detailInfo.buildInfo.upperFloorArea', detailInfo.buildInfo.upperFloorArea);
+    console.log('detailInfo.buildInfo.firstFloorExclusiveArea', detailInfo.buildInfo.firstFloorExclusiveArea);
+    console.log('detailInfo.buildInfo.publicAreaPerFloor', detailInfo.buildInfo.publicAreaPerFloor);
+    console.log('detailInfo.buildInfo.secondFloorCount', detailInfo.buildInfo.upperFloorCount - 1);
+  }else{
+    ///////////////////////////////////////////
+    //정북일조 미적용시 
+    detailInfo.buildInfo.upperFloorCount = maxFloorCount;
+    detailInfo.buildInfo.upperFloorArea = maxUpperFloorArea;
+    const areaPerFloor = detailInfo.buildInfo.upperFloorArea / detailInfo.buildInfo.upperFloorCount;
+    firstFloorArea = areaPerFloor;
+
+    detailInfo.buildInfo.firstFloorExclusiveArea = Math.max(areaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor), 0);
+    detailInfo.buildInfo.secondFloorExclusiveArea = 
+      Math.max( 
+      detailInfo.buildInfo.upperFloorArea - detailInfo.buildInfo.firstFloorExclusiveArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
+      0
+    );
+
+  }
+
+  detailInfo.buildInfo.lowerFloorCount = 1; // 지하 임대층수는 1로 고정 
   // 주차층 추가 
   detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far) - 1;
 
   const lowerAreaPerFloor = area * BASE_FLOOR_AREA_RATIO;
 
   detailInfo.buildInfo.lowerFloorArea = lowerAreaPerFloor * detailInfo.buildInfo.lowerFloorCount;
-
-  const areaPerFloor = detailInfo.buildInfo.upperFloorArea / detailInfo.buildInfo.upperFloorCount;
-  detailInfo.buildInfo.firstFloorExclusiveArea = Math.max(areaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor), 0);
-  detailInfo.buildInfo.secondFloorExclusiveArea = 
-    Math.max( 
-    detailInfo.buildInfo.upperFloorArea - detailInfo.buildInfo.firstFloorExclusiveArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
-    0
-    );
   // detailInfo.buildInfo.lowerFloorExclusiveArea = detailInfo.buildInfo.lowerFloorArea - (detailInfo.buildInfo.publicAreaPerFloor * detailInfo.buildInfo.lowerFloorCount);
   detailInfo.buildInfo.lowerFloorExclusiveArea = Math.max(lowerAreaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor ), 0);
+  
 
   if(debug){
-    detailInfo.debugExtraInfo.push("\n")
-    detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
-    detailInfo.debugExtraInfo.push(`[건축면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.buildingArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
-    detailInfo.debugExtraInfo.push(`[지상층층수] ${detailInfo.buildInfo.upperFloorCount} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² / ${detailInfo.buildInfo.buildingArea.toFixed(1)}m²)`);
+    // detailInfo.debugExtraInfo.push("\n")
+    // detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
+    // detailInfo.debugExtraInfo.push(`[건축면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.buildingArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
     detailInfo.debugExtraInfo.push(`[지상층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.upperFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
-    detailInfo.debugExtraInfo.push(`[지하층층수] ${detailInfo.buildInfo.lowerFloorCount} (임대층수 1 + 주차층수 ${detailInfo.buildInfo.lowerFloorCount - 1})`);
+    detailInfo.debugExtraInfo.push(`[지상층층수] ${detailInfo.buildInfo.upperFloorCount} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² / ${detailInfo.buildInfo.buildingArea.toFixed(1)}m²)`);
     detailInfo.debugExtraInfo.push(`[지하층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${Number(BASE_FLOOR_AREA_RATIO).toFixed(2)}(대지대비지하비율) * ${detailInfo.buildInfo.lowerFloorCount}(지하층수))`);
+    detailInfo.debugExtraInfo.push(`[지하층층수] ${detailInfo.buildInfo.lowerFloorCount} (임대층수 1 + 주차층수 ${detailInfo.buildInfo.lowerFloorCount - 1})`);
     
-    detailInfo.debugExtraInfo.push(`[지상층별 면적] ${getAreaStrWithPyeong(areaPerFloor.toFixed(1))}`);
+    // detailInfo.debugExtraInfo.push(`[지상층별 면적] ${getAreaStrWithPyeong(areaPerFloor.toFixed(1))}`);
     detailInfo.debugExtraInfo.push(`[공용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.publicAreaPerFloor.toFixed(1))}`);
-    detailInfo.debugExtraInfo.push(`[1층 전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.firstFloorExclusiveArea.toFixed(1))} (${areaPerFloor.toFixed(1)}m² (지상 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적))`);
-    detailInfo.debugExtraInfo.push(`[2층이상(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.secondFloorExclusiveArea.toFixed(1))} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² (지상층총연면적) - ${areaPerFloor.toFixed(1)}m² (1층면적) - (${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적) * ${detailInfo.buildInfo.upperFloorCount - 1} (2층이상 층수))`);
-    detailInfo.debugExtraInfo.push(`[지하층(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorExclusiveArea.toFixed(1))} (${detailInfo.buildInfo.lowerFloorArea.toFixed(1)}m² (지하 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적)) => 지하 1개층만 임대층으로 계산`);
+    detailInfo.debugExtraInfo.push(`[1층 전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.firstFloorExclusiveArea.toFixed(1))} (${firstFloorArea.toFixed(1)}m² (1층면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적))`);
+    detailInfo.debugExtraInfo.push(`[2층이상(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.secondFloorExclusiveArea.toFixed(1))} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² (지상층총연면적) - ${firstFloorArea.toFixed(1)}m² (1층면적) - (${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적) * ${detailInfo.buildInfo.upperFloorCount - 1} (2층이상 층수))`);
+    detailInfo.debugExtraInfo.push(`[지하층(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorExclusiveArea.toFixed(1))} (${lowerAreaPerFloor.toFixed(1)}m² (지하 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적)) => 지하 1개층만 임대층으로 계산`);
   }
+
   // console.log('makeBuildInfo ', buildInfo);
 }
 
@@ -1519,6 +1627,9 @@ export class AIReportModel {
           li.area AS area,
           lc.usage1_name AS usageName,
           lc.price AS price,
+          lc.jimok_name AS jimokName,
+          lc.cur_use AS curUse,
+          lc.road_contact AS roadContact,          
           llur.far,
           llur.bcr,
           COALESCE(ap_main.lat, ap_base.lat) AS lat,
@@ -1699,7 +1810,7 @@ export class AIReportModel {
 
     const curBuildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
 
-    makeBuildInfo(devDetailInfo, landInfo.relTotalArea, landInfo.relWeightedFar, landInfo.relWeightedBcr, false);
+    makeBuildInfo(devDetailInfo, landInfo, false);
     devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, false, null);
 
     makeProjectCost(
@@ -1788,6 +1899,7 @@ export class AIReportModel {
         devDetailInfo.debugExtraInfo.push(`건물 개수: ${buildingList?.length || 0}개`);
         devDetailInfo.debugExtraInfo.push(`건물 총 연면적: ${curBuildingTotalFloorArea.toFixed(2)}`);
         devDetailInfo.debugExtraInfo.push(`건물 용적률: ${curBuildingFar.toFixed(2)}%`);
+        devDetailInfo.debugExtraInfo.push(`=> 개발후 건폐율: ${Number(landInfo.relWeightedBcr).toFixed(0)}%`);
         devDetailInfo.debugExtraInfo.push(`=> 개발후 용적률: ${Number(landInfo.relWeightedFar).toFixed(0)}%`);
       }
     
@@ -1876,7 +1988,7 @@ export class AIReportModel {
       const aroundRentInfo = await LandModel.getAroundRentInfo(landInfo.lat, landInfo.lng)
       console.log('aroundRentInfo ', aroundRentInfo)
 
-      makeBuildInfo(devDetailInfo, landInfo.relTotalArea, landInfo.relWeightedFar, landInfo.relWeightedBcr, debug);
+      makeBuildInfo(devDetailInfo, landInfo, debug);
       // console.log('aiReport.buildInfo ', aiReport.buildInfo);
 
       // 1층 평균 평당 임대료
