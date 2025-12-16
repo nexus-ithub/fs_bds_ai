@@ -84,7 +84,7 @@ const INSTRUCTION_PROMPT = `"""
 """`;
 
 
-const BASE_FLOOR_AREA_RATIO = 0.85; // 대지대비지하비율 0.85 
+const BASE_FLOOR_AREA_RATIO = 0.7; // 대지대비지하비율 0.7
 const ACQUISITION_COST_RATIO = 0.047; // 취득세 + 법무사비 비율 
 const AGENT_FEE_RATIO = 0.009; // 중개보수 비율 
 const MANAGEMENT_FEE_RATIO = 0.7; // 감리비 비율 
