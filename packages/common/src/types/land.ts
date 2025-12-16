@@ -313,7 +313,7 @@ export const getBuildingRelInfoText = (landInfo : LandInfo) => {
 }
 
 
-export function getUsageString(list : LandUsageInfo[], conflictName, lawForPlan) {
+export function getUsageString(list : LandUsageInfo[], conflictName : string, lawForPlan : boolean) {
   if (list != null) {
     const result = lawForPlan
       ? list
