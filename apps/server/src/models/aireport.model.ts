@@ -404,7 +404,7 @@ const getMinExclusiveArea = (floorArea : number, floorCount : number) => {
     return 40;
   }
 
-  return 70;
+  return (floorArea / floorCount) * 0.25;
 };
 
 
