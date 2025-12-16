@@ -1,3 +1,4 @@
+import { getLandInfo } from './../controllers/land.controller';
 
 import { db } from '../utils/database';
 import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo } from '@repo/common';
@@ -755,17 +756,17 @@ function makeBuildInfo(detailInfo : DevDetailInfo, area : number, far : number, 
   if(debug){
     detailInfo.debugExtraInfo.push("\n")
     detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
-    detailInfo.debugExtraInfo.push(`[건축면적] ${detailInfo.buildInfo.buildingArea.toFixed(1)}m² (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
+    detailInfo.debugExtraInfo.push(`[건축면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.buildingArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
     detailInfo.debugExtraInfo.push(`[지상층층수] ${detailInfo.buildInfo.upperFloorCount} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² / ${detailInfo.buildInfo.buildingArea.toFixed(1)}m²)`);
-    detailInfo.debugExtraInfo.push(`[지상층연면적] ${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
+    detailInfo.debugExtraInfo.push(`[지상층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.upperFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
     detailInfo.debugExtraInfo.push(`[지하층층수] ${detailInfo.buildInfo.lowerFloorCount} (임대층수 1 + 주차층수 ${detailInfo.buildInfo.lowerFloorCount - 1})`);
-    detailInfo.debugExtraInfo.push(`[지하층연면적] ${detailInfo.buildInfo.lowerFloorArea.toFixed(1)}m² (${Number(area).toFixed(2)}(면적) * ${Number(BASE_FLOOR_AREA_RATIO).toFixed(2)}(대지대비지하비율) * ${detailInfo.buildInfo.lowerFloorCount}(지하층수))`);
+    detailInfo.debugExtraInfo.push(`[지하층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${Number(BASE_FLOOR_AREA_RATIO).toFixed(2)}(대지대비지하비율) * ${detailInfo.buildInfo.lowerFloorCount}(지하층수))`);
     
-    detailInfo.debugExtraInfo.push(`[지상층별 면적] ${areaPerFloor.toFixed(1)}m²`);
-    detailInfo.debugExtraInfo.push(`[공용면적] ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m²`);
-    detailInfo.debugExtraInfo.push(`[1층 전용면적] ${detailInfo.buildInfo.firstFloorExclusiveArea.toFixed(1)}m² (${areaPerFloor.toFixed(1)}m² (지상 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적))`);
-    detailInfo.debugExtraInfo.push(`[2층이상(총)전용면적] ${detailInfo.buildInfo.secondFloorExclusiveArea.toFixed(1)}m² (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² (지상층총연면적) - ${areaPerFloor.toFixed(1)}m² (1층면적) - (${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적) * ${detailInfo.buildInfo.upperFloorCount - 1} (2층이상 층수))`);
-    detailInfo.debugExtraInfo.push(`[지하층(총)전용면적] ${detailInfo.buildInfo.lowerFloorExclusiveArea.toFixed(1)}m² (${detailInfo.buildInfo.lowerFloorArea.toFixed(1)}m² (지하 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적)) => 지하 1개층만 임대층으로 계산`);
+    detailInfo.debugExtraInfo.push(`[지상층별 면적] ${getAreaStrWithPyeong(areaPerFloor.toFixed(1))}`);
+    detailInfo.debugExtraInfo.push(`[공용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.publicAreaPerFloor.toFixed(1))}`);
+    detailInfo.debugExtraInfo.push(`[1층 전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.firstFloorExclusiveArea.toFixed(1))} (${areaPerFloor.toFixed(1)}m² (지상 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적))`);
+    detailInfo.debugExtraInfo.push(`[2층이상(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.secondFloorExclusiveArea.toFixed(1))} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² (지상층총연면적) - ${areaPerFloor.toFixed(1)}m² (1층면적) - (${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적) * ${detailInfo.buildInfo.upperFloorCount - 1} (2층이상 층수))`);
+    detailInfo.debugExtraInfo.push(`[지하층(총)전용면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorExclusiveArea.toFixed(1))} (${detailInfo.buildInfo.lowerFloorArea.toFixed(1)}m² (지하 층별면적) - ${detailInfo.buildInfo.publicAreaPerFloor.toFixed(1)}m² (공용면적)) => 지하 1개층만 임대층으로 계산`);
   }
   // console.log('makeBuildInfo ', buildInfo);
 }
@@ -1387,7 +1388,7 @@ export class AIReportModel {
     return buildingList;  
   }
 
-  static async getLandDataList(landId : string){
+  static async getLandData(landId : string){
     const landDataList = await db.query<LandData>(
       `
         WITH
@@ -1547,7 +1548,8 @@ export class AIReportModel {
           ra.relTotalPrice  AS relTotalPrice,
           ra.relWeightedFar      AS relWeightedFar,
           ra.relWeightedBcr      AS relWeightedBcr,
-          ra.relParcelCount AS relParcelCount
+          ra.relParcelCount AS relParcelCount,
+          (SELECT GROUP_CONCAT(id) FROM final_ids) AS relLandIds
         FROM land_info li
         LEFT JOIN land_char_latest lc
           ON lc.id = li.id
@@ -1596,8 +1598,39 @@ export class AIReportModel {
       `,
       [landId, landId]
     )    
+    const landInfo = landDataList[0];
+    if(landInfo){
+      const ids = (landInfo.relLandIds || '')
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
 
-    return landDataList;
+      let totalArea = landInfo.relTotalArea;
+
+      const bcrFarList = [];
+      for (const id of ids) {
+        const {area, bcr, far} = await LandModel.getBcrFarByOverlappingUsage(id);
+        console.log('getOverlapUsageInfo ', area, bcr, far);
+        bcrFarList.push({area, bcr, far});
+      }
+
+      const totalBcr = bcrFarList.reduce((sum, item) => {
+        const ratio = item.area / totalArea;
+        return sum + (item.bcr * ratio);
+      }, 0);
+
+      const totalFar = bcrFarList.reduce((sum, item) => {
+        const ratio = item.area / totalArea;
+        return sum + (item.far * ratio);
+      }, 0);
+
+      landInfo.relWeightedBcr = Math.round(totalBcr);
+      landInfo.relWeightedFar = Math.round(totalFar);
+      console.log('Weighted BCR:', landInfo.relWeightedBcr);
+      console.log('Weighted FAR:', landInfo.relWeightedFar);
+    }
+
+    return landInfo;
   }
 
   static async getBuildProjectCost(
@@ -1627,23 +1660,46 @@ export class AIReportModel {
     
     const buildingList = await this.getBuildingDataList(landId);
       
-    const landList = await this.getLandDataList(landId);
+    const landInfo = await this.getLandData(landId);
 
-    console.log('landInfo ', landList)
+    console.log('landInfo ', landInfo)
     console.log('currBuildingList ', buildingList)
 
-    const curLandInfo = landList[0];
       
-    // const curBuildingInfo = (buildingList && buildingList.length > 0) ? buildingList[0] : null;
-    // const curBuildingFar = curBuildingInfo?.floorAreaRatio ? parseFloat(curBuildingInfo.floorAreaRatio) : 0.00; // 용적률
+    // if(landInfo){
+    //   const ids = (landInfo.relLandIds || '')
+    //     .split(',')
+    //     .map((v) => v.trim())
+    //     .filter(Boolean);
 
-    // const curBuildingUseApprovalDate = curBuildingInfo?.useApprovalDate.trim(); // 준공연도 
-    // const curBuildingAge = curBuildingUseApprovalDate ? getBuildingAge(curBuildingUseApprovalDate) : 40; // 준공연도가 없으면 건물노후(40년)로 설정
+    //   let totalArea = landInfo.relTotalArea;
 
-      // const curBuildingTotalFloorArea = curBuildingInfo?.totalFloorArea ? parseFloat(curBuildingInfo.totalFloorArea) : 0.00;
+    //   const bcrFarList = [];
+    //   for (const id of ids) {
+    //     const {area, bcr, far} = await LandModel.getBcrFarByOverlappingUsage(id);
+    //     console.log('getOverlapUsageInfo ', area, bcr, far);
+    //     bcrFarList.push({area, bcr, far});
+    //   }
+
+    //   const totalBcr = bcrFarList.reduce((sum, item) => {
+    //     const ratio = item.area / totalArea;
+    //     return sum + (item.bcr * ratio);
+    //   }, 0);
+
+    //   const totalFar = bcrFarList.reduce((sum, item) => {
+    //     const ratio = item.area / totalArea;
+    //     return sum + (item.far * ratio);
+    //   }, 0);
+
+    //   curLandInfo.relWeightedBcr = Math.round(totalBcr);
+    //   curLandInfo.relWeightedFar = Math.round(totalFar);
+    //   console.log('Weighted BCR:', curLandInfo.relWeightedBcr);
+    //   console.log('Weighted FAR:', curLandInfo.relWeightedFar);
+    // }
+
     const curBuildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
 
-    makeBuildInfo(devDetailInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr, false);
+    makeBuildInfo(devDetailInfo, landInfo.relTotalArea, landInfo.relWeightedFar, landInfo.relWeightedBcr, false);
     devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, false, null);
 
     makeProjectCost(
@@ -1664,7 +1720,7 @@ export class AIReportModel {
       devDetailInfo.build.projectCost.pmFee;
   
     return {
-      landInfo: curLandInfo,
+      landInfo: landInfo,
       buildingList,
       totalProjectCost
     }
@@ -1705,12 +1761,11 @@ export class AIReportModel {
       
       const buildingList = await this.getBuildingDataList(landId);
       
-      const landList = await this.getLandDataList(landId);
+      const landInfo = await this.getLandData(landId);
 
-      console.log('landInfo ', landList)
+      console.log('landInfo ', landInfo)
       console.log('currBuildingList ', buildingList)
 
-      const curLandInfo = landList[0];
       
       const curBuildingInfo = (buildingList && buildingList.length > 0) ? buildingList[0] : null;
       const curBuildingFar = curBuildingInfo?.floorAreaRatio ? parseFloat(curBuildingInfo.floorAreaRatio) : 0.00; // 용적률
@@ -1733,7 +1788,7 @@ export class AIReportModel {
         devDetailInfo.debugExtraInfo.push(`건물 개수: ${buildingList?.length || 0}개`);
         devDetailInfo.debugExtraInfo.push(`건물 총 연면적: ${curBuildingTotalFloorArea.toFixed(2)}`);
         devDetailInfo.debugExtraInfo.push(`건물 용적률: ${curBuildingFar.toFixed(2)}%`);
-        devDetailInfo.debugExtraInfo.push(`=> 개발후 용적률: ${Number(curLandInfo.relWeightedFar).toFixed(0)}%`);
+        devDetailInfo.debugExtraInfo.push(`=> 개발후 용적률: ${Number(landInfo.relWeightedFar).toFixed(0)}%`);
       }
     
       console.log('env ', process.env.NODE_ENV)
@@ -1743,17 +1798,17 @@ export class AIReportModel {
       }
       if(curBuildingInfo){
         if(curBuildingAge < 10){
-          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
+          if(curBuildingFar < (landInfo.relWeightedFar * 0.5)){
             console.log('10년 미만 신축 !!')
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 10년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${curLandInfo.relWeightedFar * 0.5}보다 작아 신축을 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 10년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${landInfo.relWeightedFar * 0.5}보다 작아 신축을 추천`);
             }
             makeReportValue(devDetailInfo.build, 'A', 'build');
             makeReportValue(devDetailInfo.remodel, 'C', 'remodel');
             makeReportValue(devDetailInfo.rent, 'B', 'rent');
           }else{
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 10년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${curLandInfo.relWeightedFar * 0.5}보다 크므로 임대를 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 10년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${landInfo.relWeightedFar * 0.5}보다 크므로 임대를 추천`);
             }
             console.log('10년 미만 미개발 !!')
             makeReportValue(devDetailInfo.build, 'B', 'build');
@@ -1761,10 +1816,10 @@ export class AIReportModel {
             makeReportValue(devDetailInfo.rent, 'A', 'rent');
           }
         }else if(curBuildingAge < 20){
-          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.5)){
+          if(curBuildingFar < (landInfo.relWeightedFar * 0.5)){
             console.log('20년 미만 신축 !!')
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 20년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${curLandInfo.relWeightedFar * 0.5}보다 작아 신축을 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 20년 미만에 현재 건물 용적률 ${curBuildingFar}이 개발후 용적률의 (50%) ${landInfo.relWeightedFar * 0.5}보다 작아 신축을 추천`);
             }
             makeReportValue(devDetailInfo.build, 'A', 'build');
             makeReportValue(devDetailInfo.remodel, 'B', 'remodel');
@@ -1772,17 +1827,17 @@ export class AIReportModel {
           }else{
             console.log('20년 미만 리모델링 !!')
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 20년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (50%) ${curLandInfo.relWeightedFar * 0.5}%보다 크므로 리모델링을 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 20년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (50%) ${landInfo.relWeightedFar * 0.5}%보다 크므로 리모델링을 추천`);
             }
             makeReportValue(devDetailInfo.build, 'B', 'build');
             makeReportValue(devDetailInfo.remodel, 'A', 'remodel');
             makeReportValue(devDetailInfo.rent, 'C', 'rent');
           }
         }else if(curBuildingAge < 30){
-          if(curBuildingFar < (curLandInfo.relWeightedFar * 0.8)){
+          if(curBuildingFar < (landInfo.relWeightedFar * 0.8)){
             console.log('30년 미만 신축 !!')
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 30년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (80%) ${curLandInfo.relWeightedFar * 0.8}%보다 작아 신축을 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 30년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (80%) ${landInfo.relWeightedFar * 0.8}%보다 작아 신축을 추천`);
             }
             makeReportValue(devDetailInfo.build, 'A', 'build');
             makeReportValue(devDetailInfo.remodel, 'B', 'remodel');
@@ -1790,7 +1845,7 @@ export class AIReportModel {
           }else{
             console.log('30년 미만 리모델링 !!')
             if(debug){
-              devDetailInfo.debugExtraInfo.push(`준공 30년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (80%) ${curLandInfo.relWeightedFar * 0.8}%보다 크므로 리모델링을 추천`);
+              devDetailInfo.debugExtraInfo.push(`준공 30년 미만에 현재 건물 용적률 ${curBuildingFar}%이 개발후 용적률의 (80%) ${landInfo.relWeightedFar * 0.8}%보다 크므로 리모델링을 추천`);
             }
             makeReportValue(devDetailInfo.build, 'B', 'build');
             makeReportValue(devDetailInfo.remodel, 'A', 'remodel');
@@ -1818,10 +1873,10 @@ export class AIReportModel {
       }
 
 
-      const aroundRentInfo = await LandModel.getAroundRentInfo(curLandInfo.lat, curLandInfo.lng)
+      const aroundRentInfo = await LandModel.getAroundRentInfo(landInfo.lat, landInfo.lng)
       console.log('aroundRentInfo ', aroundRentInfo)
 
-      makeBuildInfo(devDetailInfo, curLandInfo.relTotalArea, curLandInfo.relWeightedFar, curLandInfo.relWeightedBcr, debug);
+      makeBuildInfo(devDetailInfo, landInfo.relTotalArea, landInfo.relWeightedFar, landInfo.relWeightedBcr, debug);
       // console.log('aiReport.buildInfo ', aiReport.buildInfo);
 
       // 1층 평균 평당 임대료
@@ -1889,7 +1944,7 @@ export class AIReportModel {
           today.getDate().toString().padStart(2, '0');
 
         makeTaxInfo(
-          curLandInfo,
+          landInfo,
           devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
           "철근콘크리트구조",
           formattedToday,
@@ -1898,7 +1953,7 @@ export class AIReportModel {
           devDetailInfo.debugBuildInfo
         );
 
-        devDetailInfo.build.result = makeResult(curLandInfo, devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
+        devDetailInfo.build.result = makeResult(landInfo, devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
       }
       
       ////////////////////////////////////////////////////////////////
@@ -1935,7 +1990,7 @@ export class AIReportModel {
         const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
         const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;        
         makeTaxInfo(
-          curLandInfo,
+          landInfo,
           totalFloorArea,
           buildingList[0].structureCodeName,
           buildingList[0].useApprovalDate,
@@ -1943,7 +1998,7 @@ export class AIReportModel {
           debug,
           devDetailInfo.debugRemodelInfo
         );
-        devDetailInfo.remodel.result = makeResult(curLandInfo, devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
+        devDetailInfo.remodel.result = makeResult(landInfo, devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
       }
 
 
@@ -1982,7 +2037,7 @@ export class AIReportModel {
         );
 
         makeTaxInfo(
-          curLandInfo,
+          landInfo,
           curBuildingTotalFloorArea,
           buildingList[0].structureCodeName,
           buildingList[0].useApprovalDate,
@@ -1991,11 +2046,11 @@ export class AIReportModel {
           devDetailInfo.debugRentInfo
         );
     
-        devDetailInfo.rent.result = makeResult(curLandInfo, devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
+        devDetailInfo.rent.result = makeResult(landInfo, devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
       }
 
       return {
-        landInfo : curLandInfo,
+        landInfo : landInfo,
         buildingList : buildingList,
         devDetailInfo,
       };

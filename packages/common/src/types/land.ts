@@ -56,12 +56,16 @@ export interface UsagePolygon {
   polygon: Coords[] | Coords[][];
 }
 
-export interface OverlappingUsageInfo {
-  id: string;
+export interface UsagePct {
   usageCode: string;
   usageName: string;
-  intersectArea: number;
   pct: number;
+}
+
+export interface OverlappingUsageInfo {
+  id: string;
+  usageList: LandUsageInfo[];
+  usagePctList: UsagePct[];
 }
 
 export interface LandInfo {

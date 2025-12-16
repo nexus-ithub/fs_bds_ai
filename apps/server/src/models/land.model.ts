@@ -1,7 +1,7 @@
 
 import { IS_DEVELOPMENT } from '../constants';
 import { db } from '../utils/database';
-import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, LandInfo, OverlappingUsageInfo, PolygonInfo, PolygonInfoWithRepairInfo, RefDealInfo, UsagePolygon } from '@repo/common';
+import { BuildingInfo, ConsultRequest, DealInfo, EstimatedPrice, getUsageString, LandInfo, OverlappingUsageInfo, PolygonInfo, PolygonInfoWithRepairInfo, RefDealInfo, UsagePolygon } from '@repo/common';
 
 const ESTIMATE_REFERENCE_DISTANCE = 300;
 const ESTIMATE_REFERENCE_YEAR = 2;
@@ -142,24 +142,31 @@ export class LandModel {
     return polygons;
   }
 
-  static async getOverlappingUsageInfo(landId : number) {
-    
+  static async getBcrFarByOverlappingUsage(landId : string) {
+    console.log('getOverlappingUsageInfo', landId);
     const sql = `
       WITH
       t AS (
-        SELECT ap.id, ap.polygon, ST_Area(ap.polygon) AS address_area,
-              LEFT(ap.leg_dong_code, 5) AS sigungu_code5
+        SELECT
+          ap.id,
+          ap.polygon,
+          ST_Area(ap.polygon) AS address_area,
+          LEFT(ap.leg_dong_code, 5) AS sigungu_code5
         FROM address_polygon ap
-        WHERE ap.id = '1168010700105390011'
+        WHERE ap.id = ?
         LIMIT 1
       ),
       cand AS (
         SELECT
-          lup.key, lup.shape_id, lup.usage_code, lup.usage_name, lup.polygon
+          lup.key,
+          lup.shape_id,
+          lup.usage_code,
+          lup.usage_name,
+          lup.polygon
         FROM land_usage_polygon lup
         JOIN t
-          ON lup.sigungu_code = t.sigungu_code5              -- (중요) 행정코드로 강력 사전 필터
-        AND MBRIntersects(lup.polygon, t.polygon)           -- 공간 인덱스 1차 필터
+          ON lup.sigungu_code = t.sigungu_code5
+        AND MBRIntersects(lup.polygon, t.polygon)
       ),
       x AS (
         SELECT
@@ -172,25 +179,118 @@ export class LandModel {
           ST_Area(ST_Intersection(t.polygon, c.polygon)) AS inter_area
         FROM t
         JOIN cand c
-          ON ST_Intersects(t.polygon, c.polygon)             -- 정확 교차
+          ON ST_Intersects(t.polygon, c.polygon)
+      ),
+      pct AS (
+        SELECT
+          address_id,
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'usageCode', usage_code,
+              'usageName', usage_name,
+              'pctOfAddress', ROUND(100 * inter_area / NULLIF(address_area, 0), 6) / 100
+            )
+            /* MySQL은 ORDER BY를 JSON_ARRAYAGG 안에 직접 못 넣는 경우가 있어,
+              아래처럼 pct CTE에서 먼저 정렬된 x를 만들거나, MariaDB 지원 여부에 따라 조정 */
+          ) AS usagePctList
+        FROM x
+        WHERE inter_area > 0
+        GROUP BY address_id
       )
       SELECT
-        address_id,
-        land_usage_key,
-        shape_id,
-        usage_code,
-        usage_name,
-        inter_area AS intersect_area,
-        address_area,
-        ROUND(100 * inter_area / NULLIF(address_area, 0), 6) AS pct_of_address
-      FROM x
-      WHERE inter_area > 0
-      ORDER BY pct_of_address DESC;
- 
+        t.id AS id,
+        (SELECT area FROM land_info WHERE id = t.id) AS area,
+        leg_land_usage_ratio.far AS far,
+        leg_land_usage_ratio.bcr AS bcr,
+        COALESCE(pct.usagePctList, JSON_ARRAY()) AS usagePctList,
+        (
+          SELECT
+            COALESCE(
+              JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'usageName', lu.usage_name,
+                  'usageCode', lu.usage_code,
+                  'lawCode', uc.law_code,
+                  'lawName', uc.law_name,
+                  'far', leg_land_usage_ratio.far,
+                  'bcr', leg_land_usage_ratio.bcr,
+                  'conflict', lu.conflict
+                )
+              ),
+              JSON_ARRAY()
+            )
+          FROM fs_bds.land_usage_info AS lu
+          LEFT JOIN fs_bds.land_usage_code AS uc
+            ON lu.usage_code = uc.code OR lu.usage_name = uc.name AND uc.law_name like '%국토의 계획 및 이용에 관한 법률%' 
+          LEFT JOIN fs_bds.leg_land_usage_ratio AS leg_land_usage_ratio
+            ON leg_land_usage_ratio.name = lu.usage_name                  
+          WHERE lu.id = t.id AND lu.conflict = '저촉'
+        ) AS usageList
+      FROM t
+      LEFT JOIN pct ON pct.address_id = t.id
+      LEFT JOIN fs_bds.land_char_info AS land_char
+        ON land_char.key = (
+          SELECT c.key 
+          FROM fs_bds.land_char_info AS c 
+          WHERE c.id = t.id 
+          ORDER BY c.create_date DESC 
+          LIMIT 1
+        )
+      LEFT JOIN fs_bds.leg_land_usage_ratio AS leg_land_usage_ratio
+        ON land_char.usage1_name = leg_land_usage_ratio.name      
     `;
 
-    const result = await db.query<OverlappingUsageInfo>(sql, [landId]);
-    return result;
+    const result = await db.query<any>(sql, [landId]);
+    const area = result[0].area;
+    const usagePctList = JSON.parse(result[0].usagePctList as any);
+    const usageList = JSON.parse(result[0].usageList as any).filter((u: any) => u.conflict === '저촉' && u.lawName && u.lawName.includes("국토의 계획 및 이용에 관한 법률"));
+
+    let finalBcr = result[0].bcr;
+    let finalFar = result[0].far;
+    
+    console.log('getBcrFarByOverlappingUsage area', area);
+    console.log('getBcrFarByOverlappingUsage usagePctList', usagePctList);
+    console.log('getBcrFarByOverlappingUsage usageList', usageList);
+    let remainingArea = area;
+
+    if(usageList.length > 0){
+      const area = result[0].area;
+      for(const usage of usageList){
+        const bcr = usage.bcr;
+        const far = usage.far;
+        if(bcr > 0 && far > 0){
+          const pct = usagePctList.find((u: any) => u.usageCode === usage.usageCode)?.pctOfAddress;
+          if(pct){
+            usage.weightedArea = area * Math.round(pct * 10) / 10;
+            remainingArea -= usage.weightedArea;
+          }
+        }
+      }
+      const nullWeightedAreaCount = usageList.filter((u: any) => u.weightedArea == null).length;
+      
+      if (nullWeightedAreaCount > 0) {
+        const areaPerNull = remainingArea / nullWeightedAreaCount;
+        for (const usage of usageList) {
+          if (usage.weightedArea == null) {
+            usage.weightedArea = areaPerNull;
+          }
+        }
+      }
+
+      console.log('getBcrFarByOverlappingUsage usageList', usageList);
+    
+      finalBcr = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.bcr, 0);
+      finalFar = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.far, 0);
+      
+      console.log('getBcrFarByOverlappingUsage finalBcr', finalBcr);
+      console.log('getBcrFarByOverlappingUsage finalFar', finalFar);      
+    }
+
+    return {
+      area,
+      bcr : finalBcr,
+      far : finalFar
+    };
   }
 
   static async findFilteredPolygon(

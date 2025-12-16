@@ -44,6 +44,7 @@ export interface LandData{
   relWeightedFar : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
   relWeightedBcr : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
   relParcelCount : number; // 연관된 모든 필지의 개수
+  relLandIds : string; // 연관된 모든 필지의 id
 }
 
 
