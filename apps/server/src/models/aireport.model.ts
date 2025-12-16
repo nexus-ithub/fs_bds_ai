@@ -2116,8 +2116,8 @@ export class AIReportModel {
           주용도 : ${landInfo.usageName}
           대지면적 : ${getAreaStrWithPyeong(landInfo.relTotalArea)}
           공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
-          최대용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %
-          최대건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %
+          용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %
+          건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %
           최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
           현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
           개발 추천항목 : ${recommended}
