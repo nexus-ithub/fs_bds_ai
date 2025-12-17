@@ -402,7 +402,9 @@ const getMinExclusiveArea = (floorArea : number, floorCount : number) => {
     return 20;
   } else if (floorArea < 1200) {
     return 40;
-  }
+  } else if (floorArea < 2000) {
+    return 70;
+  } 
 
   return (floorArea / floorCount) * 0.25;
 };
@@ -2014,151 +2016,171 @@ export class AIReportModel {
       }
       
       const recommendedGradeOnly = (process.env.NODE_ENV !== 'development')
-
+      // const recommendedGradeOnly = true;
       console.log('recommendedGradeOnly ', recommendedGradeOnly)
       ////////////////////////////////////////////////////////////////
       // 신축 
-      if(devDetailInfo.build && (!recommendedGradeOnly || devDetailInfo.build.grade === 'A')){
-        
-        if(debug){
-          devDetailInfo.debugBuildInfo = [];
-          devDetailInfo.debugBuildInfo.push(`🏢 신축`);
+      if(devDetailInfo.build){
+
+        if(!recommendedGradeOnly || devDetailInfo.build.grade === 'A'){
+          if(debug){
+            devDetailInfo.debugBuildInfo = [];
+            devDetailInfo.debugBuildInfo.push(`🏢 신축`);
+          }
+          devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugBuildInfo);
+    
+          makeLandCost(devDetailInfo.build.landCost, estimatedPrice, debug, devDetailInfo.debugBuildInfo);
+          makeProjectCost(
+            'build',
+            devDetailInfo.build.projectCost,
+            curBuildingTotalFloorArea,
+            devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+            devDetailInfo.build.duration,
+            debug,
+            devDetailInfo.debugBuildInfo
+          );
+          devDetailInfo.build.loan = makeLoan(devDetailInfo.build, debug, devDetailInfo.debugBuildInfo);
+          // devDetailInfo.build.loanForOwner = makeLoanForOwner(devDetailInfo.build, debug, devDetailInfo.debugExtraInfo);
+          makeProfit(
+            'build',
+            devDetailInfo.build,
+            devDetailInfo.buildInfo,
+            buildingList,
+            firstFloorRentProfitPerPy,
+            upperFloorRentProfitPerPy,
+            baseFloorRentProfitPerPy,
+            debug,
+            devDetailInfo.debugBuildInfo
+          );
+          const today = new Date();
+          const formattedToday =
+            today.getFullYear().toString() +
+            (today.getMonth() + 1).toString().padStart(2, '0') +
+            today.getDate().toString().padStart(2, '0');
+
+          makeTaxInfo(
+            landInfo,
+            devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+            "철근콘크리트구조",
+            formattedToday,
+            devDetailInfo.build.tax,
+            debug,
+            devDetailInfo.debugBuildInfo
+          );
+
+          devDetailInfo.build.result = makeResult(landInfo, devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
+        }else{
+          devDetailInfo.build.result = {
+            grade : devDetailInfo.build.grade,
+          } as ReportResult;
         }
-        devDetailInfo.build.duration = getBuildProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugBuildInfo);
-  
-        makeLandCost(devDetailInfo.build.landCost, estimatedPrice, debug, devDetailInfo.debugBuildInfo);
-        makeProjectCost(
-          'build',
-          devDetailInfo.build.projectCost,
-          curBuildingTotalFloorArea,
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
-          devDetailInfo.build.duration,
-          debug,
-          devDetailInfo.debugBuildInfo
-        );
-        devDetailInfo.build.loan = makeLoan(devDetailInfo.build, debug, devDetailInfo.debugBuildInfo);
-        // devDetailInfo.build.loanForOwner = makeLoanForOwner(devDetailInfo.build, debug, devDetailInfo.debugExtraInfo);
-        makeProfit(
-          'build',
-          devDetailInfo.build,
-          devDetailInfo.buildInfo,
-          buildingList,
-          firstFloorRentProfitPerPy,
-          upperFloorRentProfitPerPy,
-          baseFloorRentProfitPerPy,
-          debug,
-          devDetailInfo.debugBuildInfo
-        );
-        const today = new Date();
-        const formattedToday =
-          today.getFullYear().toString() +
-          (today.getMonth() + 1).toString().padStart(2, '0') +
-          today.getDate().toString().padStart(2, '0');
-
-        makeTaxInfo(
-          landInfo,
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
-          "철근콘크리트구조",
-          formattedToday,
-          devDetailInfo.build.tax,
-          debug,
-          devDetailInfo.debugBuildInfo
-        );
-
-        devDetailInfo.build.result = makeResult(landInfo, devDetailInfo.build, devDetailInfo.build.tax, publicPriceGrowthRate, debug, devDetailInfo.debugBuildInfo);
       }
       
       ////////////////////////////////////////////////////////////////
       // 리모델링   
-      if(devDetailInfo.remodel && (!recommendedGradeOnly || devDetailInfo.remodel.grade === 'A')){
-        if(debug){
-          devDetailInfo.debugRemodelInfo = [];
-          devDetailInfo.debugRemodelInfo.push(`🔨리모델링`);
+      if(devDetailInfo.remodel){
+        if(!recommendedGradeOnly || devDetailInfo.remodel.grade === 'A'){
+          if(debug){
+            devDetailInfo.debugRemodelInfo = [];
+            devDetailInfo.debugRemodelInfo.push(`🔨리모델링`);
+          }
+          devDetailInfo.remodel.duration = getRemodelProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugRemodelInfo);
+          makeLandCost(devDetailInfo.remodel.landCost, estimatedPrice, debug, devDetailInfo.debugRemodelInfo);
+          makeProjectCost(
+            'remodel',
+            devDetailInfo.remodel.projectCost,
+            curBuildingTotalFloorArea,
+            devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
+            devDetailInfo.remodel.duration,
+            debug,
+            devDetailInfo.debugRemodelInfo
+          );
+          devDetailInfo.remodel.loan = makeLoan(devDetailInfo.remodel, debug, devDetailInfo.debugRemodelInfo);
+          // devDetailInfo.remodel.loanForOwner = makeLoanForOwner(devDetailInfo.remodel, debug, devDetailInfo.debugExtraInfo);
+          makeProfit(
+            'remodel',
+            devDetailInfo.remodel,
+            devDetailInfo.buildInfo,
+            buildingList,
+            firstFloorRentProfitPerPy,
+            upperFloorRentProfitPerPy,
+            baseFloorRentProfitPerPy,
+            debug,
+            devDetailInfo.debugRemodelInfo
+          );
+          const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
+          const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;        
+          makeTaxInfo(
+            landInfo,
+            totalFloorArea,
+            buildingList[0].structureCodeName,
+            buildingList[0].useApprovalDate,
+            devDetailInfo.remodel.tax,
+            debug,
+            devDetailInfo.debugRemodelInfo
+          );
+          devDetailInfo.remodel.result = makeResult(landInfo, devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
+        }else{
+          devDetailInfo.remodel.result = {
+            grade : devDetailInfo.remodel.grade,
+          } as ReportResult;
         }
-        devDetailInfo.remodel.duration = getRemodelProjectDuration(devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea, debug, devDetailInfo.debugRemodelInfo);
-        makeLandCost(devDetailInfo.remodel.landCost, estimatedPrice, debug, devDetailInfo.debugRemodelInfo);
-        makeProjectCost(
-          'remodel',
-          devDetailInfo.remodel.projectCost,
-          curBuildingTotalFloorArea,
-          devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea,
-          devDetailInfo.remodel.duration,
-          debug,
-          devDetailInfo.debugRemodelInfo
-        );
-        devDetailInfo.remodel.loan = makeLoan(devDetailInfo.remodel, debug, devDetailInfo.debugRemodelInfo);
-        // devDetailInfo.remodel.loanForOwner = makeLoanForOwner(devDetailInfo.remodel, debug, devDetailInfo.debugExtraInfo);
-        makeProfit(
-          'remodel',
-          devDetailInfo.remodel,
-          devDetailInfo.buildInfo,
-          buildingList,
-          firstFloorRentProfitPerPy,
-          upperFloorRentProfitPerPy,
-          baseFloorRentProfitPerPy,
-          debug,
-          devDetailInfo.debugRemodelInfo
-        );
-        const newTotalFloorArea = devDetailInfo.buildInfo.upperFloorArea + devDetailInfo.buildInfo.lowerFloorArea;
-        const totalFloorArea = newTotalFloorArea > curBuildingTotalFloorArea ? newTotalFloorArea : curBuildingTotalFloorArea;        
-        makeTaxInfo(
-          landInfo,
-          totalFloorArea,
-          buildingList[0].structureCodeName,
-          buildingList[0].useApprovalDate,
-          devDetailInfo.remodel.tax,
-          debug,
-          devDetailInfo.debugRemodelInfo
-        );
-        devDetailInfo.remodel.result = makeResult(landInfo, devDetailInfo.remodel, devDetailInfo.remodel.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRemodelInfo);
+
       }
 
 
       ////////////////////////////////////////////////////////////////
       // 임대
-      if(devDetailInfo.rent && (!recommendedGradeOnly || devDetailInfo.rent.grade === 'A')){
-        if(debug){
-          devDetailInfo.debugRentInfo = [];
-          devDetailInfo.debugRentInfo.push(`⛺ 임대`);
-          devDetailInfo.debugRentInfo.push(`-`);
-          devDetailInfo.debugRentInfo.push(`-`);
-        }
-        // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
-        makeLandCost(devDetailInfo.rent.landCost, estimatedPrice, debug, devDetailInfo.debugRentInfo);
-        makeProjectCost(
-          'rent',
-          devDetailInfo.rent.projectCost,
-          0,
-          0,
-          devDetailInfo.rent.duration,
-          debug,
-          devDetailInfo.debugRentInfo
-        );
-        devDetailInfo.rent.loan = makeLoan(devDetailInfo.rent, debug, devDetailInfo.debugRentInfo);
-        // devDetailInfo.rent.loanForOwner = makeLoanForOwner(devDetailInfo.rent, debug, devDetailInfo.debugExtraInfo);
-        makeProfit(
-          'rent',
-          devDetailInfo.rent,
-          devDetailInfo.buildInfo,
-          buildingList,
-          firstFloorRentProfitPerPy,
-          upperFloorRentProfitPerPy,
-          baseFloorRentProfitPerPy,
-          debug,
-          devDetailInfo.debugRentInfo
-        );
+      if(devDetailInfo.rent){
+        if((!recommendedGradeOnly || devDetailInfo.rent.grade === 'A')){
+          if(debug){
+            devDetailInfo.debugRentInfo = [];
+            devDetailInfo.debugRentInfo.push(`⛺ 임대`);
+            devDetailInfo.debugRentInfo.push(`-`);
+            devDetailInfo.debugRentInfo.push(`-`);
+          }
+          // aiReport.rent.duration = getRentProjectDuration(aiReport.buildInfo.upperFloorArea + aiReport.buildInfo.lowerFloorArea);
+          makeLandCost(devDetailInfo.rent.landCost, estimatedPrice, debug, devDetailInfo.debugRentInfo);
+          makeProjectCost(
+            'rent',
+            devDetailInfo.rent.projectCost,
+            0,
+            0,
+            devDetailInfo.rent.duration,
+            debug,
+            devDetailInfo.debugRentInfo
+          );
+          devDetailInfo.rent.loan = makeLoan(devDetailInfo.rent, debug, devDetailInfo.debugRentInfo);
+          // devDetailInfo.rent.loanForOwner = makeLoanForOwner(devDetailInfo.rent, debug, devDetailInfo.debugExtraInfo);
+          makeProfit(
+            'rent',
+            devDetailInfo.rent,
+            devDetailInfo.buildInfo,
+            buildingList,
+            firstFloorRentProfitPerPy,
+            upperFloorRentProfitPerPy,
+            baseFloorRentProfitPerPy,
+            debug,
+            devDetailInfo.debugRentInfo
+          );
 
-        makeTaxInfo(
-          landInfo,
-          curBuildingTotalFloorArea,
-          buildingList[0].structureCodeName,
-          buildingList[0].useApprovalDate,
-          devDetailInfo.rent.tax,
-          debug,
-          devDetailInfo.debugRentInfo
-        );
-    
-        devDetailInfo.rent.result = makeResult(landInfo, devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);
+          makeTaxInfo(
+            landInfo,
+            curBuildingTotalFloorArea,
+            buildingList[0].structureCodeName,
+            buildingList[0].useApprovalDate,
+            devDetailInfo.rent.tax,
+            debug,
+            devDetailInfo.debugRentInfo
+          );
+      
+          devDetailInfo.rent.result = makeResult(landInfo, devDetailInfo.rent, devDetailInfo.rent.tax, publicPriceGrowthRate, debug, devDetailInfo.debugRentInfo);        
+        }else{
+          devDetailInfo.rent.result = {
+            grade : devDetailInfo.rent.grade,
+          } as ReportResult;
+        }
+
       }
 
       return {
@@ -2237,7 +2259,7 @@ export class AIReportModel {
           ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
              """`;      
 
-       console.log(input)       
+      //  console.log(input)       
         // const input = `"""
         //   아래 데이터를 참고해서 설명글 작성해줘 
         //   추정가 : ${estimatedPrice.estimatedPrice}
