@@ -60,6 +60,19 @@ export class UserModel {
     }
   }
 
+  static async findByNamePhone(name: string, phone: string): Promise<User[] | null>{
+    try {
+      const user = await db.query<User>(
+        'SELECT email, provider FROM users WHERE name = ? AND phone = ? AND delete_yn = "N"',
+        [name, phone]
+      );
+      return user || null;
+    } catch (error) {
+      console.error('Error finding user by name and phone:', error);
+      throw error;
+    }
+  }
+
   static async userInfoById(id: number): Promise<User | null> {
     try {
       const users = await db.query<User>(

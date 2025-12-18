@@ -169,7 +169,7 @@ export const SignupTerms = () => {
               setPrivacyAgree(checked);
             }}/>
             <a
-            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+            href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link"
             target="_blank"
             rel="noopener noreferrer"
             >

@@ -264,6 +264,23 @@ export const logout = async (req: Request, res: Response) => {
   }
 };
 
+export const findAccount = async(req: Request, res: Response) => {
+  try{
+    const { name, phone } = req.body;
+    if (!name || !phone) {
+      return res.status(400).json({ message: '이름 또는 전화번호가 제공되지 않았습니다.' });
+    }
+    const users = await UserModel.findByNamePhone(name, phone);
+    if (users.length === 0) {
+      return res.status(200).json({ result: false, message: '사용자를 찾을 수 없습니다.' });
+    }
+    return res.status(200).json({ result: true, users });
+  } catch (error) {
+    console.error('Error finding user by name and phone:', error);
+    return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}
+
 export const pwFind = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
