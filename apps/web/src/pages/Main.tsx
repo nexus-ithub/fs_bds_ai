@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo, type AIReportResult } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -23,15 +23,18 @@ import { pointOnFeature } from "@turf/turf";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
-export default function Main() {  
+export default function Main() {
   const axiosInstance = useAxiosWithAuth();
   const [polygonList, setPolygonList] = useState<PolygonInfo[] | null>(null);
   const [filteredPolygonList, setFilteredPolygonList] = useState<PolygonInfo[] | null>(null);
   const [showRemodel, setShowRemodel] = useState<boolean>(false);
   const [showDeal, setShowDeal] = useState<boolean>(false);
   const [showUsage, setShowUsage] = useState<boolean>(false);
+  const [showRent, setShowRent] = useState<boolean>(false);
+  const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
   const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
   const [usagePolygonList, setUsagePolygonList] = useState<UsagePolygon[] | null>(null);
+  // const [rentInfoList, setRentInfoList] = useState<RentInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
@@ -43,7 +46,7 @@ export default function Main() {
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
   const [mapTypeId, setMapTypeId] = useState<'ROADMAP' | 'SKYVIEW' | 'USE_DISTRICT'>('ROADMAP');
   const mapRef = useRef<any>(null);
-  
+
   const [roadViewCenter, setRoadViewCenter] = useState<{ lat: number, lng: number, pan: number } | null>(null);
   const [level, setLevel] = useState<number>(defaultMapState.level);
   const [center, setCenter] = useState<LatLng>({ lat: defaultMapState.centerLat, lng: defaultMapState.centerLng });
@@ -63,7 +66,7 @@ export default function Main() {
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
   const [openAIChat, setOpenAIChat] = useState<boolean>(false);
-  
+
   const [filter, setFilter] = useState({
     on: false,
     areaRange: [0, 10000],
@@ -76,76 +79,81 @@ export default function Main() {
   const [showFilterSetting, setShowFilterSetting] = useState<boolean>(false);
   const [rangeLatDiff, setRangeLatDiff] = useState<number>(0);
   useEffect(() => {
-    if(filter.on) {
+    if (filter.on) {
       const bounds = mapRef.current?.getBounds();
       const ne = bounds.getNorthEast();
       const sw = bounds.getSouthWest();
-      
+
       const neLat = ne.getLat();
       const swLat = sw.getLat();
-      
+
       console.log('neLat', neLat);
       console.log('swLat', swLat);
       console.log('diff ', neLat - swLat);
 
       const diff = neLat - swLat;
-      setRangeLatDiff(diff);    
+      setRangeLatDiff(diff);
       console.log('diff ', diff);
       // console.log('filter', filter);
       // console.log('mapRef.current', mapRef.current?.getBounds().getNorthEast().getLat(), mapRef.current?.getBounds().getNorthEast().getLng());
       // console.log('mapRef.current', mapRef.current?.getBounds().getSouthWest().getLat(), mapRef.current?.getBounds().getSouthWest().getLng());
-      if(diff > MAX_FILTER_DIFF) {
+      if (diff > MAX_FILTER_DIFF) {
         setFilteredPolygonList([]);
         return;
       }
 
       getFilteredPolygon();
-    }else{
+    } else {
       setFilteredPolygonList([]);
     }
 
-    if(IS_DEVELOPMENT && showRemodel){
+    if (IS_DEVELOPMENT && showRemodel) {
       const bounds = mapRef.current?.getBounds();
       const ne = bounds.getNorthEast();
       const sw = bounds.getSouthWest();
-      
+
       const neLat = ne.getLat();
       const swLat = sw.getLat();
 
       const diff = neLat - swLat;
-      setRangeLatDiff(diff);    
+      setRangeLatDiff(diff);
       console.log('diff ', diff);
-      if(diff > MAX_FILTER_DIFF * 3) {
+      if (diff > MAX_FILTER_DIFF * 3) {
         setRemodelPolygonList([]);
         toast.error('대수선 결과를 보려면 지도를 조금더 확대 하세요');
         return;
       }
 
       getRemodelPolygon();
-    }else{
+    } else {
       setRemodelPolygonList([]);
     }
 
-    if(IS_DEVELOPMENT && showUsage){
+    if (IS_DEVELOPMENT && showUsage) {
       getUsagePolygon();
-    }else{
+    } else {
       setUsagePolygonList([]);
     }
+    // if (IS_DEVELOPMENT && showRent) {
+    //   getRentInfo();
+    // } else {
+    //   setRentInfoList([]);
+    // }
 
-  }, [filter, filterCenter, level, showRemodel, showUsage]);
+  }, [filter, filterCenter, level, showRemodel, showUsage, showRent]);
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    
+
     // const neLat = ne.getLat();
     // const swLat = sw.getLat();
-    
+
     // console.log('neLat', neLat);
     // console.log('swLat', swLat);
     // console.log('diff ', neLat - swLat);
-    
+
 
     axiosInstance.get(`/api/land/polygon-filtered`, {
       params: {
@@ -172,14 +180,14 @@ export default function Main() {
         console.error(error);
         toast.error("필터링 중 오류가 발생했습니다.");
       });
-     
+
   }
 
   const getRemodelPolygon = () => {
     const bounds = mapRef.current?.getBounds();
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    
+
     axiosInstance.get(`/api/land/polygon-repaired`, {
       params: {
         neLat: ne.getLat(),
@@ -196,16 +204,16 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
-        toast.error("대수선 중 오류가 발생했습니다.");
+        toast.error("대수선 조회중 오류가 발생했습니다.");
       });
-     
+
   }
 
   const getUsagePolygon = () => {
     const bounds = mapRef.current?.getBounds();
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    
+
     axiosInstance.get(`/api/land/polygon-usage`, {
       params: {
         neLat: ne.getLat(),
@@ -222,17 +230,41 @@ export default function Main() {
       })
       .catch((error) => {
         console.error(error);
-        toast.error("대수선 중 오류가 발생했습니다.");
+        toast.error("용도지역 조회중 오류가 발생했습니다.");
       });
-     
-  }  
 
+  }
+
+  // const getRentInfo = () => {
+  //   const bounds = mapRef.current?.getBounds();
+  //   const ne = bounds.getNorthEast();
+  //   const sw = bounds.getSouthWest();
+
+  //   axiosInstance.get(`/api/land/rent-info`, {
+  //     params: {
+  //       neLat: ne.getLat(),
+  //       neLng: ne.getLng(),
+  //       swLat: sw.getLat(),
+  //       swLng: sw.getLng(),
+  //     },
+  //   })
+  //     .then((response) => {
+  //       const result = response.data as RentInfo[];
+  //       console.log('result', result);
+  //       setRentInfoList(result);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //       toast.error("임대정보 조회 중 오류가 발생했습니다.");
+  //     });
+
+  // }
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
-    if(type === 'use_district') {
+    if (type === 'use_district') {
       setMapTypeId('ROADMAP');
-    } else if(type === 'skyview') {
+    } else if (type === 'skyview') {
       setMapTypeId('SKYVIEW');
     } else {
       setMapTypeId('ROADMAP');
@@ -248,7 +280,7 @@ export default function Main() {
   const getMainPolygon = (polygon: PolygonInfo[]) => {
     return polygon.find((p) => p.current === 'Y') || polygon[0];
   }
-  const getPolygon = ({id, lat, lng, changePosition = false}: {id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean}) => {
+  const getPolygon = ({ id, lat, lng, changePosition = false }: { id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean }) => {
     setOpenAIReport(false);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
@@ -268,7 +300,7 @@ export default function Main() {
         getBusinessDistrict(mainPolygon.lat, mainPolygon.lng);
         getPlace(mainPolygon.lat, mainPolygon.lng);
         console.log('changePosition', changePosition, mainPolygon.lat, mainPolygon.lng);
-        if(changePosition){
+        if (changePosition) {
           console.log('setCenter', mainPolygon.lat, mainPolygon.lng);
           setCenter({ lat: mainPolygon.lat, lng: mainPolygon.lng });
 
@@ -288,7 +320,7 @@ export default function Main() {
       });
   }
 
-  
+
   const getLandInfo = (id: string) => {
     axiosInstance.get(`/api/land/info?id=${id}`)
       .then((response) => {
@@ -302,7 +334,7 @@ export default function Main() {
         toast.error("지형 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
-  
+
   const getBuildingList = (legDongCode: string, jibun: string) => {
     axiosInstance.get(`/api/land/building-list?legDongCode=${legDongCode}&jibun=${jibun}`)
       .then((response) => {
@@ -316,7 +348,7 @@ export default function Main() {
         toast.error("건물 정보를 가져오는 중 오류가 발생했습니다.");
       });
   }
-  
+
   const getEstimatedPrice = (id: string) => {
     axiosInstance.get(`/api/land/estimated-price?id=${id}`)
       .then((response) => {
@@ -329,8 +361,8 @@ export default function Main() {
         console.error(error);
         toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
       });
-      
-    if(IS_DEVELOPMENT){
+
+    if (IS_DEVELOPMENT) {
       axiosInstance.get(`/api/land/estimated-price-v2?id=${id}`)
         .then((response) => {
           // console.log(response.data);
@@ -341,13 +373,13 @@ export default function Main() {
         .catch((error) => {
           console.error(error);
           toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
-        });   
-    }else{
+        });
+    } else {
       setEstimatedPriceV2(null);
     }
-   
+
   }
-  
+
   const getBusinessDistrict = (lat: number, lng: number) => {
     axiosInstance.get(`/api/land/business-district?lat=${lat}&lng=${lng}`)
       .then((response) => {
@@ -401,9 +433,9 @@ export default function Main() {
     }
   }, [mapType]);
 
-  const getUsageColor = (code : string) => {
+  const getUsageColor = (code: string) => {
     // pointOnFeature
-    switch(code){
+    switch (code) {
       case 'UQA123':
         return "#FFEB3B";
       case 'UQA111':
@@ -450,31 +482,31 @@ export default function Main() {
     const center = pointOnFeature(feature);
     const [lng, lat] = center.geometry.coordinates;
     return { lat, lng };
-  
+
   }
 
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full">
       <div className="w-[400px] h-full border-r border-line-03">
-        {landInfo ? 
-          <LandInfoCard 
-            landInfo={landInfo} 
+        {landInfo ?
+          <LandInfoCard
+            landInfo={landInfo}
             buildingList={buildingList}
-            businessDistrict={businessDistrict} 
+            businessDistrict={businessDistrict}
             estimatedPrice={estimatedPrice}
             estimatedPriceV2={estimatedPriceV2}
-            place={place} 
+            place={place}
             onClose={() => {
               setLandInfo(null)
               setOpenAIReport(false)
-            }} 
+            }}
             onOpenAIReport={() => {
               setOpenAIReport(true)
               console.log('landInfo', landInfo)
             }}
-          /> : 
-          <HomeBoard 
+          /> :
+          <HomeBoard
             selectedVideo={selectedVideo}
             setSelectedVideo={(video) => {
               setSelectedVideo(video);
@@ -491,7 +523,7 @@ export default function Main() {
           onClick={(_, mouseEvent) => {
 
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-            if(mapType === 'roadview') {
+            if (mapType === 'roadview') {
               setRoadViewCenter({
                 lat: mouseEvent.latLng.getLat(),
                 lng: mouseEvent.latLng.getLng(),
@@ -519,7 +551,7 @@ export default function Main() {
               setIsDrawingDistance(true);
               setShowDistanceOverlay(true);
             } else {
-              getPolygon({lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng()});
+              getPolygon({ lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng() });
             }
           }}
           center={center}
@@ -539,7 +571,7 @@ export default function Main() {
             setLevel(map.getLevel());
           }}
           onRightClick={() => {
-            if(mapType === 'area') {
+            if (mapType === 'area') {
               setIsDrawingArea(false);
               setMapType('normal');
               setAreas((prev: AreaPolygons[]) => [
@@ -581,7 +613,7 @@ export default function Main() {
             <>
               <MapTypeId
                 type="ROADVIEW"
-              />            
+              />
               <MapMarker
                 position={roadViewCenter || { lat: 0, lng: 0 }}
                 draggable={true}
@@ -601,17 +633,17 @@ export default function Main() {
                     offset: { x: 13, y: 46 },
                   },
                 }}
-              />            
+              />
             </>
- 
+
           )}
           {polygonList && (
             polygonList.map((polygon) => (
               <Polygon
                 key={polygon.id}
-                fillColor="var(--color-primary)" 
+                fillColor="var(--color-primary)"
                 fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
-                strokeColor="var(--color-primary)" 
+                strokeColor="var(--color-primary)"
                 strokeOpacity={1}
                 strokeWeight={1.5}
                 path={convertXYtoLatLng(polygon?.polygon || [])} />
@@ -621,26 +653,26 @@ export default function Main() {
             filteredPolygonList.map((polygon) => (
               <Polygon
                 key={polygon.id}
-                fillColor="var(--color-secondary)" 
+                fillColor="var(--color-secondary)"
                 fillOpacity={0.3} // 70% opacity
-                strokeColor="var(--color-secondary)" 
+                strokeColor="var(--color-secondary)"
                 strokeOpacity={1}
                 strokeWeight={1.5}
                 path={convertXYtoLatLng(polygon?.polygon || [])} />
             ))
-          )}        
+          )}
           {remodelPolygonList && (
             remodelPolygonList.map((polygon) => (
               <React.Fragment key={polygon.id}>
                 <Polygon
-                  fillColor="green" 
+                  fillColor="green"
                   fillOpacity={0.3}
-                  strokeColor="green" 
+                  strokeColor="green"
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                  
-                <CustomOverlayMap 
+
+                <CustomOverlayMap
                   yAnchor={1.1}
                   position={{ lat: polygon.lat, lng: polygon.lng }}>
                   <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
@@ -648,7 +680,7 @@ export default function Main() {
                     <span className="flex items-center text-gray-500 text-[12px]">{polygon.repairCreateDate}</span>
                     <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
                     <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                  </div>                  
+                  </div>
                   {/* <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
                     <span>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
                     <span>{polygon.repairCreateDate}</span>
@@ -662,30 +694,54 @@ export default function Main() {
               <React.Fragment key={polygon.id}>
                 <Polygon
                   // fillColor={polygon.usageCode === 'UQA123' ? 'green' : 'red'} 
-                  fillColor={getUsageColor(polygon.usageCode)} 
+                  fillColor={getUsageColor(polygon.usageCode)}
                   fillOpacity={0.3}
-                  strokeColor="grey" 
+                  strokeColor="grey"
                   strokeOpacity={0.3}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                  
-                <CustomOverlayMap 
+
+                <CustomOverlayMap
                   position={getPolygonCenter(polygon?.polygon)}>
                   <div className="relative text-sm flex flex-col">
                     <span className={`flex items-center font-bold text-gray-500 `}>{polygon.usageName}</span>
-                  </div>                  
+                  </div>
                 </CustomOverlayMap>
               </React.Fragment>
             ))
-          )}          
+          )}
+          {IS_DEVELOPMENT && showRent && aiReportResult && (
+            aiReportResult.aroundRentInfo?.map((rentInfo) => (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log(rentInfo);
+                  window.open(`https://fin.land.naver.com/articles/${rentInfo.atclNo}`, '_blank');
+                }}
+                key={rentInfo.atclNo}>
+                <CustomOverlayMap
+                  clickable={true}
+                  yAnchor={1.1}
+                  position={{ lat: rentInfo.lat, lng: rentInfo.lng }}>
+                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <span className={`flex items-center font-bold ${rentInfo.floorType === '3' ? 'text-red-900' : rentInfo.floorType === '2' ? 'text-blue-700' : 'text-black'}`}>{rentInfo.floorInfo} {rentInfo.roadContact}</span>
+                    <span className="flex items-center text-gray-500 text-[12px]">{krwUnit(Number(((rentInfo.rentPrice * 10000) / (Number(rentInfo.exclArea) * 0.3025)).toFixed(0)))}/평</span>
+                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                  </div>
+                </CustomOverlayMap>
+
+              </div>
+            ))
+          )}
           {
             IS_DEVELOPMENT && estimatedPrice && showDeal && (
-              estimatedPrice.refDealList?.map((deal : RefDealInfo, index) => (
+              estimatedPrice.refDealList?.map((deal: RefDealInfo, index) => (
                 <CustomOverlayMap
                   key={deal.id + index}
                   position={{
-                    lat : deal.position.y,
-                    lng : deal.position.x
+                    lat: deal.position.y,
+                    lng: deal.position.x
                   }}
                   yAnchor={1.1}
                   xAnchor={0.5}
@@ -700,7 +756,7 @@ export default function Main() {
               ))
 
             )
-          }                    
+          }
           <AreaOverlay
             isDrawingArea={isDrawingArea}
             areaPaths={areaPaths}
@@ -720,7 +776,7 @@ export default function Main() {
             setDistanceLines={setDistanceLines}
           />
         </Map>
-        
+
         <MapToolbar
           mapType={mapType}
           changeMapType={changeMapType}
@@ -729,7 +785,7 @@ export default function Main() {
           center={center}
           setCenter={setCenter}
         />
-        <SearchBar 
+        <SearchBar
           onShowFilterSetting={(on) => {
             console.log('onShowFilterSetting', on);
             setShowFilterSetting(on);
@@ -746,7 +802,7 @@ export default function Main() {
           }}
           onSelect={(id) => {
             console.log('onSelect', id);
-            getPolygon({id, changePosition: true});
+            getPolygon({ id, changePosition: true });
           }}
         />
         {
@@ -756,7 +812,7 @@ export default function Main() {
                 TIP
               </p>
               <p className="font-s3 text-text-02">
-                필터 결과를 보려면 지도를 더 확대 해주세요. 
+                필터 결과를 보려면 지도를 더 확대 해주세요.
               </p>
             </div>
           )
@@ -778,21 +834,21 @@ export default function Main() {
                       isLabel={true}
                     />
                   </div> */}
-                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">임대</p>
                     <Switch
-                      checked={showRemodel}
-                      onChange={() => {setShowRemodel(!showRemodel)}}
+                      checked={showRent}
+                      onChange={() => { setShowRent(!showRent) }}
                       isLabel={true}
                     />
-                  </div> */}
-                </div>                
+                  </div>
+                </div>
                 <div className="flex gap-[4px]">
                   <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">실거래</p>
                     <Switch
                       checked={showDeal}
-                      onChange={() => {setShowDeal(!showDeal)}}
+                      onChange={() => { setShowDeal(!showDeal) }}
                       isLabel={true}
                     />
                   </div>
@@ -800,13 +856,13 @@ export default function Main() {
                     <p className="font-s2-p">대수선</p>
                     <Switch
                       checked={showRemodel}
-                      onChange={() => {setShowRemodel(!showRemodel)}}
+                      onChange={() => { setShowRemodel(!showRemodel) }}
                       isLabel={true}
                     />
                   </div>
                 </div>
               </div>
-           
+
             </div>
           )
         }
@@ -841,20 +897,20 @@ export default function Main() {
           <div className={`flex items-center justify-between py-[7px] border-b border-line-02 ${playerMode === "mini" ? "h-[44px]" : "h-[64px]"}`}>
             <div className="flex items-center gap-[13px] px-[12px] py-[14px]">
               <p className={playerMode === "mini" ? "font-h4" : "font-h3"}>빌딩의 신</p>
-              <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20}/>
+              <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20} />
             </div>
             <div className={`flex items-center gap-[13px] ${playerMode === "mini" ? "px-[12px]" : "px-[20px]"}`}>
               {playerMode === "mini" ? (
                 <button onClick={() => setPlayerMode("large")}>
-                  <PictureInPicture2 size={20}/>
+                  <PictureInPicture2 size={20} />
                 </button>
               ) : (
                 <button onClick={() => setPlayerMode("mini")}>
-                  <PictureInPicture size={20}/>
+                  <PictureInPicture size={20} />
                 </button>
               )}
               <button onClick={() => setOpenVideoMiniPlayer(false)}>
-                <X size={20}/>
+                <X size={20} />
               </button>
             </div>
           </div>
@@ -870,10 +926,17 @@ export default function Main() {
       )}
       {
         openAIReport &&
-          <AIReport 
-            key={landInfo?.id}
-            landId={landInfo?.id}
-            onClose={() => setOpenAIReport(false)}/>
+        <AIReport
+          key={landInfo?.id}
+          landId={landInfo?.id}
+          onReportCreated={(reportResult) => {
+            setAiReportResult(reportResult);
+          }}
+          onClose={() => {
+            setOpenAIReport(false);
+            setAiReportResult(null);
+          }}
+        />
       }
       {openAIChat && (
         <AIChat

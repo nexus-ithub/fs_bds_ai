@@ -1,15 +1,15 @@
 
-import { type EstimatedPrice } from "./land";
+import { RentInfo, type EstimatedPrice } from "./land";
 
 
 
-export interface AIReportParam{
+export interface AIReportParam {
   landId: string;
   buildingId: string;
   estimatedPrice: EstimatedPrice;
 }
 
-export interface BuildingData{
+export interface BuildingData {
   id: string;
   floorAreaRatio: string; // 용적률 
   archLandRatio: string; // 건폐율
@@ -22,7 +22,7 @@ export interface BuildingData{
   structureCodeName: string;
 }
 
-export interface LandData{
+export interface LandData {
   id: string;
   legDongName: string; // 법정동명 
   jibun: string; // 지번
@@ -34,7 +34,7 @@ export interface LandData{
   roadContact: string; // 도로접함
   far: number; // 최대용적율
   bcr: number; // 최대건폐율
-  lat: number; 
+  lat: number;
   lng: number;
 
   dealPrice: number; // 최근 거래 가격
@@ -42,12 +42,12 @@ export interface LandData{
   dealType: string; // 최근 거래 유형 "building" (= 건물) or "land" (= 토지)
 
 
-  relTotalArea : number; // 연관된 모든 필지의 대지면적
-  relTotalPrice : number; // 연관된 모든 필지의 공시지가
-  relWeightedFar : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
-  relWeightedBcr : number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
-  relParcelCount : number; // 연관된 모든 필지의 개수
-  relLandIds : string; // 연관된 모든 필지의 id
+  relTotalArea: number; // 연관된 모든 필지의 대지면적
+  relTotalPrice: number; // 연관된 모든 필지의 공시지가
+  relWeightedFar: number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
+  relWeightedBcr: number; // 연관된 모든 필지의 면적비 가중 평균 건폐율
+  relParcelCount: number; // 연관된 모든 필지의 개수
+  relLandIds: string; // 연관된 모든 필지의 id
 }
 
 
@@ -56,7 +56,7 @@ export interface LandCost {
   // 매입비용
   purchaseCost: number;
   // 취득세 + 법무사비
-  acquisitionCost: number; 
+  acquisitionCost: number;
   // 중개보수
   agentFee: number;
 }
@@ -66,7 +66,7 @@ export interface LandCost {
 // 사업비
 export interface ProjectCost {
   // 해체공사비 
-  demolitionCost: number; 
+  demolitionCost: number;
   // 해체감리비
   demolitionManagementCost: number;
   // 건축설계비 
@@ -90,7 +90,7 @@ export interface ProjectCost {
 export interface BuildInfo {
 
   buildingArea: number; // 건축면적
-  
+
   upperFloorCount: number; // 지상층 층수
   lowerFloorCount: number; // 지하층 층수
 
@@ -103,7 +103,7 @@ export interface BuildInfo {
   firstFloorExclusiveArea: number; // 1층 전용면적
   secondFloorExclusiveArea: number; // 2층 이상 총 전용면적
   lowerFloorExclusiveArea: number; // 지하층 총 전용면적
-} 
+}
 
 
 // 금융차입
@@ -186,7 +186,7 @@ export interface DevDetailInfo {
 export interface ReportResult {
   grade: string;
   // message: string;
-   
+
   // 총사업비 
   totalProjectCost: number;
 
@@ -222,9 +222,9 @@ export interface AIReportResult {
   rent: ReportResult; // 임대 (미개발)
   remodel: ReportResult; // 리모델링
   build: ReportResult; // 신축
-
   analysisMessage: string;
   summary: string;
+  aroundRentInfo?: RentInfo[];
 }
 
 export interface AIReportDetail {
