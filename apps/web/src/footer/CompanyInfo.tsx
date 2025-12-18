@@ -28,14 +28,20 @@ export const CompanyInfo = () => {
         </div>
       </div>
       <div className="font-s3 text-text-02 flex items-center justify-between">
-        <button className="">서비스소개</button>
-        <VDivider/>
         <a
-          href="https://chip-flare-463.notion.site/AI-29b1c63ec1af80dfb037ffc2fbd448db?source=copy_link"
+          href="https://chip-flare-463.notion.site/AI-2c31c63ec1af80e8a7e6e114ab5f90ec?source=copy_link"
           target="_blank"
           rel="noopener noreferrer"
         >
-          고객센터
+          공지사항
+        </a>
+        <VDivider/>
+        <a
+          href="https://chip-flare-463.notion.site/AI-FAQ-29b1c63ec1af80698090d0701ac7973a?source=copy_link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          FAQ
         </a>
         <VDivider/>
         <a
@@ -67,7 +73,7 @@ export const CompanyInfo = () => {
         <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>buildingshopai@gmail.com</p>
       </div>
       <p className="font-c2 text-text-02 flex items-center"><span className="font-c2-p text-text-05 pr-[4px]">ADD.</span>서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
-      <p className="font-c2 text-text-02 flex items-center">©JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</p>
+      <p className="font-c2 text-text-02 flex items-center">©JUNGIN REAL ESTATE GROUP ALL RIGHTS RESERVED.</p>
     </div>
   )
 }

@@ -48,7 +48,7 @@ export const Footer = () => {
           </div>
         </div>
         <HDivider colorClassName="bg-line-02"/>
-        <div className="font-s3 text-text-02">© 2025 JUNGIN REALITY GROUP ALL RIGHTS RESERVED.</div>
+        <div className="font-s3 text-text-02">© 2025 JUNGIN REAL ESTATE GROUP ALL RIGHTS RESERVED.</div>
       </div>
     </div>
   )
