@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthRequest, verifyToken } from '../middleware/auth.middleware';
-import { getLandInfo, getPolygonInfo, getPolygonWithSub, getFilteredPolygon, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getEstimatedPriceV2, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked, getAIReportDetail, getAIReportDebugInfo, getConsultRequestList, addConsultRequest, getBuildingRepairedPolygon, getUsagePolygon } from '../controllers/land.controller';
+import { getLandInfo, getPolygonInfo, getPolygonWithSub, getFilteredPolygon, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getEstimatedPriceV2, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked, getAIReportDetail, getAIReportDebugInfo, getConsultRequestList, addConsultRequest, getBuildingRepairedPolygon, getUsagePolygon, getRentInfo } from '../controllers/land.controller';
 
 
 const router: Router = Router();
@@ -11,6 +11,7 @@ router.get('/polygon-with-sub', getPolygonWithSub);
 router.get('/polygon-filtered', getFilteredPolygon);
 router.get('/polygon-repaired', getBuildingRepairedPolygon);
 router.get('/polygon-usage', getUsagePolygon);
+router.get('/rent-info', getRentInfo);
 router.get('/info', getLandInfo);
 router.get('/building-list', getBuildingList);
 router.get('/business-district', getBusinessDistrict);

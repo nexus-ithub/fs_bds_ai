@@ -69,7 +69,7 @@ export interface OverlappingUsageInfo {
 }
 
 export interface LandInfo {
-  id: string; 
+  id: string;
   legDongCode: string;
   legDongName: string;
   jibun: string;
@@ -88,7 +88,7 @@ export interface LandInfo {
   sigunguName: string;
   jibunMainNum: string;
   jibunSubNum: string;
-  legEupmyeondongName: string; 
+  legEupmyeondongName: string;
   legLiName: string;
   roadName: string;
   // isUnderground: string;
@@ -102,20 +102,20 @@ export interface LandInfo {
   dealDate: string;
   dealType: string;
 
-  relTotalArea : number; // 연관된 모든 필지의 대지면적
-  relTotalPrice : number; // 연관된 모든 필지의 공시지가
-  relParcelCount : number; // 연관된 모든 필지의 개수
+  relTotalArea: number; // 연관된 모든 필지의 대지면적
+  relTotalPrice: number; // 연관된 모든 필지의 공시지가
+  relParcelCount: number; // 연관된 모든 필지의 개수
 
-  relArchAreaSum : number; // 연관된 모든 건축물의 건축면적 합
-  relFloorAreaSum : number; // 연관된 모든 건축물의 연면적 합
-  
-  relBuildingCount : number; // 연관된 모든 건축물의 개수
+  relArchAreaSum: number; // 연관된 모든 건축물의 건축면적 합
+  relFloorAreaSum: number; // 연관된 모든 건축물의 연면적 합
 
-  relMainUsageName : string; // (연면적이 제일큰) 대표 건축물의 주용도명
-  relUseApprovalDate : string; // (연면적이 제일큰) 대표 건축물의 준공일
-  relFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 층수
-  relGndFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 지상층수
-  relBaseFloorNumber : string; // (연면적이 제일큰) 대표 건축물의 지하층수
+  relBuildingCount: number; // 연관된 모든 건축물의 개수
+
+  relMainUsageName: string; // (연면적이 제일큰) 대표 건축물의 주용도명
+  relUseApprovalDate: string; // (연면적이 제일큰) 대표 건축물의 준공일
+  relFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 층수
+  relGndFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 지상층수
+  relBaseFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 지하층수
 }
 
 export interface BuildingInfo {
@@ -128,7 +128,7 @@ export interface BuildingInfo {
   archLandRatio: number;
   totalFloorArea: number;
   floorAreaRatio: number;
-  useApprovalDate : string;
+  useApprovalDate: string;
   gndFloorNumber: string;
   baseFloorNumber: string;
 }
@@ -157,7 +157,7 @@ export interface EstimatedPrice {
   baseLandId: string;
   estimatedPrice: number;
   per: number;
-  refDealList : RefDealInfo[]; 
+  refDealList: RefDealInfo[];
 }
 
 export interface EstimatedPriceV2 {
@@ -187,6 +187,21 @@ export interface PlaceList {
   school: PlaceInfo[];
   tour: PlaceInfo[];
   bus: PlaceInfo[];
+}
+
+export interface RentInfo {
+  atclNo: string;
+  floorInfo: string;
+  floorType: string;
+  price: number;
+  rentPrice: number;
+  area: number;
+  exclArea: string;
+  lat: number;
+  lng: number;
+  updatedAt: string;
+  createdAt: string;
+  roadContact: string | null;
 }
 
 // export interface LandInfoResp {
@@ -232,13 +247,13 @@ export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo?.legDongName} ${landInfo?.jibun}`;
 }
 
-export const getRoadAddress  = (landInfo: LandInfo) => {
-  if(!landInfo?.roadName) {
+export const getRoadAddress = (landInfo: LandInfo) => {
+  if (!landInfo?.roadName) {
     return "";
   }
   const subName =
     landInfo.buildingSubNum > 0 ? `-${landInfo.buildingSubNum}` : "";
-  
+
   if (landInfo.localBuildingName === null || landInfo.localBuildingName === "") {
     return `${landInfo.sidoName} ${landInfo.sigunguName} ${landInfo.roadName} ${landInfo.buildingMainNum}${subName} (${landInfo.legEupmyeondongName})`;
   } else {
@@ -246,9 +261,9 @@ export const getRoadAddress  = (landInfo: LandInfo) => {
   }
 }
 
-export const getAreaStrWithPyeong = (area ?: any) => {
+export const getAreaStrWithPyeong = (area?: any) => {
   // console.log(area);
-  if(!area) {
+  if (!area) {
     return '-m² (-평)';
   }
 
@@ -256,19 +271,19 @@ export const getAreaStrWithPyeong = (area ?: any) => {
   // const area = Number(area);
   return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
 }
-  
 
-export const getRatioStr = (value : any) => {
-  if(!value) {
+
+export const getRatioStr = (value: any) => {
+  if (!value) {
     return '-';
   }
   return Number(value).toFixed(2) + '%';
 }
 
 
-export const getBuildingCreateDate = (date : string) => {
+export const getBuildingCreateDate = (date: string) => {
   const dateStr = date?.replace(' ', '');
-  if(!dateStr || dateStr.length < 8) {
+  if (!dateStr || dateStr.length < 8) {
     return null;
   }
   // 문자열에서 연, 월, 일 추출
@@ -282,17 +297,17 @@ export const getBuildingCreateDate = (date : string) => {
   return completionDate;
 }
 
-export const getBuildingCreateYear = (date : string) => {
+export const getBuildingCreateYear = (date: string) => {
   const dateStr = getBuildingCreateDate(date);
-  if(!dateStr) {
+  if (!dateStr) {
     return '';
   }
   return dateStr.getFullYear() + '년';
 }
 
 
-export const getBuildingRelInfoText = (landInfo : LandInfo) => {
-  if(!landInfo) {
+export const getBuildingRelInfoText = (landInfo: LandInfo) => {
+  if (!landInfo) {
     return '';
   }
   const arr = []
@@ -313,25 +328,25 @@ export const getBuildingRelInfoText = (landInfo : LandInfo) => {
 }
 
 
-export function getUsageString(list : LandUsageInfo[], conflictName : string, lawForPlan : boolean) {
+export function getUsageString(list: LandUsageInfo[], conflictName: string, lawForPlan: boolean) {
   if (list != null) {
     const result = lawForPlan
       ? list
-          .filter(
-            (u) =>
-              u.conflict === conflictName &&
-              u.lawName &&
-              u.lawName.includes("국토의 계획 및 이용에 관한 법률")
-          )
-          .map((u) => u.usageName)
+        .filter(
+          (u) =>
+            u.conflict === conflictName &&
+            u.lawName &&
+            u.lawName.includes("국토의 계획 및 이용에 관한 법률")
+        )
+        .map((u) => u.usageName)
       : list
-          .filter(
-            (u) =>
-              u.conflict === conflictName &&
-              (u.lawName === null ||
-                !u.lawName.includes("국토의 계획 및 이용에 관한 법률"))
-          )
-          .map((u) => u.usageName);
+        .filter(
+          (u) =>
+            u.conflict === conflictName &&
+            (u.lawName === null ||
+              !u.lawName.includes("국토의 계획 및 이용에 관한 법률"))
+        )
+        .map((u) => u.usageName);
 
     if (result.length > 0) {
       return [...new Set(result)].join(", ");

@@ -382,3 +382,4 @@ FROM nearby_deals d;
 
 
 
+
