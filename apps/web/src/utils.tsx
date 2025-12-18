@@ -64,3 +64,21 @@ export const getGradeChip = (grade: string) => {
         return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
     }
   }
+
+export const maskEmail = (email) => {
+  if (!email) return '';
+
+  const [id, domain] = email.split('@');
+  const len = id.length;
+
+  if (len <= 2) {
+    return `${id[0]}*@${domain}`;
+  }
+
+  const masked =
+    id[0] +
+    '*'.repeat(len - 2) +
+    id[len - 1];
+
+  return `${masked}@${domain}`;
+};

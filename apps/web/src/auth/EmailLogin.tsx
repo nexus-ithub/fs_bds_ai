@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {setToken} from "../authutil";
 import { API_HOST } from "../constants";
-import { BuildingShopBI, Button, Checkbox, HDivider, Spinner, VDivider } from "@repo/common";
+import { Button, Checkbox, HDivider, Spinner, VDivider, KakaoLogo, NaverLogo, GoogleLogo, type User } from "@repo/common";
 import axios from 'axios';
 import { Dialog } from '@mui/material';
 import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
 import { trackError } from "../utils/analytics";
+import { Mail } from 'lucide-react';
+import { maskEmail } from '../utils';
 
 interface LoginResponse {
   id: string;
@@ -28,6 +30,8 @@ export const EmailLogin = () => {
   const [openPWFindSuccess, setOpenPWFindSuccess] = useState<boolean>(false);
   const [findPWEmail, setFindPWEmail] = useState<string>('');
   const [sendEmailLoading, setSendEmailLoading] = useState<boolean>(false);
+  const [openFindAccountDialog, setOpenFindAccountDialog] = useState<boolean>(false);
+  const [findAccountResult, setFindAccountResult] = useState<User[]>([]);
 
   const expiresInStr = import.meta.env.VITE_RESET_TOKEN_EXPIRES_IN;
 
@@ -115,6 +119,79 @@ export const EmailLogin = () => {
     }
   }, [location.state]);
 
+  const handleIdentityVerification = async () => {
+    const width = 400;
+    const height = 640;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    const popup = window.open(`${API_HOST}/api/auth/init-verification`, '본인인증', `width=${width},height=${height},left=${left},top=${top}`);
+    let verificationData = null;
+    let popupClosed = false;
+
+
+    if (!popup) {
+      toast.error('팝업이 차단되었습니다.');
+      return;
+    }
+
+    const messageHandler = (event: MessageEvent) => {
+      const allowedOrigins = [
+        window.location.origin,
+        'https://api.buildingshopai.com',
+        'http://localhost:3002'
+      ];
+
+      if (!allowedOrigins.includes(event.origin)) {
+        console.log('❌ origin 불일치로 메시지 무시됨');
+        return;
+      }
+
+      if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
+        window.removeEventListener('message', messageHandler);
+        verificationData = event.data.data;
+      } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
+        window.removeEventListener('message', messageHandler);
+        console.error('본인인증 실패:', event.data.message);
+        toast.error(event.data.message || '본인인증에 실패했습니다.');
+      }
+    };
+
+    window.addEventListener('message', messageHandler);
+
+    const checkPopup = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopup);
+        window.removeEventListener('message', messageHandler);
+        popupClosed = true;
+        if (verificationData) {
+          findAccount(verificationData.userName, verificationData.userPhone);
+        }
+      }
+    }, 500);
+  };
+
+  const findAccount = async(verifiedName, verifiedPhone) => {
+    try{
+      const response = await axios.post(`${API_HOST}/api/auth/find-account`, {
+        name: verifiedName,
+        phone: verifiedPhone
+      })
+      console.log(response.data);
+      setFindAccountResult(response.data.users);
+      setOpenFindAccountDialog(true);
+    } catch (error) {
+      trackError("계정 조회 중 오류 발생", {
+        message: '계정 조회 중 오류 발생',
+        endpoint: '/login',
+        file: 'LoginMain.tsx',
+        page: window.location.pathname,
+        severity: 'error'
+      })
+      toast.error('계정 조회 중 오류가 발생했습니다.')
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center sm:px-6 lg:px-8">
       <div className="flex flex-col items-center w-full max-w-[664px] h-[720px] flex-shrink-0 rounded">
@@ -191,7 +268,7 @@ export const EmailLogin = () => {
               </button>
             </form>
             <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
-              <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>아이디 찾기</button>
+              <button onClick={() => handleIdentityVerification()}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
               <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 재설정</button>
               {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button> */}
@@ -257,6 +334,25 @@ export const EmailLogin = () => {
           <div className="flex justify-center gap-[12px]">
             <Button className="w-[160px]" onClick={() => {setOpenPWFindSuccess(false);}}>확인</Button>
           </div>
+        </div>
+      </Dialog>
+      <Dialog open={openFindAccountDialog} onClose={() => setOpenFindAccountDialog(false)}>
+        <div className='flex flex-col gap-[24px] p-[26px] w-[400px]'>
+          <div>
+            <h2 className='font-h2'>총 {findAccountResult.length}개의 계정을 찾았습니다.</h2>
+          </div>
+          <div className='flex flex-col gap-[12px]'>
+            {findAccountResult.map((account, idx) => (
+              <div key={idx} className='flex items-center gap-[12px] border border-line-03 rounded-[4px] px-[16px] py-[8px]'>
+                {account.provider === 'k' && <p className='flex items-center justify-center w-[38px] h-[38px] bg-[#FEE502] rounded-full'><KakaoLogo size='20' /></p>}
+                {account.provider === 'n' && <p className='flex items-center justify-center w-[38px] h-[38px] bg-[#03C75A] rounded-full'><NaverLogo size='20' /></p>}
+                {account.provider === 'g' && <p className='flex items-center justify-center w-[38px] h-[38px] outline-[1px] outline-line-03 rounded-full'><GoogleLogo size='20' /></p>}
+                {account.provider === '' && <p className='flex items-center justify-center w-[38px] h-[38px] outline-[1px] outline-line-03 rounded-full'><Mail size='20' className='text-text-02' /></p>}
+                <p>{maskEmail(account.email)}</p>
+              </div>
+            ))}
+          </div>
+          <Button size='semiMedium' onClick={() => setOpenFindAccountDialog(false)}>확인</Button>
         </div>
       </Dialog>
     </div>
