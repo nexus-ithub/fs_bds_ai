@@ -112,6 +112,25 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const changePhone = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId;
+    const { userName, userPhone } = req.body;
+    await UserModel.updatePhone(userId, userName, userPhone);
+    res.status(200).json({ message: '개인정보가 업데이트 되었습니다.' });
+  } catch (error){
+    console.error('Update user error:', error);
+    trackError(error, {
+      message: '핸드폰 번호 변경 중 오류 발생',
+      userId: req.userId,
+      file: 'user.controller.ts',
+      function: 'changePhone',
+      severity: 'error'
+    })
+    res.status(500).json({ message: '핸드폰 번호 변경 중 서버 오류가 발생했습니다.' });
+  }
+}
+
 export const deleteAccount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;

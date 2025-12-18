@@ -10,7 +10,7 @@ import { QUERY_KEY_USER } from '../constants';
 import { getAccessToken } from '../authutil';
 import { Dialog } from '@mui/material';
 import { Mail } from 'lucide-react';
-import { maskEmail } from '../utils';
+import { maskEmail, openIdentityVerification } from '../utils';
 
 const LOGIN_TYPES = [
   { provider: 'k', callback: 'kakao', color: '#FEE502', textColor: 'text-[rgba(0,0,0,0.85)]', logo: <KakaoLogo size='20' />, label: '카카오 계정으로 계속하기' },
@@ -101,58 +101,19 @@ export const LoginMain = () => {
     }
   };
 
-  const handleIdentityVerification = async () => {
-    const width = 400;
-    const height = 640;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const popup = window.open(`${API_HOST}/api/auth/init-verification`, '본인인증', `width=${width},height=${height},left=${left},top=${top}`);
-    let verificationData = null;
-    let popupClosed = false;
-
-
-    if (!popup) {
-      toast.error('팝업이 차단되었습니다.');
-      return;
-    }
-
-    // 메시지 리스너 등록
-    const messageHandler = (event: MessageEvent) => {
-      const allowedOrigins = [
-        window.location.origin,
-        'https://api.buildingshopai.com',
-        'http://localhost:3002'
-      ];
-
-      if (!allowedOrigins.includes(event.origin)) {
-        console.log('❌ origin 불일치로 메시지 무시됨');
-        return;
+  const handleIdentityVerification = () => {
+    openIdentityVerification({
+      apiHost: API_HOST,
+      onSuccess: (data) => {
+        findAccount(data.userName, data.userPhone);
+      },
+      onError: (message) => {
+        toast.error(message);
+      },
+      onPopupBlocked: () => {
+        toast.error('팝업이 차단되었습니다.');
       }
-
-      if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
-        window.removeEventListener('message', messageHandler);
-        verificationData = event.data.data;
-      } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
-        window.removeEventListener('message', messageHandler);
-        console.error('본인인증 실패:', event.data.message);
-        toast.error(event.data.message || '본인인증에 실패했습니다.');
-      }
-    };
-
-    window.addEventListener('message', messageHandler);
-
-    // 팝업이 닫혔는지 주기적으로 확인
-    const checkPopup = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkPopup);
-        window.removeEventListener('message', messageHandler);
-        popupClosed = true;
-        if (verificationData) {
-          findAccount(verificationData.userName, verificationData.userPhone);
-        }
-      }
-    }, 500);
+    });
   };
 
   const findAccount = async(verifiedName, verifiedPhone) => {
@@ -209,7 +170,6 @@ export const LoginMain = () => {
                 onClick={() => {
                   localStorage.setItem('autoLogin', 'true');
                   if (callback === 'email') return navigate('/login/email');
-                  // if (callback === 'google') return alert('⚠️ 정식 오픈 후 이용 가능합니다.');
                   handleOAuth(callback);
                 }}
               >

@@ -162,7 +162,7 @@ export const BuildingList = () => {
           }
         </div>        
       </div>      
-      <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full divide-y divide-line-02">
+      <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full divide-y divide-line-02 scrollbar-hover">
         {loading ? (  
           <div className="flex items-center justify-center py-[60px]">
             <CircularProgress size={24}/>
