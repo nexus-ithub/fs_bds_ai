@@ -82,3 +82,85 @@ export const maskEmail = (email) => {
 
   return `${masked}@${domain}`;
 };
+
+export interface IdentityVerificationData {
+  userName: string;
+  userPhone: string;
+}
+
+interface IdentityVerificationOptions {
+  apiHost: string;
+  onSuccess?: (data: IdentityVerificationData) => void;
+  onError?: (message: string) => void;
+  showSuccessToast?: boolean;
+  onPopupBlocked?: () => void;
+}
+
+
+export const openIdentityVerification = (options: IdentityVerificationOptions) => {
+  const {
+    apiHost,
+    onSuccess,
+    onError,
+    showSuccessToast = false,
+    onPopupBlocked
+  } = options;
+
+  const width = 400;
+  const height = 640;
+  const left = window.screenX + (window.outerWidth - width) / 2;
+  const top = window.screenY + (window.outerHeight - height) / 2;
+
+  const popup = window.open(
+    `${apiHost}/api/auth/init-verification`,
+    '본인인증',
+    `width=${width},height=${height},left=${left},top=${top}`
+  );
+
+  if (!popup) {
+    onPopupBlocked?.();
+    return;
+  }
+
+  let verificationData: IdentityVerificationData | null = null;
+
+  const messageHandler = (event: MessageEvent) => {
+    const allowedOrigins = [
+      window.location.origin,
+      'https://api.buildingshopai.com',
+      'http://localhost:3002'
+    ];
+
+    if (!allowedOrigins.includes(event.origin)) {
+      console.log('❌ origin 불일치로 메시지 무시됨');
+      return;
+    }
+
+    if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
+      window.removeEventListener('message', messageHandler);
+      verificationData = event.data.data;
+
+      if (showSuccessToast) {
+        // toast는 각 컴포넌트에서 import해서 사용하므로 여기서는 직접 호출하지 않음
+        // 대신 onSuccess에서 처리하도록 함
+      }
+    } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
+      window.removeEventListener('message', messageHandler);
+      console.error('본인인증 실패:', event.data.message);
+      onError?.(event.data.message || '본인인증에 실패했습니다.');
+    }
+  };
+
+  window.addEventListener('message', messageHandler);
+
+  const checkPopup = setInterval(() => {
+    if (popup.closed) {
+      clearInterval(checkPopup);
+      window.removeEventListener('message', messageHandler);
+
+      if (verificationData) {
+        onSuccess?.(verificationData);
+      }
+    }
+  }, 500);
+};

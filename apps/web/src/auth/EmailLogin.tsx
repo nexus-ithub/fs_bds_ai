@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import posthog from 'posthog-js';
 import { trackError } from "../utils/analytics";
 import { Mail } from 'lucide-react';
-import { maskEmail } from '../utils';
+import { maskEmail, openIdentityVerification } from '../utils';
 
 interface LoginResponse {
   id: string;
@@ -119,56 +119,19 @@ export const EmailLogin = () => {
     }
   }, [location.state]);
 
-  const handleIdentityVerification = async () => {
-    const width = 400;
-    const height = 640;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const popup = window.open(`${API_HOST}/api/auth/init-verification`, '본인인증', `width=${width},height=${height},left=${left},top=${top}`);
-    let verificationData = null;
-    let popupClosed = false;
-
-
-    if (!popup) {
-      toast.error('팝업이 차단되었습니다.');
-      return;
-    }
-
-    const messageHandler = (event: MessageEvent) => {
-      const allowedOrigins = [
-        window.location.origin,
-        'https://api.buildingshopai.com',
-        'http://localhost:3002'
-      ];
-
-      if (!allowedOrigins.includes(event.origin)) {
-        console.log('❌ origin 불일치로 메시지 무시됨');
-        return;
+  const handleIdentityVerification = () => {
+    openIdentityVerification({
+      apiHost: API_HOST,
+      onSuccess: (data) => {
+        findAccount(data.userName, data.userPhone);
+      },
+      onError: (message) => {
+        toast.error(message);
+      },
+      onPopupBlocked: () => {
+        toast.error('팝업이 차단되었습니다.');
       }
-
-      if (event.data.type === 'IDENTITY_VERIFICATION_SUCCESS') {
-        window.removeEventListener('message', messageHandler);
-        verificationData = event.data.data;
-      } else if (event.data.type === 'IDENTITY_VERIFICATION_ERROR') {
-        window.removeEventListener('message', messageHandler);
-        console.error('본인인증 실패:', event.data.message);
-        toast.error(event.data.message || '본인인증에 실패했습니다.');
-      }
-    };
-
-    window.addEventListener('message', messageHandler);
-
-    const checkPopup = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkPopup);
-        window.removeEventListener('message', messageHandler);
-        popupClosed = true;
-        if (verificationData) {
-          findAccount(verificationData.userName, verificationData.userPhone);
-        }
-      }
-    }, 500);
+    });
   };
 
   const findAccount = async(verifiedName, verifiedPhone) => {
@@ -271,7 +234,6 @@ export const EmailLogin = () => {
               <button onClick={() => handleIdentityVerification()}>아이디 찾기</button>
               <VDivider colorClassName="bg-line-04"/>
               <button onClick={() => {setFindPWEmail(''); setOpenPWFind(true);}}>비밀번호 재설정</button>
-              {/* <button onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}>비밀번호 재설정</button> */}
             </div>
           </div>
           <div className="flex items-center justify-center gap-[12px]">
@@ -279,13 +241,6 @@ export const EmailLogin = () => {
             <p className="font-s2 text-text-03">or</p>
             <HDivider />
           </div>
-          {/* <Button 
-            onClick={() => alert("⚠️ 정식 오픈 후 이용 가능합니다.")}
-            variant='outline'
-            size="medium"
-            fontSize="font-h4"
-            className=""
-          >이메일로 회원가입</Button> */}
           <Button 
             onClick={() => navigate('/signup')}
             variant='outline'

@@ -140,7 +140,19 @@ export class UserModel {
         [hashedPassword, id]
       );
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error updating user password:', error);
+      throw error;
+    }
+  }
+
+  static async updatePhone (id: number, name: string, phone: string): Promise<void> {
+    try{
+      await db.query<User>(
+        'UPDATE users SET name = ?, phone = ? WHERE id = ? AND delete_yn = "N"',
+        [name, phone, id]
+      )
+    } catch (error) {
+      console.error('Error updating user phone:', error);
       throw error;
     }
   }

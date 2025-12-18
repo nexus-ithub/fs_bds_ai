@@ -97,7 +97,7 @@ export const YoutubeList = ({
   }, [])
 
   return (
-    <div className="flex flex-col overflow-auto">
+    <div className="flex flex-col overflow-auto scrollbar-hover">
       <div className="flex flex-col gap-[4px] pt-[20px] px-[20px]">
         <p className="font-h3">빌딩의 신</p>
         <p className="font-s4 text-text-03">당신의 빌딩 투자 파트너 박준연 '빌딩의신' 채널에 오신 것을 환영합니다.</p>
