@@ -259,7 +259,7 @@ export class LandModel {
             JSON_OBJECT(
               'usageCode', usage_code,
               'usageName', usage_name,
-              'pctOfAddress', ROUND(100 * inter_area / NULLIF(address_area, 0), 6) / 100
+              'pctOfAddress', ROUND(100 * CAST(inter_area AS DECIMAL(20,4)) / NULLIF(CAST(address_area AS DECIMAL(20,4)), 0), 6) / 100
             )
             /* MySQL은 ORDER BY를 JSON_ARRAYAGG 안에 직접 못 넣는 경우가 있어,
               아래처럼 pct CTE에서 먼저 정렬된 x를 만들거나, MariaDB 지원 여부에 따라 조정 */
@@ -311,57 +311,62 @@ export class LandModel {
         ON land_char.usage1_name = leg_land_usage_ratio.name      
     `;
 
-    const result = await db.query<any>(sql, [landId]);
-    const area = result[0].area;
-    const usagePctList = JSON.parse(result[0].usagePctList as any);
-    const usageList = JSON.parse(result[0].usageList as any).filter((u: any) => u.conflict === '저촉' && u.lawName && u.lawName.includes("국토의 계획 및 이용에 관한 법률"));
-
-    let finalBcr = result[0].bcr;
-    let finalFar = result[0].far;
-
-    console.log('getBcrFarByOverlappingUsage area', area);
-    console.log('getBcrFarByOverlappingUsage usagePctList', usagePctList);
-    console.log('getBcrFarByOverlappingUsage usageList', usageList);
-    let remainingArea = area;
-
-    if (usageList.length > 0) {
+    try {
+      const result = await db.query<any>(sql, [landId]);
       const area = result[0].area;
-      for (const usage of usageList) {
-        const bcr = usage.bcr;
-        const far = usage.far;
-        if (bcr > 0 && far > 0) {
-          const pct = usagePctList.find((u: any) => u.usageCode === usage.usageCode)?.pctOfAddress;
-          if (pct) {
-            usage.weightedArea = area * Math.round(pct * 10) / 10;
-            remainingArea -= usage.weightedArea;
-          }
-        }
-      }
-      const nullWeightedAreaCount = usageList.filter((u: any) => u.weightedArea == null).length;
+      const usagePctList = JSON.parse(result[0].usagePctList as any);
+      const usageList = JSON.parse(result[0].usageList as any).filter((u: any) => u.conflict === '저촉' && u.lawName && u.lawName.includes("국토의 계획 및 이용에 관한 법률"));
 
-      if (nullWeightedAreaCount > 0) {
-        const areaPerNull = remainingArea / nullWeightedAreaCount;
-        for (const usage of usageList) {
-          if (usage.weightedArea == null) {
-            usage.weightedArea = areaPerNull;
-          }
-        }
-      }
+      let finalBcr = result[0].bcr;
+      let finalFar = result[0].far;
 
+      console.log('getBcrFarByOverlappingUsage area', area);
+      console.log('getBcrFarByOverlappingUsage usagePctList', usagePctList);
       console.log('getBcrFarByOverlappingUsage usageList', usageList);
+      let remainingArea = area;
 
-      finalBcr = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.bcr, 0);
-      finalFar = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.far, 0);
+      if (usageList.length > 0) {
+        const area = result[0].area;
+        for (const usage of usageList) {
+          const bcr = usage.bcr;
+          const far = usage.far;
+          if (bcr > 0 && far > 0) {
+            const pct = usagePctList.find((u: any) => u.usageCode === usage.usageCode)?.pctOfAddress;
+            if (pct) {
+              usage.weightedArea = area * Math.round(pct * 10) / 10;
+              remainingArea -= usage.weightedArea;
+            }
+          }
+        }
+        const nullWeightedAreaCount = usageList.filter((u: any) => u.weightedArea == null).length;
 
-      console.log('getBcrFarByOverlappingUsage finalBcr', finalBcr);
-      console.log('getBcrFarByOverlappingUsage finalFar', finalFar);
+        if (nullWeightedAreaCount > 0) {
+          const areaPerNull = remainingArea / nullWeightedAreaCount;
+          for (const usage of usageList) {
+            if (usage.weightedArea == null) {
+              usage.weightedArea = areaPerNull;
+            }
+          }
+        }
+
+        console.log('getBcrFarByOverlappingUsage usageList', usageList);
+
+        finalBcr = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.bcr, 0);
+        finalFar = usageList.reduce((acc, usage) => acc + (usage.weightedArea / area) * usage.far, 0);
+
+        console.log('getBcrFarByOverlappingUsage finalBcr', finalBcr);
+        console.log('getBcrFarByOverlappingUsage finalFar', finalFar);
+      }
+
+      return {
+        area,
+        bcr: finalBcr,
+        far: finalFar
+      };
+    } catch (error) {
+      console.error('Error in getBcrFarByOverlappingUsage for landId:', landId, error);
+      throw error;
     }
-
-    return {
-      area,
-      bcr: finalBcr,
-      far: finalFar
-    };
   }
 
   static async findFilteredPolygon(
