@@ -190,7 +190,7 @@ export const LandInfoCard = ({
           }
         </div>
         <div className="mt-[14px] flex items-center justify-between">
-          <div className="flex items-center gap-[6px]">
+          <div className="flex flex-wrap items-center gap-[6px]">
             {
               landInfo.usageName && (
                 <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
@@ -223,7 +223,7 @@ export const LandInfoCard = ({
               ))
             }
           </div>
-          <div className="flex items-center gap-[4px] font-s3 text-text-02">
+          <div className="flex flex-shrink-0 justify-start items-start font-s3 text-text-02">
             {getBuildingRelInfoText(landInfo)}
           </div>
         </div>
