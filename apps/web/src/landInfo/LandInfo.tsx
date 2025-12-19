@@ -1,16 +1,18 @@
 import type { BuildingInfo, DistrictInfo, EstimatedPrice, EstimatedPriceV2, LandInfo, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider, getBuildingCreateDate, getBuildingCreateYear, getBuildingRelInfoText } from "@repo/common";
 import { krwUnit } from "@repo/common";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Land } from "./Land";
 import { Building } from "./Building";
-import { X } from "lucide-react";
+import { CircleQuestionMarkIcon, X } from "lucide-react";
 import { BusinessDistrict } from "./BusinessDistrict";
 import { Place } from "./Place";
 import { CompanyInfo } from "../footer/CompanyInfo";
 import { format } from "date-fns";
 import { usePostHog } from 'posthog-js/react'
 import { trackEvent } from "../utils/analytics";
+import { Dialog, DialogActions, DialogContent, Tooltip } from "@mui/material";
+import { checkIsAIReportNotAvailable, getSpecialUsageList, isDistrictPlanning } from "../utils";
 
 const TABS = [
   "토지",
@@ -47,13 +49,17 @@ export const LandInfoCard = ({
   const buildingRef = useRef<HTMLDivElement>(null);
   const businessDistrictRef = useRef<HTMLDivElement>(null);
   const placeRef = useRef<HTMLDivElement>(null);
-
-
-
-
-
-
+  const [openEstimationInfo, setOpenEstimationInfo] = useState(false);
   const [selecting, setSelecting] = useState(false);
+
+  const [isAIReportNotAvailable, setIsAIReportNotAvailable] = useState({
+    result: false,
+    message: "",
+  });
+
+  const specialUsageList = useMemo(() => {
+    return getSpecialUsageList(landInfo);
+  }, [landInfo]);
 
   const handleOpenAIReport = () => {
     onOpenAIReport?.();
@@ -87,23 +93,31 @@ export const LandInfoCard = ({
     if (ref.current) {
       ref.current.scrollTop = 0;
     }
+
+    if (landInfo) {
+      const { result, message } = checkIsAIReportNotAvailable(landInfo)
+      setIsAIReportNotAvailable({
+        result,
+        message,
+      })
+    }
   }, [landInfo]);
 
   useEffect(() => {
-    
+
     const scrollContainer = ref.current;
     if (!scrollContainer) return;
-  
+
     const ACTIVATION_OFFSET = 24; // 섹션 상단에서 약간 내려왔을 때 활성화
     let ticking = false;
-  
+
     const getRelativeTop = (el: HTMLElement, container: HTMLElement) => {
       const elRect = el.getBoundingClientRect();
       const cRect = container.getBoundingClientRect();
       // 컨테이너 상단 기준 절대 위치(=scrollTop 비교용)
       return elRect.top - cRect.top + container.scrollTop;
     };
-  
+
     const handleScroll = () => {
 
       console.log('handleScroll', selecting);
@@ -111,17 +125,17 @@ export const LandInfoCard = ({
       ticking = true;
 
       if (selecting) return;
-  
-      
+
+
       requestAnimationFrame(() => {
         const scrollTop = scrollContainer.scrollTop;
         const refs = [landRef, buildingRef, businessDistrictRef, placeRef];
-  
+
         // 각 섹션의 컨테이너 기준 top 계산
         const tops = refs.map(r =>
           r.current ? getRelativeTop(r.current, scrollContainer) : Number.POSITIVE_INFINITY
         );
-  
+
         // 현재 스크롤 위치보다 위(또는 근처)에 있는 가장 마지막 섹션을 선택
         let active = 0;
         for (let i = 0; i < tops.length; i++) {
@@ -134,19 +148,19 @@ export const LandInfoCard = ({
           active = refs.length - 1;
         }
 
-  
+
         setSelectedTab(active);
         ticking = false;
       });
     };
-  
+
     scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
     // 초기 진입 시 상태 동기화
     handleScroll();
-  
+
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, [ref, landRef, buildingRef, businessDistrictRef, placeRef, selecting]);
-    
+
   if (!landInfo) {
     return null;
   }
@@ -163,7 +177,7 @@ export const LandInfoCard = ({
             <button
               onClick={() => onClose?.()}
             >
-              <X size={20}/>
+              <X size={20} />
             </button>
           </div>
           {
@@ -182,11 +196,32 @@ export const LandInfoCard = ({
                 <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
               )
             }
-            {
+            {/* {
               landInfo.relMainUsageName && (
                 <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
               )
-            }               
+            } */}
+            {
+              specialUsageList.map((specialUsage, index) => (
+                <Tooltip
+                  key={index}
+                  title={<div>
+                    {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
+                    <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
+                  </div>}
+                >
+                  <p
+                    key={index}
+                    title={specialUsage}
+                    className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
+                  >
+                    {specialUsage}
+                    <CircleQuestionMarkIcon size={14} />
+                  </p>
+                </Tooltip>
+
+              ))
+            }
           </div>
           <div className="flex items-center gap-[4px] font-s3 text-text-02">
             {getBuildingRelInfoText(landInfo)}
@@ -209,38 +244,65 @@ export const LandInfoCard = ({
             <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
           </div>
-         {/* <div className="flex-1 flex items-center justify-between">
+          {/* <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">건축면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relArchAreaSum)}</p>
           </div>         */}
-         <div className="flex-1 flex items-center justify-between">
+          <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">연면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relFloorAreaSum)}</p>
-          </div>             
+          </div>
         </div>
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
           <div className="flex-1 flex flex-col items-center gap-[6px]">
-            <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
+            <div className="flex items-center gap-[2px]">
+              <Tooltip
+                title={
+                  <p className="">
+                    본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
+                    투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+                  </p>
+                }
+              >
+                <div
+                  onClick={() => setOpenEstimationInfo(true)}
+                  className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px] gap-[2px] flex items-center">
+                  추정가
+                  <CircleQuestionMarkIcon size={14} />
+                </div>
+              </Tooltip>
+            </div>
             <p className="font-h2-p text-primary">{estimatedPrice?.estimatedPrice ? krwUnit(estimatedPrice?.estimatedPrice, true) : '-'}</p>
             <p className="font-c3 text-primary-030">{estimatedPrice?.per ? '공시지가 대비 ' + estimatedPrice?.per + ' 배' : '-'}</p>
+            {/* <Dialog open={openEstimationInfo} onClose={() => setOpenEstimationInfo(false)}>
+              <DialogContent>
+                <p className="font-s2 text-text-02">
+                  본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br /><br />
+                  투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 갖지 않습니다.
+                </p>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setOpenEstimationInfo(false)}>닫기</Button>
+              </DialogActions>
+            </Dialog> */}
           </div>
-          <VDivider className="h-[56px]"/>
+          <VDivider className="h-[56px]" />
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
             <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
             <p className="font-c3 text-text-03">{landInfo.relTotalPrice ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
           </div>
-          <VDivider className="h-[56px]"/>
+          <VDivider className="h-[56px]" />
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
             <p className="font-h2-p">{landInfo.dealPrice ? krwUnit(landInfo.dealPrice * 10000, true) : '-'}</p>
             <p className="font-c3 text-text-03">{landInfo.dealDate ? format(landInfo.dealDate, 'yyyy.MM.dd') : ''}</p>
-          </div>        
+          </div>
         </div>
 
-        {
+        {/* {
           estimatedPriceV2 && (
-            <div className="mt-[16px] flex flex-col border border-line-02 rounded-[4px] py-[14px] px-[8px]">
+            <div className="mt-[6px] flex flex-col border border-line-02 rounded-[4px] py-[14px] px-[8px]">
               <p className="font-h4-p">추정가 : {krwUnit(estimatedPriceV2?.estimatedPrice, true)} , 공시지가 대비 {estimatedPriceV2?.per?.toFixed(1)}배</p>
               <div className="flex flex-col text-[14px]">
                 {
@@ -251,14 +313,35 @@ export const LandInfoCard = ({
               </div>
             </div>
           )
+        } */}
+        {/* {
+          specialUsageList.length > 0 && (
+            <p className="mt-[6px] font-s3 border border-line-02 rounded-[4px] py-[12px] px-[8px] text-red-500 bg-red-100 ">
+              {specialUsageList.join(', ')}은 사업계획 수립 시 정밀한 검토가 필요한 영역으로
+              본 자료의 면적 및 계획 내용은 추정치에 기반합니다.
+              본 자료에 기재된 사업계획은 변동될 수 있으며,
+              참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+            </p>
+          )
+        } */}
+        {
+          isAIReportNotAvailable.result ? (
+            <div className="mt-[6px] font-s3 border border-line-02 rounded-[4px] py-[14px] px-[8px] text-primary-040 bg-primary-020">
+              {isAIReportNotAvailable.message?.split('\n').map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
+            </div>
+          )
+            : (
+              <Button
+                className="w-full mt-[16px] py-[11px]"
+                onClick={() => handleOpenAIReport()}
+              >
+                AI 설계 • 임대 분석 리포트
+              </Button>
+            )
         }
 
-        <Button 
-          className="w-full mt-[16px] py-[11px]"
-          onClick={() => handleOpenAIReport()}
-        >
-          AI 설계 • 임대 분석 리포트
-        </Button>
       </div>
 
       <div className="mt-[8px] min-h-0 flex-1 flex flex-col overflow-hidden">
@@ -282,11 +365,11 @@ export const LandInfoCard = ({
         <div
           ref={ref}
           className="pt-[20px] pb-[40px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
-          <Land landInfo={landInfo} ref={landRef}/>
-          <Building buildings={buildingList || []} ref={buildingRef}/>
-          <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef}/>
-          <Place place={place} ref={placeRef}/>
-          <CompanyInfo/>
+          <Land landInfo={landInfo} ref={landRef} />
+          <Building buildings={buildingList || []} ref={buildingRef} />
+          <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef} />
+          <Place place={place} ref={placeRef} />
+          <CompanyInfo />
         </div>
       </div>
     </div>

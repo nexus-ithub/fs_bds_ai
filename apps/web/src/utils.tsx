@@ -1,5 +1,8 @@
 
 // lat: 37.506448, lng: 127.053366 
+
+import { getUsageString, type LandInfo } from "@repo/common";
+
 // level : 3
 export const saveMapState = (centerLat: number, centerLng: number, level: number) => {
   const mapState = {
@@ -12,7 +15,7 @@ export const saveMapState = (centerLat: number, centerLng: number, level: number
 
 export const loadMapState = () => {
   const mapStateString = localStorage.getItem('mapState');
-  
+
   if (!mapStateString) {
     return {
       centerLat: 37.506448,
@@ -20,7 +23,7 @@ export const loadMapState = () => {
       level: 3
     };
   }
-  
+
   try {
     const mapState = JSON.parse(mapStateString);
     return {
@@ -43,6 +46,7 @@ export const toDeg360 = (rad: number) => {
   const deg = (rad * 180) / Math.PI;
   return (deg + 360) % 360;
 };
+
 export function bearingFromTo(fromLat: number, fromLng: number, toLat: number, toLng: number) {
   const φ1 = toRad(fromLat), φ2 = toRad(toLat), Δλ = toRad(toLng - fromLng);
   const y = Math.sin(Δλ) * Math.cos(φ2);
@@ -50,20 +54,84 @@ export function bearingFromTo(fromLat: number, fromLng: number, toLat: number, t
   return toDeg360(Math.atan2(y, x));
 }
 
+export function checkIsAIReportNotAvailable(landInfo: LandInfo): { result: boolean, message: string } {
+  console.log(landInfo);
+  // if (Number(landInfo.relTotalArea) * 0.3025 > 50 ) {
+  //   return { result: true, message: '해당 부지의 특성상 AI 설계 ·  리포트 제공이 어려우니\n고객센터를 통해 별도 문의 바랍니다.' };
+  // }
+
+  const validJimokNames = ['대', '공장용지', '학교용지', '주차장', '주유소용지', '창고용지', '잡종지'];
+  const validCurUses = [
+    '연립', '주거나지', '주거기타', '다세대', '단독', '업무용', '상업용', '상업나지',
+    '상업기타', '주상용', '주상기타', '주차장등', '주상나지', '공업용', '공업기타',
+    '공업나지', '여객자동차터미널', '물류터미널'
+  ];
+
+  if (Number(landInfo.relTotalArea) * 0.3025 >= 50 &&
+    validJimokNames.includes(landInfo.jimokName) &&
+    validCurUses.includes(landInfo.curUse)
+  ) {
+    return { result: false, message: '' };
+  }
+
+  return { result: true, message: '해당 부지의 특성상 AI 설계 ·  리포트 제공이 어려우니\n고객센터를 통해 별도 문의 바랍니다.' };
+}
+
+
+export const isDistrictPlanning = (landInfo: LandInfo) => {
+  let usage = getUsageString(landInfo.usageList, "포함", true);
+  if (usage.includes("지구단위계획")) {
+    return true;
+  }
+  return false;
+};
+
+export const getSpecialUsageList = (landInfo: LandInfo) => {
+  const specialKeywords = [
+    "지구단위계획구역",
+    "도심지역",
+    "고도지구",
+    "역사문화환경보전지역",
+    "역사문화미관지구",
+    "가로구역별 최고높이 제한지역",
+    "시도지정문화유산구역",
+    "전통사찰보존구역",
+    "등록문화유산구역",
+    "문화유산보호구역",
+    "재정비촉진지구",
+    "건축허가·착공제한지역",
+    "문화지구",
+    "정비구역",
+    "국가지정문화유산구역"
+  ];
+
+  if (!landInfo.usageList) return [];
+
+  const list = landInfo.usageList
+    .filter((u) => u.conflict === "포함")
+    .map((u) => u.usageName);
+
+  const matched = list.filter((name) =>
+    specialKeywords.some((keyword) => name.includes(keyword))
+  );
+
+  return matched;
+};
+
 
 
 export const getGradeChip = (grade: string) => {
-    switch (grade) {
-      case 'A':
-        return <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>;
-      case 'B':
-        return <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>;
-      case 'C':
-        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
-      default:
-        return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
-    }
+  switch (grade) {
+    case 'A':
+      return <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>;
+    case 'B':
+      return <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>;
+    case 'C':
+      return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
+    default:
+      return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
   }
+}
 
 export const maskEmail = (email) => {
   if (!email) return '';

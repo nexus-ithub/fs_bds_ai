@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
-import { loadMapState, saveMapState } from "../utils";
-import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
+import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
+import { InfoIcon, PictureInPicture, PictureInPicture2, X } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
@@ -18,7 +18,7 @@ import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
 import React from "react";
 import { formatDate } from "date-fns";
-import { pointOnFeature } from "@turf/turf";
+import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
 
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
@@ -31,11 +31,12 @@ export default function Main() {
   const [showDeal, setShowDeal] = useState<boolean>(false);
   const [showUsage, setShowUsage] = useState<boolean>(false);
   const [showRent, setShowRent] = useState<boolean>(false);
-  const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
+  // const [aiReportResult, setAiReportResult] = useState<AIReportResult | null>(null);
   const [remodelPolygonList, setRemodelPolygonList] = useState<PolygonInfoWithRepairInfo[] | null>(null);
   const [usagePolygonList, setUsagePolygonList] = useState<UsagePolygon[] | null>(null);
-  // const [rentInfoList, setRentInfoList] = useState<RentInfo[] | null>(null);
+  const [rentInfoList, setRentInfoList] = useState<RentInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
+  const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
   const [estimatedPriceV2, setEstimatedPriceV2] = useState<EstimatedPriceV2 | null>(null);
@@ -281,6 +282,9 @@ export default function Main() {
     return polygon.find((p) => p.current === 'Y') || polygon[0];
   }
   const getPolygon = ({ id, lat, lng, changePosition = false }: { id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean }) => {
+
+    setRentInfoList([]);
+    setAiReportNotAvailable({ result: false, message: '' });
     setOpenAIReport(false);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
@@ -290,6 +294,11 @@ export default function Main() {
       .then((response) => {
         // console.log(response.data);.
         const polygon = response.data as PolygonInfo[];
+        if (polygon.length === 0) {
+          // toast.warn("현재는 서울시에 한해 정보가 제공되는 점 양해 부탁드립니다.");
+          alert("빌딩샵ai 는 현재 서울시를 대상으로한 분석을 제공해 드리고 있습니다. \n서비스이용에 참고해주시길바라며, 이점 양해 부탁드립니다")
+          return;
+        }
         // console.log(polygon);
         setPolygonList(polygon);
 
@@ -325,9 +334,15 @@ export default function Main() {
     axiosInstance.get(`/api/land/info?id=${id}`)
       .then((response) => {
         // console.log(response.data);.
-        const landInfo = response.data as LandInfo[];
+        const result = response.data as LandInfo[];
         // console.log(landInfo);
-        setLandInfo(landInfo[0]);
+        const landInfo = result[0];
+        setLandInfo(landInfo);
+        const aiReportNotAvailable = checkIsAIReportNotAvailable(landInfo);
+
+        console.log(aiReportNotAvailable);
+        setAiReportNotAvailable(aiReportNotAvailable);
+
       })
       .catch((error) => {
         console.error(error);
@@ -479,8 +494,63 @@ export default function Main() {
       properties: {}
     };
 
+    // 1단계: pointOnFeature로 중심점 계산
     const center = pointOnFeature(feature);
-    const [lng, lat] = center.geometry.coordinates;
+    let [lng, lat] = center.geometry.coordinates;
+
+    // 2단계: 점이 polygon 내부에 있는지 확인
+    let testPoint = point([lng, lat]);
+    let isInside = booleanPointInPolygon(testPoint, feature);
+
+    // 3단계: 내부에 없으면 polygon 안으로 이동 시도
+    if (!isInside) {
+      // 폴리곤의 모든 점들의 평균(centroid) 계산
+      const validCoords = coordinates.slice(0, -1); // 마지막 점 제외 (첫 점과 중복)
+      let sumX = 0;
+      let sumY = 0;
+      for (const [x, y] of validCoords) {
+        sumX += x;
+        sumY += y;
+      }
+      const centroidLng = sumX / validCoords.length;
+      const centroidLat = sumY / validCoords.length;
+
+      // 현재 점에서 centroid 방향으로 점진적으로 이동하면서 내부 점 찾기
+      for (let ratio = 0.1; ratio <= 1.0; ratio += 0.2) {
+        const newLng = lng + (centroidLng - lng) * ratio;
+        const newLat = lat + (centroidLat - lat) * ratio;
+        testPoint = point([newLng, newLat]);
+
+        if (booleanPointInPolygon(testPoint, feature)) {
+          lng = newLng;
+          lat = newLat;
+          isInside = true;
+          break;
+        }
+      }
+
+      // 여전히 내부에 없으면 centroid 자체를 사용
+      if (!isInside) {
+        testPoint = point([centroidLng, centroidLat]);
+        if (booleanPointInPolygon(testPoint, feature)) {
+          lng = centroidLng;
+          lat = centroidLat;
+          isInside = true;
+          console.log('centroid2', lng, lat);
+        }
+      }
+
+      // 그래도 내부에 없으면 처음 3개 점의 무게중심 사용 (삼각형 중심 - 거의 항상 내부)
+      if (!isInside && coordinates.length >= 3) {
+        const [x1, y1] = coordinates[0];
+        const [x2, y2] = coordinates[1];
+        const [x3, y3] = coordinates[2];
+        lng = (x1 + x2 + x3) / 3;
+        lat = (y1 + y2 + y3) / 3;
+        console.log('centroid', lng, lat);
+      }
+    }
+
     return { lat, lng };
 
   }
@@ -638,19 +708,44 @@ export default function Main() {
 
           )}
           {polygonList && (
-            polygonList.map((polygon) => (
-              <Polygon
-                key={polygon.id}
-                fillColor="var(--color-primary)"
-                fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
-                strokeColor="var(--color-primary)"
-                strokeOpacity={1}
-                strokeWeight={1.5}
-                path={convertXYtoLatLng(polygon?.polygon || [])} />
+            polygonList.map((polygon, index) => (
+
+              <React.Fragment key={polygon.id}>
+                <Polygon
+                  key={polygon.id}
+                  fillColor="var(--color-primary)"
+                  fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
+                  strokeColor="var(--color-primary)"
+                  strokeOpacity={1}
+                  strokeWeight={1.5}
+                  path={convertXYtoLatLng(polygon?.polygon || [])} />
+                {
+                  aiReportNotAvailable.result && index === 0 && (
+                    <CustomOverlayMap
+                      yAnchor={1.1}
+                      position={getPolygonCenter(polygon?.polygon)}>
+                      <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                        <div className="font-s3-p">{aiReportNotAvailable.message?.split('\n').map((line, index) => (
+                          <div key={index} className="flex items-center gap-[3px]">
+                            {index === 0 && <InfoIcon size={14} />}
+                            <p>
+                              {line}
+                            </p>
+                          </div>
+                        ))}</div>
+                        <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                        <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                      </div>
+                    </CustomOverlayMap>
+                  )
+                }
+
+              </React.Fragment>
+
             ))
           )}
           {filteredPolygonList && (
-            filteredPolygonList.map((polygon) => (
+            filteredPolygonList.map((polygon, index) => (
               <Polygon
                 key={polygon.id}
                 fillColor="var(--color-secondary)"
@@ -710,8 +805,8 @@ export default function Main() {
               </React.Fragment>
             ))
           )}
-          {IS_DEVELOPMENT && showRent && aiReportResult && (
-            aiReportResult.aroundRentInfo?.map((rentInfo) => (
+          {IS_DEVELOPMENT && showRent && (
+            rentInfoList?.map((rentInfo) => (
               <div
                 onClick={(e) => {
                   e.stopPropagation();
@@ -930,11 +1025,11 @@ export default function Main() {
           key={landInfo?.id}
           landId={landInfo?.id}
           onReportCreated={(reportResult) => {
-            setAiReportResult(reportResult);
+            setRentInfoList(reportResult.aroundRentInfo);
           }}
           onClose={() => {
             setOpenAIReport(false);
-            setAiReportResult(null);
+            setRentInfoList([]);
           }}
         />
       }

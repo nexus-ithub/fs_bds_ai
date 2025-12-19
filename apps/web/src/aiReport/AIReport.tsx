@@ -483,6 +483,12 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                 </div>
                 <div className="space-y-[16px]">
                   <p className="font-h3">AI 분석 리포트</p>
+                  <p className="w-full font-b3 text-red-500 bg-red-100 px-[16px] py-[12px] rounded-[4px]">
+                    본 사업성 분석 자료는 공공 데이터 및 추정치로 계산한 것으로,
+                    해당 자료만으로 정확성과 완전성을 보장할 수 없습니다.<br />
+                    최종 사업성 검토는 개인의 자본 상황 등 개별 특수성을 반영하여
+                    전문가의 검토를 받으시기 바랍니다.
+                  </p>
                   <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
                     {aiReportResult?.analysisMessage}
                   </p>

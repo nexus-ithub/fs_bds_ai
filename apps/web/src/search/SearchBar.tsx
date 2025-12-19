@@ -12,11 +12,11 @@ const MAX_ITEMS = 30;
 const STORAGE_KEY_FILTER = "recentSelectedFilter";
 
 interface SelectedFilter {
-  textAsArea : boolean;
-  areaRange : number[];
-  farRange : number[];
-  buildingAgeRange : number[];
-  usageList : string[];
+  textAsArea: boolean;
+  areaRange: number[];
+  farRange: number[];
+  buildingAgeRange: number[];
+  usageList: string[];
 }
 
 
@@ -138,13 +138,13 @@ function StyledSlider({
 }) {
 
   // console.log('StyledSlider areaRange', range);
-  
+
   const [tmpRange, setTmpRange] = useState(range);
 
   useEffect(() => {
     setTmpRange(range);
   }, [range]);
-  
+
   return (
     <div className="px-[20px] relative">
       <Slider
@@ -183,8 +183,8 @@ function StyledSlider({
             opacity: 0.3,
             backgroundColor: '#aaa',
           },
-        }}           
-        defaultValue={tmpRange}         
+        }}
+        defaultValue={tmpRange}
         value={tmpRange}
         onChange={(e, value) => {
           e.preventDefault();
@@ -206,9 +206,9 @@ function StyledSlider({
       <div className="absolute top-[22px] left-0 right-0 px-[20px] space-x-[12px] flex justify-between">
         {marks?.map((mark) => (
           <div
-            key={mark.value} 
+            key={mark.value}
             className="flex flex-col items-center relative" >
-            <div className="w-[1px] h-[4px] bg-line-03"/>
+            <div className="w-[1px] h-[4px] bg-line-03" />
             <p className="text-text-02 font-c3 absolute top-[8px] min-w-[40px] text-center">{mark.label}</p>
           </div>
         ))}
@@ -225,11 +225,11 @@ export interface SearchBarProps {
 
 const validPattern = /^[가-힣0-9a-zA-Z\s-]+$/;
 
-export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: SearchBarProps) => {
+export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: SearchBarProps) => {
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const {recent, push, clear, removeById } = useRecentSelections();
+  const { recent, push, clear, removeById } = useRecentSelections();
   const axiosInstance = useAxiosWithAuth()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false)
@@ -245,7 +245,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
   const latestQueryRef = useRef("");         // 마지막으로 요청한 쿼리
 
   const [filterOn, setFilterOn] = useState(false);
-  
+
   const [showFilterSetting, setShowFilterSetting] = useState(false);
 
   const [areaRange, setAreaRange] = useState<number[]>([]);
@@ -259,12 +259,12 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
   useEffect(() => {
     onShowFilterSetting?.(showFilterSetting);
   }, [showFilterSetting]);
-  
+
   const loadRecentFilter = (): SelectedFilter => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_FILTER);
       console.log('raw', raw);
-      if(raw) {
+      if (raw) {
         return JSON.parse(raw) as SelectedFilter;
       }
     } catch {
@@ -276,7 +276,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
       farRange: [0, 1500],
       buildingAgeRange: [0, 40],
       usageList: USAGE_LIST.map((usage) => usage.value),
-    };    
+    };
   }
 
   useEffect(() => {
@@ -309,22 +309,22 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
 
     console.log('areaRange', areaRange);
 
-    if(loadedFilter.current) {
+    if (loadedFilter.current) {
       localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ textAsArea, areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
     }
 
     const maxArea = textAsArea ? AREA_MARKS[AREA_MARKS.length - 1].value : AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value;
     const resultAreaRange = [areaRange[0], areaRange[1] === maxArea ? -1 : areaRange[1]];
-    if(!textAsArea) {
-      resultAreaRange[0] = resultAreaRange[0] * 0.3025;
-      if(resultAreaRange[1] >= 0 ) {
-        resultAreaRange[1] = resultAreaRange[1] * 0.3025;
+    if (!textAsArea) {
+      resultAreaRange[0] = resultAreaRange[0] * 3.305785;
+      if (resultAreaRange[1] >= 0) {
+        resultAreaRange[1] = resultAreaRange[1] * 3.305785;
       }
     }
     const resultFarRange = [farRange[0], farRange[1] === FAR_MARKS[FAR_MARKS.length - 1].value ? -1 : farRange[1]];
     const resultBuildingAgeRange = [buildingAgeRange[0], buildingAgeRange[1] === BUILDING_AGE_MARKS[BUILDING_AGE_MARKS.length - 1].value ? -1 : buildingAgeRange[1]];
     onFilterChange?.(
-      filterOn, resultAreaRange, resultFarRange, resultBuildingAgeRange, 
+      filterOn, resultAreaRange, resultFarRange, resultBuildingAgeRange,
       usageList.size === USAGE_LIST.length ? null : Array.from(usageList)
     );
   }, [textAsArea, filterOn, areaRange, farRange, buildingAgeRange, usageList]);
@@ -333,7 +333,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
   // const saveRecentFilter = () => {
   //   localStorage.setItem(STORAGE_KEY_FILTER, JSON.stringify({ areaRange, farRange, buildingAgeRange, usageList: Array.from(usageList) }));
   // }
-  
+
 
   const resetUsageList = () => {
     setUsageList(new Set<string>(USAGE_LIST.map((usage) => usage.value)));
@@ -418,7 +418,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     console.log(e.key, results.length, highlightedIndex);
-    if(e.nativeEvent.isComposing) return;
+    if (e.nativeEvent.isComposing) return;
     setIsKeyboardNav(true);
 
     switch (e.key) {
@@ -477,28 +477,28 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
     if (t) return { x: t.clientX, y: t.clientY };
     return null;
   };
-  
+
   const pointInRect = (pt: { x: number; y: number }, rect: DOMRect) =>
     pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom;
 
   return (
     <div className="fixed top-[84px] w-[582px] h-[48px] bg-white left-[424px] z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
       <div className="flex items-center h-full gap-[12px] px-[12px]">
-        <button 
+        <button
           className={`font-s3 flex items-center gap-[4px] ${showFilterSetting ? 'text-primary-050' : 'text-text-02'}`}
           onClick={() => setShowFilterSetting(showFilterSetting => !showFilterSetting)}
         >
-          <FilterIcon color={showFilterSetting ? 'var(--primary-050)' : 'var(--gray-070)'}/>
+          <FilterIcon color={showFilterSetting ? 'var(--primary-050)' : 'var(--gray-070)'} />
           필터
         </button>
-        <VDivider/>
+        <VDivider />
         <Switch
           checked={filterOn}
-          onChange={() => {setFilterOn(!filterOn)}}
+          onChange={() => { setFilterOn(!filterOn) }}
           isLabel={true}
         />
-        <VDivider className="h-full"/>
-        <SearchIcon/>
+        <VDivider className="h-full" />
+        <SearchIcon />
         <input
           ref={inputRef}
           onKeyDown={handleKeyDown}
@@ -512,7 +512,7 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
             // e.stopPropagation();
             // e.preventDefault();
             // e.currentTarget.focus();
-            
+
           }}
           onFocus={(e) => {
             // console.log('onFocus  ', e.currentTarget)
@@ -522,10 +522,10 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
             // setMenuAnchorEl(null)
             // setQuery('')
           }}
-          onChange={handleChange} 
+          onChange={handleChange}
           value={query}
-          type="text" 
-          placeholder="주소 또는 장소를 검색해주세요." 
+          type="text"
+          placeholder="주소 또는 장소를 검색해주세요."
           className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none"
         />
         <Menu
@@ -540,8 +540,8 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
             horizontal: 40,
           }}
           style={{
-           padding : 0,
-           margin : 0
+            padding: 0,
+            margin: 0
           }}
           disableAutoFocus
           disableEnforceFocus
@@ -567,77 +567,77 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
               {
                 loading ? (
                   <div className="px-[12px] py-[22px] flex items-center justify-center">
-                    <CircularProgress size={20}/>
+                    <CircularProgress size={20} />
                   </div>
-                ) : ( 
-                !query ? (
-                  <div>
-                    <p className="px-[12px] py-[4px] text-primary">최근검색</p>
-                    <div 
-                      ref={recentContainerRef} 
-                      onMouseMove={()=> {
-                        if (isKeyboardNav) setIsKeyboardNav(false);
-                      }}
-                      className="flex flex-col w-full overflow-y-auto divide-y divide-line-03 text-text-02">
+                ) : (
+                  !query ? (
+                    <div>
+                      <p className="px-[12px] py-[4px] text-primary">최근검색</p>
+                      <div
+                        ref={recentContainerRef}
+                        onMouseMove={() => {
+                          if (isKeyboardNav) setIsKeyboardNav(false);
+                        }}
+                        className="flex flex-col w-full overflow-y-auto divide-y divide-line-03 text-text-02">
                         {
                           recent.map((result, index) => (
                             <button
                               onClick={() => {
                                 onSelectResult(result)
-                              }} 
+                              }}
                               onMouseEnter={() => {
                                 if (!isKeyboardNav) {
                                   setHighlightedIndex(index);
                                 }
                               }}
-                              data-index={index} 
+                              data-index={index}
                               key={result.id} className={`text-start flex px-[12px] py-[3px] ${index === highlightedIndex ? 'bg-primary-010' : ''} border-b-[1px] border-b-line-03`}>
-                                <div className="flex-1">
-                                  <p className="py-[2px]">{result.jibun || ''}</p>
-                                  <p className="py-[2px]">{(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}</p>
-                                </div>
-                                <button
-                                  onClick={(e)=> {
-                                    e.stopPropagation()
-                                    removeById(result.id)
-                                  }}
-                                  >
-                                  <CloseIcon/>
-                                </button>
+                              <div className="flex-1">
+                                <p className="py-[2px]">{result.jibun || ''}</p>
+                                <p className="py-[2px]">{(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}</p>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  removeById(result.id)
+                                }}
+                              >
+                                <CloseIcon />
+                              </button>
                             </button>
-                        ))
+                          ))
                         }
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  results.length === 0 ? (
-                    <p className="px-[12px] py-[4px]"> "{query}" 에 대한 검색 결과가 없습니다.</p>
                   ) : (
-                    <div 
-                      ref={containerRef} 
-                      onMouseMove={()=> {
-                        if (isKeyboardNav) setIsKeyboardNav(false);
-                      }}
-                      className="flex flex-col w-full overflow-y-auto divide-y divide-line-03 text-text-02">
-                      {results.map((result, index) => (
-                        <button
-                          onClick={() => {
-                            onSelectResult(result)
-                          }} 
-                          onMouseEnter={() => {
-                            if (!isKeyboardNav) {
-                              setHighlightedIndex(index);
-                            }
-                          }}
-                          data-index={index} 
-                          key={result.id} className={`text-start flex flex-col px-[12px] py-[3px] ${index === highlightedIndex ? 'bg-primary-010' : ''} border-b-[1px] border-b-line-03`}>
-                        <p className="py-[2px]">{result.jibun || ''}</p>
-                        <p className="py-[2px]">{(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}</p>
-                      </button>
-                    ))}
-                    </div>
-                  )
-                ))
+                    results.length === 0 ? (
+                      <p className="px-[12px] py-[4px]"> "{query}" 에 대한 검색 결과가 없습니다.</p>
+                    ) : (
+                      <div
+                        ref={containerRef}
+                        onMouseMove={() => {
+                          if (isKeyboardNav) setIsKeyboardNav(false);
+                        }}
+                        className="flex flex-col w-full overflow-y-auto divide-y divide-line-03 text-text-02">
+                        {results.map((result, index) => (
+                          <button
+                            onClick={() => {
+                              onSelectResult(result)
+                            }}
+                            onMouseEnter={() => {
+                              if (!isKeyboardNav) {
+                                setHighlightedIndex(index);
+                              }
+                            }}
+                            data-index={index}
+                            key={result.id} className={`text-start flex flex-col px-[12px] py-[3px] ${index === highlightedIndex ? 'bg-primary-010' : ''} border-b-[1px] border-b-line-03`}>
+                            <p className="py-[2px]">{result.jibun || ''}</p>
+                            <p className="py-[2px]">{(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  ))
               }
             </div>
           </div>
@@ -649,19 +649,19 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
               <button onClick={(e) => {
-                  // e.stopPropagation();
-                  const textAsAreaM2 = !textAsArea;
-                  if(textAsAreaM2) {
-                    setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value])
-                  } else {
-                    setAreaRange([0, AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value])
-                  }                
-                  setTextAsArea(textAsAreaM2); 
+                // e.stopPropagation();
+                const textAsAreaM2 = !textAsArea;
+                if (textAsAreaM2) {
+                  setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value])
+                } else {
+                  setAreaRange([0, AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value])
+                }
+                setTextAsArea(textAsAreaM2);
 
-                }} 
+              }}
                 className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]">
-                <ChangeIcon/>
-                {textAsArea ? '평' : '㎡' }
+                <ChangeIcon />
+                {textAsArea ? '평' : '㎡'}
               </button>
             </div>
             <p className="mt-[4px] font-s2 text-text-03">
@@ -696,23 +696,23 @@ export const SearchBar = ({onSelect, onFilterChange, onShowFilterSetting}: Searc
                 />
               </div>
             </div>
-            <HDivider className="mt-[30px]" colorClassName="bg-line-02"/>
+            <HDivider className="mt-[30px]" colorClassName="bg-line-02" />
             <div className="mt-[20px] flex flex-col space-y-[16px]">
               <div className="flex justify-between">
                 <p className="font-h5 text-text-02">용도지역</p>
                 <button onClick={resetUsageList} className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]">
-                  <ChangeIcon/>
+                  <ChangeIcon />
                   초기화
                 </button>
               </div>
               <div className="flex flex-wrap gap-[12px]">
                 {USAGE_LIST.map((usage) => (
-                  <button 
+                  <button
                     key={usage.value}
                     onClick={() => {
-                      if(usageList.size === USAGE_LIST.length) {
-                        setUsageList(new Set([usage.value])); 
-                      }else if (usageList.has(usage.value)) {
+                      if (usageList.size === USAGE_LIST.length) {
+                        setUsageList(new Set([usage.value]));
+                      } else if (usageList.has(usage.value)) {
                         usageList.delete(usage.value);
                         setUsageList(new Set(usageList));
                       } else {
