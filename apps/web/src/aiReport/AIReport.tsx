@@ -18,7 +18,7 @@ import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
 export interface AIReportProps {
   landId: string;
   onClose: () => void;
-  onReportCreated: (result: AIReportResult | null) => void;
+  onReportCreated?: (result: AIReportResult | null) => void;
 }
 
 
@@ -94,7 +94,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
     axiosWithAuth.post('/api/land/ai-report', aiReport).then((res) => {
       console.log(res.data);
       setAiReportResult(res.data);
-      onReportCreated(res.data);
+      onReportCreated?.(res.data);
     }).catch((error) => {
       console.error("getAIReport error", error);
       toast.error('AI 보고서 조회 중 오류가 발생했습니다.')
