@@ -2,9 +2,9 @@
 
 import { Dialog } from "@mui/material";
 import { AIReportLogo, BuildingShopBIMain, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getRatioStr, HDivider, krwUnit, VDivider, type AIReportDetail } from "@repo/common";
-import { getGradeChip } from "../utils";
+import { getGradeChip, getSpecialUsageList } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { ConsultRequestDialog } from "./ConsultRequestDialog";
 import { toast } from "react-toastify";
@@ -208,6 +208,11 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
     getAIReportDetail()
   }, [landId, open])
 
+  const specialUsageList = useMemo(() => {
+    if (!aiReportDetail?.landInfo) return [];
+    return getSpecialUsageList(aiReportDetail?.landInfo?.usageList);
+  }, [aiReportDetail?.landInfo])
+
   return (
     <>
       <Dialog
@@ -254,7 +259,8 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                     <ItemRow title="주소" value={aiReportDetail?.landInfo?.legDongName + ' ' + aiReportDetail?.landInfo?.jibun} />
                     <ItemRow title="용도지역" value={aiReportDetail?.landInfo?.usageName || ""} />
                     <ItemRow title={`대지면적${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (합계)" : ""}`} value={getAreaStrWithPyeong(aiReportDetail?.landInfo?.relTotalArea) || ""} />
-                    <ItemRow title={`법정 용적률/건폐율${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (평균)" : ""}`} value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`} />
+                    {/* <ItemRow title={`법정 용적률/건폐율${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (평균)" : ""}`} value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`} /> */}
+                    <ItemRow title={`지역지구`} value={specialUsageList.length > 0 ? specialUsageList.join(', ') : "-"} />
                   </div>
                   <div className="flex-1 space-y-[12px] pl-[16px]">
                     <ItemRow title="건축물/토지개수" value={`${aiReportDetail?.buildingList?.length > 0 ? aiReportDetail?.buildingList?.length + '개' : "없음"} / ${aiReportDetail?.landInfo?.relParcelCount}개`} />

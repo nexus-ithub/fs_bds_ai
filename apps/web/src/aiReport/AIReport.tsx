@@ -77,7 +77,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
 
   const specialUsageList = useMemo(() => {
     if (!landInfo) return [];
-    return getSpecialUsageList(landInfo);
+    return getSpecialUsageList(landInfo.usageList);
   }, [landInfo]);
 
   useEffect(() => {
