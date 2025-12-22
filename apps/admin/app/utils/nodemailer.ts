@@ -36,7 +36,7 @@ export const resetPasswordMailTemplate = (resetLink: string, readableExpires: st
         <div style="margin-top:50px; padding-top:20px; border-top:1px solid #eee; color:#666; font-size:12px;">
           <p style="margin:5px 0;"><strong>BUILDINGSHOPAI</strong></p>
           <p style="margin:5px 0;">서울특별시 강남구 테헤란로 425, 11층 (삼성동, 신일빌딩)</p>
-          <p style="margin:5px 0;">고객센터: buildingshopai@gmail.com  |  02-558-7222</p>
+          <p style="margin:5px 0;">고객센터: buildingshopai@gmail.com  |  02-558-3444</p>
           <p style="margin:15px 0 5px 0;">
             <a href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link" style="color:#666; text-decoration:none;">개인정보처리방침</a>
             <span style="margin: 0 10px;">|</span>
