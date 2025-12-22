@@ -17,7 +17,7 @@ router.get('/building-list', getBuildingList);
 router.get('/business-district', getBusinessDistrict);
 router.get('/place', getPlace);
 router.get('/estimated-price', getEstimatedPrice);
-router.get('/estimated-price-v2', getEstimatedPriceV2);
+// router.get('/estimated-price-v2', getEstimatedPriceV2);
 router.post('/ai-report', getAIReport);
 router.post('/ai-report-detail', getAIReportDetail);
 router.post('/ai-report-debug-info', getAIReportDebugInfo);

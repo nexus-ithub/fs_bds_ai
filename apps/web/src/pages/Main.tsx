@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceV2, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo, type AIReportResult } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo, type AIReportResult } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -38,8 +38,7 @@ export default function Main() {
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
-  const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPrice | null>(null);
-  const [estimatedPriceV2, setEstimatedPriceV2] = useState<EstimatedPriceV2 | null>(null);
+  const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const defaultMapState = loadMapState();
@@ -368,7 +367,7 @@ export default function Main() {
     axiosInstance.get(`/api/land/estimated-price?id=${id}`)
       .then((response) => {
         // console.log(response.data);
-        const estimatedPrice = response.data as EstimatedPrice;
+        const estimatedPrice = response.data as EstimatedPriceInfo;
         // console.log(estimatedPrice);
         setEstimatedPrice(estimatedPrice);
       })
@@ -377,21 +376,21 @@ export default function Main() {
         toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
       });
 
-    if (IS_DEVELOPMENT) {
-      axiosInstance.get(`/api/land/estimated-price-v2?id=${id}`)
-        .then((response) => {
-          // console.log(response.data);
-          const estimatedPriceV2 = response.data as EstimatedPriceV2;
-          // console.log(estimatedPrice);
-          setEstimatedPriceV2(estimatedPriceV2);
-        })
-        .catch((error) => {
-          console.error(error);
-          toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
-        });
-    } else {
-      setEstimatedPriceV2(null);
-    }
+    // if (IS_DEVELOPMENT) {
+    //   axiosInstance.get(`/api/land/estimated-price-v2?id=${id}`)
+    //     .then((response) => {
+    //       // console.log(response.data);
+    //       const estimatedPriceV2 = response.data as EstimatedPriceV2;
+    //       // console.log(estimatedPrice);
+    //       setEstimatedPriceV2(estimatedPriceV2);
+    //     })
+    //     .catch((error) => {
+    //       console.error(error);
+    //       toast.error("추정가 정보를 가져오는 중 오류가 발생했습니다.");
+    //     });
+    // } else {
+    //   setEstimatedPriceV2(null);
+    // }
 
   }
 
@@ -565,7 +564,6 @@ export default function Main() {
             buildingList={buildingList}
             businessDistrict={businessDistrict}
             estimatedPrice={estimatedPrice}
-            estimatedPriceV2={estimatedPriceV2}
             place={place}
             onClose={() => {
               setLandInfo(null)

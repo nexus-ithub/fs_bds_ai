@@ -1,4 +1,4 @@
-import type { BuildingInfo, DistrictInfo, EstimatedPrice, EstimatedPriceV2, LandInfo, PlaceList } from "@repo/common";
+import type { BuildingInfo, DistrictInfo, EstimatedPrice, EstimatedPriceInfo, LandInfo, PlaceList } from "@repo/common";
 import { getJibunAddress, getRoadAddress, getAreaStrWithPyeong, Button, TabButton, VDivider, getBuildingCreateDate, getBuildingCreateYear, getBuildingRelInfoText } from "@repo/common";
 import { krwUnit } from "@repo/common";
 import { useEffect, useState, useRef, useMemo } from "react";
@@ -26,7 +26,6 @@ export const LandInfoCard = ({
   buildingList = null,
   businessDistrict = null,
   estimatedPrice = null,
-  estimatedPriceV2 = null,
   place = null,
   onClose,
   onOpenAIReport,
@@ -34,8 +33,7 @@ export const LandInfoCard = ({
   landInfo: LandInfo | null;
   buildingList: BuildingInfo[] | null;
   businessDistrict: DistrictInfo[] | null;
-  estimatedPrice: EstimatedPrice | null;
-  estimatedPriceV2: EstimatedPriceV2 | null;
+  estimatedPrice: EstimatedPriceInfo | null;
   place: PlaceList | null;
   onClose?: () => void;
   onOpenAIReport?: () => void;
@@ -305,12 +303,12 @@ export const LandInfoCard = ({
         </div>
 
         {
-          estimatedPriceV2 && (
+          estimatedPrice && (
             <div className="mt-[6px] flex flex-col border border-line-02 rounded-[4px] py-[14px] px-[8px]">
-              <p className="font-h4-p">추정가 : {krwUnit(estimatedPriceV2?.estimatedPrice, true)} , 공시지가 대비 {estimatedPriceV2?.per?.toFixed(1)}배</p>
+              <p className="font-h4-p">추정가 : {krwUnit(estimatedPrice?.estimatedPrice, true)} , 공시지가 대비 {estimatedPrice?.per?.toFixed(1)}배</p>
               <div className="flex flex-col text-[14px]">
                 {
-                  estimatedPriceV2?.debugText.map((text, index) => (
+                  estimatedPrice?.debugText.map((text, index) => (
                     <p key={index}>{text}</p>
                   ))
                 }

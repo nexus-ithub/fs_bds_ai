@@ -160,10 +160,11 @@ export interface EstimatedPrice {
   refDealList: RefDealInfo[];
 }
 
-export interface EstimatedPriceV2 {
+export interface EstimatedPriceInfo {
   estimatedPrice: number;
   per: number;
-  debugText: string[];
+  refDealList?: RefDealInfo[];
+  debugText?: string[];
 }
 
 

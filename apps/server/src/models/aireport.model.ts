@@ -1,5 +1,5 @@
 import { db } from '../utils/database';
-import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo, RentInfo } from '@repo/common';
+import { DevDetailInfo, AIReportResult, BuildInfo, BuildingData, BuildingInfo, EstimatedPrice, LandCost, LandData, LandInfo, Loan, PolygonInfo, ProjectCost, ProjectDuration, ReportResult, ReportValue, TaxInfo, AIReportDetail, AIReportDebugInfo, RentInfo, EstimatedPriceInfo } from '@repo/common';
 import OpenAI from "openai";
 import { LandModel } from './land.model';
 import { IS_DEVELOPMENT } from '../constants';
@@ -722,7 +722,7 @@ function makeReportValue(report: ReportValue, grade: string, type: 'rent' | 'rem
 }
 
 
-function makeLandCost(landCost: LandCost, estimatedPrice: EstimatedPrice, debug: boolean = false, debugExtraInfo: string[] = []) {
+function makeLandCost(landCost: LandCost, estimatedPrice: EstimatedPriceInfo, debug: boolean = false, debugExtraInfo: string[] = []) {
   landCost.purchaseCost = estimatedPrice.estimatedPrice;
   landCost.acquisitionCost = estimatedPrice.estimatedPrice * ACQUISITION_COST_RATIO; // 취득세 + 법무사비
   landCost.agentFee = estimatedPrice.estimatedPrice * AGENT_FEE_RATIO; // 중개보수
@@ -1840,7 +1840,7 @@ export class AIReportModel {
 
   static async makeDevDetailInfo(
     landId: string,
-    estimatedPrice: EstimatedPrice,
+    estimatedPrice: EstimatedPriceInfo,
     debug: boolean = false
   ): Promise<{
     landInfo: LandData;
@@ -2219,7 +2219,7 @@ export class AIReportModel {
 
   }
 
-  static async getAIReport(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportResult | null> {
+  static async getAIReport(landId: string, estimatedPrice: EstimatedPriceInfo): Promise<AIReportResult | null> {
     try {
       console.log('getAIReport ', landId, estimatedPrice)
 
@@ -2320,7 +2320,7 @@ export class AIReportModel {
     }
   }
 
-  static async getAIReportDetail(landId: string, estimatedPrice: EstimatedPrice): Promise<AIReportDetail | null> {
+  static async getAIReportDetail(landId: string, estimatedPrice: EstimatedPriceInfo): Promise<AIReportDetail | null> {
     try {
 
       console.log('getAIReportDetail', landId, estimatedPrice)
@@ -2376,7 +2376,7 @@ export class AIReportModel {
 
   static async getAIReportDebugInfo(
     landId: string,
-    estimatedPrice: EstimatedPrice
+    estimatedPrice: EstimatedPriceInfo
   ): Promise<{
     landInfo: LandData;
     buildingList: BuildingData[];

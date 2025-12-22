@@ -38,7 +38,7 @@ export interface LandData {
   lng: number;
 
   dealPrice: number; // 최근 거래 가격
-  dealDate: string; // 최근 거래 일
+  dealDate: Date; // 최근 거래 일
   dealType: string; // 최근 거래 유형 "building" (= 건물) or "land" (= 토지)
 
 
