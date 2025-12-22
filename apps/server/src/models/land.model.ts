@@ -1865,27 +1865,39 @@ export class LandModel {
           let textDiscountRate = ''
           if (buildingAge < 5) {
             discountRate = 0.7
-            debugText.push(`* 준공 5년미만`);
+            if (debugText) {
+              debugText.push(`* 준공 5년미만`);
+            }
             textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x 70%)`
           } else if (buildingAge < 10) {
             // discountRate = Math.max(1 - (buildingAge * 0.020), 0)
             discountRate = 0.6
-            debugText.push(`* 준공 5년이상 10년미만`);
+            if (debugText) {
+              debugText.push(`* 준공 5년이상 10년미만`);
+            }
             textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x 60%)`
           } else if (buildingAge < 20) {
             // discountRate = Math.max(1 - (buildingAge * 0.025), 0)
             discountRate = 0.4
-            debugText.push(`* 준공 10년이상 20년미만`);
+            if (debugText) {
+              debugText.push(`* 준공 10년이상 20년미만`);
+            }
             textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x 40%)`
           } else {
             discountRate = 0
-            debugText.push(`* 준공 20년이상`);
+            if (debugText) {
+              debugText.push(`* 준공 20년이상`);
+            }
             textDiscountRate = `(사업비 ${krwUnit(totalProjectCost, true)} x 0%)`
           }
           resultPrice += totalProjectCost * discountRate;
-          debugText.push(`${krwUnit(resultPrice, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + ${textDiscountRate}`);
+          if (debugText) {
+            debugText.push(`${krwUnit(resultPrice, true)}= ${krwUnit(estimatedPrice.estimatedPrice, true)} + ${textDiscountRate}`);
+          }
         } else {
-          debugText.push(`건물이 없음`);
+          if (debugText) {
+            debugText.push(`건물이 없음`);
+          }
         }
       }
 
