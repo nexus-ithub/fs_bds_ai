@@ -1,5 +1,5 @@
 
-import { type RentInfo, type EstimatedPrice, LandUsageInfo } from "./land";
+import { type RentInfo, type EstimatedPrice, type LandUsageInfo } from "./land";
 
 
 
