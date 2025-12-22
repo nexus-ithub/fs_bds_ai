@@ -852,67 +852,6 @@ export default function Main() {
           center={center}
           setCenter={setCenter}
         />
-        {
-          IS_DEVELOPMENT && (
-            <div
-              // variant={showRemodel ? 'primary' : 'bggray'}
-              // onClick={() => setShowRemodel(!showRemodel)}
-              className="fixed z-30 left-[420px] bottom-[44px] "
-            >
-              <div className="flex flex-col gap-[4px]">
-                <div className="flex gap-[4px]">
-                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">용도</p>
-                    <Switch
-                      checked={showUsage}
-                      onChange={() => {setShowUsage(!showUsage)}}
-                      isLabel={true}
-                    />
-                  </div> */}
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">임대</p>
-                    <Switch
-                      checked={showRent}
-                      onChange={() => { setShowRent(!showRent) }}
-                      isLabel={true}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-[4px]">
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">실거래</p>
-                    <Switch
-                      checked={showDeal}
-                      onChange={() => { setShowDeal(!showDeal) }}
-                      isLabel={true}
-                    />
-                  </div>
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">대수선</p>
-                    <Switch
-                      checked={showRemodel}
-                      onChange={() => { setShowRemodel(!showRemodel) }}
-                      isLabel={true}
-                    />
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          )
-        }
-        <Button
-          onClick={() => {
-            setOpenAIChat(true);
-          }}
-          className="fixed gap-[8px] z-30 left-[calc(400px+40%)] -translate-x-1/2 bottom-[16px] w-[480px] h-[50px] rounded-full flex items-center justify-center"
-        >
-          <BuildingShopBITextSmall />
-          <p className="font-s1-p text-white">질의하기</p>
-          {/* <AIShineLogo/> */}
-        </Button>
-
-
         {roadViewCenter && (
           <RoadViewOverlay
             roadViewCenter={roadViewCenter}
@@ -985,6 +924,60 @@ export default function Main() {
             </div>
           )
         }
+        <div className="fixed z-30 left-[420px] bottom-[16px] flex flex-col gap-[12px]">
+          {
+            // IS_DEVELOPMENT && (
+            (
+              <div className="flex flex-col gap-[4px]">
+                <div className="flex gap-[4px]">
+                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">용도</p>
+                    <Switch
+                      checked={showUsage}
+                      onChange={() => {setShowUsage(!showUsage)}}
+                      isLabel={true}
+                    />
+                  </div> */}
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">임대</p>
+                    <Switch
+                      checked={showRent}
+                      onChange={() => { setShowRent(!showRent) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-[4px]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">실거래</p>
+                    <Switch
+                      checked={showDeal}
+                      onChange={() => { setShowDeal(!showDeal) }}
+                      isLabel={true}
+                    />
+                  </div>
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">대수선</p>
+                    <Switch
+                      checked={showRemodel}
+                      onChange={() => { setShowRemodel(!showRemodel) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          <Button
+            onClick={() => {
+              setOpenAIChat(true);
+            }}
+            className="w-[320px] h-[50px] rounded-full flex items-center justify-center gap-[8px]"
+          >
+            <BuildingShopBITextSmall />
+            <p className="font-s1-p text-white">질의하기</p>
+          </Button>
+        </div>
       </div>
       {openVideoMiniPlayer && (
         <div
