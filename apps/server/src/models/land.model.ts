@@ -1130,11 +1130,11 @@ export class LandModel {
             base.id,
             base.year AS base_year,
             base.month AS base_month,
-            CAST(base.price AS UNSIGNED) AS base_price,
+            CAST(base.price AS SIGNED) AS base_price,
             latest.year AS latest_year,
             latest.month AS latest_month,
-            CAST(latest.price AS UNSIGNED) AS latest_price,
-            (CAST(latest.price AS UNSIGNED) - CAST(base.price AS UNSIGNED)) AS price_diff
+            CAST(latest.price AS SIGNED) AS latest_price,
+            (CAST(latest.price AS SIGNED) - CAST(base.price AS SIGNED)) AS price_diff
         FROM individual_announced_price base
         JOIN latest ON latest.id = base.id
         WHERE base.id = ?
