@@ -512,31 +512,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     </div>
                   </div>
                 </div>
-                <div className="">
-                  <div className="flex items-center">
-                    {sortedReportItems?.map((item, index) => (
-                      <TabButton key={index} fontClassName="font-s1" className="flex-1 h-[48px]" selected={selectedTab === index} onClick={() => { setSelectedTab(index) }}>
-                        {item.title} 설계 리포트
-                      </TabButton>
-                    ))}
-                  </div>
-                  <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
-                    <div className="flex-1 space-y-[14px]">
-                      <ReportItem title="총사업비" value={krwUnit(sortedReportItems?.[selectedTab]?.value.totalProjectCost || 0, true)} />
-                      <ReportItem title="초기자본금" value={krwUnit(sortedReportItems?.[selectedTab]?.value.initialCapital || 0, true)} />
-                      <ReportItem title="연간임대수익" value={krwUnit(sortedReportItems?.[selectedTab]?.value.annualRentProfit || 0, true)} />
-                      <ReportItem title="개발후임대수익률" value={(sortedReportItems?.[selectedTab]?.value.profitRatio * 100).toFixed(1) + '%'} />
-                      <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate * 100).toFixed(1) + '%'} />
-                    </div>
-                    <div className="w-[1px] bg-line-02" />
-                    <div className="flex-1 flex flex-col items-center gap-[12px]">
-                      <p className="font-s2">수익률 환산 가치</p>
-                      <HDivider />
-                      <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedReportItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-[16px]">
+                <div className="space-y-[8px]">
                   <p className="font-h3">AI 분석 리포트</p>
                   <p className="w-full font-b3 text-red-500 bg-red-100 px-[16px] py-[12px] rounded-[4px]">
                     본 사업성 분석 자료는 공공 데이터 및 추정치로 계산한 것으로,
@@ -544,10 +520,34 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     최종 사업성 검토는 개인의 자본 상황 등 개별 특수성을 반영하여
                     전문가의 검토를 받으시기 바랍니다.
                   </p>
-                  <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
-                    {aiReportResult?.analysisMessage}
-                  </p>
+                  <div className="">
+                    <div className="flex items-center">
+                      {sortedReportItems?.map((item, index) => (
+                        <TabButton key={index} fontClassName="font-s1" className="flex-1 h-[48px]" selected={selectedTab === index} onClick={() => { setSelectedTab(index) }}>
+                          {item.title} 설계 리포트
+                        </TabButton>
+                      ))}
+                    </div>
+                    <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
+                      <div className="flex-1 space-y-[14px]">
+                        <ReportItem title="총사업비" value={krwUnit(sortedReportItems?.[selectedTab]?.value.totalProjectCost || 0, true)} />
+                        <ReportItem title="초기자본금" value={krwUnit(sortedReportItems?.[selectedTab]?.value.initialCapital || 0, true)} />
+                        <ReportItem title="연간임대수익" value={krwUnit(sortedReportItems?.[selectedTab]?.value.annualRentProfit || 0, true)} />
+                        <ReportItem title="개발후임대수익률" value={(sortedReportItems?.[selectedTab]?.value.profitRatio * 100).toFixed(1) + '%'} />
+                        <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate * 100).toFixed(1) + '%'} />
+                      </div>
+                      <div className="w-[1px] bg-line-02" />
+                      <div className="flex-1 flex flex-col items-center gap-[12px]">
+                        <p className="font-s2">수익률 환산 가치</p>
+                        <HDivider />
+                        <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedReportItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
+                  {aiReportResult?.analysisMessage}
+                </p>
               </>
           }
 

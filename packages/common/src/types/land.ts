@@ -270,7 +270,18 @@ export const getAreaStrWithPyeong = (area?: any) => {
 
   const areaNum = Number(area);
   // const area = Number(area);
-  return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
+  // return (areaNum.toFixed(1) || '-') + 'm² (' + (areaNum * 0.3025).toFixed(1) + '평)';
+  const m2 = areaNum.toLocaleString('ko-KR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
+  const pyeong = (areaNum * 0.3025).toLocaleString('ko-KR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+
+  return `${m2}m² (${pyeong}평)`;
 }
 
 
