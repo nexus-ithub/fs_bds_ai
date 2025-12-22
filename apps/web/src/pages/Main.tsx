@@ -66,6 +66,7 @@ export default function Main() {
 
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
   const [openAIChat, setOpenAIChat] = useState<boolean>(false);
+  const [openLeftPanel, setOpenLeftPanel] = useState<boolean>(true);
 
   const [filter, setFilter] = useState({
     on: false,
@@ -556,7 +557,7 @@ export default function Main() {
 
   // console.log(landInfo?.polygon[0]);
   return (
-    <div className="flex w-full h-full">
+    <div className="flex w-full h-full relative">
       <div className="w-[400px] h-full border-r border-line-03">
         {landInfo ?
           <LandInfoCard

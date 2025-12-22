@@ -289,7 +289,7 @@ export const getRatioStr = (value: any) => {
   if (!value) {
     return '-';
   }
-  return Number(value).toFixed(2) + '%';
+  return Number(value).toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2,}) + '%';
 }
 
 
