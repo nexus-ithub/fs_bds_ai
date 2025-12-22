@@ -239,10 +239,6 @@ export const LandInfoCard = ({
         </div> */}
         <div className="mt-[10px] flex-col space-y-[6px]">
           <div className="flex-1 flex items-center justify-between">
-            <p className="font-s3 text-text-03">건축물</p>
-            <p className="font-s3 text-text-02">{getBuildingRelInfoText(landInfo)}</p>
-          </div>
-          <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
           </div>
@@ -253,6 +249,10 @@ export const LandInfoCard = ({
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">연면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relFloorAreaSum)}</p>
+          </div>
+          <div className="flex-1 flex items-center justify-between">
+            <p className="font-s3 text-text-03">건축물</p>
+            <p className="font-s3 text-text-02">{getBuildingRelInfoText(landInfo)}</p>
           </div>
         </div>
         <div className="mt-[16px] flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
@@ -275,7 +275,8 @@ export const LandInfoCard = ({
               </Tooltip>
             </div>
             <p className="font-h2-p text-primary">{estimatedPrice?.estimatedPrice ? krwUnit(estimatedPrice?.estimatedPrice, true) : '-'}</p>
-            <p className="font-c3 text-primary-030">{estimatedPrice?.per ? '공시지가 대비 ' + estimatedPrice?.per + ' 배' : '-'}</p>
+            {/* <p className="font-c3 text-primary-030">{estimatedPrice?.per ? '공시지가 대비 ' + estimatedPrice?.per + ' 배' : '-'}</p> */}
+            <p className="font-c3 text-primary-030">{(estimatedPrice?.estimatedPrice && landInfo) ? krwUnit(Number((estimatedPrice?.estimatedPrice / landInfo?.relTotalArea).toFixed(0)), true) + '/㎡' : '-'}</p>
             {/* <Dialog open={openEstimationInfo} onClose={() => setOpenEstimationInfo(false)}>
               <DialogContent>
                 <p className="font-s2 text-text-02">
@@ -292,7 +293,7 @@ export const LandInfoCard = ({
           <div className="flex-1 flex flex-col items-center gap-[6px]">
             <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
             <p className="font-h2-p">{landInfo.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
-            <p className="font-c3 text-text-03">{landInfo.relTotalPrice ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
+            <p className="font-c3 text-text-03">{landInfo.relTotalPrice ? krwUnit(landInfo.relTotalPrice, true) : '-'}/㎡</p>
           </div>
           <VDivider className="h-[56px]" />
           <div className="flex-1 flex flex-col items-center gap-[6px]">
@@ -302,7 +303,7 @@ export const LandInfoCard = ({
           </div>
         </div>
 
-        {
+        {/* {
           estimatedPrice && (
             <div className="mt-[6px] flex flex-col border border-line-02 rounded-[4px] py-[14px] px-[8px]">
               <p className="font-h4-p">추정가 : {krwUnit(estimatedPrice?.estimatedPrice, true)} , 공시지가 대비 {estimatedPrice?.per?.toFixed(1)}배</p>
@@ -315,7 +316,7 @@ export const LandInfoCard = ({
               </div>
             </div>
           )
-        }
+        } */}
         {/* {
           specialUsageList.length > 0 && (
             <p className="mt-[6px] font-s3 border border-line-02 rounded-[4px] py-[12px] px-[8px] text-red-500 bg-red-100 ">

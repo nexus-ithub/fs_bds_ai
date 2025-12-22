@@ -8,8 +8,10 @@ import { Roadview, RoadviewMarker } from "react-kakao-maps-sdk";
 import { format } from "date-fns";
 import { AIReport } from "../aiReport/AIReport";
 import debounce from "lodash/debounce";
-import { bearingFromTo } from "../utils";
+import { bearingFromTo, getSpecialUsageList } from "../utils";
 import { toast } from "react-toastify";
+import { Tooltip } from "@mui/material";
+import { CircleQuestionMarkIcon } from "lucide-react";
 
 const DEBOUNCE_DELAY = 300;
 const COUNT_BUTTON = [
@@ -19,7 +21,7 @@ const COUNT_BUTTON = [
 ]
 
 
-const RoadviewComponent = ({lat, lng}: {lat: number, lng: number}) => {
+const RoadviewComponent = ({ lat, lng }: { lat: number, lng: number }) => {
   const handleLoad = useCallback((rv: kakao.maps.Roadview) => {
     const pos = rv.getPosition(); // kakao.maps.LatLng
     const currentLat = pos.getLat();
@@ -27,7 +29,7 @@ const RoadviewComponent = ({lat, lng}: {lat: number, lng: number}) => {
     const pan = bearingFromTo(currentLat, currentLng, lat, lng);
     rv.setViewpoint({ pan, tilt: 0, zoom: -3 });
   }, [lat, lng]);
-  
+
   return (
     <Roadview
       position={{ lat, lng, radius: 200 }}
@@ -39,7 +41,7 @@ const RoadviewComponent = ({lat, lng}: {lat: number, lng: number}) => {
   )
 }
 
-export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivElement>}) => {
+export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTMLDivElement> }) => {
   const axiosWithAuth = useAxiosWithAuth();
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
@@ -59,10 +61,10 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
 
   // const [selectedMenu, setSelectedMenu] = useState<string>("");
 
-  const getBookmarkList = async() => {
+  const getBookmarkList = async () => {
     try {
       setLoading(true);
-      const response = await axiosWithAuth.get('/api/land/bookmark', {params: {page: currentPage, size: pageSize}});
+      const response = await axiosWithAuth.get('/api/land/bookmark', { params: { page: currentPage, size: pageSize } });
       setBookmarkList(response.data.result);
       console.log(">>>>", response.data)
       setTotalCount(response.data.total);
@@ -81,7 +83,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
   const cancelBookmark = async (item: BookmarkedReportType) => {
     try {
       await axiosWithAuth.post('/api/land/bookmark', {
-        landId: item.landInfo.id, 
+        landId: item.landInfo.id,
         buildingId: item.buildings?.[0].id,
         estimatedPrice: item.estimatedPrice,
         estimatedPricePer: item.estimatedPricePer,
@@ -163,7 +165,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
     // }
     getBookmarkList();
   }, [currentPage, pageSize]);
-  
+
   // useEffect(() => {
   //   return () => {
   //     debouncedSearch.cancel();
@@ -176,7 +178,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         <h2 className="font-h2">관심물건 관리</h2>
         <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>
       </div>
-      <HDivider colorClassName="bg-line-02"/>
+      <HDivider colorClassName="bg-line-02" />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[20px]">
           {/* <SearchBar
@@ -208,7 +210,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
             <button
               key={item.value}
               className={`p-[7px] font-s2 ${item.value === pageSize ? 'text-primary' : 'text-text-04'}`}
-              onClick={() => {setPageSize(item.value); setCurrentPage(1)}}
+              onClick={() => { setPageSize(item.value); setCurrentPage(1) }}
             >
               {item.label}
             </button>
@@ -216,7 +218,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
         </div>
       </div>
       <div className="flex flex-col gap-[16px]">
-        { bookmarkList?.length > 0 ? bookmarkList.map((item) => (
+        {bookmarkList?.length > 0 ? bookmarkList.map((item) => (
           <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`} className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
             <RoadviewComponent lat={Number(item.lat)} lng={Number(item.lng)} />
             {/* <Roadview
@@ -247,12 +249,12 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                       <p className="font-s1-p shrink-0">{getJibunAddress(item.landInfo)}</p>
                     </div>
                     <div className="flex items-center gap-[8px]">
-                      <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setSelectedItem(item); setOpenAIReport(true)}}>
-                        <NoteIcon/>
+                      <button className="flex items-center gap-[6px] shrink-0" onClick={() => { setSelectedItem(item); setOpenAIReport(true) }}>
+                        <NoteIcon />
                       </button>
-                      <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
-                      <button onClick={() => {cancelBookmark(item)}} className="shrink-0">
-                        <BookmarkFilledIcon/>
+                      <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0" />
+                      <button onClick={() => { cancelBookmark(item) }} className="shrink-0">
+                        <BookmarkFilledIcon />
                       </button>
                     </div>
                   </div>
@@ -263,7 +265,7 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                         <p className="font-s4 flex items-center text-text-03">{getRoadAddress(item.landInfo)}</p>
                       </div>
                     )
-                  } 
+                  }
                 </div>
                 <div className="flex flex justify-between">
                   <div className="flex items-center gap-[6px]">
@@ -273,66 +275,105 @@ export const BookmarkedReport = ({scrollRef}: {scrollRef: React.RefObject<HTMLDi
                       )
                     }
                     {
+                      getSpecialUsageList(item.landInfo).map((specialUsage, index) => (
+                        <Tooltip
+                          key={index}
+                          title={<div>
+                            {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
+                            <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
+                          </div>}
+                        >
+                          <p
+                            key={index}
+                            title={specialUsage}
+                            className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
+                          >
+                            {specialUsage}
+                            <CircleQuestionMarkIcon size={14} />
+                          </p>
+                        </Tooltip>
+
+                      ))
+                    }
+                    {/* {
                       (item.buildings && item.buildings.length > 0) && (
                         <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{item.buildings[0].mainUsageName}</p>
                       )
-                    }        
+                    } */}
                   </div>
-                  <div className="flex items-center gap-[4px] font-s4 text-text-02">
+                  {/* <div className="flex items-center gap-[4px] font-s4 text-text-02">
                     {getBuildingRelInfoText(item.landInfo)}
-                  </div>                  
-                </div>  
+                  </div> */}
+                </div>
 
                 <div className="flex-col space-y-[6px]">
                   <div className="flex-1 flex items-center justify-between">
                     <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
                     <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
                   </div>
-                <div className="flex-1 flex items-center justify-between">
+                  <div className="flex-1 flex items-center justify-between">
                     <p className="font-s4 text-text-03">연면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
                     <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relFloorAreaSum)}</p>
-                  </div>        
-                </div>                
+                  </div>
+                  <div className="flex-1 flex items-center justify-between">
+                    <p className="font-s4 text-text-03">건축물</p>
+                    <p className="font-s4 text-text-02">{getBuildingRelInfoText(item.landInfo)}</p>
+                  </div>
+                </div>
               </div>
               <div className="flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
                 <div className="flex-1 flex flex-col items-center gap-[6px]">
-                  <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
+                  {/* <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p> */}
+                  <Tooltip
+                    title={
+                      <p className="">
+                        본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
+                        투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+                      </p>
+                    }
+                  >
+                    <div className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px] gap-[2px] flex items-center">
+                      추정가
+                      <CircleQuestionMarkIcon size={14} />
+                    </div>
+                  </Tooltip>
                   <p className="font-h2-p text-primary">{item.estimatedPrice ? krwUnit(item.estimatedPrice, true) : '-'}</p>
-                  <p className="font-c3 text-primary-030">{item.estimatedPricePer ? '공시지가 대비 ' + item.estimatedPricePer + ' 배' : '-'}</p>
+                  {/* <p className="font-c3 text-primary-030">{item.estimatedPricePer ? '공시지가 대비 ' + item.estimatedPricePer + ' 배' : '-'}</p> */}
+                  <p className="font-c3 text-primary-030">{(item.estimatedPrice && item.landInfo) ? krwUnit(Number((item.estimatedPrice / item.landInfo?.relTotalArea).toFixed(0)), true) + '원/㎡' : '-'}</p>
                 </div>
-                <VDivider className="h-[58px]"/>
+                <VDivider className="h-[58px]" />
                 <div className="flex-1 flex flex-col items-center gap-[6px]">
                   <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(item.landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
                   <p className="font-h2-p">{item.landInfo.price ? krwUnit(item.landInfo.price * item.landInfo.area, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{item.landInfo.price ? krwUnit(item.landInfo.price, true) : '-'} /㎡</p>
+                  <p className="font-c3 text-text-03">{item.landInfo.price ? krwUnit(item.landInfo.price, true) : '-'}/㎡</p>
                 </div>
-                <VDivider className="h-[58px]"/>
+                <VDivider className="h-[58px]" />
                 <div className="flex-1 flex flex-col items-center gap-[6px]">
                   <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
                   <p className="font-h2-p">{item.landInfo.dealPrice ? krwUnit(item.landInfo.dealPrice * 10000, true) : '-'}</p>
                   <p className="font-c3 text-text-03">{item.landInfo.dealDate ? format(item.landInfo.dealDate, 'yyyy.MM.dd') : ''}</p>
-                </div>        
+                </div>
               </div>
-  
+
             </div>
           </div>
         )) : loading ? (
           <div className="w-full flex items-center justify-center">
-            <DotProgress size="sm"/>
+            <DotProgress size="sm" />
           </div>
         ) : (
           <p className="text-text-03">관심물건이 없습니다.</p>
         )}
       </div>
       <div className="w-full flex items-center justify-center py-[12px]">
-        <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => {setCurrentPage(page);}}/>
+        <Pagination totalItems={totalCount} itemsPerPage={pageSize} currentPage={currentPage} onPageChange={(page) => { setCurrentPage(page); }} />
       </div>
       {
         openAIReport &&
         <div ref={aiReportRef}>
-          <AIReport 
+          <AIReport
             landId={selectedItem.landId}
-            onClose={() => {setOpenAIReport(false); setSelectedItem(null)}}/>
+            onClose={() => { setOpenAIReport(false); setSelectedItem(null) }} />
         </div>
       }
     </div>

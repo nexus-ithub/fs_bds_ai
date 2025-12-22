@@ -442,7 +442,7 @@ export const getAIReportDebugInfo = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
 
-    const estimatedPrice = await LandModel.calculateEstimatedPrice(landId as string);
+    const estimatedPrice = await LandModel.calcEstimatedPriceWithDealInfo(landId as string, IS_DEVELOPMENT);
 
     const debugInfo = await AIReportModel.getAIReportDebugInfo(landId as string, estimatedPrice);
 

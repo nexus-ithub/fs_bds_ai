@@ -8,11 +8,12 @@ import { IS_DEVELOPMENT, QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { type User } from "@repo/common";
 import { NeedLoginDialog } from "../auth/NeedLoginDialog";
-import { bearingFromTo, getGradeChip } from "../utils";
+import { bearingFromTo, getGradeChip, getSpecialUsageList } from "../utils";
 import { AIReportDetailDialog } from "./AIReportDetailDialog";
-import { Dialog } from "@mui/material";
+import { Dialog, Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
 import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
+import { CircleQuestionMarkIcon } from "lucide-react";
 
 
 export interface AIReportProps {
@@ -73,6 +74,11 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
   //       return <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>;
   //   }
   // }
+
+  const specialUsageList = useMemo(() => {
+    if (!landInfo) return [];
+    return getSpecialUsageList(landInfo);
+  }, [landInfo]);
 
   useEffect(() => {
     // mount 후 한 프레임 뒤에 translate-x-0 적용
@@ -339,7 +345,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                 // })
               }}
               position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 200 }}
-              className="w-[340px] h-[240px] object-cover rounded-l-[8px]"
+              className="w-[340px] h-[260px] object-cover rounded-l-[8px]"
             >
               <RoadviewMarker position={{ lat: polygon?.lat, lng: polygon?.lng }} />
             </Roadview>
@@ -366,28 +372,36 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     )
                   }
                   {
+                    specialUsageList.map((specialUsage, index) => (
+                      <Tooltip
+                        key={index}
+                        title={<div>
+                          {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
+                          <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
+                        </div>}
+                      >
+                        <p
+                          key={index}
+                          title={specialUsage}
+                          className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
+                        >
+                          {specialUsage}
+                          <CircleQuestionMarkIcon size={14} />
+                        </p>
+                      </Tooltip>
+
+                    ))
+                  }
+                  {/* {
                     (landInfo?.relMainUsageName) && (
                       <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.relMainUsageName}</p>
                     )
-                  }
+                  } */}
                 </div>
-                <div className="flex items-center gap-[4px] font-s4 text-text-02">
+                {/* <div className="flex items-center gap-[4px] font-s4 text-text-02">
                   {getBuildingRelInfoText(landInfo)}
-                </div>
+                </div> */}
               </div>
-
-              {/* <div className="mt-[8px] flex items-center gap-[5px]">
-                <div className="flex-1 flex items-center justify-between">
-                  <p className="font-s4 text-text-03">대지면적</p>
-                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.area)}</p>
-                </div>
-                <VDivider colorClassName="bg-line-03"/>
-                <div className="flex-1 flex items-center justify-between">
-                  <p className="font-s4 text-text-03">건축면적</p>
-                  <p className="font-s4 text-text-02">{getAreaStrWithPyeong(landInfo?.relArchAreaSum)}</p>
-                </div>        
-              </div>
-               */}
               <div className="mt-[8px] flex-col space-y-[5px]">
                 <div className="flex-1 flex items-center justify-between">
                   <p className="font-s4 text-text-03">토지면적{landInfo?.relParcelCount > 1 ? ' (합계)' : ''}</p>
@@ -401,18 +415,35 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                   <p className="font-s3 text-text-03">연면적{landInfo?.relBuildingCount > 1 ? ' (합계)' : ''}</p>
                   <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo?.relFloorAreaSum)}</p>
                 </div>
+                <div className="flex-1 flex items-center justify-between">
+                  <p className="font-s3 text-text-03">건축물</p>
+                  <p className="font-s3 text-text-02">{getBuildingRelInfoText(landInfo)}</p>
+                </div>
               </div>
               <div className="mt-[12px] flex border border-line-02 rounded-[4px] flex-1 items-center">
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
-                  <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p>
+                  {/* <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p> */}
+                  <Tooltip
+                    title={
+                      <p className="">
+                        본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
+                        투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+                      </p>
+                    }
+                  >
+                    <div className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px] gap-[2px] flex items-center">
+                      추정가
+                      <CircleQuestionMarkIcon size={14} />
+                    </div>
+                  </Tooltip>
                   <p className="font-h2-p text-primary">{estimatedPrice?.estimatedPrice ? krwUnit(estimatedPrice?.estimatedPrice, true) : '-'}</p>
-                  <p className="font-c3 text-primary-030">{estimatedPrice?.per ? '공시지가 대비 ' + estimatedPrice?.per + ' 배' : '-'}</p>
+                  <p className="font-c3 text-primary-030">{(estimatedPrice?.estimatedPrice && landInfo) ? krwUnit(Number((estimatedPrice?.estimatedPrice / landInfo?.relTotalArea).toFixed(0)), true) + '/㎡' : '-'}</p>
                 </div>
                 <VDivider className="h-[56px]" />
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
                   <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
                   <p className="font-h2-p">{landInfo?.price ? krwUnit(landInfo.relTotalPrice * landInfo.relTotalArea, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{landInfo?.price ? krwUnit(landInfo.relTotalPrice, true) : '-'} /㎡</p>
+                  <p className="font-c3 text-text-03">{landInfo?.price ? krwUnit(landInfo.relTotalPrice, true) : '-'}/㎡</p>
                 </div>
                 <VDivider className="h-[56px]" />
                 <div className="flex-1 flex flex-col items-center gap-[4px]">

@@ -1893,7 +1893,8 @@ export class AIReportModel {
     // console.log('buildingTotalFloorArea ', buildingTotalFloorArea)
 
     if (debug) {
-      devDetailInfo.debugExtraInfo = [];
+      devDetailInfo.debugExtraInfo = estimatedPrice.debugText;
+      devDetailInfo.debugExtraInfo.push(`=========================`);
       if (!curBuildingUseApprovalDate) {
         devDetailInfo.debugExtraInfo.push(`* 건축물 대장에 준공년도가 없어 건물노후 40년으로 설정`);
       }
