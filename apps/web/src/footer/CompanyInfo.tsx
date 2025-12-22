@@ -68,7 +68,7 @@ export const CompanyInfo = () => {
       </div>
       <p className="font-c2 text-text-02 flex items-center">사업자 등록번호 : 272-86-01078</p>
       <div className="font-c2 text-text-02 flex items-center gap-[10px]">
-        <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 7222</p>
+        <p><span className="font-c2-p text-text-05 pr-[4px]">T</span>02 558 3444</p>
         <VDivider/>
         <p><span className="font-c2-p text-text-05 pr-[4px]">E</span>buildingshopai@gmail.com</p>
       </div>

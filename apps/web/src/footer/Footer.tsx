@@ -40,7 +40,7 @@ export const Footer = () => {
             <p>사업자 등록번호: 272-86-01078</p>
           </div>
           <div className="flex items-center gap-[12px] font-s3 text-text-02">
-            <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">T</span>02 558 7222</p>
+            <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">T</span>02 558 3444</p>
             <VDivider className="!h-[12px]"/>
             <p className="flex items-center gap-[4px]"><span className="font-s3-p text-text-05">E</span>buildingshopai@gmail.com</p>
             <VDivider className="!h-[12px]"/>
