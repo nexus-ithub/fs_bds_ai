@@ -7,7 +7,7 @@ import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
-import { InfoIcon, PictureInPicture, PictureInPicture2, X } from "lucide-react";
+import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
@@ -558,33 +558,6 @@ export default function Main() {
   // console.log(landInfo?.polygon[0]);
   return (
     <div className="flex w-full h-full relative">
-      <div className="w-[400px] h-full border-r border-line-03">
-        {landInfo ?
-          <LandInfoCard
-            landInfo={landInfo}
-            buildingList={buildingList}
-            businessDistrict={businessDistrict}
-            estimatedPrice={estimatedPrice}
-            place={place}
-            onClose={() => {
-              setLandInfo(null)
-              setOpenAIReport(false)
-            }}
-            onOpenAIReport={() => {
-              setOpenAIReport(true)
-              console.log('landInfo', landInfo)
-            }}
-          /> :
-          <HomeBoard
-            selectedVideo={selectedVideo}
-            setSelectedVideo={(video) => {
-              setSelectedVideo(video);
-              setPlayerMode("large");
-            }}
-            openVideoMiniPlayer={openVideoMiniPlayer}
-            setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
-          />}
-      </div>
       <div className="flex-1 h-full">
         <Map
           ref={mapRef}
@@ -879,38 +852,6 @@ export default function Main() {
           center={center}
           setCenter={setCenter}
         />
-        <SearchBar
-          onShowFilterSetting={(on) => {
-            console.log('onShowFilterSetting', on);
-            setShowFilterSetting(on);
-          }}
-          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-            setFilter({
-              on,
-              areaRange,
-              farRange,
-              buildingAgeRange,
-              usageList,
-            });
-          }}
-          onSelect={(id) => {
-            console.log('onSelect', id);
-            getPolygon({ id, changePosition: true });
-          }}
-        />
-        {
-          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[145px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
-                TIP
-              </p>
-              <p className="font-s3 text-text-02">
-                필터 결과를 보려면 지도를 더 확대 해주세요.
-              </p>
-            </div>
-          )
-        }
         {
           IS_DEVELOPMENT && (
             <div
@@ -979,6 +920,71 @@ export default function Main() {
             polygon={getMainPolygon(polygonList)}
           />
         )}
+      </div>
+      {/* <div className="w-[400px] h-full border-r border-line-03"> */}
+      <div className={`absolute left-0 top-0 h-full w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+        {landInfo ?
+          <LandInfoCard
+            landInfo={landInfo}
+            buildingList={buildingList}
+            businessDistrict={businessDistrict}
+            estimatedPrice={estimatedPrice}
+            place={place}
+            onClose={() => {
+              setLandInfo(null)
+              setOpenAIReport(false)
+            }}
+            onOpenAIReport={() => {
+              setOpenAIReport(true)
+              console.log('landInfo', landInfo)
+            }}
+          /> :
+          <HomeBoard
+            selectedVideo={selectedVideo}
+            setSelectedVideo={(video) => {
+              setSelectedVideo(video);
+              setPlayerMode("large");
+            }}
+            openVideoMiniPlayer={openVideoMiniPlayer}
+            setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
+          />}
+        <button
+          onClick={() => setOpenLeftPanel(v => !v)}
+          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px]">
+          {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
+        </button>
+        <SearchBar
+          onShowFilterSetting={(on) => {
+            console.log('onShowFilterSetting', on);
+            setShowFilterSetting(on);
+          }}
+          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+            setFilter({
+              on,
+              areaRange,
+              farRange,
+              buildingAgeRange,
+              usageList,
+            });
+          }}
+          onSelect={(id) => {
+            console.log('onSelect', id);
+            getPolygon({ id, changePosition: true });
+          }}
+        />
+        {
+          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+                TIP
+              </p>
+              <p className="font-s3 text-text-02 whitespace-nowrap">
+                필터 결과를 보려면 지도를 더 확대 해주세요.
+              </p>
+            </div>
+          )
+        }
       </div>
       {openVideoMiniPlayer && (
         <div

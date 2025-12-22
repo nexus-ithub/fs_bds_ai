@@ -482,7 +482,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
     pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom;
 
   return (
-    <div className="fixed top-[84px] w-[582px] h-[48px] bg-white left-[424px] z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
+    <div className="fixed top-[20px] w-[582px] h-[48px] bg-white left-[424px] z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
       <div className="flex items-center h-full gap-[12px] px-[12px]">
         <button
           className={`font-s3 flex items-center gap-[4px] ${showFilterSetting ? 'text-primary-050' : 'text-text-02'}`}
@@ -645,7 +645,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
       </div>
       {
         showFilterSetting && (
-          <div className="fixed top-[144px] w-[400px] p-[20px] min-h-[480px] bg-white left-[424px] z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
+          <div className="fixed top-[80px] w-[400px] p-[20px] min-h-[480px] bg-white left-[424px] z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
               <button onClick={(e) => {
