@@ -1654,6 +1654,16 @@ export class AIReportModel {
           llur.bcr,
           COALESCE(ap_main.lat, ap_base.lat) AS lat,
           COALESCE(ap_main.lng, ap_base.lng) AS lng,
+          ( SELECT CONCAT('[' , GROUP_CONCAT(JSON_OBJECT(
+              'usageName', land_usage.usage_name,
+              'usageCode', land_usage.usage_code,
+              'lawCode', usage_code.law_code,
+              'lawName', usage_code.law_name,
+              'conflict', land_usage.conflict
+              )), ']') FROM fs_bds.land_usage_info as land_usage
+              LEFT JOIN fs_bds.land_usage_code as usage_code on land_usage.usage_code = usage_code.code or land_usage.usage_name = usage_code.name
+              where land_usage.id = li.id
+          ) as usageList,              
           CASE
             WHEN bd_latest.deal_date IS NULL AND ld_latest.deal_date IS NULL THEN NULL
             WHEN ld_latest.deal_date IS NULL 
@@ -1729,6 +1739,17 @@ export class AIReportModel {
       `,
       [landId, landId]
     )
+
+    for (const land of landDataList) {
+      if (land.usageList) {
+        try {
+          land.usageList = JSON.parse(land.usageList as any);
+        } catch (e) {
+          land.usageList = [];
+        }
+      }
+    }
+
     const landInfo = landDataList[0];
     if (landInfo) {
       const ids = (landInfo.relLandIds || '')

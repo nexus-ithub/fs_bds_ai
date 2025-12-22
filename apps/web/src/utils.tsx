@@ -1,7 +1,7 @@
 
 // lat: 37.506448, lng: 127.053366 
 
-import { getUsageString, type LandInfo } from "@repo/common";
+import { getUsageString, type LandInfo, type LandUsageInfo } from "@repo/common";
 
 // level : 3
 export const saveMapState = (centerLat: number, centerLng: number, level: number) => {
@@ -86,7 +86,7 @@ export const isDistrictPlanning = (landInfo: LandInfo) => {
   return false;
 };
 
-export const getSpecialUsageList = (landInfo: LandInfo) => {
+export const getSpecialUsageList = (usageList: LandUsageInfo[]) => {
   const specialKeywords = [
     "지구단위계획구역",
     "도심지역",
@@ -105,9 +105,9 @@ export const getSpecialUsageList = (landInfo: LandInfo) => {
     "국가지정문화유산구역"
   ];
 
-  if (!landInfo.usageList) return [];
+  if (!usageList) return [];
 
-  const list = landInfo.usageList
+  const list = usageList
     .filter((u) => u.conflict === "포함")
     .map((u) => u.usageName);
 

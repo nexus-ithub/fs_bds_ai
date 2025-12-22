@@ -1,5 +1,5 @@
 
-import { type RentInfo, type EstimatedPrice } from "./land";
+import { type RentInfo, type EstimatedPrice, LandUsageInfo } from "./land";
 
 
 
@@ -36,6 +36,8 @@ export interface LandData {
   bcr: number; // 최대건폐율
   lat: number;
   lng: number;
+
+  usageList: LandUsageInfo[];
 
   dealPrice: number; // 최근 거래 가격
   dealDate: Date; // 최근 거래 일

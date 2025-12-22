@@ -2,9 +2,9 @@
 
 import { Dialog } from "@mui/material";
 import { AIReportLogo, BuildingShopBIMain, BuildingShopBIText, Button, DotProgress, getAreaStrWithPyeong, getRatioStr, HDivider, krwUnit, VDivider, type AIReportDetail } from "@repo/common";
-import { getGradeChip } from "../utils";
+import { getGradeChip, getSpecialUsageList } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { ConsultRequestDialog } from "./ConsultRequestDialog";
 import { toast } from "react-toastify";
@@ -208,6 +208,11 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
     getAIReportDetail()
   }, [landId, open])
 
+  const specialUsageList = useMemo(() => {
+    if (!aiReportDetail?.landInfo) return [];
+    return getSpecialUsageList(aiReportDetail?.landInfo?.usageList);
+  }, [aiReportDetail?.landInfo])
+
   return (
     <>
       <Dialog
@@ -254,13 +259,14 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                     <ItemRow title="주소" value={aiReportDetail?.landInfo?.legDongName + ' ' + aiReportDetail?.landInfo?.jibun} />
                     <ItemRow title="용도지역" value={aiReportDetail?.landInfo?.usageName || ""} />
                     <ItemRow title={`대지면적${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (합계)" : ""}`} value={getAreaStrWithPyeong(aiReportDetail?.landInfo?.relTotalArea) || ""} />
-                    <ItemRow title={`법정 용적률/건폐율${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (평균)" : ""}`} value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`} />
+                    {/* <ItemRow title={`법정 용적률/건폐율${aiReportDetail?.landInfo?.relParcelCount > 1 ? " (평균)" : ""}`} value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`} /> */}
+                    <ItemRow title={`지역지구`} value={specialUsageList.length > 0 ? specialUsageList.join(', ') : "-"} />
                   </div>
                   <div className="flex-1 space-y-[12px] pl-[16px]">
                     <ItemRow title="건축물/토지개수" value={`${aiReportDetail?.buildingList?.length > 0 ? aiReportDetail?.buildingList?.length + '개' : "없음"} / ${aiReportDetail?.landInfo?.relParcelCount}개`} />
                     <ItemRow title={`건축면적${aiReportDetail?.buildingList?.length > 1 ? " (합계)" : ""}`} value={aiReportDetail?.buildingList?.length > 0 ? getAreaStrWithPyeong(aiReportDetail?.buildingList?.reduce((a, b) => a + (b.archArea ? Number(b.archArea) : 0), 0)) : "-"} />
                     <ItemRow title={`연면적${aiReportDetail?.buildingList?.length > 1 ? " (합계)" : ""}`} value={aiReportDetail?.buildingList?.length > 0 ? getAreaStrWithPyeong(aiReportDetail?.buildingList?.reduce((a, b) => a + (b.totalFloorArea ? Number(b.totalFloorArea) : 0), 0)) : "-"} />
-                    <ItemRow title={`설계 용적률/건폐율`} value={aiReportDetail?.buildingList?.length > 0 ? `${getRatioStr(aiReportDetail?.buildingList?.[0]?.floorAreaRatio)} / ${getRatioStr(aiReportDetail?.buildingList?.[0]?.archLandRatio)}` : "-"} />
+                    <ItemRow title={`현재 용적률/건폐율`} value={aiReportDetail?.buildingList?.length > 0 ? `${getRatioStr(aiReportDetail?.buildingList?.[0]?.floorAreaRatio)} / ${getRatioStr(aiReportDetail?.buildingList?.[0]?.archLandRatio)}` : "-"} />
                   </div>
                 </div>
               </div>
@@ -309,7 +315,7 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                   <div className="flex-1 flex flex-col space-y-[12px] pr-[16px]">
                     <ItemRow title="토지비" value={krwUnit(aiReportDetail?.value?.landCost.purchaseCost + aiReportDetail?.value?.landCost.agentFee + aiReportDetail?.value?.landCost.acquisitionCost)} />
                     <ItemRow title="해체관련 비용" value={krwUnit(aiReportDetail?.value?.projectCost.demolitionCost + aiReportDetail?.value?.projectCost.demolitionManagementCost)} />
-                    <ItemRow title="ENG 관련비용 (설계, 감리, PM)" value={krwUnit(aiReportDetail?.value?.projectCost.constructionCost + aiReportDetail?.value?.projectCost.managementCost + aiReportDetail?.value?.projectCost.pmFee)} />
+                    <ItemRow title="공사비 및 ENG 용역비 (설계, 감리, PM)" value={krwUnit(aiReportDetail?.value?.projectCost.constructionCost + aiReportDetail?.value?.projectCost.managementCost + aiReportDetail?.value?.projectCost.pmFee)} />
                     <ItemRow title="금융비용/이자" value={`${krwUnit(aiReportDetail?.value?.loan.loanAmount)} / ${krwUnit(aiReportDetail?.value?.loan.loanInterest)}`} />
                     <ItemRow title="기타비용 및 예비비" value={krwUnit(aiReportDetail?.value?.projectCost.reserveFee + aiReportDetail?.value?.projectCost.acquisitionTax)} />
 
@@ -340,13 +346,13 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                   <div className="flex-1 flex flex-col space-y-[12px] pr-[16px]">
                     <ItemRow title="보증금" value={krwUnit(aiReportDetail?.value?.annualDepositProfit)} />
                     <ItemRow title="임대수익(임대료, 관리비)" value={krwUnit(aiReportDetail?.value?.annualRentProfit + aiReportDetail?.value?.annualManagementProfit)} />
-                    <ItemRow title="연간지출" value={krwUnit(aiReportDetail?.value?.loan.loanInterestPerYear + aiReportDetail?.tax?.propertyTax + aiReportDetail?.tax?.propertyTaxForBuilding + aiReportDetail?.tax?.comprehensiveRealEstateTax)} />
+                    <ItemRow title="연간지출(이자포함)" value={krwUnit(aiReportDetail?.value?.loan.loanInterestPerYear + aiReportDetail?.tax?.propertyTax + aiReportDetail?.tax?.propertyTaxForBuilding + aiReportDetail?.tax?.comprehensiveRealEstateTax)} />
                   </div>
                   <div className="flex flex-col flex-1 pl-[16px] divide-y-[1px] divide-line-02">
                     <div className="flex items-center justify-center pb-[12px]">
-                      <p className="font-h4">연간 임대수익</p>
+                      <p className="font-h4">연간 순수익(임대수익-연간지출)</p>
                     </div>
-                    <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.annualRentProfit, true)}</p>
+                    <p className="flex-1 text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{krwUnit(aiReportDetail?.result?.annualRentProfit - (aiReportDetail?.value?.loan.loanInterestPerYear + aiReportDetail?.tax?.propertyTax + aiReportDetail?.tax?.propertyTaxForBuilding + aiReportDetail?.tax?.comprehensiveRealEstateTax), true)}</p>
                   </div>
                 </div>
               </div>
@@ -385,7 +391,7 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
         <HDivider />
         <div className="w-full flex p-[24px] gap-[10px]">
           <Button variant="bggray" fontSize="font-h4" size="medium" className="flex-1" onClick={() => { onClose() }}>닫기</Button>
-          <Button className="flex-1" fontSize="font-h4" size="medium" onClick={() => { setOpenConsultRequestDialog(true) }}>설계상담요청하기</Button>
+          <Button className="flex-1" fontSize="font-h4" size="medium" onClick={() => { setOpenConsultRequestDialog(true) }}>상담문의</Button>
         </div>
 
       </Dialog>

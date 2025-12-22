@@ -275,7 +275,7 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
                       )
                     }
                     {
-                      getSpecialUsageList(item.landInfo).map((specialUsage, index) => (
+                      getSpecialUsageList(item.landInfo?.usageList).map((specialUsage, index) => (
                         <Tooltip
                           key={index}
                           title={<div>

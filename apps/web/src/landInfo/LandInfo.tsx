@@ -56,7 +56,7 @@ export const LandInfoCard = ({
   });
 
   const specialUsageList = useMemo(() => {
-    return getSpecialUsageList(landInfo);
+    return getSpecialUsageList(landInfo?.usageList);
   }, [landInfo]);
 
   const handleOpenAIReport = () => {
