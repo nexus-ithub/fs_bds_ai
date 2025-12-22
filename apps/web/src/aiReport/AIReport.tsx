@@ -345,7 +345,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                 // })
               }}
               position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 200 }}
-              className="w-[340px] h-[260px] object-cover rounded-l-[8px]"
+              className="w-[340px] min-h-[260px] object-cover rounded-l-[8px]"
             >
               <RoadviewMarker position={{ lat: polygon?.lat, lng: polygon?.lng }} />
             </Roadview>
@@ -365,7 +365,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                 )
               }
               <div className="mt-[8px] flex items-center justify-between">
-                <div className="flex items-center gap-[6px]">
+                <div className="flex flex-wrap items-center gap-[6px]">
                   {
                     landInfo?.usageName && (
                       <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{landInfo?.usageName}</p>
@@ -420,7 +420,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                   <p className="font-s3 text-text-02">{getBuildingRelInfoText(landInfo)}</p>
                 </div>
               </div>
-              <div className="mt-[12px] flex border border-line-02 rounded-[4px] flex-1 items-center">
+              <div className="mt-[12px] flex border border-line-02 rounded-[4px] py-[6px] flex-1 items-center">
                 <div className="flex-1 flex flex-col items-center gap-[4px]">
                   {/* <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p> */}
                   <Tooltip

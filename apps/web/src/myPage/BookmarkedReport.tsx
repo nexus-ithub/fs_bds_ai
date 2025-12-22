@@ -268,7 +268,7 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
                   }
                 </div>
                 <div className="flex flex justify-between">
-                  <div className="flex items-center gap-[6px]">
+                  <div className="flex flex-wrap items-center gap-[6px]">
                     {
                       item.landInfo.usageName && (
                         <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
