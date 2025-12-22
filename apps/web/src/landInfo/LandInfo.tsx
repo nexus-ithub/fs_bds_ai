@@ -189,7 +189,7 @@ export const LandInfoCard = ({
             )
           }
         </div>
-        <div className="mt-[14px] flex items-center justify-between">
+        <div className="mt-[10px] flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-[6px]">
             {
               landInfo.usageName && (
@@ -223,9 +223,9 @@ export const LandInfoCard = ({
               ))
             }
           </div>
-          <div className="flex flex-shrink-0 justify-start items-start font-s3 text-text-02">
+          {/* <div className="flex flex-shrink-0 justify-start items-start font-s3 text-text-02">
             {getBuildingRelInfoText(landInfo)}
-          </div>
+          </div> */}
         </div>
 
         {/* <div className="mt-[10px] flex items-center gap-[5px]">
@@ -240,6 +240,10 @@ export const LandInfoCard = ({
           </div>        
         </div> */}
         <div className="mt-[10px] flex-col space-y-[6px]">
+          <div className="flex-1 flex items-center justify-between">
+            <p className="font-s3 text-text-03">건축물</p>
+            <p className="font-s3 text-text-02">{getBuildingRelInfoText(landInfo)}</p>
+          </div>
           <div className="flex-1 flex items-center justify-between">
             <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
             <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>

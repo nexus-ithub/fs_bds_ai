@@ -112,7 +112,7 @@ export const getSpecialUsageList = (landInfo: LandInfo) => {
     .map((u) => u.usageName);
 
   const matched = list.filter((name) =>
-    specialKeywords.some((keyword) => name.includes(keyword))
+    specialKeywords.find((keyword) => name.includes(keyword))
   );
 
   return matched;

@@ -511,7 +511,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     </div>
                     <div className="w-[1px] bg-line-02" />
                     <div className="flex-1 flex flex-col items-center gap-[12px]">
-                      <p className="font-s2">예상 매각금액</p>
+                      <p className="font-s2">수익률 환산 가치</p>
                       <HDivider />
                       <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedReportItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
                     </div>
