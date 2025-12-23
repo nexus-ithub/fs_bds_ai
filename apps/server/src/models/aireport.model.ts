@@ -84,7 +84,8 @@ const INSTRUCTION_PROMPT = `"""
 - 주용도에 따른 제한사항/고려해야할점/긍정적인면 등 지식을 동원해서 용도에 대한 이야기 작성, 만약 주용도가 
   특별한게 없다면 작성하지 않아도 됨  
 - 등급 이야기는 하지 말고 
-- 추천되는 개발형태에 대해서 "추천이유"를 기반으로 "~때문에 신축이 적합할것으로 판단됩니다."라고 작성해줘
+- 추천이유는 반드시 설명해줘 
+- 추천이유는 "추천이유"를 기반으로 "~때문에 신축이 적합할것으로 판단됩니다."라고 작성해줘
 - 매각금액/투자금/순수익등 데이터를 설명해줘
 - 주소를 보고 지식을 동원해서 주변 랜드마크, 대중교통, 개발계획, 개발호재등의 입지의 특징을 설명해주고, 만약 주변입지가 특별한게 없다면 작성하지 않아도 됨 
 - 기타로 현재 데이터를 기반으로 추가 내용이 있다면 간단하게 첨부해도 됨
@@ -2322,14 +2323,13 @@ export class AIReportModel {
       } else if (recommended === '리모델링') {
         recommendedReason = `현재 건물 준공년도, 용적률, 건폐율 등을 종합적으로 고려 했을때 리모델링이 적합.`
       } else if (recommended === '임대') {
-        recommendedReason = `현재 건물 준공년도를 고려했을때 임대가 적합.`
+        recommendedReason = `현재 건물 준공년도를 고려했을때 임대를 추천.`
       }
       const recommendedText = `"""
       추천항목 : ${recommended}
       추천이유 : ${recommendedReason}
       설계리포트 : ${reportValueToJsonString(recommendedInfo, recommendedResult)}
-      ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
-      ${recommended === '신축' ? `용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %, 건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %` : ''}
+      ${recommended === '신축' ? `개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 개발후 용적률 : ${Number(devDetailInfo.buildInfo.far).toFixed(1)} %, 개발후 건폐율 : ${Number(devDetailInfo.buildInfo.bcr).toFixed(1)} %` : ''}
       ""`;
 
       // const input = `"""
