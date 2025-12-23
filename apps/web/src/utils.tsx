@@ -115,7 +115,7 @@ export const getSpecialUsageList = (usageList: LandUsageInfo[]) => {
     specialKeywords.find((keyword) => name.includes(keyword))
   );
 
-  return matched;
+  return [...new Set(matched)];
 };
 
 

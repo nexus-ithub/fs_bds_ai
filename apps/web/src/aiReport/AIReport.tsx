@@ -382,7 +382,6 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                       >
                         <p
                           key={index}
-                          title={specialUsage}
                           className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
                         >
                           {specialUsage}

@@ -1,5 +1,5 @@
 
-import { type RentInfo, type EstimatedPrice, LandUsageInfo } from "./land";
+import { type RentInfo, type EstimatedPrice, type LandUsageInfo } from "./land";
 
 
 
@@ -96,15 +96,17 @@ export interface BuildInfo {
   upperFloorCount: number; // 지상층 층수
   lowerFloorCount: number; // 지하층 층수
 
-
   publicAreaPerFloor: number; // 공용면적
-
 
   upperFloorArea: number; // 지상층 연면적 
   lowerFloorArea: number; // 지하층 연면적
   firstFloorExclusiveArea: number; // 1층 전용면적
   secondFloorExclusiveArea: number; // 2층 이상 총 전용면적
   lowerFloorExclusiveArea: number; // 지하층 총 전용면적
+
+
+  bcr: number; // 건폐율
+  far: number; // 용적율
 }
 
 

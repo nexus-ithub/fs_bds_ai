@@ -336,6 +336,11 @@ export const getBuildingRelInfoText = (landInfo: LandInfo) => {
   if (floorInfo.length > 0) {
     arr.push(floorInfo)
   }
+
+  if (arr.length === 0) {
+    arr.push('없음')
+  }
+
   return arr.join(' · ')
 }
 
