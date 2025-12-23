@@ -7,7 +7,7 @@ import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
-import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, BotMessageSquare } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
@@ -924,11 +924,11 @@ export default function Main() {
             </div>
           )
         }
-        <div className="fixed z-30 left-[420px] bottom-[16px] flex flex-col gap-[12px]">
+        <div className="fixed z-30 left-[420px] bottom-[22px] flex flex-col gap-[12px]">
           {
             // IS_DEVELOPMENT && (
             (
-              <div className="flex flex-col gap-[4px]">
+              <div className="flex flex-col gap-[4px] min-w-[250px]">
                 <div className="flex gap-[4px]">
                   {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">용도</p>
@@ -968,7 +968,7 @@ export default function Main() {
               </div>
             )
           }
-          <Button
+          {/* <Button
             onClick={() => {
               setOpenAIChat(true);
             }}
@@ -976,6 +976,14 @@ export default function Main() {
           >
             <BuildingShopBITextSmall />
             <p className="font-s1-p text-white">질의하기</p>
+          </Button> */}
+          <Button
+            onClick={() => {
+              setOpenAIChat(true);
+            }}
+            className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+          >
+            <BotMessageSquare size={32}/>
           </Button>
         </div>
       </div>
