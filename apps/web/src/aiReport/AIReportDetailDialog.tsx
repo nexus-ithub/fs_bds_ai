@@ -213,6 +213,16 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
     return getSpecialUsageList(aiReportDetail?.landInfo?.usageList);
   }, [aiReportDetail?.landInfo])
 
+  const devBcr = useMemo(() => {
+    if (aiReportDetail?.type === 'remodel' || aiReportDetail?.type === 'rent') return aiReportDetail?.buildingList?.[0]?.archLandRatio;
+    return aiReportDetail?.landInfo?.relWeightedBcr;
+  }, [aiReportDetail])
+
+  const devFar = useMemo(() => {
+    if (aiReportDetail?.type === 'remodel' || aiReportDetail?.type === 'rent') return aiReportDetail?.buildingList?.[0]?.floorAreaRatio;
+    return aiReportDetail?.landInfo?.relWeightedFar;
+  }, [aiReportDetail])
+
   return (
     <>
       <Dialog
@@ -289,7 +299,7 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                       <div className="flex-1 space-y-[12px] pl-[16px]">
                         <ItemRow title="건축면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.buildingArea) || ""} />
                         <ItemRow title="연면적" value={getAreaStrWithPyeong(aiReportDetail?.buildInfo?.upperFloorArea + aiReportDetail?.buildInfo?.lowerFloorArea) || ""} />
-                        <ItemRow title="설계 용적률/건폐율" value={`${getRatioStr(aiReportDetail?.landInfo?.relWeightedFar)} / ${getRatioStr(aiReportDetail?.landInfo?.relWeightedBcr)}`} />
+                        <ItemRow title="설계 용적률/건폐율" value={`${getRatioStr(devFar)} / ${getRatioStr(devBcr)}`} />
                       </div>
                     ) : null
                   }
