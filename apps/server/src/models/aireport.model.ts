@@ -786,9 +786,11 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
   if ((landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역')
     && (!landInfo.roadContact.includes('지정되지않음') && !landInfo.roadContact.includes('광대'))
   ) {
+    console.log('TEST 정북일조!!');
     ///////////////////////////////////////////
     //정북일조 적용시 
     const minExclusiveArea = getMinExclusiveArea(maxUpperFloorArea, maxFloorCount);
+
     if (debug) {
       detailInfo.debugExtraInfo.push(`☀️ 정북일조 적용`);
       detailInfo.debugExtraInfo.push(`[(최대)지상층연면적] ${getAreaStrWithPyeong(maxUpperFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
@@ -802,6 +804,9 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
     let floorNumber = 1;
     const floors = []
     let minFloorArea = detailInfo.buildInfo.publicAreaPerFloor + minExclusiveArea
+    console.log('minFloorArea', minFloorArea);
+    console.log('maxUpperFloorArea', maxUpperFloorArea);
+    console.log('maxFloorCount', maxFloorCount);
 
     while (
       remainingArea >= minFloorArea
@@ -819,7 +824,8 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
       } else {
         area = floors[floors.length - 1] * 0.85; // 직전층의 85%
       }
-      if (area < minFloorArea) {
+      console.log('area', floorNumber, area);
+      if (floorNumber > 2 && area < minFloorArea) {
         break;
       }
       remainingArea -= area;
@@ -851,6 +857,7 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
         detailInfo.buildInfo.upperFloorArea - firstFloorArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
         0
       );
+    console.log('detailInfo.buildInfo.upperFloorCount', detailInfo.buildInfo.upperFloorCount);
     console.log('detailInfo.buildInfo.upperFloorArea', detailInfo.buildInfo.upperFloorArea);
     console.log('detailInfo.buildInfo.firstFloorExclusiveArea', detailInfo.buildInfo.firstFloorExclusiveArea);
     console.log('detailInfo.buildInfo.publicAreaPerFloor', detailInfo.buildInfo.publicAreaPerFloor);
