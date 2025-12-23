@@ -72,8 +72,9 @@ const INSTRUCTION_PROMPT = `"""
 너는 부동산 분석 전문가로서 
 현재 토지와 건물에 대한 내용을 아래의 예와 비슷하게 요약 해야해
 
-"서울 강남구 청담동 95-16은 제2종 일반주거지역에 위치한 지하 1층, 지상 4층 규모의 중소형 빌딩으로, 대지 약 101평, 연면적 약 255평입니다. 2021년에는 약 178억 원에 매매되었으며, 현재 시세는 약 230억~250억 원 수준으로 예측 됩니다. 제2종 일반주거지역이라는 점에서 용적률 제한과 인허가 절차의 제약이 있으며, 인접 건물과의 관계도 고려해야 합니다. 다만, 리모델링 후 상가+주거 혼합 임대 전략으로 안정적인 수익 창출이 가능하며, 지하층은 상업용(바, 스튜디오), 상층부는 오피스텔 또는 공유오피스로 활용 가능합니다. 예상 연 임대수익은 약 1.2억원 수준입니다.
-다만, 실거래가와 공시지가 괴리에 따른 세금 부담, 임대 공실 위험, 재건축 관련 규제 등을 충분히 검토해야 하며, 중장기적으로는 재건축 또는 고급 리모델링을 통해 자산가치 상승이 기대되는 건물입니다." 
+"서울 강남구 청담동 95-16은 제2종 일반주거지역에 위치한 지하 1층, 지상 4층 규모의 중소형 빌딩으로, 대지 약 101평, 연면적 약 255평입니다. 2021년 약 178억 원에 거래된 이후 꾸준한 지가 상승을 거쳐, 현재 시장 가치는 230억~250억 원 수준으로 평가됩니다.
+노후화된 준공 연도 및 현행 건폐율·용적률을 고려할 때, 기존 건물의 유지보수보다는 신축을 통한 고도화 전략이 자산 가치 극대화의 핵심입니다. 특히 저층부 근린생활시설과 상층부 고급 주거를 혼합한 '복합 임대 전략'을 통해 안정적인 현금흐름(연 예상 임대수익 약 1.2억 원 이상) 확보가 가능할 것으로 판단됩니다.
+다만, 제2종 일반주거지역의 법적 규제와 인동 간격 등 인허가 변수를 사전에 정밀 검토해야 하며, 공시지가 현실화에 따른 세무 리스크 및 시장 공실률 관리가 수반되어야 합니다. 종합적으로 볼 때 본 자산은 개발을 통한 Value-add 전략 수행 시 중장기적인 자산 가치 상승이 확실시되는 우량 투자 물건입니다." 
 
 **** 요약의 주요 조건 ****
 - 한국어로 작성
@@ -82,7 +83,8 @@ const INSTRUCTION_PROMPT = `"""
 - 건물 특징(위치, 용도, 임대료, 준공연도)을 포함하고 건물이 없으면 "현재 건축물 없는 상태"라고 작성 
 - 주용도에 따른 제한사항/고려해야할점/긍정적인면 등 지식을 동원해서 용도에 대한 이야기 작성, 만약 주용도가 
   특별한게 없다면 작성하지 않아도 됨  
-- 등급 이야기는 하지 말고 추천되는 개발형태에 대해서 설명해줘 
+- 등급 이야기는 하지 말고 
+- 추천되는 개발형태에 대해서 "추천이유"를 기반으로 "~때문에 신축이 적합할것으로 판단됩니다."라고 작성해줘
 - 매각금액/투자금/순수익등 데이터를 설명해줘
 - 주소를 보고 지식을 동원해서 주변 랜드마크, 대중교통, 개발계획, 개발호재등의 입지의 특징을 설명해주고, 만약 주변입지가 특별한게 없다면 작성하지 않아도 됨 
 - 기타로 현재 데이터를 기반으로 추가 내용이 있다면 간단하게 첨부해도 됨
@@ -866,10 +868,6 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
         detailInfo.buildInfo.upperFloorArea - detailInfo.buildInfo.firstFloorExclusiveArea - (detailInfo.buildInfo.publicAreaPerFloor * (detailInfo.buildInfo.upperFloorCount - 1)),
         0
       );
-
-
-
-
   }
 
   detailInfo.buildInfo.lowerFloorCount = 1; // 지하 임대층수는 1로 고정 
@@ -2317,6 +2315,38 @@ export class AIReportModel {
       //     리모델링정보 : ${reportValueToJsonString(devDetailInfo.remodel, aiReportResult.remodel)}
       //     임대정보 : ${reportValueToJsonString(devDetailInfo.rent, aiReportResult.rent)}
       //        """`;
+
+      let recommendedReason = '';
+      if (recommended === '신축') {
+        recommendedReason = `현재 건물 준공년도, 용적률, 건폐율 등을 종합적으로 고려해 보았을때 신축이 적합.`
+      } else if (recommended === '리모델링') {
+        recommendedReason = `현재 건물 준공년도, 용적률, 건폐율 등을 종합적으로 고려 했을때 리모델링이 적합.`
+      } else if (recommended === '임대') {
+        recommendedReason = `현재 건물 준공년도를 고려했을때 임대가 적합.`
+      }
+      const recommendedText = `"""
+      추천항목 : ${recommended}
+      추천이유 : ${recommendedReason}
+      설계리포트 : ${reportValueToJsonString(recommendedInfo, recommendedResult)}
+      ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
+      ${recommended === '신축' ? `용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %, 건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %` : ''}
+      ""`;
+
+      // const input = `"""
+      //     아래 데이터를 참고해서 설명글 작성해줘 
+      //     추정가 : ${krwUnit(estimatedPrice.estimatedPrice, true)}
+      //     주소 : ${landInfo.legDongName + ' ' + landInfo.jibun}
+      //     주용도 : ${landInfo.usageName}
+      //     대지면적 : ${getAreaStrWithPyeong(landInfo.relTotalArea)}
+      //     공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
+      //     용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %
+      //     건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %
+      //     최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
+      //     현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
+      //     개발 추천항목 : ${recommended}
+      //     설계리포트 : ${reportValueToJsonString(recommendedInfo, recommendedResult)}
+      //     ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
+      //        """`;
       const input = `"""
           아래 데이터를 참고해서 설명글 작성해줘 
           추정가 : ${krwUnit(estimatedPrice.estimatedPrice, true)}
@@ -2324,28 +2354,10 @@ export class AIReportModel {
           주용도 : ${landInfo.usageName}
           대지면적 : ${getAreaStrWithPyeong(landInfo.relTotalArea)}
           공시지가 : ${krwUnit(landInfo.price, true)}원/㎡
-          용적율 : ${Number(landInfo.relWeightedFar).toFixed(1)} %
-          건폐율 : ${Number(landInfo.relWeightedBcr).toFixed(1)} %
           최근거래정보 : ${landInfo.dealPrice ? ('가격 - ' + (krwUnit(landInfo.dealPrice * 10000, true)) + ', 거래일 - ' + landInfo.dealDate + ', 거래유형 - ' + (landInfo.dealType === 'land' ? '토지' : '건물')) : '없음'}
           현재빌딩정보 : ${(buildingList && buildingList.length > 0) ? '사용승인일 - ' + buildingList[0].useApprovalDate + ', 지상층수 - ' + buildingList[0].gndFloorNumber + ', 지하층수 - ' + buildingList[0].baseFloorNumber : '없음'}
-          개발 추천항목 : ${recommended}
-          설계리포트 : ${reportValueToJsonString(recommendedInfo, recommendedResult)}
-          ${recommended === '신축' ? `신축 개발 가능 층수 : 지상 ${devDetailInfo.buildInfo.upperFloorCount}, 지하 ${devDetailInfo.buildInfo.lowerFloorCount}` : ''}
+          ${recommendedText}
              """`;
-
-      //  console.log(input)       
-      // const input = `"""
-      //   아래 데이터를 참고해서 설명글 작성해줘 
-      //   추정가 : ${estimatedPrice.estimatedPrice}
-      //   토지정보 : ${JSON.stringify(land)}
-      //   현재빌딩정보 : ${JSON.stringify(building)}
-      //   계산결과값 : ${JSON.stringify(aiReport)}
-      //   최종결과 : ${JSON.stringify(aiReportResult)}
-      // """`;        
-      // console.log(input);
-
-
-
       const response = await client.responses.create({
         model: "gpt-4o-mini",
         instructions: INSTRUCTION_PROMPT,
