@@ -562,6 +562,9 @@ export default function Main() {
         <Map
           ref={mapRef}
           mapTypeId={mapTypeId}
+          onCreate={(map) => {
+            map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
+          }}
           onClick={(_, mouseEvent) => {
 
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
@@ -926,8 +929,7 @@ export default function Main() {
         }
         <div className="fixed z-30 left-[420px] bottom-[22px] flex flex-col gap-[12px]">
           {
-            // IS_DEVELOPMENT && (
-            (
+            IS_DEVELOPMENT && (
               <div className="flex flex-col gap-[4px] min-w-[250px]">
                 <div className="flex gap-[4px]">
                   {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
