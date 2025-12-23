@@ -215,12 +215,12 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
 
   const devBcr = useMemo(() => {
     if (aiReportDetail?.type === 'remodel' || aiReportDetail?.type === 'rent') return aiReportDetail?.buildingList?.[0]?.archLandRatio;
-    return aiReportDetail?.landInfo?.relWeightedBcr;
+    return aiReportDetail?.buildInfo?.bcr;
   }, [aiReportDetail])
 
   const devFar = useMemo(() => {
     if (aiReportDetail?.type === 'remodel' || aiReportDetail?.type === 'rent') return aiReportDetail?.buildingList?.[0]?.floorAreaRatio;
-    return aiReportDetail?.landInfo?.relWeightedFar;
+    return aiReportDetail?.buildInfo?.far;
   }, [aiReportDetail])
 
   return (

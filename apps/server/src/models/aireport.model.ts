@@ -867,6 +867,9 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
         0
       );
 
+
+
+
   }
 
   detailInfo.buildInfo.lowerFloorCount = 1; // 지하 임대층수는 1로 고정 
@@ -879,7 +882,8 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
   // detailInfo.buildInfo.lowerFloorExclusiveArea = detailInfo.buildInfo.lowerFloorArea - (detailInfo.buildInfo.publicAreaPerFloor * detailInfo.buildInfo.lowerFloorCount);
   detailInfo.buildInfo.lowerFloorExclusiveArea = Math.max(lowerAreaPerFloor - (detailInfo.buildInfo.publicAreaPerFloor), 0);
 
-
+  detailInfo.buildInfo.bcr = bcr;
+  detailInfo.buildInfo.far = (detailInfo.buildInfo.upperFloorArea / area) * 100;
   if (debug) {
     // detailInfo.debugExtraInfo.push("\n")
     // detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
