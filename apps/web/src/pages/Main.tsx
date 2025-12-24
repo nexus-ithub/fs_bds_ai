@@ -37,6 +37,7 @@ export default function Main() {
   const [rentInfoList, setRentInfoList] = useState<RentInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
+  const [showRepairInfo, setShowRepairInfo] = useState<boolean>(false);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
@@ -285,6 +286,7 @@ export default function Main() {
 
     setRentInfoList([]);
     setAiReportNotAvailable({ result: false, message: '' });
+    setShowRepairInfo(false);
     setOpenAIReport(false);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
@@ -342,7 +344,7 @@ export default function Main() {
 
         console.log(aiReportNotAvailable);
         setAiReportNotAvailable(aiReportNotAvailable);
-
+        setShowRepairInfo(landInfo.lastRepairDivCode != null);
       })
       .catch((error) => {
         console.error(error);
@@ -556,6 +558,48 @@ export default function Main() {
   }
 
   // console.log(landInfo?.polygon[0]);
+
+  const polygonAdditionalInfo = (polygon: PolygonInfo, index: number) => {
+    if (!landInfo) return;
+    if (aiReportNotAvailable.result && index === 0) {
+      return (
+        <CustomOverlayMap
+          yAnchor={1.1}
+          position={getPolygonCenter(polygon?.polygon)}>
+          <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+            <div className="font-s3-p">{aiReportNotAvailable.message?.split('\n').map((line, index) => (
+              <div key={index} className="flex items-center gap-[3px]">
+                {index === 0 && <InfoIcon size={14} />}
+                <p>
+                  {line}
+                </p>
+              </div>
+            ))}</div>
+            <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+          </div>
+        </CustomOverlayMap>
+      )
+    } else if (showRepairInfo && index === 0) {
+      return (
+        <CustomOverlayMap
+          yAnchor={1.1}
+          position={getPolygonCenter(polygon?.polygon)}>
+          <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+            <div className="font-s3-p flex flex-col">
+              <p className="flex items-center gap-[3px]"><InfoIcon size={14} /> 해당 건물에 대수선 이력이 있습니다.</p>
+              <p>AI 레포트의 사업성에 해당이력은 반영되지 않았음을 알려드립니다.</p>
+              <p>보다 상세한 검토가 필요하시면 고객센터를 통해 별도 문의 바랍니다.</p>
+            </div>
+            <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+          </div>
+        </CustomOverlayMap>
+      )
+    }
+    return null;
+  }
+
   return (
     <div className="flex w-full h-full relative">
       <div className="flex-1 h-full">
@@ -694,26 +738,8 @@ export default function Main() {
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                {
-                  aiReportNotAvailable.result && index === 0 && (
-                    <CustomOverlayMap
-                      yAnchor={1.1}
-                      position={getPolygonCenter(polygon?.polygon)}>
-                      <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                        <div className="font-s3-p">{aiReportNotAvailable.message?.split('\n').map((line, index) => (
-                          <div key={index} className="flex items-center gap-[3px]">
-                            {index === 0 && <InfoIcon size={14} />}
-                            <p>
-                              {line}
-                            </p>
-                          </div>
-                        ))}</div>
-                        <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                        <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                      </div>
-                    </CustomOverlayMap>
-                  )
-                }
+                {polygonAdditionalInfo(polygon, index)}
+
 
               </React.Fragment>
 
@@ -985,7 +1011,7 @@ export default function Main() {
             }}
             className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
           >
-            <BotMessageSquare size={32}/>
+            <BotMessageSquare size={32} />
           </Button>
         </div>
       </div>
