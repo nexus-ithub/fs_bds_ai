@@ -117,6 +117,13 @@ const RESERVE_FEE_RATIO = 0.01; // 예비비 비율
 const LOAN_RATIO = 0.7;
 const LOAN_INTEREST_RATIO = 0.035;
 
+
+const PARKING_FLOOR_THRESHOLD = 8.4;
+const LEGAL_PARKING_AREA_PER_CAR = 134;
+const PARKING_AREA_PER_CAR = 20;
+
+
+
 const LOAN_RATIO_FOR_OWNER = 0.8;
 const LOAN_INTEREST_RATIO_FOR_OWNER = 0.035;
 
@@ -786,7 +793,7 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
   if ((landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역')
     && (!landInfo.roadContact.includes('지정되지않음') && !landInfo.roadContact.includes('광대'))
   ) {
-    console.log('TEST 정북일조!!');
+    console.log('정북일조!!');
     ///////////////////////////////////////////
     //정북일조 적용시 
     const minExclusiveArea = getMinExclusiveArea(maxUpperFloorArea, maxFloorCount);
@@ -879,8 +886,6 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
   }
 
   detailInfo.buildInfo.lowerFloorCount = 1; // 지하 임대층수는 1로 고정 
-  // 주차층 추가 
-  detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far) - 1;
 
   const lowerAreaPerFloor = area * BASE_FLOOR_AREA_RATIO;
 
@@ -890,10 +895,46 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
 
   detailInfo.buildInfo.bcr = bcr;
   detailInfo.buildInfo.far = (detailInfo.buildInfo.upperFloorArea / area) * 100;
+
   if (debug) {
-    // detailInfo.debugExtraInfo.push("\n")
-    // detailInfo.debugExtraInfo.push("🏗️ 개발계획 (개발후)");
-    // detailInfo.debugExtraInfo.push(`[건축면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.buildingArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${bcr / 100}(건폐율))`);
+    detailInfo.debugExtraInfo.push("[지하주차층계산]");
+  }
+  if (landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역') {
+    const legalParkingCount = (detailInfo.buildInfo.upperFloorArea + detailInfo.buildInfo.lowerFloorArea) / LEGAL_PARKING_AREA_PER_CAR;
+    if (debug) {
+      detailInfo.debugExtraInfo.push(`* 1,2,3종 일반 주거지역에 포함`);
+      detailInfo.debugExtraInfo.push(`법정주차필요대수 ${legalParkingCount.toFixed(1)} (${(detailInfo.buildInfo.upperFloorArea + detailInfo.buildInfo.lowerFloorArea).toFixed(1)}m² / ${LEGAL_PARKING_AREA_PER_CAR.toFixed(1)}m²)`);
+    }
+
+    // 1,2,3 종 일반 주거지역은 법정 주차대수가 8.4대수를 초과할 경우에만 주차층 추가 
+    if (legalParkingCount > PARKING_FLOOR_THRESHOLD) {
+      if (debug) {
+        detailInfo.debugExtraInfo.push(`기계식주차 - 지하주차층 필요 (${legalParkingCount.toFixed(1)} > ${PARKING_FLOOR_THRESHOLD})`);
+      }
+      // 총 필요 주차 면적
+      const totalParkingArea = Math.ceil(legalParkingCount) * PARKING_AREA_PER_CAR;
+      // 층당 수용 가능한 주차 면적
+      const parkingAreaPerFloor = detailInfo.buildInfo.lowerFloorExclusiveArea;
+      // 필요한 주차층수 (올림 처리)
+      const requiredParkingFloors = Math.ceil(totalParkingArea / parkingAreaPerFloor);
+      detailInfo.buildInfo.lowerFloorCount += requiredParkingFloors;
+      if (debug) {
+        detailInfo.debugExtraInfo.push(`지하주차층 ${requiredParkingFloors} 추가 = (총 필요주차면적 ${totalParkingArea.toFixed(1)} / 지하층연면적 ${parkingAreaPerFloor.toFixed(1)})`);
+      }
+    } else {
+      if (debug) {
+        detailInfo.debugExtraInfo.push(`자주식주차 - 지하주차층 필요없음 (${legalParkingCount.toFixed(1)} < ${PARKING_FLOOR_THRESHOLD})`);
+      }
+    }
+
+  } else {
+    detailInfo.buildInfo.lowerFloorCount += getParkingFloorCount(far) - 1;
+    if (debug) {
+      detailInfo.debugExtraInfo.push(`지하주차층 ${getParkingFloorCount(far) - 1}층 추가`);
+    }
+  }
+
+  if (debug) {
     detailInfo.debugExtraInfo.push(`[지상층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.upperFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${far / 100}(용적률))`);
     detailInfo.debugExtraInfo.push(`[지상층층수] ${detailInfo.buildInfo.upperFloorCount} (${detailInfo.buildInfo.upperFloorArea.toFixed(1)}m² / ${detailInfo.buildInfo.buildingArea.toFixed(1)}m²)`);
     detailInfo.debugExtraInfo.push(`[지하층연면적] ${getAreaStrWithPyeong(detailInfo.buildInfo.lowerFloorArea.toFixed(1))} (${Number(area).toFixed(2)}(면적) * ${Number(BASE_FLOOR_AREA_RATIO).toFixed(2)}(대지대비지하비율) * ${detailInfo.buildInfo.lowerFloorCount}(지하층수))`);
