@@ -123,7 +123,7 @@ function ResetPasswordForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col items-center w-full max-w-[664px] h-[820px] flex-shrink-0 rounded">
+      <div className="flex flex-col items-center w-full max-w-[664px] flex-shrink-0 rounded">
         <div className="flex flex-col w-[320px] my-[75px] pb-[40px] gap-[40px]">
           <div className="flex flex-col gap-[24px] items-center">
             <BuildingShopBIMain width="274" height="24"/>

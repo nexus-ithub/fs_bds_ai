@@ -9,8 +9,8 @@ export const SignupConfirmDialog = ({open, onClose, userId}: {open: boolean, onC
     navigate('/signup/additional-info', { state: { userId } });
   }
   return (
-    <Dialog open={open} onClose={() => onClose(false)}>
-      <div className="flex flex-col gap-[20px] py-[24px] min-w-[400px]">
+    <Dialog open={open} onClose={() => onClose(false)} slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}>
+      <div className="flex flex-col gap-[20px] py-[24px] min-w-[400px] max-md:min-w-[320px] max-md:max-w-[320px]">
         <style>{`
           @keyframes draw-check {
             to {
@@ -55,7 +55,7 @@ export const SignupConfirmDialog = ({open, onClose, userId}: {open: boolean, onC
         <p className="font-h1 px-[20px] text-center">회원가입 완료</p>
         <div className="flex flex-col items-center gap-[4px] px-[20px]">
           <p className="font-s1 text-text-02">회원가입이 완료되었습니다.</p>
-          <p className="font-s2 text-text-02">더 나은 서비스를 제공하기 위해 추가 정보를 입력해주세요.</p>
+          <p className="font-s2 text-text-02">더 나은 서비스를 제공하기 위해 <br className="hidden max-md:block" />추가 정보를 입력해주세요.</p>
         </div>
         <div className="flex justify-center gap-[12px] px-[20px] pt-[12px]">
           <Button className="w-[200px] h-[40px]" onClick={() => {handleConfirm();}}>확인</Button>

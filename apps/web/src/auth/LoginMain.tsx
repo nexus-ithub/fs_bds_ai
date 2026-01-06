@@ -214,8 +214,12 @@ export const LoginMain = () => {
           </div>
         </div>
       </div>
-      <Dialog open={openFindAccountDialog} onClose={() => setOpenFindAccountDialog(false)}>
-        <div className='flex flex-col gap-[24px] p-[26px] w-[400px]'>
+      <Dialog 
+        open={openFindAccountDialog} 
+        onClose={() => setOpenFindAccountDialog(false)} 
+        slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}
+      >
+        <div className='flex flex-col gap-[24px] p-[26px] w-[400px] max-md:w-[320px] max-md:px-[16px] max-md:py-[20px] max-md:gap-[20px]'>
           <div>
             <h2 className='font-h2'>총 {findAccountResult.length}개의 계정을 찾았습니다.</h2>
           </div>
