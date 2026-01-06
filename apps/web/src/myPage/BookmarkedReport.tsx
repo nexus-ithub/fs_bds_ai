@@ -84,7 +84,6 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
     try {
       await axiosWithAuth.post('/api/land/bookmark', {
         landId: item.landInfo.id,
-        buildingId: item.buildings?.[0].id,
         estimatedPrice: item.estimatedPrice,
         estimatedPricePer: item.estimatedPricePer,
         deleteYn: 'Y'
