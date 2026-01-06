@@ -231,7 +231,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const { recent, push, clear, removeById } = useRecentSelections();
+  const { recent, push, removeById } = useRecentSelections();
   const axiosInstance = useAxiosWithAuth()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false)
@@ -489,7 +489,16 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
       <div className="flex items-center gap-[4px]">
         <button
           className={`font-s3 flex items-center gap-[4px] ${showFilterSetting ? 'text-primary-050' : 'text-text-02'}`}
-          onClick={() => setShowFilterSetting(showFilterSetting => !showFilterSetting)}
+          onClick={() => {
+            const newState = !showFilterSetting;
+            setShowFilterSetting(newState);
+            // Prevent body scroll when filter is open on mobile
+            if (window.innerWidth < 768 && newState) {
+              document.body.style.overflow = 'hidden';
+            } else if (!newState) {
+              document.body.style.overflow = '';
+            }
+          }}
         >
           <FilterIcon color={showFilterSetting ? 'var(--primary-050)' : 'var(--gray-070)'} />
           필터
@@ -522,13 +531,17 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
             setMenuAnchorEl(e.currentTarget);
             // Mobile: focus on mobile input immediately
             if (window.innerWidth < 768) {
+              // Prevent scroll on focus
+              document.body.style.overflow = 'hidden';
               // Use requestAnimationFrame to ensure DOM is updated
               requestAnimationFrame(() => {
                 mobileInputRef.current?.focus();
+                // Scroll to top to prevent jump
+                window.scrollTo(0, 0);
               });
             }
           }}
-          onFocus={(e) => {
+          onFocus={() => {
             // console.log('onFocus  ', e.currentTarget)
           }}
           onBlur={() => {
@@ -661,7 +674,15 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
 
         {/* Mobile Full Screen Search */}
         {menuAnchorEl && createPortal(
-          <div className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col">
+          <div
+            className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col"
+            onTouchMove={(e) => {
+              // Prevent body scroll when search is open
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+              }
+            }}
+          >
             {/* Search Header */}
             <div className="flex items-center gap-[12px] px-[16px] h-[64px] border-b border-line-03">
               <button
@@ -670,6 +691,8 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
                   setQuery('');
                   setResults([]);
                   setHighlightedIndex(-1);
+                  // Restore body scroll
+                  document.body.style.overflow = '';
                 }}
               >
                 <ChevronLeft size={24} />
@@ -883,7 +906,13 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           {/* Filter Header */}
           <div className="flex items-center justify-between px-[16px] h-[64px] border-b border-line-03">
             <div className="flex items-center gap-[12px]">
-              <button onClick={() => setShowFilterSetting(false)}>
+              <button
+                onClick={() => {
+                  setShowFilterSetting(false);
+                  // Restore body scroll
+                  document.body.style.overflow = '';
+                }}
+              >
                 <ChevronLeft size={24} />
               </button>
               <p className="font-h4">필터 설정</p>
