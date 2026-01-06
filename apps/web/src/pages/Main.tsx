@@ -891,7 +891,7 @@ export default function Main() {
         )}
       </div>
       {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-      <div className={`absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
         {landInfo ?
           <LandInfoCard
             landInfo={landInfo}

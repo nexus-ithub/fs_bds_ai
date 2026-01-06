@@ -1,5 +1,5 @@
 import { GNBBuildingShopIcon, GNBHomeIcon, GNBYoutubeIcon } from "@repo/common";
-import { Home, Building2, Youtube, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface GNBProps {
@@ -28,7 +28,7 @@ export function GNB({ onHomeClick }: GNBProps) {
       id: "building-god",
       label: "빌딩의신",
       icon: GNBYoutubeIcon,
-      path: "/building-god",
+      path: "/god-of-building",
     },
     {
       id: "my",
