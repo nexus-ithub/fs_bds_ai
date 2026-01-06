@@ -63,7 +63,7 @@ export const MapToolbar = ({
 
   return (
     <>
-      <div className="fixed top-[84px] right-[24px] z-40 font-c3 space-y-[14px]">
+      <div className="fixed top-[84px] right-[14px] md:right-[24px] z-40 font-c3 space-y-[14px]">
         <div className="flex flex-col [&>*:not(:last-child)]:mb-[8px] md:[&>*:not(:last-child)]:mb-0 md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating md:divide-y md:divide-line-03">
           <button
             onClick={() => { changeMapType('normal'); }}
