@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { MinusIcon, PlusIcon } from "../icons";
 
-export function ZoomController({level=5, setLevel}: {level: number, setLevel: React.Dispatch<React.SetStateAction<number>>;}) {
+export function ZoomController({ level = 5, setLevel }: { level: number, setLevel: React.Dispatch<React.SetStateAction<number>>; }) {
   const minZoom = 1;
   const maxZoom = 14;
 
@@ -63,12 +63,12 @@ export function ZoomController({level=5, setLevel}: {level: number, setLevel: Re
 
   return (
     <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-      <button className="w-[48px] h-[48px] flex flex-col justify-center items-center p-[16px]" onClick={handleZoomIn}>
+      <button className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center md:p-[16px]" onClick={handleZoomIn}>
         <PlusIcon />
       </button>
 
       {/* Custom vertical slider */}
-      <div className="relative w-[48px] h-[136px] p-[12px] select-none">
+      <div className="hidden md:block relative w-[40px] md:w-[48px] h-[136px] p-[12px] select-none">
         <div
           ref={trackRef}
           className="relative mx-auto h-full w-[6px] rounded-full bg-[#E6E8EA]"
@@ -104,7 +104,7 @@ export function ZoomController({level=5, setLevel}: {level: number, setLevel: Re
           {/* Thumb */}
           <div
             className="absolute left-1/2 w-[24px] h-[5px] rounded-[2px] bg-white border shadow-[0_2px_4px_rgba(0,0,0,0.16)] border-primary-030 cursor-pointer"
-            style={{ 
+            style={{
               bottom: `calc(${percent}% - 2.5px)`,
               transform: 'translateX(-50%)'
             }}
@@ -112,7 +112,7 @@ export function ZoomController({level=5, setLevel}: {level: number, setLevel: Re
         </div>
       </div>
 
-      <button className="w-[48px] h-[48px] flex flex col justify-center items-center p-[16px]" onClick={handleZoomOut}>
+      <button className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center md:p-[16px]" onClick={handleZoomOut}>
         <MinusIcon />
       </button>
     </div>
