@@ -789,9 +789,10 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
       <div className="md:hidden flex items-center bg-white w-fit rounded-[4px] px-[8px] py-[10px] border border-primary">
         {filterSetting()}
       </div>
+      {/* Desktop Filter Setting */}
       {
         showFilterSetting && (
-          <div className="absolute top-[110px] md:top-[60px] w-[400px] p-[20px] min-h-[480px] bg-white z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
+          <div className="hidden md:block absolute top-[60px] w-[400px] p-[20px] min-h-[480px] bg-white z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
               <button onClick={() => {
@@ -874,6 +875,115 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           </div>
         )
       }
+
+      {/* Mobile Filter Setting - Full Screen */}
+      {showFilterSetting && createPortal(
+        <div className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col">
+          {/* Filter Header */}
+          <div className="flex items-center justify-between px-[16px] h-[64px] border-b border-line-03">
+            <div className="flex items-center gap-[12px]">
+              <button onClick={() => setShowFilterSetting(false)}>
+                <ChevronLeft size={24} />
+              </button>
+              <p className="font-h4">필터 설정</p>
+            </div>
+            <button
+              onClick={() => {
+                const textAsAreaM2 = !textAsArea;
+                if (textAsAreaM2) {
+                  setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value]);
+                } else {
+                  setAreaRange([0, AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value]);
+                }
+                setTextAsArea(textAsAreaM2);
+              }}
+              className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]"
+            >
+              <ChangeIcon />
+              {textAsArea ? '평' : '㎡'}
+            </button>
+          </div>
+
+          {/* Filter Content */}
+          <div className="flex-1 overflow-y-auto px-[16px] py-[20px]">
+            <p className="font-s2 text-text-03 mb-[20px]">
+              찾으시는 조건을 필터설정에 맞게 검색해보세요.
+            </p>
+            <div className="flex flex-col space-y-[30px]">
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">토지 면적</p>
+                <StyledSlider
+                  range={areaRange}
+                  setRange={setAreaRange}
+                  marks={textAsArea ? AREA_MARKS : AREA_PY_MARKS}
+                  step={textAsArea ? 100 : 10}
+                />
+              </div>
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">건물 용적률</p>
+                <StyledSlider
+                  range={farRange}
+                  setRange={setFarRange}
+                  marks={FAR_MARKS}
+                  step={5}
+                />
+              </div>
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">건물 노후</p>
+                <StyledSlider
+                  range={buildingAgeRange}
+                  setRange={setBuildingAgeRange}
+                  marks={BUILDING_AGE_MARKS}
+                  step={1}
+                />
+              </div>
+            </div>
+            <HDivider className="mt-[30px]" colorClassName="bg-line-02" />
+            <div className="mt-[20px] flex flex-col space-y-[16px]">
+              <div className="flex justify-between">
+                <p className="font-h5 text-text-02">용도지역</p>
+                <button
+                  onClick={resetUsageList}
+                  className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]"
+                >
+                  <ChangeIcon />
+                  초기화
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-[12px]">
+                {USAGE_LIST.map((usage) => (
+                  <button
+                    key={usage.value}
+                    onClick={() => {
+                      if (usageList.size === USAGE_LIST.length) {
+                        setUsageList(new Set([usage.value]));
+                      } else if (usageList.has(usage.value)) {
+                        usageList.delete(usage.value);
+                        setUsageList(new Set(usageList));
+                      } else {
+                        usageList.add(usage.value);
+                        setUsageList(new Set(usageList));
+                      }
+                    }}
+                    className={`flex items-center outline-[1px] ${
+                      usageList.has(usage.value) ? 'outline-primary' : 'outline-line-02'
+                    } rounded-[2px] px-[6px] py-[4px]`}
+                  >
+                    <p
+                      className={`font-s3 ${
+                        usageList.has(usage.value) ? 'text-primary' : 'text-text-02'
+                      }`}
+                    >
+                      {usage.label}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
