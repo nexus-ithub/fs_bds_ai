@@ -19,6 +19,7 @@ import { IS_DEVELOPMENT } from "../constants";
 import React from "react";
 import { formatDate } from "date-fns";
 import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
+import { GNB } from "../components/GNB";
 
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
@@ -601,8 +602,8 @@ export default function Main() {
   }
 
   return (
-    <div className="flex w-full h-full relative">
-      <div className="flex-1 h-full">
+    <div className="flex w-full h-full relative pb-0 md:pb-0">
+      <div className="flex-1 h-full pb-[64px] md:pb-0">
         <Map
           ref={mapRef}
           mapTypeId={mapTypeId}
@@ -890,7 +891,7 @@ export default function Main() {
         )}
       </div>
       {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-      <div className={`absolute left-0 top-0 h-full w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
         {landInfo ?
           <LandInfoCard
             landInfo={landInfo}
@@ -918,7 +919,7 @@ export default function Main() {
           />}
         <button
           onClick={() => setOpenLeftPanel(v => !v)}
-          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px]">
+          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
           {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
         </button>
         <SearchBar
@@ -943,7 +944,7 @@ export default function Main() {
         />
         {
           (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+            <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
               <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
                 TIP
               </p>
@@ -953,7 +954,7 @@ export default function Main() {
             </div>
           )
         }
-        <div className="fixed z-30 left-[420px] bottom-[22px] flex flex-col gap-[12px]">
+        <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
           {
             IS_DEVELOPMENT && (
               <div className="flex flex-col gap-[4px] min-w-[250px]">
@@ -1073,6 +1074,11 @@ export default function Main() {
           onClose={() => setOpenAIChat(false)}
         />
       )}
+      <GNB onHomeClick={() => {
+        setLandInfo(null);
+        setOpenAIReport(false);
+        setOpenLeftPanel(true);
+      }} />
     </div>
   );
 }
