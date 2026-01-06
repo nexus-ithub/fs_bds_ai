@@ -19,11 +19,13 @@ export const MapToolbar = ({
   setCenter: React.Dispatch<React.SetStateAction<LatLng>>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   const getCurrentLocation = () => {
     setIsLoading(true);
+
     if (!navigator.geolocation) {
-      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.')
+      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.');
       setIsLoading(false);
       return;
     }
@@ -35,49 +37,52 @@ export const MapToolbar = ({
       setIsLoading(false);
     };
 
-    const onError = (error: GeolocationPositionError, isFallback = false) => {
+    const onError = (
+      error: GeolocationPositionError,
+      isFallback = false
+    ) => {
       console.error('위치 정보를 가져올 수 없습니다:', error);
 
-      // 첫 번째 시도 실패 시 fallback (권한 거부는 제외)
+      // fallback 시도 (권한 거부 제외)
       if (!isFallback && error.code !== error.PERMISSION_DENIED) {
         navigator.geolocation.getCurrentPosition(
           onSuccess,
-          (err) => onError(err, true),
+          (fallbackError) => onError(fallbackError, true),
           {
             enableHighAccuracy: false,
-            timeout: 10000,
-            maximumAge: 300000
+            timeout: 15000,
+            maximumAge: 300000, // 5분 캐시
           }
         );
         return;
       }
 
-      // 최종 실패
+      // 최종 실패 처리
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+          toast.error('위치 정보 접근이 거부되었습니다.');
           break;
         case error.POSITION_UNAVAILABLE:
           toast.error('위치 정보를 사용할 수 없습니다.');
           break;
         case error.TIMEOUT:
-          toast.error('위치 정보 요청이 시간 초과되었습니다.');
+          toast.error('위치 정보를 가져오는 데 시간이 초과되었습니다.');
           break;
         default:
-          toast.error('알 수 없는 오류가 발생했습니다.');
-          break;
+          toast.error('위치 정보를 가져오지 못했습니다.');
       }
+
       setIsLoading(false);
     };
 
-    // 첫 번째 시도: 고정밀도 모드 (모바일에서 빠름)
+    // 1차 시도: 환경에 따라 분기
     navigator.geolocation.getCurrentPosition(
       onSuccess,
       onError,
       {
-        enableHighAccuracy: true,
-        timeout: 7000,
-        maximumAge: 0
+        enableHighAccuracy: isMobile,
+        timeout: isMobile ? 8000 : 15000,
+        maximumAge: isMobile ? 0 : 60000,
       }
     );
   };

@@ -215,7 +215,7 @@ export const Header = ({ user }: { user: User }) => {
                   <p className="font-s2-p text-text-02 mb-[8px]">계정관리</p>
                   <button
                     className="w-full text-left px-[12px] py-[10px] font-s2 text-text-03 hover:bg-gray-50"
-                    onClick={() => { setMobileMenuOpen(false); navigate('/myPage'); }}
+                    onClick={() => { setMobileMenuOpen(false); navigate('/myPage/profile'); }}
                   >
                     개인정보 수정
                   </button>

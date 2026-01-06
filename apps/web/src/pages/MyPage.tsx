@@ -14,6 +14,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 import { trackError } from "../utils/analytics";
+import { GNB } from "../components/GNB";
 
 interface MenuItemType {
   label: string;
@@ -158,7 +159,8 @@ export const MyPage = () => {
   }, [location.pathname, navigate])
 
   return (
-    <div className="flex h-full">
+    <>
+    <div className="flex h-full pb-[64px] md:pb-0">
       {/* 사이드바: 모바일에서는 메인 페이지일 때만, 데스크탑에서는 항상 */}
       <div className={`w-full md:w-[320px] h-full flex-col shrink-0 gap-[32px] p-[24px] md:border-r border-line-02 overflow-y-auto scrollbar-hover ${
         isSubPage ? 'hidden md:flex' : 'flex'
@@ -220,5 +222,7 @@ export const MyPage = () => {
         </div>
       </div>
     </div>
+    <GNB />
+    </>
   )
 }

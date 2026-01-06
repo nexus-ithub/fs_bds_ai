@@ -10,6 +10,8 @@ import { Support } from "./Support";
 import { MyPage } from "./MyPage";
 import { DotProgress } from "@repo/common";
 import { DeleteAccount } from "./DeleteAccount";
+import { BuildingShopPage } from "./BuildingShopPage";
+import { GodOfBuildingPage } from "./GodOfBuildingPage";
 
 export const Home = () => {
 
@@ -60,6 +62,8 @@ export const Home = () => {
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />
+          <Route path={'/building-shop'} element={<BuildingShopPage />} />
+          <Route path={'/god-of-building'} element={<GodOfBuildingPage />} />
           <Route path={'/support/*'} element={<Support />} />
           <Route path={'/delete-account'} element={<DeleteAccount />} />
           <Route path={'/myPage/*'} element={<MyPage />} />
