@@ -922,44 +922,45 @@ export default function Main() {
           className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
           {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
         </button>
-        <SearchBar
-          onShowFilterSetting={(on) => {
-            console.log('onShowFilterSetting', on);
-            setShowFilterSetting(on);
-          }}
-          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-            setFilter({
-              on,
-              areaRange,
-              farRange,
-              buildingAgeRange,
-              usageList,
-            });
-          }}
-          onSelect={(id) => {
-            console.log('onSelect', id);
-            getPolygon({ id, changePosition: true });
-          }}
-        />
+      </div>
+      <SearchBar
+        onShowFilterSetting={(on) => {
+          console.log('onShowFilterSetting', on);
+          setShowFilterSetting(on);
+        }}
+        onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+          console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+          setFilter({
+            on,
+            areaRange,
+            farRange,
+            buildingAgeRange,
+            usageList,
+          });
+        }}
+        onSelect={(id) => {
+          console.log('onSelect', id);
+          getPolygon({ id, changePosition: true });
+        }}
+      />
+      {
+        (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+          <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+            <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+              TIP
+            </p>
+            <p className="font-s3 text-text-02 whitespace-nowrap">
+              필터 결과를 보려면 지도를 더 확대 해주세요.
+            </p>
+          </div>
+        )
+      }
+      <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
         {
-          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
-                TIP
-              </p>
-              <p className="font-s3 text-text-02 whitespace-nowrap">
-                필터 결과를 보려면 지도를 더 확대 해주세요.
-              </p>
-            </div>
-          )
-        }
-        <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
-          {
-            IS_DEVELOPMENT && (
-              <div className="flex flex-col gap-[4px] min-w-[250px]">
-                <div className="flex gap-[4px]">
-                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+          IS_DEVELOPMENT && (
+            <div className="flex flex-col gap-[4px] min-w-[250px]">
+              <div className="flex gap-[4px]">
+                {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">용도</p>
                     <Switch
                       checked={showUsage}
@@ -967,37 +968,37 @@ export default function Main() {
                       isLabel={true}
                     />
                   </div> */}
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">임대</p>
-                    <Switch
-                      checked={showRent}
-                      onChange={() => { setShowRent(!showRent) }}
-                      isLabel={true}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-[4px]">
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">실거래</p>
-                    <Switch
-                      checked={showDeal}
-                      onChange={() => { setShowDeal(!showDeal) }}
-                      isLabel={true}
-                    />
-                  </div>
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">대수선</p>
-                    <Switch
-                      checked={showRemodel}
-                      onChange={() => { setShowRemodel(!showRemodel) }}
-                      isLabel={true}
-                    />
-                  </div>
+                <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">임대</p>
+                  <Switch
+                    checked={showRent}
+                    onChange={() => { setShowRent(!showRent) }}
+                    isLabel={true}
+                  />
                 </div>
               </div>
-            )
-          }
-          {/* <Button
+              <div className="flex gap-[4px]">
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">실거래</p>
+                  <Switch
+                    checked={showDeal}
+                    onChange={() => { setShowDeal(!showDeal) }}
+                    isLabel={true}
+                  />
+                </div>
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">대수선</p>
+                  <Switch
+                    checked={showRemodel}
+                    onChange={() => { setShowRemodel(!showRemodel) }}
+                    isLabel={true}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        }
+        {/* <Button
             onClick={() => {
               setOpenAIChat(true);
             }}
@@ -1006,15 +1007,14 @@ export default function Main() {
             <BuildingShopBITextSmall />
             <p className="font-s1-p text-white">질의하기</p>
           </Button> */}
-          <Button
-            onClick={() => {
-              setOpenAIChat(true);
-            }}
-            className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
-          >
-            <BotMessageSquare size={32} />
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            setOpenAIChat(true);
+          }}
+          className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+        >
+          <BotMessageSquare size={32} />
+        </Button>
       </div>
       {openVideoMiniPlayer && (
         <div

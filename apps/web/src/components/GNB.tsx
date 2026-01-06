@@ -20,7 +20,7 @@ export function GNB({ onHomeClick }: GNBProps) {
     },
     {
       id: "building-shop",
-      label: "빌딩샵매물",
+      label: "추천매물",
       icon: GNBBuildingShopIcon,
       path: "/building-shop",
     },
