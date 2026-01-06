@@ -1,6 +1,6 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { Profile } from "../myPage/Profile";
-import { CheckIcon, HDivider, type User } from "@repo/common";
+import { CheckIcon, ChevronRightCustomIcon, HDivider, type User } from "@repo/common";
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
@@ -27,8 +27,8 @@ interface CustomAccordionProps {
 }
 
 const accountMenu: MenuItemType[] = [
-  { label: "개인정보", path: "/myPage" },
-  { label: "추가정보", path: "/myPage/additional-info" },
+  { label: "개인정보 수정", path: "/myPage/profile" },
+  { label: "추가정보 수정", path: "/myPage/additional-info" },
   // { label: "비밀번호 변경", path: "/myPage/edit-pw" },
 ];
 
@@ -77,12 +77,14 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
                 to={item.path}
                 className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                   isActive
-                    ? 'bg-primary-010 text-primary'
+                    ? 'md:bg-primary-010 md:text-primary text-text-02'
                     : 'text-text-02'
                 }`}
               >
                 <p className="font-s2">{item.label}</p>
-                <CheckIcon size={16} color={isActive ? "#4E52FF" : ""}/>
+                <div className="hidden md:block">
+                  <CheckIcon size={16} color={isActive ? "#4E52FF" : ""}/>
+                </div>
               </Link>
             );
           })}
@@ -94,12 +96,21 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
 
 export const MyPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const axiosWithAuth = useAxiosWithAuth();
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [bdsCount, setBdsCount] = useState<number>(0);
   const [reportCount, setReportCount] = useState<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isSubPage = location.pathname !== '/myPage';
+
+  // 현재 페이지 제목 가져오기
+  const getPageTitle = () => {
+    const allMenus = [...accountMenu, ...favoriteMenu];
+    const currentMenu = allMenus.find(menu => menu.path === location.pathname);
+    return currentMenu?.label || '';
+  };
 
   const getTotalBookmarkedBds = async () => {
     try {
@@ -139,9 +150,19 @@ export const MyPage = () => {
     getTotalBookmarkedReport();
   }, [config])
 
+  // 데스크탑에서 /myPage 접속 시 자동으로 profile로 이동
+  useEffect(() => {
+    if (location.pathname === '/myPage' && window.innerWidth >= 768) {
+      navigate('/myPage/profile', { replace: true });
+    }
+  }, [location.pathname, navigate])
+
   return (
     <div className="flex h-full">
-      <div className="w-[320px] h-full flex flex-col shrink-0 gap-[32px] p-[24px] border-r border-line-02 overflow-y-auto scrollbar-hover">
+      {/* 사이드바: 모바일에서는 메인 페이지일 때만, 데스크탑에서는 항상 */}
+      <div className={`w-full md:w-[320px] h-full flex-col shrink-0 gap-[32px] p-[24px] md:border-r border-line-02 overflow-y-auto scrollbar-hover ${
+        isSubPage ? 'hidden md:flex' : 'flex'
+      }`}>
         <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
             <Avatar alt="" src={config?.profile} sx={{ width: 64, height: 64 }}/>
@@ -172,14 +193,31 @@ export const MyPage = () => {
         <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
         {/* <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded /> */}
       </div>
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
-        <Routes>
-          <Route path="/" element={<Profile />} />
-          <Route path="additional-info" element={<MyAdditionalInfo />} />
-          {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
-          <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
-          <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
-        </Routes>
+      {/* 컨텐츠: 모바일에서는 서브페이지일 때만, 데스크탑에서는 항상 */}
+      <div className={`flex-1 overflow-y-auto scrollbar-hover ${
+        isSubPage ? 'flex flex-col' : 'hidden md:block'
+      }`}>
+        {/* 모바일 헤더 */}
+        {isSubPage && (
+          <div className="md:hidden flex items-center justify-center p-[16px] border-b border-line-02 relative">
+            <button
+              onClick={() => navigate('/myPage')}
+              className="absolute left-[20px] flex items-center gap-[8px] font-s1-p text-text-01 rotate-180"
+            >
+              <ChevronRightCustomIcon size={16} />
+            </button>
+            <p className="font-s1-p">{getPageTitle()}</p>
+          </div>
+        )}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
+          <Routes>
+            <Route path="profile" element={<Profile />} />
+            <Route path="additional-info" element={<MyAdditionalInfo />} />
+            {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
+            <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
+            <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
+          </Routes>
+        </div>
       </div>
     </div>
   )

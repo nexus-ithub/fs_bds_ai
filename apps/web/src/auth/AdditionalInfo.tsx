@@ -49,7 +49,7 @@ export const AdditionalInfoContent = ({
       <div className="flex flex-col gap-[24px]">
         <div className="flex flex-col items-center gap-[4px]">
           <h4 className="font-h4">관심 분야</h4>
-          <p className="font-s3 text-text-03">고객님의 관심분야를 선택해 주세요 (복수선택 가능)</p>
+          <p className="font-s3 text-text-03">고객님의 관심분야를 선택해 주세요 (복수선택)</p>
         </div>
         <div className="grid grid-cols-2 gap-[12px]">
           {INTERESTS.map((interest) => (

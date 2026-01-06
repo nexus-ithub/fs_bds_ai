@@ -46,7 +46,7 @@ export const DeleteAccount = () => {
   }, [config])
 
   return (
-    <div className="flex flex-col w-[460px] h-full mx-auto pt-[70px]">
+    <div className="flex flex-col w-[460px] h-full mx-auto pt-[70px] max-md:w-full max-md:py-[20px] overflow-y-auto">
       <h1 className="font-h1 border-b border-line-02 text-center py-[16px]">회원 탈퇴</h1>
       <div className="w-full px-[20px] flex flex-col gap-[32px]">
         <div className="mt-[16px] bg-background-02 rounded-[8px]">
@@ -105,7 +105,7 @@ export const DeleteAccount = () => {
             fontSize="font-h4" 
             className="w-[150px]" 
             disabled={loading} 
-            onClick={() => navigate("/mypage")}
+            onClick={() => navigate("/mypage/profile")}
           >
             나중에 하기
           </Button>
