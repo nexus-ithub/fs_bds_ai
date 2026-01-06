@@ -64,7 +64,7 @@ export async function PUT(req: Request) {
   if (action === 'updatePassword') {
     const confirmResult = await AdminModel.confirmPassword(id, password);
     if (!confirmResult) {
-      return NextResponse.json({ success: false, message: "현재 비밀번호가 맞지 않습니다. 다시 입력해주세요." }, { status: 400 });
+      return NextResponse.json({ success: false, message: "현재 비밀번호가 올바르지 않습니다." }, { status: 400 });
     }
     const result = await AdminModel.updatePassword(id, newPassword);
     return result

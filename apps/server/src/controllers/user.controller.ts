@@ -51,7 +51,7 @@ export const checkPassword = async (req: AuthRequest, res: Response) => {
     const { password } = req.body;
     const result = await UserModel.confirmPassword(userId, password);
     if (!result) {
-      return res.status(400).json({ message: '현재 비밀번호가 맞지 않습니다. 다시 입력해주세요.' });
+      return res.status(400).json({ message: '현재 비밀번호가 올바르지 않습니다.' });
     }
     res.status(200).json({ message: '비밀번호가 일치합니다.' });
   } catch (err) {
@@ -94,7 +94,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 
     const confirmPassword = await UserModel.confirmPassword(userId, password);
     if (!confirmPassword) {
-      return res.status(400).json({ message: '현재 비밀번호가 맞지 않습니다. 다시 입력해주세요.' });
+      return res.status(400).json({ message: '현재 비밀번호가 올바르지 않습니다.' });
     }
     await UserModel.updatePassword(userId, newPassword);
 

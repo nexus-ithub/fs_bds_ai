@@ -250,10 +250,14 @@ export const EmailLogin = () => {
           >이메일로 회원가입</Button>
         </div>
       </div>
-      <Dialog open={openPWFind} onClose={() => setOpenPWFind(false)}>
-        <div className="flex flex-col gap-[24px] w-[400px]">
-          <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">비밀번호 찾기</h3>
-          <div className="flex flex-col items-center gap-[4px] px-[20px]">
+      <Dialog 
+        open={openPWFind} 
+        onClose={() => setOpenPWFind(false)}
+        slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}
+      >
+        <div className="flex flex-col gap-[24px] w-[400px] max-md:w-[320px]">
+          <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03 max-md:px-[14px]">비밀번호 찾기</h3>
+          <div className="flex flex-col items-center gap-[4px] px-[20px] max-md:px-[14px]">
             <p className='font-h3 pb-[4px]'>가입 시 등록했던 이메일을 입력해 주세요.</p>
             <p className='font-s2 text-text-02'>비밀번호 재설정 메일을 보내드립니다.</p>
           </div>
@@ -291,8 +295,12 @@ export const EmailLogin = () => {
           </div>
         </div>
       </Dialog>
-      <Dialog open={openFindAccountDialog} onClose={() => setOpenFindAccountDialog(false)}>
-        <div className='flex flex-col gap-[24px] p-[26px] w-[400px]'>
+      <Dialog 
+        open={openFindAccountDialog} 
+        onClose={() => setOpenFindAccountDialog(false)}
+        slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}
+      >
+        <div className='flex flex-col gap-[24px] p-[26px] w-[400px] max-md:w-[320px] max-md:px-[16px] max-md:py-[20px] max-md:gap-[20px]'>
           <div>
             <h2 className='font-h2'>총 {findAccountResult.length}개의 계정을 찾았습니다.</h2>
           </div>

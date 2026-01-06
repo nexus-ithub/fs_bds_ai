@@ -19,44 +19,70 @@ export const MapToolbar = ({
   setCenter: React.Dispatch<React.SetStateAction<LatLng>>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   const getCurrentLocation = () => {
     setIsLoading(true);
+
     if (!navigator.geolocation) {
-      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.')
+      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.');
       setIsLoading(false);
       return;
     }
 
+    const onSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      setCenter({ lat: latitude, lng: longitude });
+      setLevel(4);
+      setIsLoading(false);
+    };
+
+    const onError = (
+      error: GeolocationPositionError,
+      isFallback = false
+    ) => {
+      console.error('위치 정보를 가져올 수 없습니다:', error);
+
+      // fallback 시도 (권한 거부 제외)
+      if (!isFallback && error.code !== error.PERMISSION_DENIED) {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (fallbackError) => onError(fallbackError, true),
+          {
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 300000, // 5분 캐시
+          }
+        );
+        return;
+      }
+
+      // 최종 실패 처리
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          toast.error('위치 정보 접근이 거부되었습니다.');
+          break;
+        case error.POSITION_UNAVAILABLE:
+          toast.error('위치 정보를 사용할 수 없습니다.');
+          break;
+        case error.TIMEOUT:
+          toast.error('위치 정보를 가져오는 데 시간이 초과되었습니다.');
+          break;
+        default:
+          toast.error('위치 정보를 가져오지 못했습니다.');
+      }
+
+      setIsLoading(false);
+    };
+
+    // 1차 시도: 환경에 따라 분기
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setCenter({ lat: latitude, lng: longitude });
-        setLevel(4);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('위치 정보를 가져올 수 없습니다:', error);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error('위치 정보를 사용할 수 없습니다.');
-            break;
-          case error.TIMEOUT:
-            toast.error('위치 정보 요청이 시간 초과되었습니다.');
-            break;
-          default:
-            toast.error('알 수 없는 오류가 발생했습니다.');
-            break;
-        }
-        setIsLoading(false);
-      },
+      onSuccess,
+      onError,
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
+        enableHighAccuracy: isMobile,
+        timeout: isMobile ? 8000 : 15000,
+        maximumAge: isMobile ? 0 : 60000,
       }
     );
   };

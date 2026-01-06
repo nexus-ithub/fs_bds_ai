@@ -60,7 +60,7 @@ export const Profile = () => {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="w-[480px] flex flex-col gap-[24px] px-[32px] py-[48px]">
+      <div className="w-[480px] flex flex-col gap-[24px] px-[32px] py-[48px] max-md:p-[20px]">
         <div className="flex flex-col gap-[24px] p-[32px] rounded-[8px] border border-line-02">
           <div className="flex flex-col items-center gap-[12px]">
             <Avatar alt="" src={config?.profile} sx={{ width: 64, height: 64 }}/>

@@ -109,7 +109,7 @@ export const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col items-center w-full max-w-[664px] h-[820px] flex-shrink-0 rounded">
+      <div className="flex flex-col items-center w-full max-w-[664px] flex-shrink-0 rounded">
         <div className="flex flex-col w-[320px] my-[75px] pb-[40px] gap-[40px]">
           <div className="flex flex-col gap-[24px] items-center">
             <BuildingShopBI/>
@@ -199,7 +199,7 @@ export const ResetPassword = () => {
           {/* <span className="font-s3 text-grayscale-60">COPYRIGHT© 2021 NEXUS Co., Ltd. ALL RIGHTS RESERVED.</span> */}
         </div>
       </div>
-      <Dialog open={openSuccess} onClose={() => {goToLogin()}}>
+      <Dialog open={openSuccess} onClose={() => {goToLogin()}} slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}>
         <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
           <div className="flex flex-col items-center justify-center gap-[8px]">
             <p className="font-h3 pt-[12px]">비밀번호가 성공적으로 변경되었습니다.</p>
