@@ -684,7 +684,8 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
                   type="search"
                   inputMode="search"
                   placeholder="주소 또는 장소를 검색해주세요."
-                  className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none bg-transparent"
+                  className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none bg-transparent text-[16px]"
+                  style={{ fontSize: '16px' }}
                 />
               </div>
               {query && (
