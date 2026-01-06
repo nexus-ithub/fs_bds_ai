@@ -28,34 +28,55 @@ export const MapToolbar = ({
       return;
     }
 
+    const onSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      setCenter({ lat: latitude, lng: longitude });
+      setLevel(4);
+      setIsLoading(false);
+    };
+
+    const onError = (error: GeolocationPositionError, isFallback = false) => {
+      console.error('위치 정보를 가져올 수 없습니다:', error);
+
+      // 첫 번째 시도 실패 시 fallback (권한 거부는 제외)
+      if (!isFallback && error.code !== error.PERMISSION_DENIED) {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (err) => onError(err, true),
+          {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 300000
+          }
+        );
+        return;
+      }
+
+      // 최종 실패
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+          break;
+        case error.POSITION_UNAVAILABLE:
+          toast.error('위치 정보를 사용할 수 없습니다.');
+          break;
+        case error.TIMEOUT:
+          toast.error('위치 정보 요청이 시간 초과되었습니다.');
+          break;
+        default:
+          toast.error('알 수 없는 오류가 발생했습니다.');
+          break;
+      }
+      setIsLoading(false);
+    };
+
+    // 첫 번째 시도: 고정밀도 모드 (모바일에서 빠름)
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setCenter({ lat: latitude, lng: longitude });
-        setLevel(4);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('위치 정보를 가져올 수 없습니다:', error);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error('위치 정보를 사용할 수 없습니다.');
-            break;
-          case error.TIMEOUT:
-            toast.error('위치 정보 요청이 시간 초과되었습니다.');
-            break;
-          default:
-            toast.error('알 수 없는 오류가 발생했습니다.');
-            break;
-        }
-        setIsLoading(false);
-      },
+      onSuccess,
+      onError,
       {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 7000,
         maximumAge: 0
       }
     );
