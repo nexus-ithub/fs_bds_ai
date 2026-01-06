@@ -177,13 +177,15 @@ export class LandModel {
         br.repair_div_code_name     AS repairDivName,
         br.repair_change_div_code   AS repairChangeDivCode,
         br.repair_change_div_code_name AS repairChangeDivName,
-        br.create_date              AS repairCreateDate
+        br.create_date              AS repairCreateDate,
+        br.building_id              AS buildingId
       FROM address_polygon ap
       JOIN (
         SELECT
           leg_dong_code_val,
           bun,
           ji,
+          building_id,
           repair_div_code,
           repair_div_code_name,
           repair_change_div_code,
@@ -806,7 +808,31 @@ export class LandModel {
                 ON blh.building_id = d.building_id
             ) t
             WHERE t.rn = 1
-          ),          
+          ),
+          /* 최근 대수선 정보 */
+          latest_repair AS (
+            SELECT base_id, repair_div_code, repair_div_code_name, repair_change_div_code, repair_change_div_code_name, create_date
+            FROM (
+              SELECT
+                b.id AS base_id,
+                br.repair_div_code,
+                br.repair_div_code_name,
+                br.repair_change_div_code,
+                br.repair_change_div_code_name,
+                br.create_date,
+                ROW_NUMBER() OVER (
+                  PARTITION BY b.id
+                  ORDER BY br.create_date DESC
+                ) AS rn
+              FROM base b
+              JOIN building_repair br
+                ON br.leg_dong_code_val = b.leg_dong_code
+               AND br.bun = b.bun_pad
+               AND br.ji = b.ji_pad
+               AND br.repair_div_code = 13
+            ) t
+            WHERE t.rn = 1
+          ),
           /* 3) land_info 매칭 → 관련 필지 id 추출 */
           related_land_ids AS (
             SELECT DISTINCT rk.base_id, li2.id AS id
@@ -915,7 +941,12 @@ export class LandModel {
             mfu.main_usage_code_name AS relMainUsageName,
             mfu.use_approval_date AS relUseApprovalDate,
             mfu.gnd_floor_number AS relGndFloorNumber,
-            mfu.base_floor_number AS relBaseFloorNumber
+            mfu.base_floor_number AS relBaseFloorNumber,
+            lr.repair_div_code AS lastRepairDivCode,
+            lr.repair_div_code_name AS lastRepairDivName,
+            lr.repair_change_div_code AS lastRepairChangeDivCode,
+            lr.repair_change_div_code_name AS lastRepairChangeDivName,
+            lr.create_date AS lastRepairCreateDate
           FROM land_info AS land_info
           LEFT JOIN land_char_info AS land_char
             ON land_char.key = (
@@ -978,9 +1009,13 @@ export class LandModel {
           LEFT JOIN bld_arch_agg baa
             ON baa.base_id = land_info.id
 
-          /* ★ 용적률 최대 주용도명 조인 */   
+          /* ★ 용적률 최대 주용도명 조인 */
           LEFT JOIN max_far_usage mfu
             ON mfu.base_id = land_info.id
+
+          /* ★ 최근 대수선 정보 조인 */
+          LEFT JOIN latest_repair lr
+            ON lr.base_id = land_info.id
 
           WHERE land_info.id IN (?)
           GROUP BY land_info.id;

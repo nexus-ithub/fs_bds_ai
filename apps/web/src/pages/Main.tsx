@@ -19,6 +19,7 @@ import { IS_DEVELOPMENT } from "../constants";
 import React from "react";
 import { formatDate } from "date-fns";
 import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
+import { GNB } from "../components/GNB";
 
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
@@ -37,6 +38,7 @@ export default function Main() {
   const [rentInfoList, setRentInfoList] = useState<RentInfo[] | null>(null);
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
+  const [showRepairInfo, setShowRepairInfo] = useState<boolean>(false);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
@@ -285,6 +287,7 @@ export default function Main() {
 
     setRentInfoList([]);
     setAiReportNotAvailable({ result: false, message: '' });
+    setShowRepairInfo(false);
     setOpenAIReport(false);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
@@ -342,7 +345,7 @@ export default function Main() {
 
         console.log(aiReportNotAvailable);
         setAiReportNotAvailable(aiReportNotAvailable);
-
+        setShowRepairInfo(landInfo.lastRepairDivCode != null);
       })
       .catch((error) => {
         console.error(error);
@@ -556,9 +559,51 @@ export default function Main() {
   }
 
   // console.log(landInfo?.polygon[0]);
+
+  const polygonAdditionalInfo = (polygon: PolygonInfo, index: number) => {
+    if (!landInfo) return;
+    if (aiReportNotAvailable.result && index === 0) {
+      return (
+        <CustomOverlayMap
+          yAnchor={1.1}
+          position={getPolygonCenter(polygon?.polygon)}>
+          <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+            <div className="font-s3-p">{aiReportNotAvailable.message?.split('\n').map((line, index) => (
+              <div key={index} className="flex items-center gap-[3px]">
+                {index === 0 && <InfoIcon size={14} />}
+                <p>
+                  {line}
+                </p>
+              </div>
+            ))}</div>
+            <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+          </div>
+        </CustomOverlayMap>
+      )
+    } else if (showRepairInfo && index === 0) {
+      return (
+        <CustomOverlayMap
+          yAnchor={1.1}
+          position={getPolygonCenter(polygon?.polygon)}>
+          <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+            <div className="font-s3-p flex flex-col">
+              <p className="flex items-center gap-[3px]"><InfoIcon size={14} /> 해당 건물에 대수선 이력이 있습니다.</p>
+              <p>AI 레포트의 사업성에 해당이력은 반영되지 않았음을 알려드립니다.</p>
+              <p>보다 상세한 검토가 필요하시면 고객센터를 통해 별도 문의 바랍니다.</p>
+            </div>
+            <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+          </div>
+        </CustomOverlayMap>
+      )
+    }
+    return null;
+  }
+
   return (
-    <div className="flex w-full h-full relative">
-      <div className="flex-1 h-full">
+    <div className="flex w-full h-full relative pb-0 md:pb-0">
+      <div className="flex-1 h-full pb-[64px] md:pb-0">
         <Map
           ref={mapRef}
           mapTypeId={mapTypeId}
@@ -694,26 +739,8 @@ export default function Main() {
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                {
-                  aiReportNotAvailable.result && index === 0 && (
-                    <CustomOverlayMap
-                      yAnchor={1.1}
-                      position={getPolygonCenter(polygon?.polygon)}>
-                      <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                        <div className="font-s3-p">{aiReportNotAvailable.message?.split('\n').map((line, index) => (
-                          <div key={index} className="flex items-center gap-[3px]">
-                            {index === 0 && <InfoIcon size={14} />}
-                            <p>
-                              {line}
-                            </p>
-                          </div>
-                        ))}</div>
-                        <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                        <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                      </div>
-                    </CustomOverlayMap>
-                  )
-                }
+                {polygonAdditionalInfo(polygon, index)}
+
 
               </React.Fragment>
 
@@ -864,7 +891,7 @@ export default function Main() {
         )}
       </div>
       {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-      <div className={`absolute left-0 top-0 h-full w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
         {landInfo ?
           <LandInfoCard
             landInfo={landInfo}
@@ -892,47 +919,48 @@ export default function Main() {
           />}
         <button
           onClick={() => setOpenLeftPanel(v => !v)}
-          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px]">
+          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
           {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
         </button>
-        <SearchBar
-          onShowFilterSetting={(on) => {
-            console.log('onShowFilterSetting', on);
-            setShowFilterSetting(on);
-          }}
-          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-            setFilter({
-              on,
-              areaRange,
-              farRange,
-              buildingAgeRange,
-              usageList,
-            });
-          }}
-          onSelect={(id) => {
-            console.log('onSelect', id);
-            getPolygon({ id, changePosition: true });
-          }}
-        />
+      </div>
+      <SearchBar
+        onShowFilterSetting={(on) => {
+          console.log('onShowFilterSetting', on);
+          setShowFilterSetting(on);
+        }}
+        onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+          console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+          setFilter({
+            on,
+            areaRange,
+            farRange,
+            buildingAgeRange,
+            usageList,
+          });
+        }}
+        onSelect={(id) => {
+          console.log('onSelect', id);
+          getPolygon({ id, changePosition: true });
+        }}
+      />
+      {
+        (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+          <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+            <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+              TIP
+            </p>
+            <p className="font-s3 text-text-02 whitespace-nowrap">
+              필터 결과를 보려면 지도를 더 확대 해주세요.
+            </p>
+          </div>
+        )
+      }
+      <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
         {
-          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
-                TIP
-              </p>
-              <p className="font-s3 text-text-02 whitespace-nowrap">
-                필터 결과를 보려면 지도를 더 확대 해주세요.
-              </p>
-            </div>
-          )
-        }
-        <div className="fixed z-30 left-[420px] bottom-[22px] flex flex-col gap-[12px]">
-          {
-            IS_DEVELOPMENT && (
-              <div className="flex flex-col gap-[4px] min-w-[250px]">
-                <div className="flex gap-[4px]">
-                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+          IS_DEVELOPMENT && (
+            <div className="flex flex-col gap-[4px] min-w-[250px]">
+              <div className="flex gap-[4px]">
+                {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">용도</p>
                     <Switch
                       checked={showUsage}
@@ -940,37 +968,37 @@ export default function Main() {
                       isLabel={true}
                     />
                   </div> */}
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">임대</p>
-                    <Switch
-                      checked={showRent}
-                      onChange={() => { setShowRent(!showRent) }}
-                      isLabel={true}
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-[4px]">
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">실거래</p>
-                    <Switch
-                      checked={showDeal}
-                      onChange={() => { setShowDeal(!showDeal) }}
-                      isLabel={true}
-                    />
-                  </div>
-                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">대수선</p>
-                    <Switch
-                      checked={showRemodel}
-                      onChange={() => { setShowRemodel(!showRemodel) }}
-                      isLabel={true}
-                    />
-                  </div>
+                <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">임대</p>
+                  <Switch
+                    checked={showRent}
+                    onChange={() => { setShowRent(!showRent) }}
+                    isLabel={true}
+                  />
                 </div>
               </div>
-            )
-          }
-          {/* <Button
+              <div className="flex gap-[4px]">
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">실거래</p>
+                  <Switch
+                    checked={showDeal}
+                    onChange={() => { setShowDeal(!showDeal) }}
+                    isLabel={true}
+                  />
+                </div>
+                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <p className="font-s2-p">대수선</p>
+                  <Switch
+                    checked={showRemodel}
+                    onChange={() => { setShowRemodel(!showRemodel) }}
+                    isLabel={true}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        }
+        {/* <Button
             onClick={() => {
               setOpenAIChat(true);
             }}
@@ -979,15 +1007,14 @@ export default function Main() {
             <BuildingShopBITextSmall />
             <p className="font-s1-p text-white">질의하기</p>
           </Button> */}
-          <Button
-            onClick={() => {
-              setOpenAIChat(true);
-            }}
-            className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
-          >
-            <BotMessageSquare size={32}/>
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            setOpenAIChat(true);
+          }}
+          className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+        >
+          <BotMessageSquare size={32} />
+        </Button>
       </div>
       {openVideoMiniPlayer && (
         <div
@@ -1047,6 +1074,11 @@ export default function Main() {
           onClose={() => setOpenAIChat(false)}
         />
       )}
+      <GNB onHomeClick={() => {
+        setLandInfo(null);
+        setOpenAIReport(false);
+        setOpenLeftPanel(true);
+      }} />
     </div>
   );
 }

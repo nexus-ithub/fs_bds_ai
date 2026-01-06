@@ -116,6 +116,13 @@ export interface LandInfo {
   relFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 층수
   relGndFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 지상층수
   relBaseFloorNumber: string; // (연면적이 제일큰) 대표 건축물의 지하층수
+
+  // 최근 대수선 정보
+  lastRepairDivCode: string | null; // 최근 대수선 구분 코드
+  lastRepairDivName: string | null; // 최근 대수선 구분명
+  lastRepairChangeDivCode: string | null; // 최근 대수선 변경 구분 코드
+  lastRepairChangeDivName: string | null; // 최근 대수선 변경 구분명
+  lastRepairCreateDate: string | null; // 최근 대수선 일자
 }
 
 export interface BuildingInfo {

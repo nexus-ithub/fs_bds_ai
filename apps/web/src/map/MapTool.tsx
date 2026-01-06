@@ -37,7 +37,7 @@ export const MapToolbar = ({
       },
       (error) => {
         console.error('위치 정보를 가져올 수 없습니다:', error);
-        switch(error.code) {
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
             break;
@@ -60,65 +60,63 @@ export const MapToolbar = ({
       }
     );
   };
-  
+
   return (
     <>
-      <div className="fixed top-[84px] right-[24px] z-40 font-c3 space-y-[14px]">
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+      <div className="fixed md:top-[84px] top-[154px] right-[14px] md:right-[24px] z-40 font-c3 space-y-[14px]">
+        <div className="flex flex-col [&>*:not(:last-child)]:mb-[8px] md:[&>*:not(:last-child)]:mb-0 md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating md:divide-y md:divide-line-03">
           <button
-            onClick={() => {changeMapType('normal'); }}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            onClick={() => { changeMapType('normal'); }}
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <MapIcon color={mapType === 'normal' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'normal' ? 'text-primary font-c3-p' : ''}>일반</p>
+            <p className={`hidden md:block ${mapType === 'normal' ? 'text-primary font-c3-p' : ''}`}>일반</p>
           </button>
           <button
             onClick={() => changeMapType('skyview')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <SatelliteIcon color={mapType === 'skyview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'skyview' ? 'text-primary font-c3-p' : ''}>위성</p>
+            <p className={`hidden md:block ${mapType === 'skyview' ? 'text-primary font-c3-p' : ''}`}>위성</p>
           </button>
           <button
             onClick={() => changeMapType('use_district')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <CadastralIcon color={mapType === 'use_district' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'use_district' ? 'text-primary font-c3-p' : ''}>지적도</p>
-          </button>      
+            <p className={`hidden md:block ${mapType === 'use_district' ? 'text-primary font-c3-p' : ''}`}>지적도</p>
+          </button>
           <button
             onClick={() => changeMapType('roadview')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <StreetViewIcon color={mapType === 'roadview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'roadview' ? 'text-primary font-c3-p' : ''}>거리뷰</p>
-          </button>                        
+            <p className={`hidden md:block ${mapType === 'roadview' ? 'text-primary font-c3-p' : ''}`}>거리뷰</p>
+          </button>
         </div>
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <button 
+        <div className="hidden md:flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+          <button
             onClick={() => changeMapType('area')}
             className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-            <CalcAreaIcon color={mapType === 'area' ? 'var(--color-primary)' : 'var(--gray-060)'}/>
+            <CalcAreaIcon color={mapType === 'area' ? 'var(--color-primary)' : 'var(--gray-060)'} />
             <p>면적</p>
           </button>
-          <button 
+          <button
             onClick={() => changeMapType('distance')}
             className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-            <CalcDistanceIcon color={mapType === 'distance' ? 'var(--color-primary)' : 'var(--gray-060)'}/>
+            <CalcDistanceIcon color={mapType === 'distance' ? 'var(--color-primary)' : 'var(--gray-060)'} />
             <p>거리</p>
           </button>
-        </div>    
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <button 
+        </div>
+        <div className="flex flex-col md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating">
+          <button
             onClick={getCurrentLocation}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-0 md:!bg-transparent">
             {isLoading ? (
               <Spinner />
             ) : (
               <MyLocationIcon />
             )}
-            <p>내위치</p>
+            <p className="hidden md:block">내위치</p>
           </button>
-        </div>      
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <ZoomController level={level} setLevel={setLevel}/>
-        </div>                              
+        </div>
+        <ZoomController level={level} setLevel={setLevel} />
       </div>
     </>
   )

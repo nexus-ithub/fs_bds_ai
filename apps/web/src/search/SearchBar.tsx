@@ -481,9 +481,9 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
   const pointInRect = (pt: { x: number; y: number }, rect: DOMRect) =>
     pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom;
 
-  return (
-    <div className="fixed top-[20px] w-[582px] h-[48px] bg-white left-[424px] z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
-      <div className="flex items-center h-full gap-[12px] px-[12px]">
+  const filterSetting = () => {
+    return (
+      <div className="flex items-center gap-[4px]">
         <button
           className={`font-s3 flex items-center gap-[4px] ${showFilterSetting ? 'text-primary-050' : 'text-text-02'}`}
           onClick={() => setShowFilterSetting(showFilterSetting => !showFilterSetting)}
@@ -498,6 +498,16 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           isLabel={true}
         />
         <VDivider className="h-full" />
+      </div>
+    )
+  }
+  return (
+    <div className="absolute left-[14px] md:left-[424px] top-[20px] w-[calc(100%-28px)] md:w-[582px] h-[48px] bg-white  z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
+      <div className="flex items-center h-full gap-[12px] px-[12px]">
+        <div className="hidden md:block">
+          {filterSetting()}
+        </div>
+        <VDivider className="h-full hidden md:block" />
         <SearchIcon />
         <input
           ref={inputRef}
@@ -643,9 +653,12 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           </div>
         </Menu>
       </div>
+      <div className="md:hidden flex items-center bg-white w-fit rounded-[4px] px-[8px] py-[10px] border border-primary">
+        {filterSetting()}
+      </div>
       {
         showFilterSetting && (
-          <div className="fixed top-[80px] w-[400px] p-[20px] min-h-[480px] bg-white left-[424px] z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
+          <div className="absolute top-[110px] md:top-[60px] w-[400px] p-[20px] min-h-[480px] bg-white z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
               <button onClick={(e) => {
