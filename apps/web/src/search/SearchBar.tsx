@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import debounce from "lodash/debounce";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { CircularProgress, Menu, Slider } from "@mui/material";
+import { ChevronLeft, X } from "lucide-react";
+import { createPortal } from "react-dom";
 
 
 const DEBOUNCE_DELAY = 300
@@ -239,6 +241,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
 
   const containerRef = useRef<HTMLDivElement>(null);
   const recentContainerRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   const activeControllerRef = useRef<AbortController | null>(null);
   const requestSeqRef = useRef(0);           // 발사된 요청 번호
@@ -516,13 +519,14 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           onTouchStart={(e) => e.stopPropagation()}
           // onDoubleClick={(e) => e.currentTarget.focus()}
           onClick={(e) => {
-            // console.log('onClick  ', e.currentTarget)
-            // setMenuAnchorEl(e.currentTarget);
             setMenuAnchorEl(e.currentTarget);
-            // e.stopPropagation();
-            // e.preventDefault();
-            // e.currentTarget.focus();
-
+            // Mobile: focus on mobile input immediately
+            if (window.innerWidth < 768) {
+              // Use requestAnimationFrame to ensure DOM is updated
+              requestAnimationFrame(() => {
+                mobileInputRef.current?.focus();
+              });
+            }
           }}
           onFocus={(e) => {
             // console.log('onFocus  ', e.currentTarget)
@@ -538,6 +542,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           placeholder="주소 또는 장소를 검색해주세요."
           className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none"
         />
+        {/* Desktop Menu */}
         <Menu
           open={menuAnchorEl != null}
           anchorEl={menuAnchorEl}
@@ -571,6 +576,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
             }
             setMenuAnchorEl(null);
           }}
+          className="hidden md:block"
         >
           <div className="w-[446px] h-[480px] font-s2">
             <div className="w-full h-full flex flex-col">
@@ -652,6 +658,133 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
             </div>
           </div>
         </Menu>
+
+        {/* Mobile Full Screen Search */}
+        {menuAnchorEl && createPortal(
+          <div className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col">
+            {/* Search Header */}
+            <div className="flex items-center gap-[12px] px-[16px] h-[64px] border-b border-line-03">
+              <button
+                onClick={() => {
+                  setMenuAnchorEl(null);
+                  setQuery('');
+                  setResults([]);
+                  setHighlightedIndex(-1);
+                }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <div className="flex-1 flex items-center gap-[12px] px-[12px] h-[48px] bg-surface-second rounded-[4px]">
+                <SearchIcon />
+                <input
+                  ref={mobileInputRef}
+                  onKeyDown={handleKeyDown}
+                  onChange={handleChange}
+                  value={query}
+                  type="search"
+                  inputMode="search"
+                  placeholder="주소 또는 장소를 검색해주세요."
+                  className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none bg-transparent"
+                />
+              </div>
+              {query && (
+                <button
+                  onClick={() => {
+                    setQuery('');
+                    setResults([]);
+                    setHighlightedIndex(-1);
+                  }}
+                >
+                  <X size={24} />
+                </button>
+              )}
+            </div>
+
+            {/* Search Results */}
+            <div className="flex-1 overflow-y-auto font-s2">
+              {loading ? (
+                <div className="px-[12px] py-[22px] flex items-center justify-center">
+                  <CircularProgress size={20} />
+                </div>
+              ) : !query ? (
+                <div>
+                  <p className="px-[16px] py-[12px] font-s2-p text-text-02">최근검색</p>
+                  <div
+                    ref={recentContainerRef}
+                    onMouseMove={() => {
+                      if (isKeyboardNav) setIsKeyboardNav(false);
+                    }}
+                    className="flex flex-col w-full text-text-02">
+                    {recent.map((result, index) => (
+                      <button
+                        onClick={() => {
+                          onSelectResult(result);
+                        }}
+                        onMouseEnter={() => {
+                          if (!isKeyboardNav) {
+                            setHighlightedIndex(index);
+                          }
+                        }}
+                        data-index={index}
+                        key={result.id}
+                        className={`text-start flex px-[16px] py-[12px] border-b border-line-03 ${index === highlightedIndex ? 'bg-primary-010' : ''
+                          }`}
+                      >
+                        <div className="flex-1">
+                          <p className="py-[2px] font-s2">{result.jibun || ''}</p>
+                          <p className="py-[2px] font-s3 text-text-03">
+                            {(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeById(result.id);
+                          }}
+                          className="ml-[12px]"
+                        >
+                          <X size={20} />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : results.length === 0 ? (
+                <p className="px-[16px] py-[12px] font-s2 text-text-02">"{query}" 에 대한 검색 결과가 없습니다.</p>
+              ) : (
+                <div
+                  ref={containerRef}
+                  onMouseMove={() => {
+                    if (isKeyboardNav) setIsKeyboardNav(false);
+                  }}
+                  className="flex flex-col w-full text-text-02">
+                  {results.map((result, index) => (
+                    <button
+                      onClick={() => {
+                        onSelectResult(result);
+                      }}
+                      onMouseEnter={() => {
+                        if (!isKeyboardNav) {
+                          setHighlightedIndex(index);
+                        }
+                      }}
+                      data-index={index}
+                      key={result.id}
+                      className={`text-start flex flex-col px-[16px] py-[12px] border-b border-line-03 ${index === highlightedIndex ? 'bg-primary-010' : ''
+                        }`}
+                    >
+                      <p className="py-[2px] font-s2">{result.jibun || ''}</p>
+                      <p className="py-[2px] font-s3 text-text-03">
+                        {(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
       <div className="md:hidden flex items-center bg-white w-fit rounded-[4px] px-[8px] py-[10px] border border-primary">
         {filterSetting()}
@@ -661,8 +794,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           <div className="absolute top-[110px] md:top-[60px] w-[400px] p-[20px] min-h-[480px] bg-white z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
-              <button onClick={(e) => {
-                // e.stopPropagation();
+              <button onClick={() => {
                 const textAsAreaM2 = !textAsArea;
                 if (textAsAreaM2) {
                   setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value])
