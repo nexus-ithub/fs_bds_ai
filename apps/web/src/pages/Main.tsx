@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
 import React, { useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { formatDate } from "date-fns";
 import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
 // import { GNB } from "../components/GNB";
@@ -946,10 +947,8 @@ export default function Main() {
         </button>
       </div>
       {/* Mobile BottomSheet */}
-      {landInfo && (
-        <>
-          {/* BottomSheet */}
-          <div
+      {landInfo && createPortal(
+        <div
             onClick={() => {
               setIsBottomSheetExpanded(true);
             }}
@@ -1021,8 +1020,8 @@ export default function Main() {
                 }}
               />
             </div>
-          </div>
-        </>
+          </div>,
+        document.body
       )}
       <SearchBar
         onShowFilterSetting={(on) => {
