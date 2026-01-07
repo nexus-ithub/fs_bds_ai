@@ -163,8 +163,6 @@ export const LandInfoCard = ({
     return null;
   }
 
-
-
   return (
     <div className="h-full flex flex-col pt-[20px]">
       <div className="px-[20px]">
@@ -366,7 +364,42 @@ export const LandInfoCard = ({
         </div>
         <div
           ref={ref}
-          className="pt-[20px] pb-[40px] flex-1 min-h-0 space-y-[33px] overflow-y-auto px-[20px]">
+          className="pt-[20px] pb-[40px] flex-1 min-h-0 space-y-[33px] overflow-y-auto overscroll-y-contain touch-pan-y px-[20px]"
+          onTouchStart={(e) => {
+            const target = e.currentTarget;
+            const scrollTop = target.scrollTop;
+            const scrollHeight = target.scrollHeight;
+            const clientHeight = target.clientHeight;
+
+            // 스크롤 가능한 영역이 있으면 터치 시작 위치 저장
+            if (scrollHeight > clientHeight) {
+              target.dataset.touchStartY = e.touches[0].clientY.toString();
+            }
+          }}
+          onTouchMove={(e) => {
+            const target = e.currentTarget;
+            const scrollTop = target.scrollTop;
+            const scrollHeight = target.scrollHeight;
+            const clientHeight = target.clientHeight;
+            const touchStartY = parseFloat(target.dataset.touchStartY || '0');
+            const touchCurrentY = e.touches[0].clientY;
+            const touchDelta = touchCurrentY - touchStartY;
+
+            // 위로 스크롤하려는데 이미 최상단이거나, 아래로 스크롤하려는데 이미 최하단인 경우만 부모로 전달
+            const isAtTop = scrollTop === 0;
+            const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+            const scrollingUp = touchDelta > 0;
+            const scrollingDown = touchDelta < 0;
+
+            if ((isAtTop && scrollingUp) || (isAtBottom && scrollingDown)) {
+              // 스크롤 끝에 도달했을 때는 부모로 전달 허용
+              return;
+            }
+
+            // 스크롤 중간에서는 부모로 전달 차단
+            e.stopPropagation();
+          }}
+        >
           <Land landInfo={landInfo} ref={landRef} />
           <Building buildings={buildingList || []} ref={buildingRef} />
           <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef} />

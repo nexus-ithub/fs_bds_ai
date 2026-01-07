@@ -69,6 +69,10 @@ export default function Main() {
   const [openAIReport, setOpenAIReport] = useState<boolean>(false);
   const [openAIChat, setOpenAIChat] = useState<boolean>(false);
   const [openLeftPanel, setOpenLeftPanel] = useState<boolean>(true);
+  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [touchStart, setTouchStart] = useState<number>(0);
 
   const [filter, setFilter] = useState({
     on: false,
@@ -144,6 +148,14 @@ export default function Main() {
     // }
 
   }, [filter, filterCenter, level, showRemodel, showUsage, showRent]);
+
+  useEffect(() => {
+    // Reset bottom sheet to collapsed state when landInfo changes
+    setIsBottomSheetExpanded(false);
+    setIsDragging(false);
+    setDragOffset(0);
+    setTouchStart(0);
+  }, [landInfo]);
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
@@ -747,7 +759,7 @@ export default function Main() {
             ))
           )}
           {filteredPolygonList && (
-            filteredPolygonList.map((polygon, index) => (
+            filteredPolygonList.map((polygon) => (
               <Polygon
                 key={polygon.id}
                 fillColor="var(--color-secondary)"
@@ -923,6 +935,85 @@ export default function Main() {
           {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
         </button>
       </div>
+      {/* Mobile BottomSheet */}
+      {landInfo && (
+        <>
+          {/* BottomSheet */}
+          <div
+            onClick={() => {
+              setIsBottomSheetExpanded(true);
+            }}
+            className={`md:hidden z-[60] fixed left-0 right-0 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)] ${isDragging ? '' : 'transition-all duration-300'
+              } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
+            style={{
+              top: isDragging
+                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
+                : isBottomSheetExpanded
+                  ? '0'
+                  : 'auto',
+              bottom: 0,
+              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
+            }}
+            onTouchStart={(e) => {
+              setTouchStart(e.targetTouches[0].clientY);
+              setIsDragging(true);
+            }}
+            onTouchMove={(e) => {
+              if (!touchStart) return;
+              const currentTouch = e.targetTouches[0].clientY;
+              const offset = currentTouch - touchStart;
+              setDragOffset(offset);
+            }}
+            onTouchEnd={() => {
+              if (!touchStart) return;
+
+              const threshold = 100; // 100px 이상 드래그 시 상태 변경
+
+              // 아래로 드래그한 경우 (dragOffset > 0)
+              if (dragOffset > threshold) {
+                setIsBottomSheetExpanded(false);
+              }
+              // 위로 드래그한 경우 (dragOffset < 0)
+              else if (dragOffset < -threshold) {
+                setIsBottomSheetExpanded(true);
+              }
+
+              // 리셋
+              setTouchStart(0);
+              setDragOffset(0);
+              setIsDragging(false);
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="w-full flex justify-center pt-[12px] pb-[4px]">
+              <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
+            </div>
+            <div
+              className="overflow-y-auto h-full"
+              style={{
+                height: 'calc(100% - 24px)',
+              }}
+            >
+              <LandInfoCard
+                landInfo={landInfo}
+                buildingList={buildingList}
+                businessDistrict={businessDistrict}
+                estimatedPrice={estimatedPrice}
+                place={place}
+                onClose={() => {
+                  setLandInfo(null);
+                  setOpenAIReport(false);
+                  setIsBottomSheetExpanded(false);
+                }}
+                onOpenAIReport={() => {
+                  setOpenAIReport(true);
+                  console.log('landInfo', landInfo);
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
       <SearchBar
         onShowFilterSetting={(on) => {
           console.log('onShowFilterSetting', on);
