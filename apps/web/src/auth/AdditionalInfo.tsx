@@ -15,7 +15,6 @@ export const AdditionalInfoContent = ({
   // additionalInfo,
   // setAdditionalInfo,
 }) => {
-  const location = useLocation();
   return (
     <>
       <div className="flex flex-col items-center gap-[6px]">
