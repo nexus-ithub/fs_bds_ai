@@ -40,7 +40,7 @@ export const Header = ({ user }: { user: User }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   return (
-    <div className={`fixed top-0 left-0 z-50 w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
+    <div className={`fixed top-0 left-0 md:z-[50] w-full px-[20px] flex items-center justify-between h-[64px] bg-white border-b border-line-03`}>
       <div className="flex items-center gap-[16px] h-[64px]">
         <button onClick={() => navigate("/main")}>
           <BuildingShopBITitle />
@@ -111,8 +111,8 @@ export const Header = ({ user }: { user: User }) => {
             <div className="flex flex-col gap-[12px]">
               <p className="font-s1 border-b border-line-03 py-[10px]">계정관리</p>
               <div>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/profile')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">개인정보 수정</span></MenuItem>
-                <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/additional-info')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">추가정보 수정</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => { setAnchorEl(null); navigate('/myPage/profile') }}><span className="font-s2 text-text-02 px-[8px] py-[9px]">개인정보 수정</span></MenuItem>
+                <MenuItem className="!p-0" onClick={() => { setAnchorEl(null); navigate('/myPage/additional-info') }}><span className="font-s2 text-text-02 px-[8px] py-[9px]">추가정보 수정</span></MenuItem>
                 {/* <MenuItem className="!p-0" onClick={() => {setAnchorEl(null); navigate('/myPage/edit-pw')}}><span className="font-s2 text-text-02 px-[8px] py-[9px]">비밀번호 변경</span></MenuItem> */}
               </div>
             </div>

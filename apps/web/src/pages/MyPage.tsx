@@ -65,9 +65,8 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isExpanded ? `max-h-[${menuItems.length * 36}px] opacity-100` : 'max-h-0 opacity-0'
-        }`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? `max-h-[${menuItems.length * 36}px] opacity-100` : 'max-h-0 opacity-0'
+          }`}
       >
         <div className="">
           {menuItems.map((item, index) => {
@@ -76,15 +75,14 @@ const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAc
               <Link
                 key={index}
                 to={item.path}
-                className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${
-                  isActive
-                    ? 'md:bg-primary-010 md:text-primary text-text-02'
-                    : 'text-text-02'
-                }`}
+                className={`flex items-center justify-between block py-[9px] px-[8px] rounded-[4px] transition-colors ${isActive
+                  ? 'md:bg-primary-010 md:text-primary text-text-02'
+                  : 'text-text-02'
+                  }`}
               >
                 <p className="font-s2">{item.label}</p>
                 <div className="hidden md:block">
-                  <CheckIcon size={16} color={isActive ? "#4E52FF" : ""}/>
+                  <CheckIcon size={16} color={isActive ? "#4E52FF" : ""} />
                 </div>
               </Link>
             );
@@ -160,31 +158,30 @@ export const MyPage = () => {
 
   return (
     <>
-    <div className="flex h-full pb-[64px] md:pb-0">
-      {/* 사이드바: 모바일에서는 메인 페이지일 때만, 데스크탑에서는 항상 */}
-      <div className={`w-full md:w-[320px] h-full flex-col shrink-0 gap-[32px] p-[24px] md:border-r border-line-02 overflow-y-auto scrollbar-hover ${
-        isSubPage ? 'hidden md:flex' : 'flex'
-      }`}>
-        <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
-          <div className="flex flex-col items-center gap-[12px]">
-            <Avatar alt="" src={config?.profile} sx={{ width: 64, height: 64 }}/>
-            <div className="flex flex-col items-center gap-[4px]">
-              <p className="font-s2-p"><span className="font-s1-p mr-[4px]">{config?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
-              <p className="font-s2-p">{config?.email}</p>
+      <div className="flex h-full pb-[64px] md:pb-0">
+        {/* 사이드바: 모바일에서는 메인 페이지일 때만, 데스크탑에서는 항상 */}
+        <div className={`w-full md:w-[320px] h-full flex-col shrink-0 gap-[32px] p-[24px] md:border-r border-line-02 overflow-y-auto scrollbar-hover ${isSubPage ? 'hidden md:flex' : 'flex'
+          }`}>
+          <div className="flex flex-col gap-[16px] px-[20px] pt-[24px] pb-[20px] rounded-[8px] border border-line-02">
+            <div className="flex flex-col items-center gap-[12px]">
+              <Avatar alt="" src={config?.profile} sx={{ width: 64, height: 64 }} />
+              <div className="flex flex-col items-center gap-[4px]">
+                <p className="font-s2-p"><span className="font-s1-p mr-[4px]">{config?.name}</span><span className="font-s1 text-text-02">고객님</span></p>
+                <p className="font-s2-p">{config?.email}</p>
+              </div>
             </div>
-          </div>
-          <HDivider colorClassName="bg-line-02"/>
-          <div className="flex flex-col gap-[16px]">
-            <p className="font-s1">관심물건</p>
-            <div className="flex items-center justify-between gap-[6px]">
-              <p className="font-s2 text-text-03">빌딩샵 추천매물</p>
-              <p className="font-s2 text-text-02">{bdsCount}</p>
-            </div>
-            <div className="flex items-center justify-between gap-[6px]">
-              <p className="font-s2 text-text-03">저장된 관심물건</p>
-              <p className="font-s2 text-text-02">{reportCount}</p>
-            </div>
-            {/* <HDivider colorClassName="bg-line-02" dashed={true}/>
+            <HDivider colorClassName="bg-line-02" />
+            <div className="flex flex-col gap-[16px]">
+              <p className="font-s1">관심물건</p>
+              <div className="flex items-center justify-between gap-[6px]">
+                <p className="font-s2 text-text-03">빌딩샵 추천매물</p>
+                <p className="font-s2 text-text-02">{bdsCount}</p>
+              </div>
+              <div className="flex items-center justify-between gap-[6px]">
+                <p className="font-s2 text-text-03">저장된 관심물건</p>
+                <p className="font-s2 text-text-02">{reportCount}</p>
+              </div>
+              {/* <HDivider colorClassName="bg-line-02" dashed={true}/>
             <div className="flex items-center justify-between gap-[6px]">
               <p className="font-s2 text-text-03">생성한 AI 리포트</p>
               <p className="font-s2 text-text-02">32TODO</p>
@@ -196,9 +193,7 @@ export const MyPage = () => {
         {/* <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded /> */}
       </div>
       {/* 컨텐츠: 모바일에서는 서브페이지일 때만, 데스크탑에서는 항상 */}
-      <div className={`flex-1 overflow-y-auto scrollbar-hover ${
-        isSubPage ? 'flex flex-col' : 'hidden md:block'
-      }`}>
+      <div className={`flex-1 overflow-y-auto scrollbar-hover ${isSubPage ? 'flex flex-col' : 'hidden md:block'}`}>
         {/* 모바일 헤더 */}
         {isSubPage && (
           <div className="md:hidden flex items-center justify-center p-[16px] border-b border-line-02 relative">
@@ -216,7 +211,7 @@ export const MyPage = () => {
             <Route path="profile" element={<Profile />} />
             <Route path="additional-info" element={<MyAdditionalInfo />} />
             {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
-            <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef}/> } />
+            <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef} /> } />
             <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
           </Routes>
         </div>

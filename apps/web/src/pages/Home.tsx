@@ -52,14 +52,14 @@ export const Home = () => {
 
   if (checkingConfig) {
     return <div className="w-full flex flex-col items-center justify-center overflow-auto h-screen">
-      <DotProgress/>
+      <DotProgress />
     </div>;
-  }  
+  }
 
   return (
     <>
-    {/* <div className="flex flex-col w-full h-screen"> */}
-      <Header user={config}/>
+      {/* <div className="flex flex-col w-full h-screen"> */}
+      <Header user={config} />
       {/* <div className="min-h-0 flex-1 mt-[64px]"> */}
       <div className="fixed top-[64px] left-0 right-0 bottom-0 overflow-hidden">
         <Routes>
