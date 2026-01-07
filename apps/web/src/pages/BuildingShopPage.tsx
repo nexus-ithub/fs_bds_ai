@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BuildingList } from "../homeBoard/BuildingList";
-import { GNB } from "../components/GNB";
+// import { GNB } from "../components/GNB";
 
 export const BuildingShopPage = () => {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export const BuildingShopPage = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hover">
         <BuildingList />
       </div>
-      <GNB />
+      {/* <GNB /> */}
     </div>
   );
 };

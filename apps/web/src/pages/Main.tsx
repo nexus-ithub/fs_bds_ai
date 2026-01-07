@@ -1,7 +1,7 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, type EstimatedPrice, Button, BuildingShopBITextSmall, AIShineLogo, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo, type AIReportResult } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, Button, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -16,10 +16,11 @@ import { AIChat } from "../aiChat/AIChat";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { formatDate } from "date-fns";
 import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
-import { GNB } from "../components/GNB";
+// import { GNB } from "../components/GNB";
+import MainContext from "../contexts/MainContext";
 
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
@@ -601,7 +602,16 @@ export default function Main() {
     return null;
   }
 
+  const resetMainView = useCallback(() => {
+    setLandInfo(null);
+    setOpenAIReport(false);
+    setOpenLeftPanel(true);
+  }, []);
+
+  const contextValue = useMemo(() => ({ resetMainView }), [resetMainView]);
+
   return (
+    <MainContext.Provider value={contextValue}>
     <div className="flex w-full h-full relative pb-0 md:pb-0">
       <div className="flex-1 h-full pb-[64px] md:pb-0">
         <Map
@@ -1074,11 +1084,12 @@ export default function Main() {
           onClose={() => setOpenAIChat(false)}
         />
       )}
-      <GNB onHomeClick={() => {
+      {/* <GNB onHomeClick={() => {
         setLandInfo(null);
         setOpenAIReport(false);
         setOpenLeftPanel(true);
-      }} />
+      }} /> */}
     </div>
+    </MainContext.Provider>
   );
 }

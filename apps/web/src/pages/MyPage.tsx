@@ -14,7 +14,7 @@ import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { MyAdditionalInfo } from "../myPage/MyAdditionalInfo";
 import { trackError } from "../utils/analytics";
-import { GNB } from "../components/GNB";
+// import { GNB } from "../components/GNB";
 
 interface MenuItemType {
   label: string;
@@ -222,7 +222,7 @@ export const MyPage = () => {
         </div>
       </div>
     </div>
-    <GNB />
+    {/* <GNB /> */}
     </>
   )
 }

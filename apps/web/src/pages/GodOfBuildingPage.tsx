@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { YoutubeList } from "../homeBoard/YoutubeList";
-import { GNB } from "../components/GNB";
+// import { GNB } from "../components/GNB";
 import { type YoutubeVideo, type PlayerMode, YoutubeLogo } from "@repo/common";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
 
@@ -78,7 +78,7 @@ export const GodOfBuildingPage = () => {
         </div>
       )}
 
-      <GNB />
+      {/* <GNB /> */}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
-import { getAccessToken, setToken, logout } from "../authutil";
+import { getAccessToken, logout } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
@@ -12,12 +12,15 @@ import { DotProgress } from "@repo/common";
 import { DeleteAccount } from "./DeleteAccount";
 import { BuildingShopPage } from "./BuildingShopPage";
 import { GodOfBuildingPage } from "./GodOfBuildingPage";
+import { GNB } from "../components/GNB";
+import { useMainContext } from "../contexts/MainContext";
 
 export const Home = () => {
 
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
   const accessToken = getAccessToken();
+  const mainContext = useMainContext();
   const {
     isLoading: checkingConfig,
     data: config,
@@ -70,6 +73,7 @@ export const Home = () => {
         </Routes>
       </div>
       {/* </div> */}
+      <GNB onHomeClick={mainContext?.resetMainView} />
     </>
   );
 }
