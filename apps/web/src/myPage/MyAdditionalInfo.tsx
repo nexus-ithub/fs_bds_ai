@@ -78,7 +78,7 @@ export const MyAdditionalInfo = () => {
   }, [])
 
   return (
-    <div className="w-[400px] flex flex-col gap-[32px] p-[32px] mx-auto my-[48px] rounded-[8px] border border-line-02 max-md:w-[360px] max-md:my-0 max-md:border-0">
+    <div className="w-[360px] flex flex-col gap-[22px] p-[24px] mx-auto my-0 rounded-[8px] border-0 border-line-02 md:w-[400px] md:my-[48px] md:border md:p-[32px] md:gap-[32px]">
       <AdditionalInfoContent
         gender={gender}
         setGender={setGender}

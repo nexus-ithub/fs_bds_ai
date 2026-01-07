@@ -1,7 +1,7 @@
 import { HDivider, MenuDropdown, SearchBar, type User, type BdsSale, VDivider, getShortAddress, getAreaStrWithPyeong, krwUnit, CounselIcon, BookmarkFilledIcon, Pagination, DotProgress } from "@repo/common";
 import { useEffect, useState, useRef } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
 import { QUERY_KEY_USER } from "../constants";
 import { getAccessToken } from "../authutil";
 import { toast } from "react-toastify";
@@ -60,8 +60,139 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
     getBookmarkList();
   }, [pageSize, currentPage])
 
+  const DesktopBookmarkCard = ({ item }: { item: BdsSale }) => {
+    return (
+      <div className="w-full flex h-[190px] rounded-[8px] border border-line-03">
+        <img
+          className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/bd_img.png';
+          }}
+          src={item.imagePath || '/bd_img.png'} alt=""/>
+        <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
+          <div className="flex flex-col gap-[8px]">
+            <div className="flex items-center justify-between gap-[8px]">
+              <div className="flex items-center gap-[8px]">
+                <p className="font-s1-p shrink-0">{getShortAddress(item.addr)}</p>
+                {item.name && (
+                  <>
+                    <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                    <p className="font-s1-p shrink-0">{item.name}</p>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-[8px]">
+                <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setSelectedBdsSale(item); setOpenCounselDialog(true)}}>
+                  <p className="font-s4 text-primary">매입 상담 요청</p>
+                  <CounselIcon/>
+                </button>
+                <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                <button onClick={() => {cancelBookmark(item)}} className="shrink-0">
+                  <BookmarkFilledIcon/>
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-[12px]">
+              <div className="flex-1 flex items-center justify-between gap-[6px]">
+                <p className="w-[44px] font-s4 text-text-03">대지면적</p>
+                <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.platArea)}</p>
+              </div>
+              <VDivider colorClassName="bg-line-03"/>
+              <div className="flex-1 flex items-center justify-between gap-[6px]">
+                <p className="w-[44px] font-s4 text-text-03">연면적</p>
+                <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.totalArea)}</p>
+              </div>        
+            </div>
+          </div>
+          <div className="flex items-center gap-[8px] px-[8px] py-[12px] border border-line-02 rounded-[4px]">
+            <div className="flex-1 flex flex-col items-center gap-[8px]">
+              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">매매가</p>
+              <p className="font-h2-p text-primary">{krwUnit(item.saleAmount * 10000, true)}</p>
+            </div>
+            <VDivider className="h-[76px]"/>
+            <div className="flex-1 flex flex-col items-center gap-[8px]">
+              <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">수익률</p>
+              <p className="font-h2-p">{item.sellProfit ? (Number(item.sellProfit)).toFixed(1) + '%' : '-'}</p>
+            </div>
+            <VDivider className="h-[76px]"/>
+            <div className="flex-1 flex flex-col items-center gap-[8px]">
+              <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">가치평가점수</p>
+              <p className="font-h2-p">{item.buildValue ? Number(item.buildValue).toFixed(0) + '점' : '-'}</p>
+            </div>        
+          </div>
+
+        </div>
+      </div>
+    )
+  }
+
+  const MobileBookmarkCard = ({ item }: { item: BdsSale }) => {
+    return (
+      <div className="w-full flex flex-col h-[170px] rounded-[8px] border border-line-03">
+        <div className="w-full flex items-center justify-between p-[8px]">
+          <div className="flex items-center gap-[8px]">
+            <p className="font-s2-p shrink-0">{getShortAddress(item.addr)}</p>
+            {item.name && (
+              <>
+                <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+                <p className="font-s2-p shrink-0">{item.name}</p>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-[8px]">
+            <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setSelectedBdsSale(item); setOpenCounselDialog(true)}}>
+              <p className="font-s4 text-primary">매입 상담 요청</p>
+              <CounselIcon/>
+            </button>
+            <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
+            <button onClick={() => {cancelBookmark(item)}} className="shrink-0">
+              <BookmarkFilledIcon/>
+            </button>
+          </div>
+        </div>
+        <HDivider className="shrink-0"/>
+        <div className="flex items-center gap-[16px] p-[8px]">
+          <img
+          className="w-[120px] h-[120px] object-cover rounded-[4px]"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/bd_img.png';
+          }}
+          src={item.imagePath || '/bd_img.png'} alt=""/>
+          <div className="flex-1 flex flex-col gap-[6px]">
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">위치</p>
+              <p className="font-s4">{getShortAddress(item.addr)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">매매가</p>
+              <p className="font-s4-p text-primary">{krwUnit(item.saleAmount * 10000, true)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">가치평가 점수</p>
+              <p className="font-s4">{item.buildValue ? Number(item.buildValue).toFixed(0) + '점' : '-'}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">수익률</p>
+              <p className="font-s4">{item.sellProfit ? (Number(item.sellProfit)).toFixed(1) + '%' : '-'}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">대지면적</p>
+              <p className="font-s4">{getAreaStrWithPyeong(item.platArea)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">연면적</p>
+              <p className="font-s4">{getAreaStrWithPyeong(item.totalArea)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
+    <div className="w-full flex flex-col gap-[16px] p-[24px] mb:p-[40px] md:min-w-[800px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
@@ -108,66 +239,12 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
       </div>
       <div className="flex flex-col gap-[16px]">
         {bookmarkList?.length > 0 ? bookmarkList.map((item) => (
-          <div key={item.idx} className="w-full flex h-[190px] rounded-[8px] border border-line-03">
-            <img
-              className="w-[320px] h-[190px] object-cover rounded-l-[8px]"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/bd_img.png';
-              }}
-              src={item.imagePath || '/bd_img.png'} alt=""/>
-            <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
-              <div className="flex flex-col gap-[8px]">
-                <div className="flex items-center justify-between gap-[8px]">
-                  <div className="flex items-center gap-[8px]">
-                    <p className="font-s1-p shrink-0">{getShortAddress(item.addr)}</p>
-                    {item.name && (
-                      <>
-                        <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
-                        <p className="font-s1-p shrink-0">{item.name}</p>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-[8px]">
-                    <button className="flex items-center gap-[6px] shrink-0" onClick={() => {setSelectedBdsSale(item); setOpenCounselDialog(true)}}>
-                      <p className="font-s4 text-primary">매입 상담 요청</p>
-                      <CounselIcon/>
-                    </button>
-                    <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0"/>
-                    <button onClick={() => {cancelBookmark(item)}} className="shrink-0">
-                      <BookmarkFilledIcon/>
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-[12px]">
-                  <div className="flex-1 flex items-center justify-between gap-[6px]">
-                    <p className="w-[44px] font-s4 text-text-03">대지면적</p>
-                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.platArea)}</p>
-                  </div>
-                  <VDivider colorClassName="bg-line-03"/>
-                  <div className="flex-1 flex items-center justify-between gap-[6px]">
-                    <p className="w-[44px] font-s4 text-text-03">연면적</p>
-                    <p className="flex-1 font-s4 text-right">{getAreaStrWithPyeong(item.totalArea)}</p>
-                  </div>        
-                </div>
-              </div>
-              <div className="flex items-center gap-[8px] px-[8px] py-[12px] border border-line-02 rounded-[4px]">
-                <div className="flex-1 flex flex-col items-center gap-[8px]">
-                  <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">매매가</p>
-                  <p className="font-h2-p text-primary">{krwUnit(item.saleAmount * 10000, true)}</p>
-                </div>
-                <VDivider className="h-[76px]"/>
-                <div className="flex-1 flex flex-col items-center gap-[8px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">수익률</p>
-                  <p className="font-h2-p">{item.sellProfit ? (Number(item.sellProfit)).toFixed(1) + '%' : '-'}</p>
-                </div>
-                <VDivider className="h-[76px]"/>
-                <div className="flex-1 flex flex-col items-center gap-[8px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">가치평가점수</p>
-                  <p className="font-h2-p">{item.buildValue ? Number(item.buildValue).toFixed(0) + '점' : '-'}</p>
-                </div>        
-              </div>
-  
+          <div key={item.idx}>
+            <div className="hidden md:flex">
+              <DesktopBookmarkCard item={item} />
+            </div>
+            <div className="flex md:hidden">
+              <MobileBookmarkCard item={item} />
             </div>
           </div>
         )) : loading ? (
