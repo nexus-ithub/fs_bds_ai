@@ -154,7 +154,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
         <HDivider className="shrink-0"/>
         <div className="flex items-center gap-[16px] p-[8px]">
           <img
-          className="w-[120px] h-[120px] object-cover rounded-[4px]"
+          className="w-[45%] h-[120px] object-cover rounded-[4px]"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = '/bd_img.png';

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, type JSX } from "react";
 import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User, DotProgress, EditIcon, DeleteIcon } from "@repo/common";
-import { Dialog, Menu, MenuItem } from "@mui/material";
+import { Dialog, Menu, MenuItem, Drawer } from "@mui/material";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { useQueryClient } from "react-query";
@@ -11,6 +11,7 @@ import setting from "../../../admin/app/main/agent/setting.json"
 import { toast } from "react-toastify";
 import React from "react";
 import { trackError, trackEvent } from "../utils/analytics";
+import { Menu as LucidMenuIcon } from "lucide-react";
 
 interface AIChatProps {
   open: boolean;
@@ -58,8 +59,10 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
 
   const [openEditTitle, setOpenEditTitle] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   const CustomAccordion = ({ title, menuItems, defaultExpanded = false }: CustomAccordionProps) => {
     const [isExpanded, setIsExpanded] = useState<boolean>(defaultExpanded);
@@ -410,8 +413,10 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   }, []);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
+    if (chatContainerRef.current && currentChat && currentChat.messages.length > 0) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    } else if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = 0;
     }
   }, [currentChat]);
 
@@ -433,8 +438,10 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   return (
     <>
       <div ref={panelRef} className="fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end">
-        <div className={`
-            flex flex-col h-full bg-white rounded-l-[12px]
+        <div
+          ref={mainRef}
+          className={`
+            flex flex-col h-full bg-white rounded-l-[12px] relative overflow-hidden
             shadow-[-16px_0_32px_0_rgba(0,0,0,0.08)]
             transform transition-transform duration-200 ease-out
             ${mounted && open ? "translate-x-0" : "translate-x-full"}
@@ -442,6 +449,11 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         >
           <div className="flex items-center justify-between px-[24px] h-[64px] border-b border-line-02 flex-shrink-0">
             <div className="flex items-center h-full gap-[12px]">
+              {config?.id && (
+                <button onClick={() => setMenuOpen(!menuOpen)} className="mr-[8px]">
+                  <LucidMenuIcon />
+                </button>
+              )}
               <AILogo/>
               <p className="font-s2-p text-text-01">{setting?.agentName || "빌딩샵AI"}</p>
               <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
@@ -451,10 +463,37 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null); setQuestionInput('')}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
               <button onClick={onClose}><CloseIcon/></button>
             </div>
-          </div>    
-          <div className="flex h-[calc(100%-64px)]">
-            {config?.id && (
-              <div className="w-[252px] p-[20px] border-r border-line-02 overflow-y-auto scrollbar-hover">
+          </div>
+          {config?.id && (
+            <Drawer
+              anchor="left"
+              open={menuOpen}
+              onClose={() => setMenuOpen(false)}
+              variant="temporary"
+              container={mainRef.current}
+              disableScrollLock={true}
+              BackdropProps={{
+                sx: {
+                  position: 'absolute',
+                  backgroundColor: 'transparent'
+                }
+              }}
+              ModalProps={{
+                container: mainRef.current,
+                style: { position: 'absolute' }
+              }}
+              PaperProps={{
+                sx: {
+                  position: 'absolute',
+                  width: '252px',
+                  height: 'calc(100% - 64px)',
+                  top: '64px',
+                  boxShadow: '4px 0 16px 0 rgba(0, 0, 0, 0.08)',
+                  borderRight: '1px solid var(--line-02)',
+                }
+              }}
+            >
+              <div className="p-[20px] h-full overflow-y-auto scrollbar-hover">
                 {chatHistoryLoading ? (
                   <div className="flex items-center justify-center py-[50px]">
                     <DotProgress size="sm"/>
@@ -463,8 +502,9 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   <CustomAccordion title="HISTORY" menuItems={chatHistory} defaultExpanded={true}/>
                 )}
               </div>
-            )}
-            <div className="w-[768px] flex flex-col">
+            </Drawer>
+          )}
+          <div className="w-[768px] h-[calc(100%-64px)] flex flex-col" onClick={() => menuOpen && setMenuOpen(false)}>
               <div ref={chatContainerRef} className="flex-1 px-[48px] overflow-y-auto scrollbar-hover">
                 {currentChat?.messages.length === 0 || !currentChat ? (
                   <div className="flex flex-col gap-[40px] py-[64px]">
@@ -549,9 +589,8 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                 <div className="flex h-[56px] items-center font-c2 text-text-04">
                   <p>{setting?.warningMsg || "빌딩샵은 AI 모델입니다. 제공된 정보를 항상 검증하시기 바랍니다."}</p>
                 </div>
-              </div> 
+              </div>
             </div>
-          </div>
         </div>
       </div>
       <Dialog
