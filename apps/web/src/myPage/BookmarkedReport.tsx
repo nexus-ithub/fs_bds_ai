@@ -21,7 +21,7 @@ const COUNT_BUTTON = [
 ]
 
 
-const RoadviewComponent = ({ lat, lng }: { lat: number, lng: number }) => {
+const RoadviewComponent = ({ lat, lng, className }: { lat: number, lng: number, className?: string }) => {
   const handleLoad = useCallback((rv: kakao.maps.Roadview) => {
     const pos = rv.getPosition(); // kakao.maps.LatLng
     const currentLat = pos.getLat();
@@ -34,7 +34,7 @@ const RoadviewComponent = ({ lat, lng }: { lat: number, lng: number }) => {
     <Roadview
       position={{ lat, lng, radius: 200 }}
       onInit={handleLoad}
-      className="w-[320px] min-h-[220px] object-cover rounded-l-[8px]"
+      className={className ?? "w-[320px] min-h-[220px] object-cover rounded-l-[8px]"}
     >
       <RoadviewMarker position={{ lat, lng }} />
     </Roadview>
@@ -171,8 +171,230 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
   //   };
   // }, [debouncedSearch]);
 
+  const DesktopBookmarkCard = ({ item }: { item: BookmarkedReportType }) => {
+    return (
+      <div className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
+        <RoadviewComponent lat={Number(item.lat)} lng={Number(item.lng)} />
+        <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
+          <div className="flex flex-col gap-[8px]">
+            <div className="flex flex-col gap-[4px]">
+              <div className="flex items-center justify-between gap-[8px]">
+                <div className="flex items-center gap-[8px]">
+                  <p className="font-s1-p shrink-0">{getJibunAddress(item.landInfo)}</p>
+                </div>
+                <div className="flex items-center gap-[8px]">
+                  <button className="flex items-center gap-[6px] shrink-0" onClick={() => { setSelectedItem(item); setOpenAIReport(true) }}>
+                    <NoteIcon />
+                  </button>
+                  <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0" />
+                  <button onClick={() => { cancelBookmark(item) }} className="shrink-0">
+                    <BookmarkFilledIcon />
+                  </button>
+                </div>
+              </div>
+              {
+                item.landInfo.roadName && (
+                  <div className="mt-[4px] flex gap-[6px] items-center">
+                    <p className="flex-shrink-0 font-c3-p px-[4px] py-[1px] text-text-03 bg-surface-third">도로명</p>
+                    <p className="font-s4 flex items-center text-text-03">{getRoadAddress(item.landInfo)}</p>
+                  </div>
+                )
+              }
+            </div>
+            <div className="flex flex justify-between">
+              <div className="flex flex-wrap items-center gap-[6px]">
+                {
+                  item.landInfo.usageName && (
+                    <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
+                  )
+                }
+                {
+                  getSpecialUsageList(item.landInfo?.usageList).map((specialUsage, index) => (
+                    <Tooltip
+                      key={index}
+                      title={<div>
+                        {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
+                        <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
+                      </div>}
+                    >
+                      <p
+                        key={index}
+                        className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
+                      >
+                        {specialUsage}
+                        <CircleQuestionMarkIcon size={14} />
+                      </p>
+                    </Tooltip>
+
+                  ))
+                }
+                {/* {
+                  (item.buildings && item.buildings.length > 0) && (
+                    <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{item.buildings[0].mainUsageName}</p>
+                  )
+                } */}
+              </div>
+              {/* <div className="flex items-center gap-[4px] font-s4 text-text-02">
+                {getBuildingRelInfoText(item.landInfo)}
+              </div> */}
+            </div>
+
+            <div className="flex-col space-y-[6px]">
+              <div className="flex-1 flex items-center justify-between">
+                <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
+                <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
+              </div>
+              <div className="flex-1 flex items-center justify-between">
+                <p className="font-s4 text-text-03">연면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+                <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relFloorAreaSum)}</p>
+              </div>
+              <div className="flex-1 flex items-center justify-between">
+                <p className="font-s4 text-text-03">건축물</p>
+                <p className="font-s4 text-text-02">{getBuildingRelInfoText(item.landInfo)}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
+            <div className="flex-1 flex flex-col items-center gap-[6px]">
+              {/* <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p> */}
+              <Tooltip
+                title={
+                  <p className="">
+                    본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
+                    투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+                  </p>
+                }
+              >
+                <div className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px] gap-[2px] flex items-center">
+                  추정가
+                  <CircleQuestionMarkIcon size={14} />
+                </div>
+              </Tooltip>
+              <p className="font-h2-p text-primary">{item.estimatedPrice ? krwUnit(item.estimatedPrice, true) : '-'}</p>
+              {/* <p className="font-c3 text-primary-030">{item.estimatedPricePer ? '공시지가 대비 ' + item.estimatedPricePer + ' 배' : '-'}</p> */}
+              <p className="font-c3 text-primary-030">{(item.estimatedPrice && item.landInfo) ? krwUnit(Number((item.estimatedPrice / item.landInfo?.relTotalArea).toFixed(0)), true) + '원/㎡' : '-'}</p>
+            </div>
+            <VDivider className="h-[58px]" />
+            <div className="flex-1 flex flex-col items-center gap-[6px]">
+              <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(item.landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
+              <p className="font-h2-p">{item.landInfo.price ? krwUnit(item.landInfo.price * item.landInfo.area, true) : '-'}</p>
+              <p className="font-c3 text-text-03">{item.landInfo.price ? krwUnit(item.landInfo.price, true) : '-'}/㎡</p>
+            </div>
+            <VDivider className="h-[58px]" />
+            <div className="flex-1 flex flex-col items-center gap-[6px]">
+              <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
+              <p className="font-h2-p">{item.landInfo.dealPrice ? krwUnit(item.landInfo.dealPrice * 10000, true) : '-'}</p>
+              <p className="font-c3 text-text-03">{item.landInfo.dealDate ? format(item.landInfo.dealDate, 'yyyy.MM.dd') : ''}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const MobileBookmarkCard = ({ item }: { item: BookmarkedReportType }) => {
+    return (
+      <div className="w-full flex flex-col min-h-[170px] rounded-[8px] border border-line-03">
+        <div className="w-full flex items-center justify-between p-[8px] pb-0">
+          <p className="font-s2-p shrink-0">{getJibunAddress(item.landInfo)}</p>
+          <div className="flex items-center gap-[8px]">
+            <button className="flex items-center gap-[6px] shrink-0" onClick={() => { setSelectedItem(item); setOpenAIReport(true) }}>
+              <NoteIcon />
+            </button>
+            <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0" />
+            <button onClick={() => { cancelBookmark(item) }} className="shrink-0">
+              <BookmarkFilledIcon />
+            </button>
+          </div>
+        </div>
+        {
+          item.landInfo.roadName && (
+            <div className="py-[2px] px-[8px] flex gap-[6px] items-center">
+              <p className="flex-shrink-0 font-c3-p px-[4px] py-[1px] text-text-03 bg-surface-third">도로명</p>
+              <p className="font-s4 flex items-center text-text-03">{getRoadAddress(item.landInfo)}</p>
+            </div>
+          )
+        }
+        <div className="flex flex-wrap gap-[4px] p-[8px] pt-[2px]">
+          {
+            item.landInfo.usageName && (
+              <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
+            )
+          }
+          {
+            getSpecialUsageList(item.landInfo?.usageList).map((specialUsage, index) => (
+              <Tooltip
+                key={index}
+                title={<div>
+                  {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
+                  <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
+                </div>}
+              >
+                <p
+                  key={index}
+                  className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
+                >
+                  {specialUsage}
+                  <CircleQuestionMarkIcon size={14} />
+                </p>
+              </Tooltip>
+
+            ))
+          }
+        </div>
+        <HDivider className="shrink-0"/>
+        <div className="flex items-center gap-[16px] p-[8px]">
+          <RoadviewComponent 
+            lat={Number(item.lat)} 
+            lng={Number(item.lng)} 
+            className="w-[45%] h-full object-cover rounded-l-[8px]"
+          />
+          <div className="flex-1 flex flex-col gap-[6px]">
+            <div className="flex items-center justify-between">
+              {/* <p className="font-s4 text-text-03">추정가</p> */}
+              <Tooltip
+                title={
+                  <p className="">
+                    본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
+                    투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
+                  </p>
+                }
+              >
+                <div className="font-s4-p text-text-03 gap-[2px] flex items-center">
+                  추정가
+                  <CircleQuestionMarkIcon size={12} />
+                </div>
+              </Tooltip>
+              <p className="font-s4-p text-primary">{item.estimatedPrice ? krwUnit(item.estimatedPrice, true) : '-'}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">공시지가{(item.landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
+              <p className="font-s4">{item.landInfo.price ? krwUnit(item.landInfo.price * item.landInfo.area, true) : '-'}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">실거래가</p>
+              <p className="font-s4">{item.landInfo.dealPrice ? krwUnit(item.landInfo.dealPrice * 10000, true) : '-'}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
+              <p className="font-s4">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">연면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
+              <p className="font-s4">{getAreaStrWithPyeong(item.landInfo.relFloorAreaSum)}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="font-s4 text-text-03">건축물</p>
+              <p className="font-s4">{getBuildingRelInfoText(item.landInfo)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-w-[800px] w-fit flex flex-col gap-[16px] p-[40px]">
+    <div className="w-full flex flex-col gap-[16px] p-[24px] md:p-[40px] md:min-w-[800px]">
       <div className="flex flex-col gap-[4px]">
         <h2 className="font-h2">관심물건 관리</h2>
         <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>
@@ -218,141 +440,12 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
       </div>
       <div className="flex flex-col gap-[16px]">
         {bookmarkList?.length > 0 ? bookmarkList.map((item) => (
-          <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`} className="w-full flex min-h-[220px] rounded-[8px] border border-line-03">
-            <RoadviewComponent lat={Number(item.lat)} lng={Number(item.lng)} />
-            {/* <Roadview
-              onViewpointChange={(viewpoint) => {
-                // setRoadViewCenter({
-                //   ...roadViewCenter,
-                //   pan: viewpoint.getViewpoint().pan,
-                // })
-              }}
-              onPositionChanged={(position) => {
-                // setRoadViewCenter({
-                //   ...roadViewCenter,
-                //   lat: position.getPosition().getLat(),
-                //   lng: position.getPosition().getLng(),
-                // })
-              }}
-              // pan={roadViewCenter.pan}
-              position={{ lat: Number(item.lat), lng: Number(item.lng), radius: 50 }}
-              className="w-[320px] min-h-[220px] object-cover rounded-l-[8px]"
-            >
-              <RoadviewMarker position={{ lat: Number(item.lat), lng: Number(item.lng) }} />
-            </Roadview> */}
-            <div className="flex-1 flex flex-col p-[16px] gap-[12px]">
-              <div className="flex flex-col gap-[8px]">
-                <div className="flex flex-col gap-[4px]">
-                  <div className="flex items-center justify-between gap-[8px]">
-                    <div className="flex items-center gap-[8px]">
-                      <p className="font-s1-p shrink-0">{getJibunAddress(item.landInfo)}</p>
-                    </div>
-                    <div className="flex items-center gap-[8px]">
-                      <button className="flex items-center gap-[6px] shrink-0" onClick={() => { setSelectedItem(item); setOpenAIReport(true) }}>
-                        <NoteIcon />
-                      </button>
-                      <VDivider colorClassName="bg-line-03 !h-[12px] shrink-0" />
-                      <button onClick={() => { cancelBookmark(item) }} className="shrink-0">
-                        <BookmarkFilledIcon />
-                      </button>
-                    </div>
-                  </div>
-                  {
-                    item.landInfo.roadName && (
-                      <div className="mt-[4px] flex gap-[6px] items-center">
-                        <p className="flex-shrink-0 font-c3-p px-[4px] py-[1px] text-text-03 bg-surface-third">도로명</p>
-                        <p className="font-s4 flex items-center text-text-03">{getRoadAddress(item.landInfo)}</p>
-                      </div>
-                    )
-                  }
-                </div>
-                <div className="flex flex justify-between">
-                  <div className="flex flex-wrap items-center gap-[6px]">
-                    {
-                      item.landInfo.usageName && (
-                        <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">{item.landInfo.usageName}</p>
-                      )
-                    }
-                    {
-                      getSpecialUsageList(item.landInfo?.usageList).map((specialUsage, index) => (
-                        <Tooltip
-                          key={index}
-                          title={<div>
-                            {specialUsage + "은 사업계획 수립 시 정밀한 검토가 필요한 영역으로 본 자료의 면적 및 계획 내용은 추정치에 기반합니다."}
-                            <p>본 자료에 기재된 사업계획은 변동될 수 있으며, 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.</p>
-                          </div>}
-                        >
-                          <p
-                            key={index}
-                            className="flex items-center gap-[2px] font-c2-p text-red-500 bg-red-100 rounded-[2px] px-[6px] py-[2px]"
-                          >
-                            {specialUsage}
-                            <CircleQuestionMarkIcon size={14} />
-                          </p>
-                        </Tooltip>
-
-                      ))
-                    }
-                    {/* {
-                      (item.buildings && item.buildings.length > 0) && (
-                        <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{item.buildings[0].mainUsageName}</p>
-                      )
-                    } */}
-                  </div>
-                  {/* <div className="flex items-center gap-[4px] font-s4 text-text-02">
-                    {getBuildingRelInfoText(item.landInfo)}
-                  </div> */}
-                </div>
-
-                <div className="flex-col space-y-[6px]">
-                  <div className="flex-1 flex items-center justify-between">
-                    <p className="font-s4 text-text-03">토지면적{item.landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
-                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relTotalArea)}</p>
-                  </div>
-                  <div className="flex-1 flex items-center justify-between">
-                    <p className="font-s4 text-text-03">연면적{item.landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
-                    <p className="font-s4 text-text-02">{getAreaStrWithPyeong(item.landInfo.relFloorAreaSum)}</p>
-                  </div>
-                  <div className="flex-1 flex items-center justify-between">
-                    <p className="font-s4 text-text-03">건축물</p>
-                    <p className="font-s4 text-text-02">{getBuildingRelInfoText(item.landInfo)}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex border border-line-02 rounded-[4px] py-[14px] px-[8px]">
-                <div className="flex-1 flex flex-col items-center gap-[6px]">
-                  {/* <p className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px]">추정가</p> */}
-                  <Tooltip
-                    title={
-                      <p className="">
-                        본 자료는 빌딩샵AI가 제공하는 토지 및 매매가 추정 자료로서, <br />법적 효력을 갖는 공식 평가가 아닙니다.<br />
-                        투자 판단을 위한 참고용으로만 활용해 주시기 바라며, <br />본 자료는 참고용으로 제공되는 것으로 법적 효력을 가지지 않습니다.
-                      </p>
-                    }
-                  >
-                    <div className="font-c2-p text-primary-040 bg-primary-010 rounded-[2px] px-[6px] py-[2px] gap-[2px] flex items-center">
-                      추정가
-                      <CircleQuestionMarkIcon size={14} />
-                    </div>
-                  </Tooltip>
-                  <p className="font-h2-p text-primary">{item.estimatedPrice ? krwUnit(item.estimatedPrice, true) : '-'}</p>
-                  {/* <p className="font-c3 text-primary-030">{item.estimatedPricePer ? '공시지가 대비 ' + item.estimatedPricePer + ' 배' : '-'}</p> */}
-                  <p className="font-c3 text-primary-030">{(item.estimatedPrice && item.landInfo) ? krwUnit(Number((item.estimatedPrice / item.landInfo?.relTotalArea).toFixed(0)), true) + '원/㎡' : '-'}</p>
-                </div>
-                <VDivider className="h-[58px]" />
-                <div className="flex-1 flex flex-col items-center gap-[6px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">공시지가{(item.landInfo?.relParcelCount > 1 ? ' (평균)' : '')}</p>
-                  <p className="font-h2-p">{item.landInfo.price ? krwUnit(item.landInfo.price * item.landInfo.area, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{item.landInfo.price ? krwUnit(item.landInfo.price, true) : '-'}/㎡</p>
-                </div>
-                <VDivider className="h-[58px]" />
-                <div className="flex-1 flex flex-col items-center gap-[6px]">
-                  <p className="font-c2-p text-text-02 bg-surface-second rounded-[2px] px-[6px] py-[2px]">실거래가</p>
-                  <p className="font-h2-p">{item.landInfo.dealPrice ? krwUnit(item.landInfo.dealPrice * 10000, true) : '-'}</p>
-                  <p className="font-c3 text-text-03">{item.landInfo.dealDate ? format(item.landInfo.dealDate, 'yyyy.MM.dd') : ''}</p>
-                </div>
-              </div>
-
+          <div key={`${item.landInfo.id}-${item.buildings?.[0]?.id ?? 'no-building'}`}>
+            <div className="hidden md:flex">
+              <DesktopBookmarkCard item={item} />
+            </div>
+            <div className="flex md:hidden">
+              <MobileBookmarkCard item={item} />
             </div>
           </div>
         )) : loading ? (

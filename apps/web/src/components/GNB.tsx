@@ -1,6 +1,9 @@
-import { GNBBuildingShopIcon, GNBHomeIcon, GNBYoutubeIcon } from "@repo/common";
-import { User } from "lucide-react";
+import { GNBBuildingShopIcon, GNBHomeIcon, GNBYoutubeIcon, type User } from "@repo/common";
+import { User as UserIcon } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "react-query";
+import { QUERY_KEY_USER } from "../constants";
+import { getAccessToken } from "../authutil";
 
 interface GNBProps {
   onHomeClick?: () => void;
@@ -9,6 +12,8 @@ interface GNBProps {
 export function GNB({ onHomeClick }: GNBProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const user = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
   const menuItems = [
     {
@@ -32,9 +37,9 @@ export function GNB({ onHomeClick }: GNBProps) {
     },
     {
       id: "my",
-      label: "마이",
-      icon: User,
-      path: "/myPage",
+      label: user ? "마이" : "로그인",
+      icon: UserIcon,
+      path: user ? "/myPage" : "/login",
     },
   ];
 

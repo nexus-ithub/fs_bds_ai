@@ -62,6 +62,7 @@ const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'https://kssa.inicis.com'
 ] : [
   'http://localhost:3000',
+  'http://192.168.0.164:3000',
   'http://nexusnas.iptime.org:7500',
   'https://sa.inicis.com',
   'https://kssa.inicis.com'
