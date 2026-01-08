@@ -925,6 +925,7 @@ export default function Main() {
             onClose={() => {
               setLandInfo(null)
               setOpenAIReport(false)
+              setPolygonList(null)
             }}
             onOpenAIReport={() => {
               setOpenAIReport(true)

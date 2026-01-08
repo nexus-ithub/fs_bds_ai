@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, type JSX } from "react";
+import { createPortal } from "react-dom";
 import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User, DotProgress, EditIcon, DeleteIcon } from "@repo/common";
 import { Dialog, Menu, MenuItem, Drawer } from "@mui/material";
 import axios from "axios";
@@ -60,6 +61,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const [openEditTitle, setOpenEditTitle] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -113,7 +115,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   className={`group w-full flex items-center justify-between gap-[6px] block py-[9px] px-[8px] rounded-[4px] transition-colors ${
                     isActive ? 'bg-primary-010 text-primary' : 'text-text-02'
                   }`}
-                  onClick={() => {setSelectedChatId(item.sessionId); setCurrentSessionId(item.sessionId);}}
+                  onClick={() => {setSelectedChatId(item.sessionId); setCurrentSessionId(item.sessionId); setMenuOpen(false);}}
                 >
                   <p className={`font-s2 ${isActive ? "text-primary" : "text-text-02"} truncate`}>
                     {item.title ?? "제목 없음"}
@@ -408,8 +410,19 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
 
   useEffect(() => {
     setMounted(true);
-    if (!config?.id) return;
-    handleGetChatHistory();
+    
+    // 모바일 감지
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    if (config?.id) {
+      handleGetChatHistory();
+    }
+
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -435,13 +448,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     };
   }, [onClose, openEditTitle, openDeleteConfirm]);
 
-  return (
+  const chatContent = (
     <>
-      <div ref={panelRef} className="fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end">
+      <div ref={panelRef} className={`fixed ${isMobile ? 'inset-0 z-[60]' : 'inset-y-0 top-[64px] right-0 z-[40]'} flex justify-end`}>
         <div
           ref={mainRef}
           className={`
-            flex flex-col h-full bg-white rounded-l-[12px] relative overflow-hidden
+            flex flex-col h-full bg-white ${isMobile ? 'w-full' : 'w-[768px] rounded-l-[12px]'} relative overflow-hidden
             shadow-[-16px_0_32px_0_rgba(0,0,0,0.08)]
             transform transition-transform duration-200 ease-out
             ${mounted && open ? "translate-x-0" : "translate-x-full"}
@@ -456,8 +469,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               )}
               <AILogo/>
               <p className="font-s2-p text-text-01">{setting?.agentName || "빌딩샵AI"}</p>
-              <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
-              <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
+              {
+                !isMobile && (
+                  <>
+                    <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
+                    <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
+                  </>
+                )
+              }
             </div>
             <div className="flex items-center gap-[12px]">
               <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null); setQuestionInput('')}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
@@ -504,15 +523,15 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               </div>
             </Drawer>
           )}
-          <div className="w-[768px] h-[calc(100%-64px)] flex flex-col" onClick={() => menuOpen && setMenuOpen(false)}>
-              <div ref={chatContainerRef} className="flex-1 px-[48px] overflow-y-auto scrollbar-hover">
+          <div className={`${isMobile ? 'w-full' : 'w-[768px]'} h-[calc(100%-64px)] flex flex-col`} onClick={() => menuOpen && setMenuOpen(false)}>
+              <div ref={chatContainerRef} className={`flex-1 overflow-y-auto scrollbar-hover ${isMobile ? 'px-[20px]' : 'px-[48px]'}`}>
                 {currentChat?.messages.length === 0 || !currentChat ? (
-                  <div className="flex flex-col gap-[40px] py-[64px]">
+                  <div className={`flex flex-col ${isMobile ? 'py-[40px] gap-[26px]' : 'py-[64px] gap-[40px]'}`}>
                     <div className="flex flex-col gap-[8px] items-center">
                       <h2 className="font-h2">{setting?.chatTitle || "안녕하세요! 빌딩샵AI 입니다."}</h2>
                       <p className="font-b2 text-center whitespace-pre-line">{setting?.chatSubtitle || "부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.\n관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!"}</p>
                     </div>
-                    <div className="flex flex-col items-center gap-[16px]">
+                    <div className={`flex flex-col items-center ${isMobile ? 'gap-[10px]' : 'gap-[16px]'}`}>
                       {setting?.questions
                         ?.filter(q => q.selectedYn === "Y")
                         ?.sort((a, b) => (a.seq ?? 9999) - (b.seq ?? 9999))
@@ -520,13 +539,13 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                           <button
                             key={q.id}
                             onClick={() => handleAskChat(q.question)}
-                            className="w-[500px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02"
+                            className={`${isMobile ? 'w-full' : 'w-[500px]'} flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02`}
                             style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
                           >
                             <h2 className="w-[40px] h-[40px] flex shrink-0 items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">
                               {q.icon}
                             </h2>
-                            <p className="font-s2">{q.question}</p>
+                            <p className="font-s2 text-left">{q.question}</p>
                           </button>
                         ))}
                     </div>
@@ -554,7 +573,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   </span>
                 )}
               </div>
-              <div className="w-full flex flex-col items-center px-[32px]">
+              <div className={`w-full flex flex-col items-center ${isMobile ? 'px-[20px]' : 'px-[32px]'}`}>
                 <div className="w-full flex items-center gap-[10px] p-[16px] rounded-[4px] border border-line-03">
                   <textarea
                     rows={1}
@@ -640,5 +659,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
         </div>
       </Dialog>
     </>
-  )
+  );
+
+  return isMobile ? createPortal(chatContent, document.body) : chatContent;
 }
