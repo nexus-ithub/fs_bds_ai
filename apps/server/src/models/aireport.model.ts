@@ -852,7 +852,6 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
       }
 
       floorNumber += 1;
-
     }
     detailInfo.buildInfo.upperFloorCount = floors.length;
     detailInfo.buildInfo.upperFloorArea = floors.reduce((a, b) => a + b, 0);
@@ -898,7 +897,8 @@ function makeBuildInfo(detailInfo: DevDetailInfo, landInfo: LandData, debug: boo
   if (debug) {
     detailInfo.debugExtraInfo.push("[지하주차층계산]");
   }
-  if (landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역') {
+  if (landInfo.usageName === '제1종일반주거지역' || landInfo.usageName === '제2종일반주거지역' || landInfo.usageName === '제3종일반주거지역'
+    && (!landInfo.roadContact.includes('지정되지않음') && !landInfo.roadContact.includes('광대'))) {
     const legalParkingCount = (detailInfo.buildInfo.upperFloorArea + detailInfo.buildInfo.lowerFloorArea) / LEGAL_PARKING_AREA_PER_CAR;
     if (debug) {
       detailInfo.debugExtraInfo.push(`* 1,2,3종 일반 주거지역에 포함`);
