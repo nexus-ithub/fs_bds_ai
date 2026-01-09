@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, type JSX } from "react";
 import { createPortal } from "react-dom";
 import { Button, VDivider, CloseIcon, SendIcon, ChevronDownCustomIcon, MenuIcon, AILogo, type User, DotProgress, EditIcon, DeleteIcon } from "@repo/common";
-import { Dialog, Menu, MenuItem, Drawer } from "@mui/material";
+import { Dialog, Menu, MenuItem, Drawer, useMediaQuery } from "@mui/material";
 import axios from "axios";
 import { API_HOST } from "../constants";
 import { useQueryClient } from "react-query";
@@ -61,7 +61,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const [openEditTitle, setOpenEditTitle] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -410,19 +410,9 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
 
   useEffect(() => {
     setMounted(true);
-    
-    // 모바일 감지
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
     if (config?.id) {
       handleGetChatHistory();
     }
-
-    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, SubTabButton, type BdsSale } from "@repo/common";
 import React from "react";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, useMediaQuery } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
 import { BuildingDetailDialog } from "./BuildingDetail";
 import axios from "axios";
@@ -82,7 +82,7 @@ export const BuildingList = () => {
   // const [order, setOrder] = useState<string>(ORDER[0]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [showBuildingListDialog, setShowBuildingListDialog] = useState<boolean>(false);
   const [selectedBuilding, setSelectedBuilding] = useState<BdsSale | null>(null);
   const tabScrollRef = React.useRef<HTMLDivElement>(null);
@@ -116,15 +116,6 @@ export const BuildingList = () => {
   useEffect(() => {
     console.log("selectedBuilding", selectedBuilding);
   }, [selectedBuilding]);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (tabScrollRef.current) {

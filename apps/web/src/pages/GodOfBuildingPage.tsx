@@ -4,25 +4,22 @@ import { YoutubeList } from "../homeBoard/YoutubeList";
 // import { GNB } from "../components/GNB";
 import { type YoutubeVideo, type PlayerMode, YoutubeLogo } from "@repo/common";
 import { PictureInPicture, PictureInPicture2, X } from "lucide-react";
+import { useMediaQuery } from "@mui/material";
 
 export const GodOfBuildingPage = () => {
   const navigate = useNavigate();
   const [selectedVideo, setSelectedVideo] = useState<YoutubeVideo | null>(null);
   const [openVideoMiniPlayer, setOpenVideoMiniPlayer] = useState<boolean>(false);
-  const [playerMode, setPlayerMode] = useState<PlayerMode>(null);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        navigate('/main');
-      }
-    };
-
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [navigate]);
+    // 전체화면 모드가 아니고, 모바일 기기가 아닌 경우에만 리다이렉트
+    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isFullscreen = document.fullscreenElement !== null;
+    if (isDesktop && !isMobileDevice && !isFullscreen) {
+      navigate('/main');
+    }
+  }, [isDesktop, navigate]);
 
   return (
     <div className="h-full flex flex-col pb-[64px]">
@@ -31,7 +28,6 @@ export const GodOfBuildingPage = () => {
           selectedVideo={selectedVideo}
           setSelectedVideo={(video) => {
             setSelectedVideo(video);
-            setPlayerMode("large");
           }}
           openVideoMiniPlayer={openVideoMiniPlayer}
           setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
@@ -41,33 +37,21 @@ export const GodOfBuildingPage = () => {
       {/* 비디오 플레이어 */}
       {openVideoMiniPlayer && (
         <div
-          className={`fixed z-50 bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02
-            ${playerMode === "large"
-              ? "left-[30%] top-[17%] w-[80%] h-[605px] max-w-[960px] aspect-video scale-100"
-              : "bottom-2 right-2 w-[480px] h-[320px]"}`
+          className={`fixed z-50 bg-white rounded-b-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02 top-[64px] left-0 w-full`
           }
         >
-          <div className={`flex items-center justify-between py-[7px] border-b border-line-02 ${playerMode === "mini" ? "h-[44px]" : "h-[64px]"}`}>
-            <div className="flex items-center gap-[13px] px-[12px] py-[14px]">
-              <p className={playerMode === "mini" ? "font-h4" : "font-h3"}>빌딩의 신</p>
-              <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20} />
+          <div className={`flex items-center justify-between py-[7px] border-b border-line-02 h-[36px]`}>
+            <div className="flex items-center gap-[13px] px-[12px] py-[6px]">
+              <p className="font-h4">빌딩의 신</p>
+              <YoutubeLogo width={68} height={15} />
             </div>
-            <div className={`flex items-center gap-[13px] ${playerMode === "mini" ? "px-[12px]" : "px-[20px]"}`}>
-              {playerMode === "mini" ? (
-                <button onClick={() => setPlayerMode("large")}>
-                  <PictureInPicture2 size={20} />
-                </button>
-              ) : (
-                <button onClick={() => setPlayerMode("mini")}>
-                  <PictureInPicture size={20} />
-                </button>
-              )}
+            <div className="flex items-center gap-[13px] px-[12px]">
               <button onClick={() => setOpenVideoMiniPlayer(false)}>
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
           </div>
-          <div className={playerMode === "large" ? "w-[960px] h-[540px]" : "w-[488px] h-[275px]"}>
+          <div className="w-full aspect-video">
             <iframe
               src={`https://www.youtube.com/embed/${selectedVideo?.videoId}?autoplay=1`}
               allow="autoplay; clipboard-write; encrypted-media; gyroscope;"
