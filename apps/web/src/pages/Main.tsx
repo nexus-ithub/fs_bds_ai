@@ -1112,9 +1112,9 @@ export default function Main() {
           onClick={() => {
             setOpenAIChat(true);
           }}
-          className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+          className="w-[46px] h-[46px] md:w-[60px] md:h-[60px] rounded-full flex items-center justify-center gap-[8px]"
         >
-          <BotMessageSquare size={32} />
+          <BotMessageSquare className="w-[22px] h-[22px] md:w-[32px] md:h-[32px]" />
         </Button>
       </div>
       {openVideoMiniPlayer && (
