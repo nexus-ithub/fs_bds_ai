@@ -59,7 +59,8 @@ export const LandInfoCard = ({
     return getSpecialUsageList(landInfo?.usageList);
   }, [landInfo]);
 
-  const handleOpenAIReport = () => {
+  const handleOpenAIReport = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     onOpenAIReport?.();
     if (!landInfo?.sidoName || !landInfo?.sigunguName) {
       trackEvent('report_viewed_missing_region', {
@@ -335,7 +336,7 @@ export const LandInfoCard = ({
             : (
               <Button
                 className="w-full mt-[16px] py-[11px]"
-                onClick={() => handleOpenAIReport()}
+                onClick={(e) => handleOpenAIReport(e)}
               >
                 AI 설계 • 임대 분석 리포트
               </Button>

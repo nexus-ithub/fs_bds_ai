@@ -625,331 +625,331 @@ export default function Main() {
 
   return (
     <MainContext.Provider value={contextValue}>
-    <div className="flex w-full h-full relative pb-0 md:pb-0">
-      <div className="flex-1 h-full pb-[64px] md:pb-0">
-        <Map
-          ref={mapRef}
-          mapTypeId={mapTypeId}
-          onCreate={(map) => {
-            map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
-          }}
-          onClick={(_, mouseEvent) => {
+      <div className="flex w-full h-full relative pb-0 md:pb-0">
+        <div className="flex-1 h-full pb-[64px] md:pb-0">
+          <Map
+            ref={mapRef}
+            mapTypeId={mapTypeId}
+            onCreate={(map) => {
+              map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
+            }}
+            onClick={(_, mouseEvent) => {
 
-            // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-            if (mapType === 'roadview') {
-              setRoadViewCenter({
+              // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
+              if (mapType === 'roadview') {
+                setRoadViewCenter({
+                  lat: mouseEvent.latLng.getLat(),
+                  lng: mouseEvent.latLng.getLng(),
+                  pan: 0,
+                })
+              } else if (mapType === 'area') {
+                if (!isDrawingArea) { setAreaPaths([]); }
+                setAreaPaths((prev) => [
+                  ...prev,
+                  {
+                    lat: mouseEvent.latLng.getLat(),
+                    lng: mouseEvent.latLng.getLng(),
+                  },
+                ])
+                setIsDrawingArea(true);
+              } else if (mapType === 'distance') {
+                if (!isDrawingDistance) { setDistances([]); setDistancePaths([]); }
+                setDistancePaths((prev) => [
+                  ...prev,
+                  {
+                    lat: mouseEvent.latLng.getLat(),
+                    lng: mouseEvent.latLng.getLng(),
+                  },
+                ])
+                setIsDrawingDistance(true);
+                setShowDistanceOverlay(true);
+              } else {
+                getPolygon({ lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng() });
+              }
+            }}
+            center={center}
+            level={level}
+            onCenterChanged={(map) => {
+              // console.log(map.getCenter().getLat(), map.getCenter().getLng());
+              saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
+            }}
+            onDragEnd={(map) => {
+              console.log('onDragEnd')
+              console.log(map.getCenter().getLat(), map.getCenter().getLng());
+              setFilterCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
+            }}
+            onZoomChanged={(map) => {
+              // console.log(map.getLevel());
+              saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
+              setLevel(map.getLevel());
+            }}
+            onRightClick={() => {
+              if (mapType === 'area') {
+                setIsDrawingArea(false);
+                setMapType('normal');
+                setAreas((prev: AreaPolygons[]) => [
+                  ...prev,
+                  {
+                    id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+                    paths: areaPaths,
+                  },
+                ]);
+              } else if (mapType === 'distance') {
+                setDistancePaths([]);
+                setDistances([]);
+                setIsDrawingDistance(false);
+                setMapType('normal');
+                setDistanceLines(prev => [
+                  ...prev,
+                  {
+                    id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+                    paths: distancePaths,
+                    distances,
+                  },
+                ]);
+              }
+            }}
+            onMouseMove={(_, mouseEvent) => {
+              setMousePosition({
                 lat: mouseEvent.latLng.getLat(),
                 lng: mouseEvent.latLng.getLng(),
-                pan: 0,
               })
-            } else if (mapType === 'area') {
-              if (!isDrawingArea) { setAreaPaths([]); }
-              setAreaPaths((prev) => [
-                ...prev,
-                {
-                  lat: mouseEvent.latLng.getLat(),
-                  lng: mouseEvent.latLng.getLng(),
-                },
-              ])
-              setIsDrawingArea(true);
-            } else if (mapType === 'distance') {
-              if (!isDrawingDistance) { setDistances([]); setDistancePaths([]); }
-              setDistancePaths((prev) => [
-                ...prev,
-                {
-                  lat: mouseEvent.latLng.getLat(),
-                  lng: mouseEvent.latLng.getLng(),
-                },
-              ])
-              setIsDrawingDistance(true);
-              setShowDistanceOverlay(true);
-            } else {
-              getPolygon({ lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng() });
-            }
-          }}
-          center={center}
-          level={level}
-          onCenterChanged={(map) => {
-            // console.log(map.getCenter().getLat(), map.getCenter().getLng());
-            saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
-          }}
-          onDragEnd={(map) => {
-            console.log('onDragEnd')
-            console.log(map.getCenter().getLat(), map.getCenter().getLng());
-            setFilterCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
-          }}
-          onZoomChanged={(map) => {
-            // console.log(map.getLevel());
-            saveMapState(map.getCenter().getLat(), map.getCenter().getLng(), map.getLevel());
-            setLevel(map.getLevel());
-          }}
-          onRightClick={() => {
-            if (mapType === 'area') {
-              setIsDrawingArea(false);
-              setMapType('normal');
-              setAreas((prev: AreaPolygons[]) => [
-                ...prev,
-                {
-                  id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-                  paths: areaPaths,
-                },
-              ]);
-            } else if (mapType === 'distance') {
-              setDistancePaths([]);
-              setDistances([]);
-              setIsDrawingDistance(false);
-              setMapType('normal');
-              setDistanceLines(prev => [
-                ...prev,
-                {
-                  id: `${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-                  paths: distancePaths,
-                  distances,
-                },
-              ]);
-            }
-          }}
-          onMouseMove={(_, mouseEvent) => {
-            setMousePosition({
-              lat: mouseEvent.latLng.getLat(),
-              lng: mouseEvent.latLng.getLng(),
-            })
-          }}
-          className="w-full h-full"
-        >
-          {mapType === 'use_district' && (
-            <MapTypeId
-              type="USE_DISTRICT"
-            />
-          )}
-          {mapType === 'roadview' && (
-            <>
+            }}
+            className="w-full h-full"
+          >
+            {mapType === 'use_district' && (
               <MapTypeId
-                type="ROADVIEW"
+                type="USE_DISTRICT"
               />
-              <MapMarker
-                position={roadViewCenter || { lat: 0, lng: 0 }}
-                draggable={true}
-                onDragEnd={(marker) => {
-                  setRoadViewCenter({
-                    lat: marker.getPosition().getLat(),
-                    lng: marker.getPosition().getLng(),
-                    pan: 0,
-                  })
-                }}
-                image={{
-                  src: "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/roadview_minimap_wk_2018.png",
-                  size: { width: 26, height: 46 },
-                  options: {
-                    spriteSize: { width: 1666, height: 168 },
-                    spriteOrigin: { x: 705, y: 114 },
-                    offset: { x: 13, y: 46 },
-                  },
-                }}
-              />
-            </>
+            )}
+            {mapType === 'roadview' && (
+              <>
+                <MapTypeId
+                  type="ROADVIEW"
+                />
+                <MapMarker
+                  position={roadViewCenter || { lat: 0, lng: 0 }}
+                  draggable={true}
+                  onDragEnd={(marker) => {
+                    setRoadViewCenter({
+                      lat: marker.getPosition().getLat(),
+                      lng: marker.getPosition().getLng(),
+                      pan: 0,
+                    })
+                  }}
+                  image={{
+                    src: "https://t1.daumcdn.net/localimg/localimages/07/2018/pc/roadview_minimap_wk_2018.png",
+                    size: { width: 26, height: 46 },
+                    options: {
+                      spriteSize: { width: 1666, height: 168 },
+                      spriteOrigin: { x: 705, y: 114 },
+                      offset: { x: 13, y: 46 },
+                    },
+                  }}
+                />
+              </>
 
-          )}
-          {polygonList && (
-            polygonList.map((polygon, index) => (
+            )}
+            {polygonList && (
+              polygonList.map((polygon, index) => (
 
-              <React.Fragment key={polygon.id}>
+                <React.Fragment key={polygon.id}>
+                  <Polygon
+                    key={polygon.id}
+                    fillColor="var(--color-primary)"
+                    fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
+                    strokeColor="var(--color-primary)"
+                    strokeOpacity={1}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(polygon?.polygon || [])} />
+                  {polygonAdditionalInfo(polygon, index)}
+
+
+                </React.Fragment>
+
+              ))
+            )}
+            {filteredPolygonList && (
+              filteredPolygonList.map((polygon) => (
                 <Polygon
                   key={polygon.id}
-                  fillColor="var(--color-primary)"
-                  fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
-                  strokeColor="var(--color-primary)"
+                  fillColor="var(--color-secondary)"
+                  fillOpacity={0.3} // 70% opacity
+                  strokeColor="var(--color-secondary)"
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
-                {polygonAdditionalInfo(polygon, index)}
+              ))
+            )}
+            {remodelPolygonList && (
+              remodelPolygonList.map((polygon) => (
+                <React.Fragment key={polygon.id}>
+                  <Polygon
+                    fillColor="green"
+                    fillOpacity={0.3}
+                    strokeColor="green"
+                    strokeOpacity={1}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(polygon?.polygon || [])} />
 
-
-              </React.Fragment>
-
-            ))
-          )}
-          {filteredPolygonList && (
-            filteredPolygonList.map((polygon) => (
-              <Polygon
-                key={polygon.id}
-                fillColor="var(--color-secondary)"
-                fillOpacity={0.3} // 70% opacity
-                strokeColor="var(--color-secondary)"
-                strokeOpacity={1}
-                strokeWeight={1.5}
-                path={convertXYtoLatLng(polygon?.polygon || [])} />
-            ))
-          )}
-          {remodelPolygonList && (
-            remodelPolygonList.map((polygon) => (
-              <React.Fragment key={polygon.id}>
-                <Polygon
-                  fillColor="green"
-                  fillOpacity={0.3}
-                  strokeColor="green"
-                  strokeOpacity={1}
-                  strokeWeight={1.5}
-                  path={convertXYtoLatLng(polygon?.polygon || [])} />
-
-                <CustomOverlayMap
-                  yAnchor={1.1}
-                  position={{ lat: polygon.lat, lng: polygon.lng }}>
-                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                    <span className={`flex items-center font-bold text-green-900 `}>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
-                    <span className="flex items-center text-gray-500 text-[12px]">{polygon.repairCreateDate}</span>
-                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                  </div>
-                  {/* <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
+                  <CustomOverlayMap
+                    yAnchor={1.1}
+                    position={{ lat: polygon.lat, lng: polygon.lng }}>
+                    <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center font-bold text-green-900 `}>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
+                      <span className="flex items-center text-gray-500 text-[12px]">{polygon.repairCreateDate}</span>
+                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                    </div>
+                    {/* <div className="p-[8px] text-sm flex flex-col text-[red] font-bold">
                     <span>{polygon.repairChangeDivName}({polygon.repairChangeDivCode})</span>
                     <span>{polygon.repairCreateDate}</span>
                   </div> */}
-                </CustomOverlayMap>
-              </React.Fragment>
-            ))
-          )}
-          {usagePolygonList && (
-            usagePolygonList.map((polygon) => (
-              <React.Fragment key={polygon.id}>
-                <Polygon
-                  // fillColor={polygon.usageCode === 'UQA123' ? 'green' : 'red'} 
-                  fillColor={getUsageColor(polygon.usageCode)}
-                  fillOpacity={0.3}
-                  strokeColor="grey"
-                  strokeOpacity={0.3}
-                  strokeWeight={1.5}
-                  path={convertXYtoLatLng(polygon?.polygon || [])} />
-
-                <CustomOverlayMap
-                  position={getPolygonCenter(polygon?.polygon)}>
-                  <div className="relative text-sm flex flex-col">
-                    <span className={`flex items-center font-bold text-gray-500 `}>{polygon.usageName}</span>
-                  </div>
-                </CustomOverlayMap>
-              </React.Fragment>
-            ))
-          )}
-          {IS_DEVELOPMENT && showRent && (
-            rentInfoList?.map((rentInfo) => (
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log(rentInfo);
-                  window.open(`https://fin.land.naver.com/articles/${rentInfo.atclNo}`, '_blank');
-                }}
-                key={rentInfo.atclNo}>
-                <CustomOverlayMap
-                  clickable={true}
-                  yAnchor={1.1}
-                  position={{ lat: rentInfo.lat, lng: rentInfo.lng }}>
-                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                    <span className={`flex items-center font-bold ${rentInfo.floorType === '3' ? 'text-red-900' : rentInfo.floorType === '2' ? 'text-blue-700' : 'text-black'}`}>{rentInfo.floorInfo} {rentInfo.roadContact}</span>
-                    <span className="flex items-center text-gray-500 text-[12px]">{krwUnit(Number(((rentInfo.rentPrice * 10000) / (Number(rentInfo.exclArea) * 0.3025)).toFixed(0)))}/평</span>
-                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                  </div>
-                </CustomOverlayMap>
-
-              </div>
-            ))
-          )}
-          {
-            IS_DEVELOPMENT && estimatedPrice && showDeal && (
-              estimatedPrice.refDealList?.map((deal: RefDealInfo, index) => (
-                <CustomOverlayMap
-                  key={deal.id + index}
-                  position={{
-                    lat: deal.position.y,
-                    lng: deal.position.x
-                  }}
-                  yAnchor={1.1}
-                  xAnchor={0.5}
-                >
-                  <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                    <span className={`flex items-center font-bold ${deal.dealType === 'building' ? 'text-blue-600' : 'text-green-600'}`}>{krwUnit(deal.dealPrice, true)}  {deal.dealType === 'building' ? '빌딩' : '토지'}</span>
-                    <span className="flex items-center text-gray-500 text-[12px]">{formatDate(new Date(deal.dealDate), "yy.MM")} {deal.usageName?.replace('지역', '')}</span>
-                    <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                  </div>
-                </CustomOverlayMap>
+                  </CustomOverlayMap>
+                </React.Fragment>
               ))
+            )}
+            {usagePolygonList && (
+              usagePolygonList.map((polygon) => (
+                <React.Fragment key={polygon.id}>
+                  <Polygon
+                    // fillColor={polygon.usageCode === 'UQA123' ? 'green' : 'red'} 
+                    fillColor={getUsageColor(polygon.usageCode)}
+                    fillOpacity={0.3}
+                    strokeColor="grey"
+                    strokeOpacity={0.3}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(polygon?.polygon || [])} />
 
-            )
-          }
-          <AreaOverlay
-            isDrawingArea={isDrawingArea}
-            areaPaths={areaPaths}
-            mousePosition={mousePosition}
-            areas={areas}
-            setAreas={setAreas}
-          />
-          <DistanceOverlay
-            isDrawingDistance={isDrawingDistance}
-            distancePaths={distancePaths}
-            mousePosition={mousePosition}
-            showDistanceOverlay={showDistanceOverlay}
-            distances={distances}
-            distanceLines={distanceLines}
-            setClickLine={setClickLine}
-            setMoveLine={setMoveLine}
-            setDistanceLines={setDistanceLines}
-          />
-        </Map>
+                  <CustomOverlayMap
+                    position={getPolygonCenter(polygon?.polygon)}>
+                    <div className="relative text-sm flex flex-col">
+                      <span className={`flex items-center font-bold text-gray-500 `}>{polygon.usageName}</span>
+                    </div>
+                  </CustomOverlayMap>
+                </React.Fragment>
+              ))
+            )}
+            {IS_DEVELOPMENT && showRent && (
+              rentInfoList?.map((rentInfo) => (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log(rentInfo);
+                    window.open(`https://fin.land.naver.com/articles/${rentInfo.atclNo}`, '_blank');
+                  }}
+                  key={rentInfo.atclNo}>
+                  <CustomOverlayMap
+                    clickable={true}
+                    yAnchor={1.1}
+                    position={{ lat: rentInfo.lat, lng: rentInfo.lng }}>
+                    <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center font-bold ${rentInfo.floorType === '3' ? 'text-red-900' : rentInfo.floorType === '2' ? 'text-blue-700' : 'text-black'}`}>{rentInfo.floorInfo} {rentInfo.roadContact}</span>
+                      <span className="flex items-center text-gray-500 text-[12px]">{krwUnit(Number(((rentInfo.rentPrice * 10000) / (Number(rentInfo.exclArea) * 0.3025)).toFixed(0)))}/평</span>
+                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                    </div>
+                  </CustomOverlayMap>
 
-        <MapToolbar
-          mapType={mapType}
-          changeMapType={changeMapType}
-          level={level}
-          setLevel={setLevel}
-          center={center}
-          setCenter={setCenter}
-        />
-        {roadViewCenter && (
-          <RoadViewOverlay
-            roadViewCenter={roadViewCenter}
-            setRoadViewCenter={setRoadViewCenter}
-            polygon={getMainPolygon(polygonList)}
+                </div>
+              ))
+            )}
+            {
+              IS_DEVELOPMENT && estimatedPrice && showDeal && (
+                estimatedPrice.refDealList?.map((deal: RefDealInfo, index) => (
+                  <CustomOverlayMap
+                    key={deal.id + index}
+                    position={{
+                      lat: deal.position.y,
+                      lng: deal.position.x
+                    }}
+                    yAnchor={1.1}
+                    xAnchor={0.5}
+                  >
+                    <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center font-bold ${deal.dealType === 'building' ? 'text-blue-600' : 'text-green-600'}`}>{krwUnit(deal.dealPrice, true)}  {deal.dealType === 'building' ? '빌딩' : '토지'}</span>
+                      <span className="flex items-center text-gray-500 text-[12px]">{formatDate(new Date(deal.dealDate), "yy.MM")} {deal.usageName?.replace('지역', '')}</span>
+                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                    </div>
+                  </CustomOverlayMap>
+                ))
+
+              )
+            }
+            <AreaOverlay
+              isDrawingArea={isDrawingArea}
+              areaPaths={areaPaths}
+              mousePosition={mousePosition}
+              areas={areas}
+              setAreas={setAreas}
+            />
+            <DistanceOverlay
+              isDrawingDistance={isDrawingDistance}
+              distancePaths={distancePaths}
+              mousePosition={mousePosition}
+              showDistanceOverlay={showDistanceOverlay}
+              distances={distances}
+              distanceLines={distanceLines}
+              setClickLine={setClickLine}
+              setMoveLine={setMoveLine}
+              setDistanceLines={setDistanceLines}
+            />
+          </Map>
+
+          <MapToolbar
+            mapType={mapType}
+            changeMapType={changeMapType}
+            level={level}
+            setLevel={setLevel}
+            center={center}
+            setCenter={setCenter}
           />
-        )}
-      </div>
-      {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-      <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
-        {landInfo ?
-          <LandInfoCard
-            landInfo={landInfo}
-            buildingList={buildingList}
-            businessDistrict={businessDistrict}
-            estimatedPrice={estimatedPrice}
-            place={place}
-            onClose={() => {
-              setLandInfo(null)
-              setOpenAIReport(false)
-              setPolygonList(null)
-            }}
-            onOpenAIReport={() => {
-              setOpenAIReport(true)
-              console.log('landInfo', landInfo)
-            }}
-          /> :
-          <HomeBoard
-            selectedVideo={selectedVideo}
-            setSelectedVideo={(video) => {
-              setSelectedVideo(video);
-              setPlayerMode("large");
-            }}
-            openVideoMiniPlayer={openVideoMiniPlayer}
-            setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
-          />}
-        <button
-          onClick={() => setOpenLeftPanel(v => !v)}
-          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
-          {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
-        </button>
-      </div>
-      {/* Mobile BottomSheet */}
-      {landInfo && createPortal(
-        <div
+          {roadViewCenter && (
+            <RoadViewOverlay
+              roadViewCenter={roadViewCenter}
+              setRoadViewCenter={setRoadViewCenter}
+              polygon={getMainPolygon(polygonList)}
+            />
+          )}
+        </div>
+        {/* <div className="w-[400px] h-full border-r border-line-03"> */}
+        <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+          {landInfo ?
+            <LandInfoCard
+              landInfo={landInfo}
+              buildingList={buildingList}
+              businessDistrict={businessDistrict}
+              estimatedPrice={estimatedPrice}
+              place={place}
+              onClose={() => {
+                setLandInfo(null)
+                setOpenAIReport(false)
+                setPolygonList(null)
+              }}
+              onOpenAIReport={() => {
+                setOpenAIReport(true)
+                console.log('landInfo', landInfo)
+              }}
+            /> :
+            <HomeBoard
+              selectedVideo={selectedVideo}
+              setSelectedVideo={(video) => {
+                setSelectedVideo(video);
+                setPlayerMode("large");
+              }}
+              openVideoMiniPlayer={openVideoMiniPlayer}
+              setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
+            />}
+          <button
+            onClick={() => setOpenLeftPanel(v => !v)}
+            className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
+            {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
+          </button>
+        </div>
+        {/* Mobile BottomSheet */}
+        {landInfo && createPortal(
+          <div
             onClick={() => {
               setIsBottomSheetExpanded(true);
             }}
@@ -1022,46 +1022,46 @@ export default function Main() {
               />
             </div>
           </div>,
-        document.body
-      )}
-      <SearchBar
-        onShowFilterSetting={(on) => {
-          console.log('onShowFilterSetting', on);
-          setShowFilterSetting(on);
-        }}
-        onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-          console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-          setFilter({
-            on,
-            areaRange,
-            farRange,
-            buildingAgeRange,
-            usageList,
-          });
-        }}
-        onSelect={(id) => {
-          console.log('onSelect', id);
-          getPolygon({ id, changePosition: true });
-        }}
-      />
-      {
-        (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-          <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-            <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
-              TIP
-            </p>
-            <p className="font-s3 text-text-02 whitespace-nowrap">
-              필터 결과를 보려면 지도를 더 확대 해주세요.
-            </p>
-          </div>
-        )
-      }
-      <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
+          document.body
+        )}
+        <SearchBar
+          onShowFilterSetting={(on) => {
+            console.log('onShowFilterSetting', on);
+            setShowFilterSetting(on);
+          }}
+          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+            setFilter({
+              on,
+              areaRange,
+              farRange,
+              buildingAgeRange,
+              usageList,
+            });
+          }}
+          onSelect={(id) => {
+            console.log('onSelect', id);
+            getPolygon({ id, changePosition: true });
+          }}
+        />
         {
-          IS_DEVELOPMENT && (
-            <div className="flex flex-col gap-[4px] min-w-[250px]">
-              <div className="flex gap-[4px]">
-                {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+            <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+                TIP
+              </p>
+              <p className="font-s3 text-text-02 whitespace-nowrap">
+                필터 결과를 보려면 지도를 더 확대 해주세요.
+              </p>
+            </div>
+          )
+        }
+        <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
+          {
+            IS_DEVELOPMENT && (
+              <div className="flex flex-col gap-[4px] min-w-[250px]">
+                <div className="flex gap-[4px]">
+                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">용도</p>
                     <Switch
                       checked={showUsage}
@@ -1069,37 +1069,37 @@ export default function Main() {
                       isLabel={true}
                     />
                   </div> */}
-                <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">임대</p>
-                  <Switch
-                    checked={showRent}
-                    onChange={() => { setShowRent(!showRent) }}
-                    isLabel={true}
-                  />
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">임대</p>
+                    <Switch
+                      checked={showRent}
+                      onChange={() => { setShowRent(!showRent) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-[4px]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">실거래</p>
+                    <Switch
+                      checked={showDeal}
+                      onChange={() => { setShowDeal(!showDeal) }}
+                      isLabel={true}
+                    />
+                  </div>
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">대수선</p>
+                    <Switch
+                      checked={showRemodel}
+                      onChange={() => { setShowRemodel(!showRemodel) }}
+                      isLabel={true}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-[4px]">
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">실거래</p>
-                  <Switch
-                    checked={showDeal}
-                    onChange={() => { setShowDeal(!showDeal) }}
-                    isLabel={true}
-                  />
-                </div>
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">대수선</p>
-                  <Switch
-                    checked={showRemodel}
-                    onChange={() => { setShowRemodel(!showRemodel) }}
-                    isLabel={true}
-                  />
-                </div>
-              </div>
-            </div>
-          )
-        }
-        {/* <Button
+            )
+          }
+          {/* <Button
             onClick={() => {
               setOpenAIChat(true);
             }}
@@ -1108,79 +1108,81 @@ export default function Main() {
             <BuildingShopBITextSmall />
             <p className="font-s1-p text-white">질의하기</p>
           </Button> */}
-        <Button
-          onClick={() => {
-            setOpenAIChat(true);
-          }}
-          className="w-[46px] h-[46px] md:w-[60px] md:h-[60px] rounded-full flex items-center justify-center gap-[8px]"
-        >
-          <BotMessageSquare className="w-[22px] h-[22px] md:w-[32px] md:h-[32px]" />
-        </Button>
-      </div>
-      {openVideoMiniPlayer && (
-        <div
-          className={`fixed z-50 bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02
-            ${playerMode === "large"
-              ? "left-[30%] top-[17%] w-[80%] h-[605px] max-w-[960px] aspect-video scale-100"
-              : "bottom-2 right-2 w-[480px] h-[320px]"}`
-          }
-        >
-          <div className={`flex items-center justify-between py-[7px] border-b border-line-02 ${playerMode === "mini" ? "h-[44px]" : "h-[64px]"}`}>
-            <div className="flex items-center gap-[13px] px-[12px] py-[14px]">
-              <p className={playerMode === "mini" ? "font-h4" : "font-h3"}>빌딩의 신</p>
-              <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20} />
-            </div>
-            <div className={`flex items-center gap-[13px] ${playerMode === "mini" ? "px-[12px]" : "px-[20px]"}`}>
-              {playerMode === "mini" ? (
-                <button onClick={() => setPlayerMode("large")}>
-                  <PictureInPicture2 size={20} />
-                </button>
-              ) : (
-                <button onClick={() => setPlayerMode("mini")}>
-                  <PictureInPicture size={20} />
-                </button>
-              )}
-              <button onClick={() => setOpenVideoMiniPlayer(false)}>
-                <X size={20} />
-              </button>
-            </div>
-          </div>
-          <div className={playerMode === "large" ? "w-[960px] h-[540px]" : "w-[488px] h-[275px]"}>
-            <iframe
-              src={`https://www.youtube.com/embed/${selectedVideo?.videoId}?autoplay=1`}
-              allow="autoplay; clipboard-write; encrypted-media; gyroscope;"
-              allowFullScreen
-              className="w-full h-full"
-            />
-          </div>
+          <Button
+            onClick={() => {
+              setOpenAIChat(true);
+            }}
+            className="w-[46px] h-[46px] md:w-[60px] md:h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+          >
+            <BotMessageSquare className="w-[22px] h-[22px] md:w-[32px] md:h-[32px]" />
+          </Button>
         </div>
-      )}
-      {
-        openAIReport &&
-        <AIReport
-          key={landInfo?.id}
-          landId={landInfo?.id}
-          onReportCreated={(reportResult) => {
-            setRentInfoList(reportResult.aroundRentInfo);
-          }}
-          onClose={() => {
-            setOpenAIReport(false);
-            setRentInfoList([]);
-          }}
-        />
-      }
-      {openAIChat && (
-        <AIChat
-          open={openAIChat}
-          onClose={() => setOpenAIChat(false)}
-        />
-      )}
-      {/* <GNB onHomeClick={() => {
+        {openVideoMiniPlayer && (
+          <div
+            className={`fixed z-50 bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02
+            ${playerMode === "large"
+                ? "left-[30%] top-[17%] w-[80%] h-[605px] max-w-[960px] aspect-video scale-100"
+                : "bottom-2 right-2 w-[480px] h-[320px]"}`
+            }
+          >
+            <div className={`flex items-center justify-between py-[7px] border-b border-line-02 ${playerMode === "mini" ? "h-[44px]" : "h-[64px]"}`}>
+              <div className="flex items-center gap-[13px] px-[12px] py-[14px]">
+                <p className={playerMode === "mini" ? "font-h4" : "font-h3"}>빌딩의 신</p>
+                <YoutubeLogo width={playerMode === "mini" ? 64 : 82} height={playerMode === "mini" ? 14 : 20} />
+              </div>
+              <div className={`flex items-center gap-[13px] ${playerMode === "mini" ? "px-[12px]" : "px-[20px]"}`}>
+                {playerMode === "mini" ? (
+                  <button onClick={() => setPlayerMode("large")}>
+                    <PictureInPicture2 size={20} />
+                  </button>
+                ) : (
+                  <button onClick={() => setPlayerMode("mini")}>
+                    <PictureInPicture size={20} />
+                  </button>
+                )}
+                <button onClick={() => setOpenVideoMiniPlayer(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className={playerMode === "large" ? "w-[960px] h-[540px]" : "w-[488px] h-[275px]"}>
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedVideo?.videoId}?autoplay=1`}
+                allow="autoplay; clipboard-write; encrypted-media; gyroscope;"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        )}
+        {
+          openAIReport &&
+          createPortal(
+            <AIReport
+              key={landInfo?.id}
+              landId={landInfo?.id}
+              onReportCreated={(reportResult) => {
+                setRentInfoList(reportResult.aroundRentInfo);
+              }}
+              onClose={() => {
+                setOpenAIReport(false);
+                setRentInfoList([]);
+              }}
+            />,
+            document.body
+          )}
+        {openAIChat && (
+          <AIChat
+            open={openAIChat}
+            onClose={() => setOpenAIChat(false)}
+          />
+        )}
+        {/* <GNB onHomeClick={() => {
         setLandInfo(null);
         setOpenAIReport(false);
         setOpenLeftPanel(true);
       }} /> */}
-    </div>
+      </div>
     </MainContext.Provider>
   );
 }

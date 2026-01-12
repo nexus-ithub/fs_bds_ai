@@ -13,7 +13,7 @@ import { AIReportDetailDialog } from "./AIReportDetailDialog";
 import { Dialog, Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
 import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
-import { CircleQuestionMarkIcon } from "lucide-react";
+import { CalculatorIcon, CircleQuestionMarkIcon } from "lucide-react";
 
 
 export interface AIReportProps {
@@ -274,21 +274,21 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
 
 
   return (
-    <div className="fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end">
+    <div className="fixed z-[70] inset-0 md:inset-y-0 md:top-[64px] md:right-0 md:left-auto flex justify-end">
       <div className={`
-          flex flex-col w-[768px] h-full bg-white rounded-l-[12px]
+          flex flex-col w-full md:w-[768px] h-full bg-white md:rounded-l-[12px]
           shadow-[-16px_0_32px_0_rgba(0,0,0,0.08)]
           transform transition-transform duration-200 ease-out
           ${mounted ? "translate-x-0" : "translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between px-[24px] h-[64px]">
+        <div className="flex flex-row items-center justify-between px-[16px] md:px-[24px] h-[56px] md:h-[64px] border-b border-line-02 md:border-b-0">
           <div className="flex items-center h-full gap-[8px]">
             <BuildingShopBIMain />
             <AIReportLogo />
           </div>
 
-          <div className="flex items-center font-s3 text-text-03 divide-x-[1px]   divide-line-03">
+          <div className="flex items-center font-s3 text-text-03 divide-x-[1px] divide-line-03">
             {/* <button className="flex items-center px-[16px] gap-[4px]">
                 공유하기
                 <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
@@ -297,25 +297,26 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
             {
               IS_DEVELOPMENT &&
               <button
-                className="flex items-center px-[16px] gap-[4px] text-red-500 font-bold"
+                className="flex items-center px-[8px] md:px-[16px] gap-[4px] text-red-500 font-bold"
                 onClick={() => {
                   getAIReportDebugInfo()
 
                 }}
               >
-                상세보기 (개발확인용)
+                <span className="hidden md:inline">상세보기 (개발확인용)</span>
+                <CalculatorIcon size={20} />
               </button>
             }
 
             <button
-              className="flex items-center px-[16px] gap-[4px]"
+              className="flex items-center px-[8px] md:px-[16px] gap-[4px]"
               onClick={addBookmark}
             >
-              관심물건 추가
+              <span className="hidden md:inline">관심물건 추가</span>
               {isBookmarked ? <BookmarkFilledIcon /> : <BookmarkIcon />}
             </button>
             <button
-              className="flex items-center pl-[16px]"
+              className="flex items-center pl-[8px] md:pl-[16px]"
               onClick={onClose}
             >
               <CloseIcon />
@@ -323,8 +324,9 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
           </div>
         </div>
 
-        <div className="flex-1 px-[24px] pb-[24px] space-y-[24px] overflow-y-auto">
-          <div className="flex rounded-[8px] border border-line-02">
+
+        <div className="flex-1 px-[16px] md:px-[24px] pt-[16px] md:pt-[0px] pb-[24px] space-y-[24px] overflow-y-auto">
+          <div className="flex flex-col md:flex-row rounded-[8px] border border-line-02">
             <Roadview
               zoom={-3}
               onInit={handleLoad}
@@ -345,7 +347,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                 // })
               }}
               position={{ lat: polygon?.lat, lng: polygon?.lng, radius: 200 }}
-              className="w-[340px] min-h-[260px] object-cover rounded-l-[8px]"
+              className="w-full md:w-[340px] h-[200px] md:min-h-[260px] object-cover rounded-t-[8px] md:rounded-t-none md:rounded-l-[8px]"
             >
               <RoadviewMarker position={{ lat: polygon?.lat, lng: polygon?.lng }} />
             </Roadview>
@@ -467,34 +469,23 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                   <p className="text-text-03 font-s3">
                     해당 물건을 분석하여 건축 ∙ 리모델링 ∙ 임대 시 적합도를 판단하여 적합도 점수와 함께 AI 평가요약을 작성해 드려요.
                   </p>
-                  <div className="mt-[12px] flex p-[16px] rounded-[8px] border border-line-03 gap-[16px]">
-                    <div className="w-[236px]">
+                  <div className="mt-[12px] flex flex-col md:flex-row p-[16px] rounded-[8px] border border-line-03 gap-[16px]">
+                    <div className="w-full md:w-[236px]">
                       <p className="font-h4">항목 별 적합도</p>
                       <div className="mt-[12px] border-b-line-02 border-b-[1px]" />
-                      <div className="mt-[16px] gap-[18px] flex flex-col">
+                      <div className="mt-[16px] gap-[12px] md:gap-[18px] flex flex-col justify-between md:justify-start">
                         {
                           sortedItems?.map((item, index) => (
-                            <div key={index} className="flex items-center gap-[8px] justify-between">
+                            <div key={index} className="flex flex-row items-center gap-[4px] md:gap-[8px] justify-between">
                               <p className="font-s2 text-text-02">{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}{item.title}</p>
                               {getGradeChip(item.value.grade)}
                             </div>
                           ))
                         }
-                        {/* <div className="flex items-center gap-[8px] justify-between">
-                        <p className="font-s2 text-text-02">🥇임대</p>
-                        <p className="font-s3 text-primary bg-primary-010 rounded-[2px] px-[4px] py-[2px]">적합</p>
-                      </div>
-                      <div className="flex items-center gap-[8px] justify-between">
-                        <p className="font-s2 text-text-02">🥈신축</p>
-                        <p className="font-s3 text-purple-060 bg-purple-010 rounded-[2px] px-[4px] py-[2px]">가능</p>
-                      </div>
-                      <div className="flex items-center gap-[8px] justify-between">
-                        <p className="font-s2 text-text-02">🥉리모델링</p>
-                        <p className="font-s3 text-secondary-060 bg-[#FFF2F3] rounded-[2px] px-[4px] py-[2px]">부적합</p>
-                      </div> */}
                       </div>
                     </div>
-                    <div className="w-[1px] bg-line-02" />
+                    <div className="hidden md:block w-[1px] bg-line-02" />
+                    <div className="block md:hidden h-[1px] bg-line-02" />
                     <div className="flex-1 flex flex-col">
                       <div className="flex items-center gap-[12px]">
                         <p className="font-h4">추천항목</p>
@@ -502,7 +493,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                         <p className="font-h4">{sortedItems?.[0]?.title}</p>
                         {getGradeChip(sortedItems?.[0]?.value.grade)}
                       </div>
-                      <p className="flex-1 w-full items-center flex justify-center text-[34px] text-primary font-[var(--font-weight-bold)]">
+                      <p className="flex-1 w-full items-center flex justify-center text-[34px] text-primary font-[var(--font-weight-bold)] py-[8px] md:py-0">
                         {sortedItems?.[0]?.value.grade}
                       </p>
                       <p className="w-full font-s3 bg-surface-second px-[12px] py-[8px] rounded-[2px]">
@@ -523,23 +514,24 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     <div className="flex items-center">
                       {sortedReportItems?.map((item, index) => (
                         <TabButton key={index} fontClassName="font-s1" className="flex-1 h-[48px]" selected={selectedTab === index} onClick={() => { setSelectedTab(index) }}>
-                          {item.title} 설계 리포트
+                          {item.title}<span className="hidden md:inline ml-1">설계 리포트</span>
                         </TabButton>
                       ))}
                     </div>
-                    <div className="flex gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
-                      <div className="flex-1 space-y-[14px]">
+                    <div className="flex flex-col md:flex-row gap-[16px] border-b-line-03 border-b-[1px] border-x-line-03 border-x-[1px] rounded-b-[8px] p-[16px]">
+                      <div className="flex-1 space-y-[10px] md:space-y-[14px]">
                         <ReportItem title="총사업비" value={krwUnit(sortedReportItems?.[selectedTab]?.value.totalProjectCost || 0, true)} />
                         <ReportItem title="초기자본금" value={krwUnit(sortedReportItems?.[selectedTab]?.value.initialCapital || 0, true)} />
                         <ReportItem title="연간임대수익" value={krwUnit(sortedReportItems?.[selectedTab]?.value.annualRentProfit || 0, true)} />
                         <ReportItem title="개발후임대수익률" value={(sortedReportItems?.[selectedTab]?.value.profitRatio * 100).toFixed(1) + '%'} />
                         <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate * 100).toFixed(1) + '%'} />
                       </div>
-                      <div className="w-[1px] bg-line-02" />
-                      <div className="flex-1 flex flex-col items-center gap-[12px]">
+                      <div className="hidden md:block w-[1px] bg-line-02" />
+                      <div className="block md:hidden h-[1px] bg-line-02" />
+                      <div className="flex-1 flex flex-col items-center gap-[8px] md:gap-[12px]">
                         <p className="font-s2">수익률 환산 가치</p>
                         <HDivider />
-                        <p className="flex-1 flex items-center justify-center text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedReportItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
+                        <p className="flex-1 flex items-center justify-center text-[24px] md:text-[30px] text-primary font-[var(--font-weight-bold)]">{krwUnit(sortedReportItems?.[selectedTab]?.value?.expectedSaleAmount || 0, true)}</p>
                       </div>
                     </div>
                   </div>
