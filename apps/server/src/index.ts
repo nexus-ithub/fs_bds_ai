@@ -9,7 +9,7 @@ import cookieParser from 'cookie-parser';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth.routes';
 import { db } from './utils/database';
-import {verifyToken} from "./middleware/auth.middleware";
+import { verifyToken } from "./middleware/auth.middleware";
 import userRoutes from './routes/user.routes';
 import landRoutes from './routes/land.routes';
 import youtubeRoutes from './routes/youtube.routes';
@@ -66,6 +66,22 @@ const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'https://sa.inicis.com',
   'https://kssa.inicis.com'
 ];
+
+app.use((req, res, next) => {
+  console.log('request url', req.url)
+  console.log('request headers', req.headers)
+
+  if (process.env.NODE_ENV === 'production') {
+    // 1. 보안 연결(HTTPS)인지 확인
+    // 헤더의 'x-forwarded-proto'는 로드밸런서(AWS, Heroku 등)를 거칠 때 사용됩니다.
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      next();
+    } else {
+      // 2. HTTP인 경우 HTTPS로 리다이렉트
+      res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+  }
+});
 
 // app.use(cors());
 app.use(cors({
