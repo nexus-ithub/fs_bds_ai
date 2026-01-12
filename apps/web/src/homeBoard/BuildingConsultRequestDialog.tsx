@@ -1,13 +1,14 @@
 
 
 import { Dialog } from "@mui/material";
-import { Button, Checkbox, DotProgress, HDivider, VDivider, type BdsSale, type User } from "@repo/common";
-import { useEffect, useState } from "react";
+import { Button, Checkbox, DotProgress, HDivider, VDivider, CloseIcon, type BdsSale, type User } from "@repo/common";
+import { useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { useQuery, useQueryClient } from "react-query";
+import { useQueryClient } from "react-query";
 import { getAccessToken } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { toast } from "react-toastify";
+import { useMediaQuery } from "@mui/material";
 
 
 export interface BuildingConsultRequestDialogProps {
@@ -35,6 +36,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
   const [phone, setPhone] = useState(config?.phone || '');
   const [text, setText] = useState('');
   const [agree, setAgree] = useState(false);
+  const isMobile = useMediaQuery('(max-width:767px)');
 
   const onSubmit = () => {
     setLoading(true);
@@ -74,10 +76,19 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
       open={open}
       onClose={onClose}
       >
-        <div className="px-[24px] h-[64px] flex items-center gap-[12px]">
-          <p className="font-h4">매입상담 요청하기</p>
-          <VDivider className="h-[12px]" colorClassName="bg-line-03"/>
-          <p className="font-s2 text-text-03">해당 물건의 매입에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+        <div className="px-[24px] h-[54px] flex items-center justify-between md:h-[64px]">
+          <div className="flex items-center gap-[12px]">
+            <p className="font-h4">매입상담 요청하기</p>
+            {
+              !isMobile && (
+                <>
+                  <VDivider className="h-[12px]" colorClassName="bg-line-03"/>
+                  <p className="font-s2 text-text-03">해당 물건의 매입에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+                </>
+              )
+            }
+          </div>
+          <button onClick={onClose} className="font-h3"><CloseIcon/></button>
         </div>
         <HDivider/>
 
@@ -87,24 +98,24 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
             <DotProgress size="sm"/>
           </div>
           :
-          <div className="p-[24px] space-y-[24px]">
-            <div className="space-y-[20px]">
+          <div className="p-[24px] space-y-[16px] md:space-y-[24px]">
+            <div className="space-y-[16px] md:space-y-[20px]">
               <p className="font-h4">고객 정보</p>
-              <div className="flex gap-[20px]">
-                <div className="flex-1 flex flex-col gap-[12px]"> 
+              <div className="flex gap-[20px] md:flex-row flex-col">
+                <div className="flex-1 flex flex-col gap-[8px] md:gap-[12px]"> 
                   <p className="font-s2 text-text-02">고객명</p>
                   <input 
                     disabled={config?.name ? true : false}
-                    className="font-b1 border border-line-03 rounded-[2px] px-[14px] py-[12px]" 
+                    className="font-b2 border border-line-03 rounded-[2px] px-[10px] py-[8px] md:px-[14px] md:py-[12px] md:font-b1" 
                     placeholder="이름을 입력하세요."
                     value={name}
                     onChange={(e) => {setName(e.target.value)}}/>
                 </div>
-                <div className="flex-1 flex flex-col gap-[12px]"> 
+                <div className="flex-1 flex flex-col gap-[8px] md:gap-[12px]"> 
                   <p className="font-s2 text-text-02">연락처</p>
                   <input 
                     disabled={config?.phone ? true : false}
-                    className="font-b1 border border-line-03 rounded-[2px] px-[14px] py-[12px]" 
+                    className="font-b2 border border-line-03 rounded-[2px] px-[10px] py-[8px] md:px-[14px] md:py-[12px] md:font-b1" 
                     placeholder="휴대폰 번호를 입력하세요."
                     value={phone}
                     onChange={(e) => {setPhone(e.target.value)}}/>
@@ -112,13 +123,13 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
               </div>
             </div>
             <HDivider/>
-            <div className="space-y-[18px]">
+            <div className="space-y-[12px] md:space-y-[18px]">
               <p className="font-h4">추가 요청 사항</p>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="본 물건에 대해 문의하실 내용을 작성해 주세요." 
-                className="font-b2 placeholder:text-text-04 h-[120px] focus:outline-none bg-surface-second rounded-[4px] w-full px-[16px] py-[12px] align-top resize-none"/>
+                className="font-b3 placeholder:text-text-04 h-[120px] focus:outline-none bg-surface-second rounded-[4px] w-full px-[10px] py-[8px] align-top resize-none md:px-[16px] md:py-[12px] md:font-b2"/>
             </div>
             {
               !config && (
@@ -129,7 +140,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
                       onClick={(e) => {setAgree(!agree)}} 
                       className="flex items-center gap-[8px]">
                       <Checkbox checked={agree} onChange={(checked) => setAgree(checked)}/>
-                      <p className="font-s2 text-text-02">개인정보 취급방침에 동의합니다.</p>
+                      <p className="font-s3 text-text-02 md:font-s2">개인정보 취급방침에 동의합니다.</p>
                     </button>
                     
                     <div className="font-c2 border border-line-02 rounded-[4px] divide-y divide-line-02">
