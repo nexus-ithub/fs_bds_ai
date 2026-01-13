@@ -533,7 +533,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                         <ReportItem title="초기자본금" value={krwUnit(sortedReportItems?.[selectedTab]?.value.initialCapital || 0, true)} />
                         <ReportItem title="연간임대수익" value={krwUnit(sortedReportItems?.[selectedTab]?.value.annualRentProfit || 0, true)} />
                         <ReportItem title="개발후임대수익률" value={(sortedReportItems?.[selectedTab]?.value.profitRatio * 100).toFixed(1) + '%'} />
-                        <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate * 100).toFixed(1) + '%'} />
+                        <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate).toFixed(2) + '%'} />
                       </div>
                       <div className="w-[1px] bg-line-02" />
                       <div className="flex-1 flex flex-col items-center gap-[12px]">
