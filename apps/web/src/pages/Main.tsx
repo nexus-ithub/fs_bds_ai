@@ -82,6 +82,12 @@ export default function Main() {
   const [politicianList, setPoliticianList] = useState<any[] | null>(null);
   // 정치인
 
+  // 연예인
+  const [showCelebrity, setShowCelebrity] = useState<boolean>(false);
+  const [clickedCelebrityDong, setClickedCelebrityDong] = useState<string | null>(null);
+  const [celebrityPolygonList, setCelebrityPolygonList] = useState<any[] | null>(null);
+  // 연예인
+
   const [filter, setFilter] = useState({
     on: false,
     areaRange: [0, 10000],
@@ -163,7 +169,15 @@ export default function Main() {
     }
     // 정치인
 
-  }, [filter, filterCenter, level, showRemodel, showUsage, showRent, showPolitician]);
+    // 연예인
+    if (IS_DEVELOPMENT && showCelebrity) {
+      getCelebrityPolygonList();
+    } else {
+      setCelebrityPolygonList([]);
+    }
+    // 연예인
+
+  }, [filter, filterCenter, level, showRemodel, showUsage, showRent, showPolitician, showCelebrity]);
 
   useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
@@ -317,6 +331,33 @@ export default function Main() {
       });
   }
   // 정치인
+
+  // 연예인
+  const getCelebrityPolygonList = () => {
+    axiosInstance.get(`/api/celebrity/dong-polygons`)
+      .then((response) => {
+        console.log('Celebrity API response:', response.data);
+        setCelebrityPolygonList(response.data.data || []);
+      })
+      .catch((error) => {
+        console.error(error);
+        setCelebrityPolygonList([]);
+        toast.error("연예인 부동산 조회 중 오류가 발생했습니다.");
+      });
+  }
+
+  // 연예인 수에 따른 색상 반환 (많을수록 빨강, 적을수록 초록)
+  const getCelebrityPolygonColor = (count: number): string => {
+    if (count >= 7) return '#DC2626'; // red - 7명 이상
+    if (count >= 5) return '#F97316'; // orange - 5~6명
+    if (count >= 3) return '#EAB308'; // yellow - 3~4명
+    return '#22C55E'; // green - 1~2명
+  }
+
+  const getCelebrityPolygonOpacity = (count: number): number => {
+    return 0.4; // 동일한 투명도
+  }
+  // 연예인
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
@@ -679,6 +720,10 @@ export default function Main() {
             setClickedPolitician(null);
             // 정치인
 
+            // 연예인 말풍선 닫기
+            setClickedCelebrityDong(null);
+            // 연예인
+
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             if (mapType === 'roadview') {
               setRoadViewCenter({
@@ -898,6 +943,115 @@ export default function Main() {
               </div>
             ))
           )}
+          {/* 연예인 */}
+          {IS_DEVELOPMENT && showCelebrity && Array.isArray(celebrityPolygonList) && celebrityPolygonList.map((dongPolygon: any) => (
+            <React.Fragment key={dongPolygon.legDongCode}>
+              <Polygon
+                fillColor={getCelebrityPolygonColor(dongPolygon.celebrityCount)}
+                fillOpacity={getCelebrityPolygonOpacity(dongPolygon.celebrityCount)}
+                strokeColor={getCelebrityPolygonColor(dongPolygon.celebrityCount)}
+                strokeOpacity={0.8}
+                strokeWeight={2}
+                path={convertXYtoLatLng(dongPolygon.polygon || [])}
+                onClick={() => {
+                  setClickedCelebrityDong(
+                    clickedCelebrityDong === dongPolygon.legDongCode ? null : dongPolygon.legDongCode
+                  );
+                }}
+              />
+              {/* 동 이름 라벨 */}
+              <CustomOverlayMap
+                position={{ lat: dongPolygon.lat, lng: dongPolygon.lng }}
+                yAnchor={0.5}
+                clickable={true}
+              >
+                <div
+                  className="px-2 py-1 bg-white/90 rounded text-xs font-bold cursor-pointer shadow-sm"
+                  style={{
+                    color: getCelebrityPolygonColor(dongPolygon.celebrityCount),
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: getCelebrityPolygonColor(dongPolygon.celebrityCount),
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setClickedCelebrityDong(
+                      clickedCelebrityDong === dongPolygon.legDongCode ? null : dongPolygon.legDongCode
+                    );
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  {dongPolygon.dongName?.split(' ').pop()} ({dongPolygon.celebrityCount})
+                </div>
+              </CustomOverlayMap>
+              {/* 클릭 시 말풍선 */}
+              {clickedCelebrityDong === dongPolygon.legDongCode && (
+                <CustomOverlayMap
+                  position={{ lat: dongPolygon.lat, lng: dongPolygon.lng }}
+                  yAnchor={1.2}
+                  clickable={true}
+                >
+                  <div
+                    className="relative min-w-[200px] max-w-[300px] p-3 bg-white border border-red-300 rounded-lg shadow-lg"
+                    onClick={(e) => e.stopPropagation()}
+                    onWheel={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                  >
+                    {/* 닫기 버튼 */}
+                    <button
+                      className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setClickedCelebrityDong(null);
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                    {/* 헤더 */}
+                    <div className="font-bold text-red-600 mb-2 pr-6">
+                      ⭐ {dongPolygon.dongName?.split(' ').pop()} 연예인 부동산
+                    </div>
+                    {/* 연예인 목록 */}
+                    <div
+                      className="max-h-[200px] overflow-y-auto space-y-2"
+                      onWheel={(e) => e.stopPropagation()}
+                    >
+                      {dongPolygon.celebrities?.map((celeb: any, idx: number) => (
+                        <div key={idx} className="text-sm border-b border-gray-100 pb-2 last:border-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-800">{celeb.name}</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              celeb.transactionType === '매입' ? 'bg-blue-100 text-blue-600' :
+                              celeb.transactionType === '매각' ? 'bg-green-100 text-green-600' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {celeb.transactionType || '소유'}
+                            </span>
+                          </div>
+                          {celeb.price && (
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              💰 {celeb.price}
+                            </div>
+                          )}
+                          {celeb.propertyType && (
+                            <div className="text-xs text-gray-400">
+                              🏢 {celeb.propertyType}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {/* 말풍선 꼬리 */}
+                    <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-red-300"></div>
+                    <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                  </div>
+                </CustomOverlayMap>
+              )}
+            </React.Fragment>
+          ))}
+          {/* 연예인 */}
           {/* 정치인 */}
           {IS_DEVELOPMENT && showPolitician && Array.isArray(politicianList) && (() => {
             // 같은 좌표끼리 그룹핑
@@ -1160,6 +1314,16 @@ export default function Main() {
                       isLabel={true}
                     />
                   </div>
+                  {/* 연예인 */}
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#DC2626] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">연예인</p>
+                    <Switch
+                      checked={showCelebrity}
+                      onChange={() => { setShowCelebrity(!showCelebrity) }}
+                      isLabel={true}
+                    />
+                  </div>
+                  {/* 연예인 */}
                 </div>
                 {/* 정치인 */}
                 <div className="flex gap-[4px]">
