@@ -10,14 +10,24 @@ export class SearchModel {
   static async search(query: string): Promise<SearchResult[] | null> {
     try {
       const normalizedQuery = normalize(query);
-      
+      console.log('normalizedQuery: ', normalizedQuery)
       console.log('search query: ', query)
       const result = await db.query<SearchResult>(
-        `SELECT id, jibun, road, building_name as buildingName FROM address_search WHERE key_jibun LIKE ? OR key_road LIKE ? OR key_building LIKE ? LIMIT 20`,
-        [`%${normalizedQuery}%`, `%${normalizedQuery}%`, `%${normalizedQuery}%`]
+        `SELECT id, jibun, road, building_name as buildingName
+         FROM address_search
+         WHERE key_jibun LIKE ? OR key_road LIKE ? OR key_building LIKE ?
+         ORDER BY
+           CASE
+             WHEN key_jibun = ? THEN 0
+             WHEN key_jibun LIKE ? THEN 1
+             ELSE 2
+           END,
+           LENGTH(jibun)
+         LIMIT 20`,
+        [`%${normalizedQuery}%`, `%${normalizedQuery}%`, `%${normalizedQuery}%`, normalizedQuery, `${normalizedQuery}%`]
       )
       console.log(result);
-     
+
 
       return result || [];
     } catch (error) {
@@ -29,7 +39,7 @@ export class SearchModel {
   static async bmReportSearch(userId: number, query: string, page: number, size: number) {
     try {
       const normalizedQuery = normalize(query);
-      
+
       const countResult = await db.query<{ total: number }>(
         `SELECT COUNT(*) AS total
          FROM address_search AS a
@@ -38,10 +48,10 @@ export class SearchModel {
            AND br.user_id = ? AND br.delete_yn = 'N'`,
         [`%${normalizedQuery}%`, `%${normalizedQuery}%`, `%${normalizedQuery}%`, userId]
       );
-      
+
       const total = countResult[0].total;
       console.log(`size >> ${size}, page >> ${page}`)
-      
+
       const response = await db.query(
         `SELECT br.land_id as landId, br.building_id as buildingId, br.estimated_price as estimatedPrice, br.estimated_price_per as estimatedPricePer,
         ap.leg_dong_code as legDongCode, ap.leg_dong_name as legDongName, ap.jibun, ap.lat, ap.lng, ap.polygon 
@@ -55,8 +65,8 @@ export class SearchModel {
         OFFSET ?`,
         [`%${normalizedQuery}%`, `%${normalizedQuery}%`, `%${normalizedQuery}%`, userId, size, (page - 1) * size]
       )
-     
-      return {total, response};
+
+      return { total, response };
     } catch (error) {
       console.error('Error finding district by lat and lng:', error);
       throw error;
