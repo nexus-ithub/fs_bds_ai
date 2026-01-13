@@ -17,6 +17,7 @@ import bdsRoutes from './routes/bds.routes';
 import { bdsDb } from './utils/bds-database';
 import searchRoutes from './routes/search.routes';
 import chatRoutes from './routes/chat.routes';
+import politicianRoutes from './routes/politician.routes';
 import { posthog } from './utils/analytics';
 import { setupExpressErrorHandler } from 'posthog-node';
 dotenv.config();
@@ -117,6 +118,7 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/bds', bdsRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/politician', politicianRoutes);
 app.use('/api/*', verifyToken);
 
 app.get('/', (req, res) => {

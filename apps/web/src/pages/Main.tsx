@@ -1,6 +1,6 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
-import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
+import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow, MarkerClusterer } from "react-kakao-maps-sdk";
 import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, Button, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
@@ -76,6 +76,12 @@ export default function Main() {
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [touchStart, setTouchStart] = useState<number>(0);
 
+  // 정치인
+  const [showPolitician, setShowPolitician] = useState<boolean>(false);
+  const [clickedPolitician, setClickedPolitician] = useState<string | null>(null);
+  const [politicianList, setPoliticianList] = useState<any[] | null>(null);
+  // 정치인
+
   const [filter, setFilter] = useState({
     on: false,
     areaRange: [0, 10000],
@@ -149,7 +155,15 @@ export default function Main() {
     //   setRentInfoList([]);
     // }
 
-  }, [filter, filterCenter, level, showRemodel, showUsage, showRent]);
+    // 정치인
+    if (IS_DEVELOPMENT && showPolitician) {
+      getPoliticianList();
+    } else {
+      setPoliticianList([]);
+    }
+    // 정치인
+
+  }, [filter, filterCenter, level, showRemodel, showUsage, showRent, showPolitician]);
 
   useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
@@ -276,6 +290,33 @@ export default function Main() {
   //     });
 
   // }
+
+  // 정치인
+  const getPoliticianList = () => {
+    const bounds = mapRef.current?.getBounds();
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    axiosInstance.get(`/api/politician/list`, {
+      params: {
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+        level: level,
+      },
+    })
+      .then((response) => {
+        console.log('Politician API response:', response.data);
+        setPoliticianList(response.data.data || []);
+      })
+      .catch((error) => {
+        console.error(error);
+        setPoliticianList([]);
+        toast.error("정치인 부동산 조회 중 오류가 발생했습니다.");
+      });
+  }
+  // 정치인
 
   const changeMapType = (type: 'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance') => {
     setMapType(type);
@@ -634,6 +675,9 @@ export default function Main() {
             map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
           }}
           onClick={(_, mouseEvent) => {
+            // 정치인 말풍선 닫기
+            setClickedPolitician(null);
+            // 정치인
 
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             if (mapType === 'roadview') {
@@ -854,6 +898,130 @@ export default function Main() {
               </div>
             ))
           )}
+          {/* 정치인 */}
+          {IS_DEVELOPMENT && showPolitician && Array.isArray(politicianList) && (() => {
+            // 같은 좌표끼리 그룹핑
+            const groupedByLocation = politicianList.reduce((acc: any, politician: any) => {
+              if (politician.isCluster) {
+                // 큰 클러스터는 그대로 표시
+                acc.push({ ...politician, items: [politician] });
+              } else {
+                // 개별 마커는 좌표로 그룹핑
+                const key = `${politician.lat},${politician.lng}`;
+                const existing = acc.find((g: any) => g.locationKey === key);
+                if (existing) {
+                  existing.items.push(politician);
+                } else {
+                  acc.push({
+                    locationKey: key,
+                    lat: politician.lat,
+                    lng: politician.lng,
+                    items: [politician],
+                    isCluster: politician.isCluster
+                  });
+                }
+              }
+              return acc;
+            }, []);
+
+            return groupedByLocation.map((group: any, groupIdx: number) => {
+              const firstItem = group.items[0];
+              const itemCount = group.items.length;
+
+              return (
+                <React.Fragment key={group.locationKey || group.id || groupIdx}>
+                  {group.isCluster ? (
+                    /* 큰 클러스터 마커 */
+                    <CustomOverlayMap
+                      position={{ lat: group.lat, lng: group.lng }}
+                    >
+                      <div
+                        className={`flex items-center justify-center w-[40px] h-[40px] rounded-full text-white font-bold border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform ${
+                          group.count >= 50 ? 'bg-red-500' :
+                          group.count >= 20 ? 'bg-orange-500' :
+                          group.count >= 10 ? 'bg-yellow-500' :
+                          'bg-blue-500'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (mapRef.current && level > 1) {
+                            mapRef.current.setLevel(level - 2);
+                            mapRef.current.setCenter({ lat: group.lat, lng: group.lng });
+                          }
+                        }}
+                      >
+                        {group.count}
+                      </div>
+                    </CustomOverlayMap>
+                  ) : (
+                    <>
+                      {/* 개별 마커 */}
+                      <CustomOverlayMap
+                        position={{ lat: group.lat, lng: group.lng }}
+                        yAnchor={1}
+                        clickable={true}
+                      >
+                        <div
+                          className={`
+                            w-[16px] h-[16px] rounded-full cursor-pointer
+                            border-2 border-white transition-transform shadow-md
+                            ${firstItem.accuracy_grade === 'A' ? 'bg-red-500' : ''}
+                            ${firstItem.accuracy_grade === 'B' ? 'bg-orange-500' : ''}
+                            ${firstItem.accuracy_grade === 'C' ? 'bg-yellow-500' : ''}
+                            ${firstItem.accuracy_grade === 'F' ? 'bg-gray-500' : ''}
+                            ${clickedPolitician === group.locationKey ? 'scale-125' : ''}
+                          `}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setClickedPolitician(
+                              clickedPolitician === group.locationKey ? null : group.locationKey
+                            );
+                          }}
+                        ></div>
+                      </CustomOverlayMap>
+
+                      {/* 클릭 시 말풍선 - 모든 데이터 표시 */}
+                      {clickedPolitician === group.locationKey && (
+                        <CustomOverlayMap
+                          position={{ lat: group.lat, lng: group.lng }}
+                          yAnchor={itemCount > 1 ? 1.1 : 1.3}
+                          clickable={true}
+                        >
+                          <div
+                            className="relative bg-white border border-gray-300 rounded-lg shadow-xl p-3 min-w-[200px] max-w-[300px]"
+                            onClick={(e) => e.stopPropagation()}
+                            onWheel={(e) => e.stopPropagation()}
+                          >
+                            {itemCount > 1 && (
+                              <p className="font-bold text-[11px] text-blue-600 mb-2">
+                                이 위치에 {itemCount}건의 부동산이 있습니다
+                              </p>
+                            )}
+                            <div className={`flex flex-col gap-2 ${itemCount > 3 ? 'max-h-[300px] overflow-y-auto' : ''}`}>
+                              {group.items.map((item: any, idx: number) => (
+                                <div key={item.id || idx} className={`flex flex-col gap-1 ${idx > 0 ? 'pt-2 border-t border-gray-200' : ''}`}>
+                                  <p className="font-bold text-[13px]">{item.name}</p>
+                                  <p className="text-[11px] text-gray-600">{item.organization} · {item.position_title}</p>
+                                  <p className="text-[11px] text-gray-600">{item.address_normalized}</p>
+                                  <p className="text-[13px] font-semibold text-blue-600">{krwUnit(item.price)}</p>
+                                  <p className="text-[10px] text-gray-500">
+                                    정확도: {item.accuracy_grade}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                            {/* 말풍선 꼬리 */}
+                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white"></div>
+                          </div>
+                        </CustomOverlayMap>
+                      )}
+                    </>
+                  )}
+                </React.Fragment>
+              );
+            });
+          })()}
+          {/* 정치인 */}
           {
             IS_DEVELOPMENT && estimatedPrice && showDeal && (
               estimatedPrice.refDealList?.map((deal: RefDealInfo, index) => (
@@ -914,7 +1082,7 @@ export default function Main() {
         )}
       </div>
       {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-      <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`absolute left-0 top-0 h-full w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
         {landInfo ?
           <LandInfoCard
             landInfo={landInfo}
@@ -943,9 +1111,114 @@ export default function Main() {
           />}
         <button
           onClick={() => setOpenLeftPanel(v => !v)}
-          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
+          className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px]">
           {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
         </button>
+        <SearchBar
+          onShowFilterSetting={(on) => {
+            console.log('onShowFilterSetting', on);
+            setShowFilterSetting(on);
+          }}
+          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+            setFilter({
+              on,
+              areaRange,
+              farRange,
+              buildingAgeRange,
+              usageList,
+            });
+          }}
+          onSelect={(id) => {
+            console.log('onSelect', id);
+            getPolygon({ id, changePosition: true });
+          }}
+        />
+        {
+          (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
+            <div className={`fixed z-30 ${showFilterSetting ? 'left-[840px]' : 'left-[425px]'} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+                TIP
+              </p>
+              <p className="font-s3 text-text-02 whitespace-nowrap">
+                필터 결과를 보려면 지도를 더 확대 해주세요.
+              </p>
+            </div>
+          )
+        }
+        <div className="fixed z-30 left-[420px] bottom-[22px] flex flex-col gap-[12px]">
+          {
+            IS_DEVELOPMENT && (
+              <div className="flex flex-col gap-[4px] min-w-[250px]">
+                {/* 정치인 */}
+                <div className="flex gap-[4px]">
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#FF6B6B] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">정치인</p>
+                    <Switch
+                      checked={showPolitician}
+                      onChange={() => { setShowPolitician(!showPolitician) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+                {/* 정치인 */}
+                <div className="flex gap-[4px]">
+                  {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                      <p className="font-s2-p">용도</p>
+                      <Switch
+                        checked={showUsage}
+                        onChange={() => {setShowUsage(!showUsage)}}
+                        isLabel={true}
+                      />
+                    </div> */}
+                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">임대</p>
+                    <Switch
+                      checked={showRent}
+                      onChange={() => { setShowRent(!showRent) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-[4px]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">실거래</p>
+                    <Switch
+                      checked={showDeal}
+                      onChange={() => { setShowDeal(!showDeal) }}
+                      isLabel={true}
+                    />
+                  </div>
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                    <p className="font-s2-p">대수선</p>
+                    <Switch
+                      checked={showRemodel}
+                      onChange={() => { setShowRemodel(!showRemodel) }}
+                      isLabel={true}
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          {/* <Button
+              onClick={() => {
+                setOpenAIChat(true);
+              }}
+              className="w-[320px] h-[50px] rounded-full flex items-center justify-center gap-[8px]"
+            >
+              <BuildingShopBITextSmall />
+              <p className="font-s1-p text-white">질의하기</p>
+            </Button> */}
+          <Button
+            onClick={() => {
+              setOpenAIChat(true);
+            }}
+            className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
+          >
+            <BotMessageSquare size={32} />
+          </Button>
+        </div>
       </div>
       {/* Mobile BottomSheet */}
       {landInfo && createPortal(
@@ -1024,99 +1297,6 @@ export default function Main() {
           </div>,
         document.body
       )}
-      <SearchBar
-        onShowFilterSetting={(on) => {
-          console.log('onShowFilterSetting', on);
-          setShowFilterSetting(on);
-        }}
-        onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-          console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-          setFilter({
-            on,
-            areaRange,
-            farRange,
-            buildingAgeRange,
-            usageList,
-          });
-        }}
-        onSelect={(id) => {
-          console.log('onSelect', id);
-          getPolygon({ id, changePosition: true });
-        }}
-      />
-      {
-        (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-          <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-            <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
-              TIP
-            </p>
-            <p className="font-s3 text-text-02 whitespace-nowrap">
-              필터 결과를 보려면 지도를 더 확대 해주세요.
-            </p>
-          </div>
-        )
-      }
-      <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
-        {
-          IS_DEVELOPMENT && (
-            <div className="flex flex-col gap-[4px] min-w-[250px]">
-              <div className="flex gap-[4px]">
-                {/* <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                    <p className="font-s2-p">용도</p>
-                    <Switch
-                      checked={showUsage}
-                      onChange={() => {setShowUsage(!showUsage)}}
-                      isLabel={true}
-                    />
-                  </div> */}
-                <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#446444] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">임대</p>
-                  <Switch
-                    checked={showRent}
-                    onChange={() => { setShowRent(!showRent) }}
-                    isLabel={true}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-[4px]">
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[blue] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">실거래</p>
-                  <Switch
-                    checked={showDeal}
-                    onChange={() => { setShowDeal(!showDeal) }}
-                    isLabel={true}
-                  />
-                </div>
-                <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[green] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
-                  <p className="font-s2-p">대수선</p>
-                  <Switch
-                    checked={showRemodel}
-                    onChange={() => { setShowRemodel(!showRemodel) }}
-                    isLabel={true}
-                  />
-                </div>
-              </div>
-            </div>
-          )
-        }
-        {/* <Button
-            onClick={() => {
-              setOpenAIChat(true);
-            }}
-            className="w-[320px] h-[50px] rounded-full flex items-center justify-center gap-[8px]"
-          >
-            <BuildingShopBITextSmall />
-            <p className="font-s1-p text-white">질의하기</p>
-          </Button> */}
-        <Button
-          onClick={() => {
-            setOpenAIChat(true);
-          }}
-          className="w-[60px] h-[60px] rounded-full flex items-center justify-center gap-[8px]"
-        >
-          <BotMessageSquare size={32} />
-        </Button>
-      </div>
       {openVideoMiniPlayer && (
         <div
           className={`fixed z-50 bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 border border-line-02
