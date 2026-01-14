@@ -151,12 +151,10 @@ export const MyPage = () => {
   }, [config])
 
   useEffect(() => {
-    if (location.pathname === '/myPage' && isDesktop) {
+    if (isDesktop && location.pathname === '/myPage') {
       navigate('/myPage/profile', { replace: true });
-    } else if (location.pathname !== '/myPage' && !isDesktop) {
-      navigate('/myPage', { replace: true });
     }
-  }, [location.pathname, navigate, isDesktop])
+  }, [isDesktop, location.pathname, navigate])
 
   return (
     <>
