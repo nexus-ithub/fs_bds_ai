@@ -1,6 +1,6 @@
 import { DotProgress } from "@repo/common";
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_HOST } from "../../constants";
 import { setToken } from "../../authutil";
@@ -9,7 +9,9 @@ import { trackError, trackEvent } from "../../utils/analytics";
 
 export const OAuthCallback = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const handledRef = useRef(false);
+  const isPopup = !!window.opener;
 
   useEffect(() => {
     if (handledRef.current) return;
@@ -21,17 +23,18 @@ export const OAuthCallback = () => {
     const state = new URLSearchParams(location.search).get("state");
 
     if (!code || !provider) {
-      // 부모 창에 에러 메시지 전송
-      if (window.opener) {
+      if (isPopup) {
         window.opener.postMessage(
-          { 
+          {
             type: 'OAUTH_ERROR',
             message: 'OAuth 인증 정보가 없습니다.'
           },
           window.location.origin
         );
+        window.close();
+      } else {
+        navigate('/login', { state: { message: 'OAuth 인증 정보가 없습니다.' }, replace: true });
       }
-      window.close();
       return;
     }
 
@@ -53,56 +56,53 @@ export const OAuthCallback = () => {
         if (res.status === 206) {  // 완전 신규회원
           posthog.identify(res.data.id);
           trackEvent('signup')
-          
-          if (window.opener) {
+
+          const signupState = {
+            email: res.data.email,
+            name: res.data.name,
+            socialId: res.data.social_id,
+            phone: res.data.phone,
+            profile: res.data.profile,
+            provider: res.data.provider
+          };
+
+          if (isPopup) {
             window.opener.postMessage(
-              { 
-                type: 'OAUTH_REDIRECT',
-                path: '/signup',
-                state: {
-                  email: res.data.email,
-                  name: res.data.name,
-                  socialId: res.data.social_id,
-                  phone: res.data.phone,
-                  profile: res.data.profile,
-                  provider: res.data.provider
-                }
-              },
+              { type: 'OAUTH_REDIRECT', path: '/signup', state: signupState },
               window.location.origin
             );
+            window.close();
+          } else {
+            navigate('/signup', { state: signupState, replace: true });
           }
-          window.close();
           return;
         } else if (res.status === 208) {  // 이미 가입된 회원 || 탈퇴한 회원
-          if (window.opener) {
+          if (isPopup) {
             window.opener.postMessage(
-              { 
-                type: 'OAUTH_REDIRECT',
-                path: '/login',
-                state: { message: res.data.message }
-              },
+              { type: 'OAUTH_REDIRECT', path: '/login', state: { message: res.data.message } },
               window.location.origin
             );
+            window.close();
+          } else {
+            navigate('/login', { state: { message: res.data.message }, replace: true });
           }
-          window.close();
           return;
         }
-        
+
         // 로그인 성공
         setToken(res.data.accessToken);
         posthog.identify(res.data.id);
         localStorage.setItem("lastLogin", `${res.data.provider}`);
-        
-        if (window.opener) {
+
+        if (isPopup) {
           window.opener.postMessage(
-            { 
-              type: 'OAUTH_SUCCESS',
-              data: res.data
-            },
+            { type: 'OAUTH_SUCCESS', data: res.data },
             window.location.origin
           );
+          window.close();
+        } else {
+          navigate('/', { replace: true });
         }
-        window.close();
         
       } catch (err) {
         console.error("OAuth 로그인 실패:", err.response);
@@ -113,18 +113,18 @@ export const OAuthCallback = () => {
           page: window.location.pathname,
           severity: 'error'
         })
-        
-        if (window.opener) {
+
+        const errorMessage = err.response?.data?.message || '로그인에 실패했습니다.';
+
+        if (isPopup) {
           window.opener.postMessage(
-            { 
-              type: 'OAUTH_REDIRECT',
-              path: '/login',
-              state: { message: err.response?.data?.message || '로그인에 실패했습니다.' }
-            },
+            { type: 'OAUTH_REDIRECT', path: '/login', state: { message: errorMessage } },
             window.location.origin
           );
+          window.close();
+        } else {
+          navigate('/login', { state: { message: errorMessage }, replace: true });
         }
-        window.close();
       }
     })();
   }, []);
