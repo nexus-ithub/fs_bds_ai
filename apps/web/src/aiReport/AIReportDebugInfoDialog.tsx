@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, type AIReportDebugInfo } from "@repo/common";
+import { Button, CloseIcon, type AIReportDebugInfo } from "@repo/common";
 
 type Props = {
   open: boolean;
@@ -18,6 +18,15 @@ const groupBySeparator = (arr?: string[], sep = "\n") => {
 
 export const AIReportDebugInfoDialog = ({ open, onClose, aiReportDebugInfo }: Props) => {
   if (!aiReportDebugInfo || !open) return null;
+
+  // -------- 모바일 감지 --------
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // -------- 그룹화 로직 (중복 제거) --------
   const { buildInfoList, remodelInfoList, rentInfoList, extraInfoList } = useMemo(() => {
@@ -133,51 +142,56 @@ export const AIReportDebugInfoDialog = ({ open, onClose, aiReportDebugInfo }: Pr
     <>
       {/* 반투명 백드롭 */}
       <div
-        className="fixed inset-0 z-[1000] pointer-events-none"
-        // onMouseDown={backdropOnClick}
+        className="fixed inset-0 z-[1000] bg-black/20 md:bg-transparent md:pointer-events-none"
+        onClick={isMobile ? onClose : undefined}
       />
 
       {/* 플로팅 패널 */}
       <div
         ref={panelRef}
-        className="fixed z-[1001] shadow-2xl rounded-2xl border border-gray-200 bg-white flex flex-col select-none"
-        style={{ left: pos.x, top: pos.y, width: size.w, height: size.h }}
+        className={`fixed z-[1001] shadow-2xl bg-white flex flex-col select-none
+          ${isMobile ? 'inset-0 rounded-none' : 'rounded-2xl border border-gray-200'}`}
+        style={isMobile ? undefined : { left: pos.x, top: pos.y, width: size.w, height: size.h }}
         role="dialog"
         aria-modal="true"
       >
         {/* 헤더(드래그 핸들) */}
         <div
-          className="cursor-move px-4 py-3 border-b border-gray-200 rounded-t-2xl bg-white/90 backdrop-blur sticky top-0"
-          onMouseDown={onHeaderMouseDown}
+          className={`px-4 py-3 border-b border-gray-200 bg-white/90 backdrop-blur sticky top-0
+            ${isMobile ? '' : 'cursor-move rounded-t-2xl'}`}
+          onMouseDown={isMobile ? undefined : onHeaderMouseDown}
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="font-h3">사업계획서 확인(개발용)</p>
-            {/* <div className="flex items-center gap-2">
-              <Button  onClick={onClose}>닫기</Button>
-            </div> */}
+            <p className="font-h4 md:font-h3">사업계획서 확인(개발용)</p>
+            <button
+              className="md:hidden flex items-center"
+              onClick={onClose}
+            >
+              <CloseIcon />
+            </button>
           </div>
         </div>
 
         {/* 콘텐츠 영역 */}
-        <div className="p-5 overflow-auto flex-1 space-y-4">
+        <div className="p-4 md:p-5 overflow-auto flex-1 space-y-4">
           <div className="flex-1">
-            <div className="font-s2 space-y-1 bg-gray-100 p-4 rounded-lg">
+            <div className="font-s3 md:font-s2 space-y-1 bg-gray-100 p-3 md:p-4 rounded-lg">
               {extraInfoList.map((item, i) => (
                 <p key={i}>{item}</p>
               ))}
             </div>
           </div>
 
-          <div className="flex gap-4 min-h-0">
+          <div className="flex flex-col md:flex-row gap-4 min-h-0">
             {/* Build */}
-            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[160px]">
-              <div className="flex flex-col gap-2 font-s2">
+            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[120px] md:min-h-[160px]">
+              <div className="flex flex-col gap-2 font-s3 md:font-s2">
                 {buildInfoList.map((group, gi) => (
-                  <div className="bg-surface-third p-4 rounded-lg border border-gray-200" key={`b-${gi}`}>
+                  <div className="bg-surface-third p-3 md:p-4 rounded-lg border border-gray-200" key={`b-${gi}`}>
                     {group.map((line, li) => (
                       <p
                         key={li}
-                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h3" : ""}`}
+                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h4 md:font-h3" : ""}`}
                       >
                         {line}
                       </p>
@@ -188,14 +202,14 @@ export const AIReportDebugInfoDialog = ({ open, onClose, aiReportDebugInfo }: Pr
             </section>
 
             {/* Remodel */}
-            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[160px]">
-              <div className="flex flex-col gap-2 font-s2">
+            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[120px] md:min-h-[160px]">
+              <div className="flex flex-col gap-2 font-s3 md:font-s2">
                 {remodelInfoList.map((group, gi) => (
-                  <div className="bg-surface-third p-4 rounded-lg border border-gray-200" key={`r-${gi}`}>
+                  <div className="bg-surface-third p-3 md:p-4 rounded-lg border border-gray-200" key={`r-${gi}`}>
                     {group.map((line, li) => (
                       <p
                         key={li}
-                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h3" : ""}`}
+                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h4 md:font-h3" : ""}`}
                       >
                         {line}
                       </p>
@@ -206,14 +220,14 @@ export const AIReportDebugInfoDialog = ({ open, onClose, aiReportDebugInfo }: Pr
             </section>
 
             {/* Rent */}
-            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[160px]">
-              <div className="flex flex-col gap-2 font-s2">
+            <section className="flex-1 border border-gray-200 rounded-lg p-2 min-h-[120px] md:min-h-[160px]">
+              <div className="flex flex-col gap-2 font-s3 md:font-s2">
                 {rentInfoList.map((group, gi) => (
-                  <div className="bg-surface-third p-4 rounded-lg border border-gray-200" key={`rent-${gi}`}>
+                  <div className="bg-surface-third p-3 md:p-4 rounded-lg border border-gray-200" key={`rent-${gi}`}>
                     {group.map((line, li) => (
                       <p
                         key={li}
-                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h3" : ""}`}
+                        className={`${line.startsWith("<") ? "text-primary font-bold" : ""} ${li === 0 ? "font-h4 md:font-h3" : ""}`}
                       >
                         {line}
                       </p>
@@ -226,25 +240,26 @@ export const AIReportDebugInfoDialog = ({ open, onClose, aiReportDebugInfo }: Pr
         </div>
 
         {/* 하단 버튼 (스크롤 고정) */}
-        <div className="p-3 border-t border-gray-200 sticky bottom-0 bg-white rounded-b-2xl">
-          <Button className="w-full py-3" fontSize="font-h4" onClick={onClose}>
+        <div className={`p-3 border-t border-gray-200 sticky bottom-0 bg-white ${isMobile ? '' : 'rounded-b-2xl'}`}>
+          <Button className="w-full py-3" fontSize="font-s1 md:font-h4" onClick={onClose}>
             닫기
           </Button>
         </div>
 
-        {/* 우하단 리사이즈 핸들 */}
-        <div
-          ref={resizerRef}
-          onMouseDown={onResizeMouseDown}
-          className="absolute bottom-1 right-1 w-8 h-8 cursor-se-resize"
-          // 시각적인 가이드(삼각형 모양)
-          style={{
-            background:
-              "linear-gradient(135deg, transparent 0 50%, rgba(0,0,0,0.15) 50% 100%)",
-            borderBottomRightRadius: "0.75rem",
-          }}
-          title="Resize"
-        />
+        {/* 우하단 리사이즈 핸들 (데스크톱만) */}
+        {!isMobile && (
+          <div
+            ref={resizerRef}
+            onMouseDown={onResizeMouseDown}
+            className="absolute bottom-1 right-1 w-8 h-8 cursor-se-resize"
+            style={{
+              background:
+                "linear-gradient(135deg, transparent 0 50%, rgba(0,0,0,0.15) 50% 100%)",
+              borderBottomRightRadius: "0.75rem",
+            }}
+            title="Resize"
+          />
+        )}
       </div>
     </>
   );

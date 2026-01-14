@@ -1,7 +1,7 @@
 
 
-import { Dialog } from "@mui/material";
-import { Button, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
+import { Dialog, useMediaQuery, useTheme } from "@mui/material";
+import { Button, CloseIcon, DotProgress, getAreaStrWithPyeong, getBuildingRelInfoText, getJibunAddress, getRatioStr, getRoadAddress, HDivider, krwUnit, VDivider, type AIReportDetail, type LandInfo, type User } from "@repo/common";
 import { getGradeChip } from "../utils";
 import { type EstimatedPrice } from "@repo/common";
 import { useEffect, useState } from "react";
@@ -21,6 +21,9 @@ export interface ConsultRequestDialogProps {
 
 export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDialogProps) => {
   console.log(">>>landID", landId)
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   const queryClient = useQueryClient()
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
 
@@ -76,33 +79,44 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
   return (
     <Dialog
       fullWidth
+      fullScreen={isMobile}
+      transitionDuration={isMobile ? 0 : undefined}
       sx={{
         '& .MuiDialog-paper': {
           width: '100%',
-          maxWidth: '640px',
+          maxWidth: isMobile ? '100%' : '640px',
+          borderRadius: isMobile ? 0 : undefined,
         },
       }}
       open={open}
       onClose={onClose}
       >
-        <div className="px-[24px] h-[64px] flex items-center gap-[12px]">
-          <p className="font-h4">설계상담요청하기</p>
-          <VDivider className="h-[12px]" colorClassName="bg-line-03"/>
-          <p className="font-s2 text-text-03">해당 물건의 설계에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+        <div className="px-[16px] md:px-[24px] h-[56px] md:h-[64px] flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center gap-[4px] md:gap-[12px]">
+            <p className="font-h4">설계상담요청하기</p>
+            <VDivider className="h-[12px] hidden md:block" colorClassName="bg-line-03"/>
+            <p className="font-s3 md:font-s2 text-text-03">해당 물건의 설계에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+          </div>
+          <button
+            className="md:hidden flex items-center"
+            onClick={onClose}
+          >
+            <CloseIcon />
+          </button>
         </div>
         <HDivider/>
 
-        { 
-          loading ? 
+        {
+          loading ?
           <div className="flex flex-col items-center justify-center h-[120px]">
             <DotProgress size="sm"/>
           </div>
           :
-          <div className="p-[24px] space-y-[24px]">
+          <div className="p-[16px] md:p-[24px] space-y-[16px] md:space-y-[24px] flex-1">
             <div className="space-y-[12px]">
               <p className="font-h4">물건 정보</p>
               <div className="flex flex-col gap-[10px]">
-                <div className="flex gap-[12px]">
+                <div className="flex flex-col md:flex-row gap-[6px] md:gap-[12px]">
                   <p className="font-s1-p">{getJibunAddress(landInfo)}</p>
                   {
                     landInfo.roadName && (
@@ -111,9 +125,9 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
                         <p className="font-s3 flex items-center text-text-03">{getRoadAddress(landInfo)}</p>
                       </div>
                     )
-                  }                
+                  }
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-[6px]">
                   <div className="flex items-center gap-[6px]">
                     {
                       landInfo.usageName && (
@@ -124,43 +138,43 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
                       landInfo.relMainUsageName && (
                         <p className="font-c2-p text-purple-060 bg-purple-010 rounded-[2px] px-[6px] py-[2px]">{landInfo.relMainUsageName}</p>
                       )
-                    }               
+                    }
                   </div>
                   <div className="flex items-center gap-[4px] font-s3 text-text-02">
                     {getBuildingRelInfoText(landInfo)}
-                  </div>                  
+                  </div>
                 </div>
-          
-                <div className="flex gap-[12px] items-center">
+
+                <div className="flex flex-col md:flex-row gap-[8px] md:gap-[12px] md:items-center">
                   <div className="flex-1 flex items-center justify-between">
                     <p className="font-s3 text-text-03">토지면적{landInfo.relParcelCount > 1 ? ' (합계)' : ''}</p>
                     <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relTotalArea)}</p>
                   </div>
-                  <VDivider colorClassName="bg-line-02"/>
+                  <VDivider colorClassName="bg-line-02" className="hidden md:block"/>
                   <div className="flex-1 flex items-center justify-between">
                     <p className="font-s3 text-text-03">연면적{landInfo.relBuildingCount > 1 ? ' (합계)' : ''}</p>
                     <p className="font-s3 text-text-02">{getAreaStrWithPyeong(landInfo.relFloorAreaSum)}</p>
-                  </div>        
+                  </div>
                 </div>
               </div>
             </div>
 
             <HDivider/>
-            <div className="space-y-[18px]">
+            <div className="space-y-[12px] md:space-y-[18px]">
               <p className="font-h4">상담 내용 입력</p>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="본 물건에 대해 문의하실 내용을 작성해 주세요." 
+                placeholder="본 물건에 대해 문의하실 내용을 작성해 주세요."
                 className="font-b2 placeholder:text-text-04 h-[120px] focus:outline-none bg-surface-second rounded-[4px] w-full px-[16px] py-[12px] align-top resize-none"/>
-              
+
             </div>
           </div>
         }
         <HDivider/>
-        <div className="w-full flex p-[24px] gap-[10px]">
-          <Button variant="bggray" fontSize="font-h4" size="medium" className="w-[200px]" onClick={() => {onClose()}}>취소</Button>
-          <Button disabled={!text} className="flex-1" fontSize="font-h4" size="medium" onClick={() => {onSubmit()}}>문의하기</Button>
+        <div className="w-full flex p-[16px] md:p-[24px] gap-[10px]">
+          <Button variant="bggray" fontSize="font-s1 md:font-h4" size="medium" className="w-[120px] md:w-[200px]" onClick={() => {onClose()}}>취소</Button>
+          <Button disabled={!text} className="flex-1" fontSize="font-s1 md:font-h4" size="medium" onClick={() => {onSubmit()}}>문의하기</Button>
         </div>
     </Dialog>
   )
