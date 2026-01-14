@@ -4,7 +4,7 @@ import { CheckIcon, ChevronRightCustomIcon, HDivider, type User } from "@repo/co
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Avatar, useMediaQuery } from "@mui/material";
+import { Avatar } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
 import { BookmarkedReport } from "../myPage/BookmarkedReport";
@@ -103,7 +103,6 @@ export const MyPage = () => {
   const [reportCount, setReportCount] = useState<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubPage = location.pathname !== '/myPage';
-  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // 현재 페이지 제목 가져오기
   const getPageTitle = () => {
@@ -150,13 +149,12 @@ export const MyPage = () => {
     getTotalBookmarkedReport();
   }, [config])
 
+  // 데스크탑에서 /myPage 접속 시 자동으로 profile로 이동
   useEffect(() => {
-    if (location.pathname === '/myPage' && isDesktop) {
+    if (location.pathname === '/myPage' && window.innerWidth >= 768) {
       navigate('/myPage/profile', { replace: true });
-    } else if (location.pathname !== '/myPage' && !isDesktop) {
-      navigate('/myPage', { replace: true });
     }
-  }, [location.pathname, navigate, isDesktop])
+  }, [location.pathname, navigate])
 
   return (
     <>
