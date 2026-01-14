@@ -367,13 +367,19 @@ export const oAuthCallback = (req: Request, res: Response) => {
         break;
       case 'naver':
         const stateNaver = randomUUID();
-        res.cookie("oauth_state", stateNaver, {
-          httpOnly: true,      
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-          maxAge: 10 * 60 * 1000, // 유효기간 10분
-        });
+        if (process.env.NODE_ENV === "production") {
+          res.cookie("oauth_state", stateNaver, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 10 * 60 * 1000,
+          });
+        }
         redirectUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${process.env.NAVER_CLIENT_ID}&redirect_uri=${process.env.NAVER_REDIRECT_URI}&state=${stateNaver}`;
+        // 개발환경에서는 state를 응답에 포함 (클라이언트가 sessionStorage에 저장)
+        if (process.env.NODE_ENV !== "production") {
+          return res.json({ url: redirectUrl, state: stateNaver });
+        }
         break;
       case 'google':
         // if (process.env.NODE_ENV !== 'production') {
@@ -381,13 +387,19 @@ export const oAuthCallback = (req: Request, res: Response) => {
           return res.json({ message: '⚠️ 정식 오픈 후 이용 가능합니다.' });
         }
         const stateGoogle = randomUUID();
-        res.cookie("oauth_state", stateGoogle, {
-          httpOnly: true,      
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-          maxAge: 10 * 60 * 1000, // 유효기간 10분
-        });
+        if (process.env.NODE_ENV === "production") {
+          res.cookie("oauth_state", stateGoogle, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 10 * 60 * 1000,
+          });
+        }
         redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&scope=openid%20email%20profile&state=${stateGoogle}`;
+        // 개발환경에서는 state를 응답에 포함 (클라이언트가 sessionStorage에 저장)
+        if (process.env.NODE_ENV !== "production") {
+          return res.json({ url: redirectUrl, state: stateGoogle });
+        }
         break;
       default:
         return null;
@@ -514,8 +526,11 @@ const handleGoogle = async(code: string) => {
 
 export const oauth = async (req: Request, res: Response) => {
   try {
-    const { provider, code, state, keepLoggedIn } = req.body;
-    const cookieState = req.cookies.oauth_state;
+    const { provider, code, state, keepLoggedIn, savedState } = req.body;
+    // 프로덕션: 쿠키에서 state 검증, 개발환경: 클라이언트가 보낸 savedState로 검증
+    const cookieState = process.env.NODE_ENV === "production"
+      ? req.cookies.oauth_state
+      : savedState;
     console.log(`provider: ${provider}, code: ${code}, state: ${state}, keepLoggedIn: ${keepLoggedIn}`);
     let user;
 

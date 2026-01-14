@@ -45,8 +45,13 @@ export const LoginMain = () => {
       console.log(response.data)
       
       if (response.data.url) {
-        // 모바일에서는 리다이렉트 방식 사용
-        if (isMobile) {
+        // 개발환경에서는 state를 sessionStorage에 저장 (쿠키가 http에서 작동 안 함)
+        if (response.data.state && import.meta.env.DEV) {
+          sessionStorage.setItem('oauth_state', response.data.state);
+        }
+
+        // 모바일이거나 구글이면 리다이렉트 방식 사용 (구글은 COOP 정책으로 팝업 통신 차단됨)
+        if (isMobile || provider === 'google') {
           window.location.href = response.data.url;
           return;
         }

@@ -40,13 +40,24 @@ export const OAuthCallback = () => {
 
     (async () => {
       try {
+        // 개발환경에서는 sessionStorage에서 state 읽어서 전송
+        const savedState = import.meta.env.DEV
+          ? sessionStorage.getItem('oauth_state')
+          : undefined;
+
+        // 사용 후 삭제
+        if (import.meta.env.DEV) {
+          sessionStorage.removeItem('oauth_state');
+        }
+
         const res = await axios.post(
           `${API_HOST}/api/auth/oauth`,
-          { 
-            provider, 
-            code, 
-            state, 
-            keepLoggedIn: localStorage.getItem("autoLogin") === "true" 
+          {
+            provider,
+            code,
+            state,
+            keepLoggedIn: localStorage.getItem("autoLogin") === "true",
+            savedState
           },
           { withCredentials: true },
         );
@@ -77,13 +88,16 @@ export const OAuthCallback = () => {
           }
           return;
         } else if (res.status === 208) {  // 이미 가입된 회원 || 탈퇴한 회원
+          console.log("이미 가입된 회원");
           if (isPopup) {
+            console.log("팝업");
             window.opener.postMessage(
               { type: 'OAUTH_REDIRECT', path: '/login', state: { message: res.data.message } },
               window.location.origin
             );
             window.close();
           } else {
+            console.log("리다이렉트");
             navigate('/login', { state: { message: res.data.message }, replace: true });
           }
           return;
