@@ -1103,42 +1103,105 @@ export class LandModel {
 
   static async calculatePublicPriceGrowthRate(id: string): Promise<number | null> {
     try {
+      // const changeRates = await db.query<any>(
+      //   `WITH yearly_price AS (
+      //       -- 1) 연도별 평균 price 계산
+      //       SELECT
+      //           CAST(year AS INT) AS y,
+      //           AVG(CAST(price AS DECIMAL(15,0))) AS avg_price
+      //       FROM
+      //           individual_announced_price
+      //       WHERE
+      //           id = ?
+      //           AND year IS NOT NULL
+      //           AND CAST(year AS INT) BETWEEN YEAR(CURDATE()) - 4 AND YEAR(CURDATE())  -- 최근 5년
+      //       GROUP BY
+      //           CAST(year AS INT)
+      //   ),
+      //   yearly_with_prev AS (
+      //       -- 2) 전년도 가격 붙이기 (윈도우 함수 사용)
+      //       SELECT
+      //           y,
+      //           avg_price,
+      //           LAG(avg_price) OVER (ORDER BY y) AS prev_price
+      //       FROM
+      //           yearly_price
+      //   )
+      //   -- 3) 전년 대비 상승률의 평균 계산
+      //   SELECT
+      //       AVG( (avg_price - prev_price) / prev_price ) AS avg_growth_rate_pct
+      //   FROM
+      //       yearly_with_prev
+      //   WHERE
+      //       prev_price IS NOT NULL; 
+      //   `,
+      //   [id]
+      // )
       const changeRates = await db.query<any>(
-        `WITH yearly_price AS (
-            -- 1) 연도별 평균 price 계산
-            SELECT
-                CAST(year AS INT) AS y,
-                AVG(CAST(price AS DECIMAL(15,0))) AS avg_price
-            FROM
-                individual_announced_price
-            WHERE
-                id = ?
-                AND year IS NOT NULL
-                AND CAST(year AS INT) BETWEEN YEAR(CURDATE()) - 4 AND YEAR(CURDATE())  -- 최근 5년
-            GROUP BY
-                CAST(year AS INT)
+        `WITH deduplicated AS (
+          -- 먼저 중복 제거
+          SELECT 
+            id,
+            leg_dong_code,
+            leg_dong_name,
+            jibun,
+            year,
+            CAST(price AS DECIMAL(15,0)) AS price,
+            announce_date,
+            ROW_NUMBER() OVER (
+              PARTITION BY id, year 
+              ORDER BY announce_date DESC
+            ) AS rn
+          FROM individual_announced_price
+          WHERE id = ?
         ),
-        yearly_with_prev AS (
-            -- 2) 전년도 가격 붙이기 (윈도우 함수 사용)
-            SELECT
-                y,
-                avg_price,
-                LAG(avg_price) OVER (ORDER BY y) AS prev_price
-            FROM
-                yearly_price
+        yearly_prices AS (
+          SELECT id, leg_dong_code, leg_dong_name, jibun, year, price
+          FROM deduplicated
+          WHERE rn = 1
+        ),
+        recent_years AS (
+          -- 중복 제거된 데이터에서 최신 5개 연도 추출
+          SELECT year
+          FROM yearly_prices
+          ORDER BY year DESC
+          LIMIT 5
+        ),
+        filtered_prices AS (
+          SELECT *
+          FROM yearly_prices
+          WHERE year IN (SELECT year FROM recent_years)
+        ),
+        yearly_changes AS (
+          SELECT 
+            curr.id,
+            curr.leg_dong_code,
+            curr.leg_dong_name,
+            curr.jibun,
+            curr.year,
+            curr.price AS curr_price,
+            prev.price AS prev_price,
+            ROUND((curr.price - prev.price) / prev.price * 100, 2) AS change_rate
+          FROM filtered_prices curr
+          INNER JOIN filtered_prices prev 
+            ON curr.id = prev.id 
+            AND CAST(curr.year AS SIGNED) = CAST(prev.year AS SIGNED) + 1
+          WHERE prev.price > 0
         )
-        -- 3) 전년 대비 상승률의 평균 계산
-        SELECT
-            AVG( (avg_price - prev_price) / prev_price ) AS avg_growth_rate_pct
-        FROM
-            yearly_with_prev
-        WHERE
-            prev_price IS NOT NULL; 
+        SELECT 
+          id,
+          leg_dong_code,
+          leg_dong_name,
+          jibun,
+          COUNT(*) AS years_count,
+          ROUND(AVG(change_rate), 2) AS avg_change_rate_5yr
+        FROM yearly_changes
+        GROUP BY id, leg_dong_code, leg_dong_name, jibun;
         `,
         [id]
       )
-      if (changeRates[0]?.avg_growth_rate_pct) {
-        return Number(changeRates[0]?.avg_growth_rate_pct);
+      if (changeRates[0]?.avg_change_rate_5yr) {
+        return Number(changeRates[0]?.avg_change_rate_5yr);
       }
       return null;
     } catch (error) {
