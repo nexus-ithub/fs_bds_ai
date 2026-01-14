@@ -394,7 +394,7 @@ export const BookmarkedReport = ({ scrollRef }: { scrollRef: React.RefObject<HTM
   }
 
   return (
-    <div className="w-full flex flex-col gap-[16px] p-[24px] md:p-[40px] md:min-w-[800px]">
+    <div className="w-full flex flex-col gap-[16px] p-[24px] md:p-[40px] md:w-[800px]">
       <div className="flex flex-col gap-[4px]">
         <h2 className="font-h2">관심물건 관리</h2>
         <p className="font-s2 text-text-02">고객님이 직접 검색하여 생성한 리포트에서 추가된 관심물건 목록 입니다.</p>

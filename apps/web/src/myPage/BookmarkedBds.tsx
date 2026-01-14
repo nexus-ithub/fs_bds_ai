@@ -192,7 +192,7 @@ export const BookmarkedBds = ({scrollRef}: {scrollRef: React.RefObject<HTMLDivEl
   }
 
   return (
-    <div className="w-full flex flex-col gap-[16px] p-[24px] md:p-[40px] md:min-w-[800px]">
+    <div className="w-full flex flex-col gap-[16px] p-[24px] md:p-[40px] md:w-[800px]">
       <div className="w-full flex flex-col gap-[4px]">
         <h2 className="font-h2">빌딩샵 추천매물</h2>
         <p className="font-s2 text-text-02">빌딩샵에서 추천하는 실매물 중 관심물건으로 저장한 매물목록 입니다.</p>
