@@ -66,33 +66,31 @@ export const LoginMain = () => {
 
         window.addEventListener('message', messageHandler);
 
+        const popup = window.open(
+          response.data.url,
+          'OAuth Login',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
 
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-        if (isMobile) {
-          // 모바일: 현재 페이지에서 리다이렉트
-          window.location.href = response.data.url;
-        } else {
-          // 데스크톱: 팝업 사용
-          const popup = window.open(
-            response.data.url,
-            'OAuth Login',
-            `width=${width},height=${height},left=${left},top=${top}`
-          );
-
-          if (!popup) {
-            toast.error('팝업이 차단되었습니다.');
-            return;
-          }
-
-          // 팝업이 닫혔는지 주기적으로 확인
-          const checkPopup = setInterval(() => {
-            if (popup.closed) {
-              clearInterval(checkPopup);
-              window.removeEventListener('message', messageHandler);
-            }
-          }, 500);
+        if (!popup) {
+          toast.error('팝업이 차단되었습니다.');
+          return;
         }
+
+        // 팝업이 닫혔는지 주기적으로 확인
+        const checkPopup = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkPopup);
+            window.removeEventListener('message', messageHandler);
+          }
+        }, 500);
+        // const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);  
+        // if (isMobile) {
+        //   // 모바일: 현재 페이지에서 리다이렉트
+        //   window.location.href = response.data.url;
+        // } else {
+
+        // }
         // const popup = window.open(
         //   response.data.url,
         //   'OAuth Login',
