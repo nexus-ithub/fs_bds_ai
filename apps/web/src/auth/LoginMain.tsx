@@ -56,8 +56,7 @@ export const LoginMain = () => {
         const height = 600;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
-<<<<<<< HEAD
-=======
+
 
         const popup = window.open(
           response.data.url,
@@ -70,7 +69,6 @@ export const LoginMain = () => {
           return;
         }
 
->>>>>>> origin/mobile_sook
         // 메시지 리스너 등록
         const messageHandler = (event: MessageEvent) => {
           if (event.origin !== window.location.origin) return;
@@ -89,20 +87,6 @@ export const LoginMain = () => {
 
         window.addEventListener('message', messageHandler);
 
-<<<<<<< HEAD
-        const popup = window.open(
-          response.data.url,
-          'OAuth Login',
-          `width=${width},height=${height},left=${left},top=${top}`
-        );
-
-        if (!popup) {
-          toast.error('팝업이 차단되었습니다.');
-          return;
-        }
-
-=======
->>>>>>> origin/mobile_sook
         // 팝업이 닫혔는지 주기적으로 확인
         const checkPopup = setInterval(() => {
           if (popup.closed) {
