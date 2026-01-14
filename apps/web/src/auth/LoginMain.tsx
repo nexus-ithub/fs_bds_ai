@@ -8,7 +8,7 @@ import { trackError } from "../utils/analytics";
 import { useQueryClient } from 'react-query';
 import { QUERY_KEY_USER } from '../constants';
 import { getAccessToken } from '../authutil';
-import { Dialog } from '@mui/material';
+import { Dialog, useMediaQuery } from '@mui/material';
 import { Mail } from 'lucide-react';
 import { maskEmail, openIdentityVerification } from '../utils';
 
@@ -26,6 +26,7 @@ export const LoginMain = () => {
   const config = queryClient.getQueryData<User>([QUERY_KEY_USER, getAccessToken()]);
   const [openFindAccountDialog, setOpenFindAccountDialog] = useState<boolean>(false);
   const [findAccountResult, setFindAccountResult] = useState<User[]>([]);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     
@@ -44,26 +45,33 @@ export const LoginMain = () => {
       console.log(response.data)
       
       if (response.data.url) {
+        // 모바일에서는 리다이렉트 방식 사용
+        if (isMobile) {
+          window.location.href = response.data.url;
+          return;
+        }
+
+        // 데스크탑에서는 팝업 방식 사용
         const width = 500;
         const height = 600;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
-        
+
         const popup = window.open(
           response.data.url,
           'OAuth Login',
           `width=${width},height=${height},left=${left},top=${top}`
         );
-        
+
         if (!popup) {
           toast.error('팝업이 차단되었습니다.');
           return;
         }
-        
+
         // 메시지 리스너 등록
         const messageHandler = (event: MessageEvent) => {
           if (event.origin !== window.location.origin) return;
-          
+
           if (event.data.type === 'OAUTH_SUCCESS') {
             window.removeEventListener('message', messageHandler);
             navigate('/');
@@ -75,9 +83,9 @@ export const LoginMain = () => {
             toast.error(event.data.message);
           }
         };
-        
+
         window.addEventListener('message', messageHandler);
-        
+
         // 팝업이 닫혔는지 주기적으로 확인
         const checkPopup = setInterval(() => {
           if (popup.closed) {
