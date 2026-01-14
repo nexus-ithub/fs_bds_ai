@@ -154,7 +154,7 @@ export const YoutubeList = ({
                 FILTER_TABS.map((tab, index) => (
                   <React.Fragment key={index}>
                     <SubTabButton
-                      className="py-[14px] flex items-center justify-center"
+                      className="py-[14px] flex items-center justify-center w-full"
                       selected={index === selectedFilterTab}
                       onClick={() => { setSelectedFilterTab(index); setOrder(ORDER[index]) }}
                     >

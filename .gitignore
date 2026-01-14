@@ -14,8 +14,8 @@ node_modules
 
 apps/admin/app/main/agent/setting.json
 script/youtube_bds.sh
-apps/server/buildingshop/
-apps/server/youtube/*
+apps/server/buildingshop
+apps/server/youtube
 
 # Testing
 coverage

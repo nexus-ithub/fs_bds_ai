@@ -1,4 +1,4 @@
-import { Button, Checkbox, Spinner } from "@repo/common";
+import { Button, Checkbox, Spinner, ChevronRightCustomIcon } from "@repo/common";
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
@@ -46,11 +46,21 @@ export const DeleteAccount = () => {
   }, [config])
 
   return (
-    <div className="flex flex-col w-[460px] h-full mx-auto pt-[70px]">
-      <h1 className="font-h1 border-b border-line-02 text-center py-[16px]">회원 탈퇴</h1>
-      <div className="w-full px-[20px] flex flex-col gap-[32px]">
+    <div className="flex flex-col w-[460px] h-full mx-auto pt-[70px] pb-[64px] max-md:pt-0 md:pb-[20px] max-md:w-full max-md:pb-[84px] overflow-y-auto scrollbar-hover">
+      {/* 모바일 헤더 */}
+      <div className="md:hidden flex items-center justify-center p-[14px] border-b border-line-02 relative">
+        <button
+          onClick={() => navigate('/myPage/profile')}
+          className="absolute left-[20px] flex items-center gap-[8px] font-s1-p text-text-01 rotate-180"
+        >
+          <ChevronRightCustomIcon size={16} />
+        </button>
+        <p className="font-s1-p">회원 탈퇴</p>
+      </div>
+      <h1 className="hidden md:block font-h1 border-b border-line-02 text-center py-[16px]">회원 탈퇴</h1>
+      <div className="w-full px-[20px] flex flex-col gap-[16px] md:gap-[32px]">
         <div className="mt-[16px] bg-background-02 rounded-[8px]">
-          <p className="font-h3 mb-[8px]">
+          <p className="mb-[8px] font-s1-p md:font-h3">
             {config?.name}님 정말 탈퇴하시겠어요?
           </p>
           <p className="font-s2">
@@ -58,8 +68,8 @@ export const DeleteAccount = () => {
           </p>
         </div>
         <div>
-          <h3 className="font-h4 pb-[12px]">삭제되는 정보</h3>
-          <ul className="flex flex-col gap-[6px] font-s1 text-text-02">
+          <h3 className="font-h4 pb-[6px] md:pb-[12px]">삭제되는 정보</h3>
+          <ul className="flex flex-col gap-[6px] font-s2 md:font-s1 text-text-02">
             <li>
               <p><span className="mx-[4px]">•</span> 이메일 주소</p>
             </li>
@@ -75,11 +85,11 @@ export const DeleteAccount = () => {
           </ul>
         </div>
         <div>
-          <h3 className="font-h4 pb-[12px]">유의사항</h3>
-          <ul className="flex flex-col gap-[6px] font-s1 text-text-02">
+          <h3 className="font-h4 pb-[6px] md:pb-[12px]">유의사항</h3>
+          <ul className="flex flex-col gap-[6px] font-s2 md:font-s1 text-text-02">
             <li className="flex items-start gap-[8px]">
               <span className="">•</span>
-              <span>삭제된 정보는 <span className="font-s1-p text-text-01">복구가 불가능</span>합니다.</span>
+              <span>삭제된 정보는 <span className="font-s2-p md:font-s1-p text-text-01">복구가 불가능</span>합니다.</span>
             </li>
             <li className="flex items-start gap-[8px]">
               <span className="">•</span>
@@ -105,7 +115,7 @@ export const DeleteAccount = () => {
             fontSize="font-h4" 
             className="w-[150px]" 
             disabled={loading} 
-            onClick={() => navigate("/mypage")}
+            onClick={() => navigate("/mypage/profile")}
           >
             나중에 하기
           </Button>

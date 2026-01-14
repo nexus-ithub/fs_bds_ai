@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAreaStrWithPyeong, getShortAddress, HDivider, krwUnit, SubTabButton, type BdsSale } from "@repo/common";
 import React from "react";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, useMediaQuery } from "@mui/material";
 import { BuildingListDialog } from "./BuildingListDialog";
 import { BuildingDetailDialog } from "./BuildingDetail";
 import axios from "axios";
@@ -37,6 +37,10 @@ const FILTER_TABS = [
   {
     label: '🏡 개발부지/토지',
     value: 'development'
+  },
+  {
+    label: '🏬 꼬마빌딩',
+    value: 'minibuild'
   },
 ]
 
@@ -78,9 +82,10 @@ export const BuildingList = () => {
   // const [order, setOrder] = useState<string>(ORDER[0]);
   const [loading, setLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<boolean>(false);
-
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const [showBuildingListDialog, setShowBuildingListDialog] = useState<boolean>(false);
   const [selectedBuilding, setSelectedBuilding] = useState<BdsSale | null>(null);
+  const tabScrollRef = React.useRef<HTMLDivElement>(null);
   const getBuildings = async () => {
     try {
       setLoading(true);
@@ -112,56 +117,111 @@ export const BuildingList = () => {
     console.log("selectedBuilding", selectedBuilding);
   }, [selectedBuilding]);
 
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (tabScrollRef.current) {
+      const scrollAmount = 200;
+      tabScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-[20px] pt-[20px]">
         <p className="font-h3">빌딩샵 <span className="text-primary">추천 매물</span></p>
-        <button onClick={() => setShowBuildingListDialog(true)} className="font-h6 text-primary">전체매물보기</button>
+        {
+          !isMobile && (
+            <button onClick={() => setShowBuildingListDialog(true)} className="font-h6 text-primary">전체매물보기</button>
+          )
+        }
       </div>
       <p className="px-[20px] mt-[7px] font-s2 text-text-03">빌딩샵에서 추천하는 실거래 매물을 소개해 드려요.</p>
-      <div className="mt-[12px] flex flex-col w-full border-t border-b border-line-02">
-        <div className="flex w-full items-center divide-x divide-line-03">
-          {
-            FILTER_TABS.slice(0, 3).map((tab, index) => (
-              <React.Fragment key={index}>
-                <SubTabButton
-                  className="flex-1 flex items-center justify-center py-[12px]"
-                  selected={tab.value === selectedFilterTab.value}
-                  onClick={() => { setSelectedFilterTab(tab); }}
-                >
-                  {tab.label}
-                </SubTabButton>
-                {/* {index < 2 && (
-                  <div className="flex items-center justify-center">
-                    <VDivider colorClassName="bg-line-03" className="h-[12px]"/>
-                  </div>
-                )} */}
-              </React.Fragment>
-            ))
-          }
+      {isMobile ? (
+        <div className="mt-[12px] w-full border-t border-b border-line-02 relative">
+          <button
+            onClick={() => handleScroll('left')}
+            className="absolute left-0 top-0 bottom-0 z-10 bg-white/90 px-[8px] hover:bg-white"
+          >
+            <span className="text-[20px]">‹</span>
+          </button>
+          <button
+            onClick={() => handleScroll('right')}
+            className="absolute right-0 top-0 bottom-0 z-10 bg-white/90 px-[8px] hover:bg-white"
+          >
+            <span className="text-[20px]">›</span>
+          </button>
+          <div
+            ref={tabScrollRef}
+            className="overflow-x-auto scrollbar-hide px-[8px]"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
+            <div className="flex items-center divide-x divide-line-03 min-w-max">
+              {
+                FILTER_TABS.map((tab, index) => (
+                  <React.Fragment key={index}>
+                    <SubTabButton
+                      className="flex-shrink-0 px-[20px] py-[12px]"
+                      selected={tab.value === selectedFilterTab.value}
+                      onClick={() => { setSelectedFilterTab(tab); }}
+                    >
+                      {tab.label}
+                    </SubTabButton>
+                  </React.Fragment>
+                ))
+              }
+            </div>
+          </div>
         </div>
-        <HDivider colorClassName="bg-line-02"/>
-        <div className="flex w-full items-center divide-x divide-line-03">
-          {
-            FILTER_TABS.slice(3, 6).map((tab, index) => (
-              <React.Fragment key={index}>
-                <SubTabButton
-                  className="flex-1 flex items-center justify-center py-[12px]"
-                  selected={tab.value === selectedFilterTab.value}
-                  onClick={() => { setSelectedFilterTab(tab); }}
-                >
-                  {tab.label}
-                </SubTabButton>
-                {/* {index < 2 && (
-                  <div className="flex items-center justify-center">
-                    <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
-                  </div>
-                )} */}
-              </React.Fragment>
-            ))
-          }
-        </div>        
-      </div>      
+      ) : (
+        <div className="mt-[12px] flex flex-col w-full border-t border-b border-line-02">
+          <div className="flex w-full items-center divide-x divide-line-03">
+            {
+              FILTER_TABS.slice(0, 3).map((tab, index) => (
+                <React.Fragment key={index}>
+                  <SubTabButton
+                    className="flex-1 flex items-center justify-center py-[12px]"
+                    selected={tab.value === selectedFilterTab.value}
+                    onClick={() => { setSelectedFilterTab(tab); }}
+                  >
+                    {tab.label}
+                  </SubTabButton>
+                  {/* {index < 2 && (
+                    <div className="flex items-center justify-center">
+                      <VDivider colorClassName="bg-line-03" className="h-[12px]"/>
+                    </div>
+                  )} */}
+                </React.Fragment>
+              ))
+            }
+          </div>
+          <HDivider colorClassName="bg-line-02"/>
+          <div className="flex w-full items-center divide-x divide-line-03">
+            {
+              FILTER_TABS.slice(3, 6).map((tab, index) => (
+                <React.Fragment key={index}>
+                  <SubTabButton
+                    className="flex-1 flex items-center justify-center py-[12px]"
+                    selected={tab.value === selectedFilterTab.value}
+                    onClick={() => { setSelectedFilterTab(tab); }}
+                  >
+                    {tab.label}
+                  </SubTabButton>
+                  {/* {index < 2 && (
+                    <div className="flex items-center justify-center">
+                      <VDivider colorClassName="bg-line-03" className="!h-[12px]"/>
+                    </div>
+                  )} */}
+                </React.Fragment>
+              ))
+            }
+          </div>  
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto flex flex-col w-full divide-y divide-line-02 scrollbar-hover">
         {loading ? (  
           <div className="flex items-center justify-center py-[60px]">
@@ -194,10 +254,10 @@ export const BuildingList = () => {
               <div className="flex items-center gap-[12px]">
                 <div className="flex-shrink-0 relative">
                   <img
-                    className="w-[160px] h-[160px] rounded-[8px] object-cover" 
+                    className={`rounded-[8px] object-cover ${isMobile ? 'w-[128px] h-[128px]' : 'w-[160px] h-[160px]'}`} 
                     src={building.imagePath || '/bd_img.png'} 
-                    width={160} 
-                    height={160}
+                    width={isMobile ? 128 : 160} 
+                    height={isMobile ? 128 : 160}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = '/bd_img.png';
@@ -205,12 +265,12 @@ export const BuildingList = () => {
                     alt=""/>
                   <p className="absolute top-[4px] left-[4px] w-[20px] h-[20px] flex items-center justify-center bg-primary text-white rounded-[2px] font-s3-p">{index+1}</p>  
                 </div>
-              <div className="flex-1 flex flex-col h-[160px] justify-between">
+              <div className={`flex-1 flex flex-col ${isMobile ? '' : 'h-[160px]'} justify-between`}>
                 {/* <p className="font-h4">{building.name}</p> */}
                 <div className="flex-1 flex flex-col gap-[4px]">
                   <div className="flex-1 w-full font-s4 flex items-center justify-between"><p className="text-text-03">위치</p><p>{getShortAddress(building.addr)}</p></div>
-                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className="font-s1-p text-primary">{krwUnit(building.saleAmount * 10000, true)}</p></div>
-                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">가치평가 점수</p><p className="font-s1-p">{Number(building.buildValue).toFixed(0) + '점'}</p></div>
+                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">매매가</p><p className={`${isMobile ? 'font-s2-p' : 'font-s1-p'} text-primary`}>{krwUnit(building.saleAmount * 10000, true)}</p></div>
+                  <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">가치평가 점수</p><p className={`${isMobile ? 'font-s2-p' : 'font-s1-p'}`}>{Number(building.buildValue).toFixed(0) + '점'}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">수익율</p><p className="font-s3">{(building.sellProfit && building.sellProfit > 0) ? building.sellProfit.toFixed(1) + '%' : '-'}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[2px] justify-between"><p className="text-text-03">대지면적</p><p className="font-s3">{getAreaStrWithPyeong(building.platArea)}</p></div>
                   <div className="flex-1 w-full font-s4 flex items-center gap-[12px] justify-between"><p className="text-text-03">연면적</p><p className="font-s3">{getAreaStrWithPyeong(building.totalArea)}</p></div>

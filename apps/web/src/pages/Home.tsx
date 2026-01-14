@@ -1,7 +1,7 @@
 import useAxiosWithAuth from "../axiosWithAuth";
 import { useNavigate } from "react-router-dom";
 import {useQuery} from "react-query";
-import { getAccessToken, setToken, logout } from "../authutil";
+import { getAccessToken, logout } from "../authutil";
 import { QUERY_KEY_USER } from "../constants";
 import { Header } from "../header";
 import Main from "./Main";
@@ -10,12 +10,17 @@ import { Support } from "./Support";
 import { MyPage } from "./MyPage";
 import { DotProgress } from "@repo/common";
 import { DeleteAccount } from "./DeleteAccount";
+// import { BuildingShopPage } from "./BuildingShopPage";
+// import { GodOfBuildingPage } from "./GodOfBuildingPage";
+import { GNB } from "../components/GNB";
+import { useMainContext } from "../contexts/MainContext";
 
 export const Home = () => {
 
   const axiosInstance = useAxiosWithAuth();
   const navigate = useNavigate();
   const accessToken = getAccessToken();
+  const mainContext = useMainContext();
   const {
     isLoading: checkingConfig,
     data: config,
@@ -47,23 +52,29 @@ export const Home = () => {
 
   if (checkingConfig) {
     return <div className="w-full flex flex-col items-center justify-center overflow-auto h-screen">
-      <DotProgress/>
+      <DotProgress />
     </div>;
-  }  
+  }
 
   return (
-    <div className="flex flex-col w-full h-screen">
-      <Header user={config}/>
-      <div className="min-h-0 flex-1 mt-[64px]">
+    <>
+      {/* <div className="flex flex-col w-full h-screen"> */}
+      <Header user={config} />
+      {/* <div className="min-h-0 flex-1 mt-[64px]"> */}
+      <div className="fixed top-[64px] left-0 right-0 bottom-0 overflow-hidden">
         <Routes>
           <Route path={"/*"} element={<Navigate replace to={"/main"} />} />
           <Route path={'/main'} element={<Main />} />
+          {/* <Route path={'/building-shop'} element={<BuildingShopPage />} />
+          <Route path={'/god-of-building'} element={<GodOfBuildingPage />} /> */}
           <Route path={'/support/*'} element={<Support />} />
           <Route path={'/delete-account'} element={<DeleteAccount />} />
           <Route path={'/myPage/*'} element={<MyPage />} />
-        </Routes>                
+        </Routes>
       </div>
-    </div>
+      {/* </div> */}
+      <GNB onHomeClick={mainContext?.resetMainView} />
+    </>
   );
 }
 

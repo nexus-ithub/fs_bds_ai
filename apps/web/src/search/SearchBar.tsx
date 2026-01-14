@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import debounce from "lodash/debounce";
 import useAxiosWithAuth from "../axiosWithAuth";
 import { CircularProgress, Menu, Slider } from "@mui/material";
+import { ChevronLeft, X } from "lucide-react";
+import { createPortal } from "react-dom";
 
 
 const DEBOUNCE_DELAY = 300
@@ -229,7 +231,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const { recent, push, clear, removeById } = useRecentSelections();
+  const { recent, push, removeById } = useRecentSelections();
   const axiosInstance = useAxiosWithAuth()
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false)
@@ -239,6 +241,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
 
   const containerRef = useRef<HTMLDivElement>(null);
   const recentContainerRef = useRef<HTMLDivElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
 
   const activeControllerRef = useRef<AbortController | null>(null);
   const requestSeqRef = useRef(0);           // 발사된 요청 번호
@@ -481,12 +484,21 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
   const pointInRect = (pt: { x: number; y: number }, rect: DOMRect) =>
     pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom;
 
-  return (
-    <div className="fixed top-[20px] w-[582px] h-[48px] bg-white left-[424px] z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
-      <div className="flex items-center h-full gap-[12px] px-[12px]">
+  const filterSetting = () => {
+    return (
+      <div className="flex items-center gap-[4px]">
         <button
           className={`font-s3 flex items-center gap-[4px] ${showFilterSetting ? 'text-primary-050' : 'text-text-02'}`}
-          onClick={() => setShowFilterSetting(showFilterSetting => !showFilterSetting)}
+          onClick={() => {
+            const newState = !showFilterSetting;
+            setShowFilterSetting(newState);
+            // Prevent body scroll when filter is open on mobile
+            if (window.innerWidth < 768 && newState) {
+              document.body.style.overflow = 'hidden';
+            } else if (!newState) {
+              document.body.style.overflow = '';
+            }
+          }}
         >
           <FilterIcon color={showFilterSetting ? 'var(--primary-050)' : 'var(--gray-070)'} />
           필터
@@ -498,6 +510,16 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           isLabel={true}
         />
         <VDivider className="h-full" />
+      </div>
+    )
+  }
+  return (
+    <div className="absolute left-[14px] md:left-[424px] top-[20px] w-[calc(100%-28px)] md:w-[582px] h-[48px] bg-white  z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
+      <div className="flex items-center h-full gap-[12px] px-[12px]">
+        <div className="hidden md:block">
+          {filterSetting()}
+        </div>
+        <VDivider className="h-full hidden md:block" />
         <SearchIcon />
         <input
           ref={inputRef}
@@ -506,15 +528,20 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           onTouchStart={(e) => e.stopPropagation()}
           // onDoubleClick={(e) => e.currentTarget.focus()}
           onClick={(e) => {
-            // console.log('onClick  ', e.currentTarget)
-            // setMenuAnchorEl(e.currentTarget);
             setMenuAnchorEl(e.currentTarget);
-            // e.stopPropagation();
-            // e.preventDefault();
-            // e.currentTarget.focus();
-
+            // Mobile: focus on mobile input immediately
+            if (window.innerWidth < 768) {
+              // Prevent scroll on focus
+              document.body.style.overflow = 'hidden';
+              // Use requestAnimationFrame to ensure DOM is updated
+              requestAnimationFrame(() => {
+                mobileInputRef.current?.focus();
+                // Scroll to top to prevent jump
+                window.scrollTo(0, 0);
+              });
+            }
           }}
-          onFocus={(e) => {
+          onFocus={() => {
             // console.log('onFocus  ', e.currentTarget)
           }}
           onBlur={() => {
@@ -528,6 +555,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           placeholder="주소 또는 장소를 검색해주세요."
           className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none"
         />
+        {/* Desktop Menu */}
         <Menu
           open={menuAnchorEl != null}
           anchorEl={menuAnchorEl}
@@ -561,6 +589,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
             }
             setMenuAnchorEl(null);
           }}
+          className="hidden md:block"
         >
           <div className="w-[446px] h-[480px] font-s2">
             <div className="w-full h-full flex flex-col">
@@ -642,14 +671,155 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
             </div>
           </div>
         </Menu>
+
+        {/* Mobile Full Screen Search */}
+        {menuAnchorEl && createPortal(
+          <div
+            className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col"
+            onTouchMove={(e) => {
+              // Prevent body scroll when search is open
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+              }
+            }}
+          >
+            {/* Search Header */}
+            <div className="flex items-center gap-[12px] px-[16px] h-[64px] border-b border-line-03">
+              <button
+                onClick={() => {
+                  setMenuAnchorEl(null);
+                  setQuery('');
+                  setResults([]);
+                  setHighlightedIndex(-1);
+                  // Restore body scroll
+                  document.body.style.overflow = '';
+                }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <div className="flex-1 flex items-center gap-[12px] px-[12px] h-[48px] bg-surface-second rounded-[4px]">
+                <SearchIcon />
+                <input
+                  ref={mobileInputRef}
+                  onKeyDown={handleKeyDown}
+                  onChange={handleChange}
+                  value={query}
+                  type="search"
+                  inputMode="search"
+                  placeholder="주소 또는 장소를 검색해주세요."
+                  className="flex-1 font-b2 placeholder:text-text-04 outline-none focus:outline-none bg-transparent text-[16px]"
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+              {query && (
+                <button
+                  onClick={() => {
+                    setQuery('');
+                    setResults([]);
+                    setHighlightedIndex(-1);
+                  }}
+                >
+                  <X size={24} />
+                </button>
+              )}
+            </div>
+
+            {/* Search Results */}
+            <div className="flex-1 overflow-y-auto font-s2">
+              {loading ? (
+                <div className="px-[12px] py-[22px] flex items-center justify-center">
+                  <CircularProgress size={20} />
+                </div>
+              ) : !query ? (
+                <div>
+                  <p className="px-[16px] py-[12px] font-s2-p text-text-02">최근검색</p>
+                  <div
+                    ref={recentContainerRef}
+                    onMouseMove={() => {
+                      if (isKeyboardNav) setIsKeyboardNav(false);
+                    }}
+                    className="flex flex-col w-full text-text-02">
+                    {recent.map((result, index) => (
+                      <button
+                        onClick={() => {
+                          onSelectResult(result);
+                        }}
+                        onMouseEnter={() => {
+                          if (!isKeyboardNav) {
+                            setHighlightedIndex(index);
+                          }
+                        }}
+                        data-index={index}
+                        key={result.id}
+                        className={`text-start flex px-[16px] py-[12px] border-b border-line-03 ${index === highlightedIndex ? 'bg-primary-010' : ''
+                          }`}
+                      >
+                        <div className="flex-1">
+                          <p className="py-[2px] font-s2">{result.jibun || ''}</p>
+                          <p className="py-[2px] font-s3 text-text-03">
+                            {(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeById(result.id);
+                          }}
+                          className="ml-[12px]"
+                        >
+                          <X size={20} />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : results.length === 0 ? (
+                <p className="px-[16px] py-[12px] font-s2 text-text-02">"{query}" 에 대한 검색 결과가 없습니다.</p>
+              ) : (
+                <div
+                  ref={containerRef}
+                  onMouseMove={() => {
+                    if (isKeyboardNav) setIsKeyboardNav(false);
+                  }}
+                  className="flex flex-col w-full text-text-02">
+                  {results.map((result, index) => (
+                    <button
+                      onClick={() => {
+                        onSelectResult(result);
+                      }}
+                      onMouseEnter={() => {
+                        if (!isKeyboardNav) {
+                          setHighlightedIndex(index);
+                        }
+                      }}
+                      data-index={index}
+                      key={result.id}
+                      className={`text-start flex flex-col px-[16px] py-[12px] border-b border-line-03 ${index === highlightedIndex ? 'bg-primary-010' : ''
+                        }`}
+                    >
+                      <p className="py-[2px] font-s2">{result.jibun || ''}</p>
+                      <p className="py-[2px] font-s3 text-text-03">
+                        {(result.road || '') + (result.buildingName ? ', ' + result.buildingName : '')}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
+      <div className="md:hidden flex items-center bg-white w-fit rounded-[4px] px-[8px] py-[10px] border border-primary">
+        {filterSetting()}
+      </div>
+      {/* Desktop Filter Setting */}
       {
         showFilterSetting && (
-          <div className="fixed top-[80px] w-[400px] p-[20px] min-h-[480px] bg-white left-[424px] z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
+          <div className="hidden md:block absolute top-[60px] w-[400px] p-[20px] min-h-[480px] bg-white z-40 font-c3 border border-line-02 rounded-[8px] shadow-[0px_20px_40px_0_rgba(0,0,0,0.06)]">
             <div className="flex justify-between">
               <p className="font-h3">필터 설정</p>
-              <button onClick={(e) => {
-                // e.stopPropagation();
+              <button onClick={() => {
                 const textAsAreaM2 = !textAsArea;
                 if (textAsAreaM2) {
                   setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value])
@@ -729,6 +899,121 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
           </div>
         )
       }
+
+      {/* Mobile Filter Setting - Full Screen */}
+      {showFilterSetting && createPortal(
+        <div className="md:hidden fixed top-0 left-0 right-0 bottom-0 z-[10000] bg-white flex flex-col">
+          {/* Filter Header */}
+          <div className="flex items-center justify-between px-[16px] h-[64px] border-b border-line-03">
+            <div className="flex items-center gap-[12px]">
+              <button
+                onClick={() => {
+                  setShowFilterSetting(false);
+                  // Restore body scroll
+                  document.body.style.overflow = '';
+                }}
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <p className="font-h4">필터 설정</p>
+            </div>
+            <button
+              onClick={() => {
+                const textAsAreaM2 = !textAsArea;
+                if (textAsAreaM2) {
+                  setAreaRange([0, AREA_MARKS[AREA_MARKS.length - 1].value]);
+                } else {
+                  setAreaRange([0, AREA_PY_MARKS[AREA_PY_MARKS.length - 1].value]);
+                }
+                setTextAsArea(textAsAreaM2);
+              }}
+              className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]"
+            >
+              <ChangeIcon />
+              {textAsArea ? '평' : '㎡'}
+            </button>
+          </div>
+
+          {/* Filter Content */}
+          <div className="flex-1 overflow-y-auto px-[16px] py-[20px]">
+            <p className="font-s2 text-text-03 mb-[20px]">
+              찾으시는 조건을 필터설정에 맞게 검색해보세요.
+            </p>
+            <div className="flex flex-col space-y-[30px]">
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">토지 면적</p>
+                <StyledSlider
+                  range={areaRange}
+                  setRange={setAreaRange}
+                  marks={textAsArea ? AREA_MARKS : AREA_PY_MARKS}
+                  step={textAsArea ? 100 : 10}
+                />
+              </div>
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">건물 용적률</p>
+                <StyledSlider
+                  range={farRange}
+                  setRange={setFarRange}
+                  marks={FAR_MARKS}
+                  step={5}
+                />
+              </div>
+              <div>
+                <p className="font-h5 text-text-02 mb-[8px]">건물 노후</p>
+                <StyledSlider
+                  range={buildingAgeRange}
+                  setRange={setBuildingAgeRange}
+                  marks={BUILDING_AGE_MARKS}
+                  step={1}
+                />
+              </div>
+            </div>
+            <HDivider className="mt-[30px]" colorClassName="bg-line-02" />
+            <div className="mt-[20px] flex flex-col space-y-[16px]">
+              <div className="flex justify-between">
+                <p className="font-h5 text-text-02">용도지역</p>
+                <button
+                  onClick={resetUsageList}
+                  className="font-s3 text-text-02 px-[8px] py-[4px] rounded-[2px] bg-surface-second flex items-center gap-[4px]"
+                >
+                  <ChangeIcon />
+                  초기화
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-[12px]">
+                {USAGE_LIST.map((usage) => (
+                  <button
+                    key={usage.value}
+                    onClick={() => {
+                      if (usageList.size === USAGE_LIST.length) {
+                        setUsageList(new Set([usage.value]));
+                      } else if (usageList.has(usage.value)) {
+                        usageList.delete(usage.value);
+                        setUsageList(new Set(usageList));
+                      } else {
+                        usageList.add(usage.value);
+                        setUsageList(new Set(usageList));
+                      }
+                    }}
+                    className={`flex items-center outline-[1px] ${
+                      usageList.has(usage.value) ? 'outline-primary' : 'outline-line-02'
+                    } rounded-[2px] px-[6px] py-[4px]`}
+                  >
+                    <p
+                      className={`font-s3 ${
+                        usageList.has(usage.value) ? 'text-primary' : 'text-text-02'
+                      }`}
+                    >
+                      {usage.label}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

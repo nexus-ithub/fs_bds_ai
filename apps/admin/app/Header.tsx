@@ -1,6 +1,6 @@
 "use client";
 
-import {  BuildingShopBITitle,  Button, VDivider } from "@repo/common"
+import { BuildingShopBITitle, Button, VDivider } from "@repo/common"
 import { IconButton, Avatar } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react"
@@ -24,15 +24,15 @@ export const Header = () => {
       <div className="flex items-center gap-[16px]">
         <div className="flex items-center gap-[8px] cursor-default">
           <IconButton className="!p-0 ">
-            <Avatar alt="" src="" sx={{ width: 24, height: 24, cursor: 'default' }}/>
+            <Avatar alt="" src="" sx={{ width: 24, height: 24, cursor: 'default' }} />
           </IconButton>
           <p className="flex items-center gap-[4px]">
             <span className="font-s2-p">{session.data?.user?.name}</span>
             <span className="font-s2 text-primary">마스터</span>
           </p>
         </div>
-        <VDivider colorClassName="bg-line-04"/>
-        <button className="font-s2-p" onClick={() => {setOpenLogoutConfirm(true)}}>
+        <VDivider colorClassName="bg-line-04" />
+        <button className="font-s2-p" onClick={() => { setOpenLogoutConfirm(true) }}>
           LOGOUT
         </button>
       </div>
@@ -49,8 +49,8 @@ export const Header = () => {
           <p className="font-s1 px-[20px]">로그아웃 하시겠습니까?</p>
 
           <div className="flex justify-end gap-[12px] px-[20px] py-[12px]">
-            <Button variant="bggray" className="w-[60px]" onClick={() => {setOpenLogoutConfirm(false)}}>취소</Button>
-            <Button className="w-[100px]" onClick={() => {signOut();}}>확인</Button>
+            <Button variant="bggray" className="w-[60px]" onClick={() => { setOpenLogoutConfirm(false) }}>취소</Button>
+            <Button className="w-[100px]" onClick={() => { signOut(); }}>확인</Button>
           </div>
         </div>
       </Dialog>

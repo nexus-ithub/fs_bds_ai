@@ -58,8 +58,9 @@ export const BuildingDetailDialog = ({
   return (
     <Dialog
       maxWidth="xl"
+      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 8px' } } } }}
       open={open} onClose={onClose}>
-      <div className="w-[768px]">
+      <div className="md:w-[768px]">
         <div className="flex items-center justify-between h-[64px] px-[24px]">
           <div className="relative h-full flex flex-col justify-center items-center">
             <p className="font-h3">빌딩샵 <span className="text-primary">추천 매물</span></p>
@@ -70,14 +71,14 @@ export const BuildingDetailDialog = ({
               <ShareIcon color="var(--color-content-03)" className="h-[16px]"/>
             </button> */}
             <button 
-              className="flex items-center px-[16px] gap-[4px]"
+              className="flex items-center px-[8px] gap-[4px] md:px-[16px]"
               onClick={addBookmark}
             >
               관심물건 추가
               {isBookmarked ? <BookmarkFilledIcon /> : <BookmarkIcon />}
             </button>            
             <button
-              className="flex items-center pl-[16px]"
+              className="flex items-center pl-[8px] md:pl-[16px]"
               onClick={onClose}
             >
               <CloseIcon/>
@@ -85,27 +86,27 @@ export const BuildingDetailDialog = ({
           </div>
         </div>
 
-        <div className="flex mx-[24px] rounded-[8px] border border-line-02">
+        <div className="flex flex-col mx-[24px] md:border md:border-line-02 md:flex-row md:rounded-[8px]">
           <img
-            className="w-[320px] h-[220px] object-cover rounded-l-[8px]"
+            className="w-full h-[220px] md:w-[320px] md:h-[220px] object-cover rounded-[8px] md:rounded-l-[8px]"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = '/bd_img.png';
             }}
             src={building.imagePath || '/bd_img.png'} alt=""/>
-          <div className="flex-1 flex flex-col p-[16px] gap-[10px]">
+          <div className="flex-1 flex flex-col pt-[16px] md:p-[16px] gap-[10px]">
             <div className="flex items-center gap-[8px]">
               <p className="font-c2-p bg-primary text-white px-[4px] py-[2px] rounded-[2px]">👍 빌딩샵 추천매물</p>
               {/* <p className="font-s1-p">{building.name || '-'}</p> */}
                <p className="font-s1-p">{getShortAddress(building.addr)}</p>
             </div>
             {/* <p className="font-s1-p">{getShortAddress(building.addr)}</p> */}
-            <div className="flex items-center gap-[5px]">
+            <div className="flex flex-col gap-[5px] md:flex-row md:items-center">
               <div className="flex-1 flex items-center justify-between">
                 <p className="font-s4 text-text-03">대지면적</p>
                 <p className="font-s4 text-text-02">{getAreaStrWithPyeong(building.platArea)}</p>
               </div>
-              <VDivider colorClassName="bg-line-03"/>
+              <VDivider colorClassName="bg-line-03" className="hidden md:block"/>
               <div className="flex-1 flex items-center justify-between">
                 <p className="font-s4 text-text-03">연면적</p>
                 <p className="font-s4 text-text-02">{getAreaStrWithPyeong(building.totalArea)}</p>

@@ -19,106 +19,130 @@ export const MapToolbar = ({
   setCenter: React.Dispatch<React.SetStateAction<LatLng>>;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
   const getCurrentLocation = () => {
     setIsLoading(true);
+
     if (!navigator.geolocation) {
-      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.')
+      toast.error('브라우저가 위치 서비스를 지원하지 않습니다.');
       setIsLoading(false);
       return;
     }
 
+    const onSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      setCenter({ lat: latitude, lng: longitude });
+      setLevel(4);
+      setIsLoading(false);
+    };
+
+    const onError = (
+      error: GeolocationPositionError,
+      isFallback = false
+    ) => {
+      console.error('위치 정보를 가져올 수 없습니다:', error);
+
+      // fallback 시도 (권한 거부 제외)
+      if (!isFallback && error.code !== error.PERMISSION_DENIED) {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (fallbackError) => onError(fallbackError, true),
+          {
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 300000, // 5분 캐시
+          }
+        );
+        return;
+      }
+
+      // 최종 실패 처리
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          toast.error('위치 정보 접근이 거부되었습니다.');
+          break;
+        case error.POSITION_UNAVAILABLE:
+          toast.error('위치 정보를 사용할 수 없습니다.');
+          break;
+        case error.TIMEOUT:
+          toast.error('위치 정보를 가져오는 데 시간이 초과되었습니다.');
+          break;
+        default:
+          toast.error('위치 정보를 가져오지 못했습니다.');
+      }
+
+      setIsLoading(false);
+    };
+
+    // 1차 시도: 환경에 따라 분기
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setCenter({ lat: latitude, lng: longitude });
-        setLevel(4);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('위치 정보를 가져올 수 없습니다:', error);
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error('위치 정보 접근이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error('위치 정보를 사용할 수 없습니다.');
-            break;
-          case error.TIMEOUT:
-            toast.error('위치 정보 요청이 시간 초과되었습니다.');
-            break;
-          default:
-            toast.error('알 수 없는 오류가 발생했습니다.');
-            break;
-        }
-        setIsLoading(false);
-      },
+      onSuccess,
+      onError,
       {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
+        enableHighAccuracy: isMobile,
+        timeout: isMobile ? 8000 : 15000,
+        maximumAge: isMobile ? 0 : 60000,
       }
     );
   };
-  
+
   return (
     <>
-      <div className="fixed top-[84px] right-[24px] z-40 font-c3 space-y-[14px]">
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+      <div className="fixed md:top-[84px] top-[154px] right-[14px] md:right-[24px] z-40 font-c3 space-y-[14px]">
+        <div className="flex flex-col [&>*:not(:last-child)]:mb-[8px] md:[&>*:not(:last-child)]:mb-0 md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating md:divide-y md:divide-line-03">
           <button
-            onClick={() => {changeMapType('normal'); }}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            onClick={() => { changeMapType('normal'); }}
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <MapIcon color={mapType === 'normal' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'normal' ? 'text-primary font-c3-p' : ''}>일반</p>
+            <p className={`hidden md:block ${mapType === 'normal' ? 'text-primary font-c3-p' : ''}`}>일반</p>
           </button>
           <button
             onClick={() => changeMapType('skyview')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <SatelliteIcon color={mapType === 'skyview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'skyview' ? 'text-primary font-c3-p' : ''}>위성</p>
+            <p className={`hidden md:block ${mapType === 'skyview' ? 'text-primary font-c3-p' : ''}`}>위성</p>
           </button>
           <button
             onClick={() => changeMapType('use_district')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <CadastralIcon color={mapType === 'use_district' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'use_district' ? 'text-primary font-c3-p' : ''}>지적도</p>
-          </button>      
+            <p className={`hidden md:block ${mapType === 'use_district' ? 'text-primary font-c3-p' : ''}`}>지적도</p>
+          </button>
           <button
             onClick={() => changeMapType('roadview')}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-x-0 md:!border-b-0 md:first:!border-t-0 md:!bg-transparent">
             <StreetViewIcon color={mapType === 'roadview' ? 'var(--color-primary)' : 'var(--gray-060)'} />
-            <p className={mapType === 'roadview' ? 'text-primary font-c3-p' : ''}>거리뷰</p>
-          </button>                        
+            <p className={`hidden md:block ${mapType === 'roadview' ? 'text-primary font-c3-p' : ''}`}>거리뷰</p>
+          </button>
         </div>
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <button 
+        <div className="hidden md:flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
+          <button
             onClick={() => changeMapType('area')}
             className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-            <CalcAreaIcon color={mapType === 'area' ? 'var(--color-primary)' : 'var(--gray-060)'}/>
+            <CalcAreaIcon color={mapType === 'area' ? 'var(--color-primary)' : 'var(--gray-060)'} />
             <p>면적</p>
           </button>
-          <button 
+          <button
             onClick={() => changeMapType('distance')}
             className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
-            <CalcDistanceIcon color={mapType === 'distance' ? 'var(--color-primary)' : 'var(--gray-060)'}/>
+            <CalcDistanceIcon color={mapType === 'distance' ? 'var(--color-primary)' : 'var(--gray-060)'} />
             <p>거리</p>
           </button>
-        </div>    
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <button 
+        </div>
+        <div className="flex flex-col md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating">
+          <button
             onClick={getCurrentLocation}
-            className="w-[48px] h-[48px] flex flex-col justify-center items-center gap-[4px]">
+            className="w-[40px] h-[40px] md:w-[48px] md:h-[48px] flex flex-col justify-center items-center gap-[4px] rounded-[4px] border-[1px] border-line-03 bg-surface-floating md:!rounded-none md:!border-0 md:!bg-transparent">
             {isLoading ? (
               <Spinner />
             ) : (
               <MyLocationIcon />
             )}
-            <p>내위치</p>
+            <p className="hidden md:block">내위치</p>
           </button>
-        </div>      
-        <div className="flex flex-col rounded-[4px] border-[1px] border-line-03 bg-surface-floating divide-y divide-line-03">
-          <ZoomController level={level} setLevel={setLevel}/>
-        </div>                              
+        </div>
+        <ZoomController level={level} setLevel={setLevel} />
       </div>
     </>
   )
