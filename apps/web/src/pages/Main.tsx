@@ -716,13 +716,12 @@ export default function Main() {
             map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
           }}
           onClick={(_, mouseEvent) => {
-            // 정치인 말풍선 닫기
-            setClickedPolitician(null);
-            // 정치인
-
-            // 연예인 말풍선 닫기
-            setClickedCelebrityDong(null);
-            // 연예인
+            // 정치인 또는 연예인 말풍선이 열려있으면 닫기만 하고 return
+            if (clickedPolitician !== null || clickedCelebrityDong !== null) {
+              setClickedPolitician(null);
+              setClickedCelebrityDong(null);
+              return;
+            }
 
             // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
             if (mapType === 'roadview') {
@@ -964,6 +963,7 @@ export default function Main() {
                 position={{ lat: dongPolygon.lat, lng: dongPolygon.lng }}
                 yAnchor={0.5}
                 clickable={true}
+                zIndex={1}
               >
                 <div
                   className="px-2 py-1 bg-white/90 rounded text-xs font-bold cursor-pointer shadow-sm"
@@ -988,8 +988,9 @@ export default function Main() {
               {clickedCelebrityDong === dongPolygon.legDongCode && (
                 <CustomOverlayMap
                   position={{ lat: dongPolygon.lat, lng: dongPolygon.lng }}
-                  yAnchor={1.2}
+                  yAnchor={1.1}
                   clickable={true}
+                  zIndex={10}
                 >
                   <div
                     className="relative min-w-[200px] max-w-[300px] p-3 bg-white border border-red-300 rounded-lg shadow-lg"
@@ -1088,6 +1089,7 @@ export default function Main() {
                     /* 큰 클러스터 마커 */
                     <CustomOverlayMap
                       position={{ lat: group.lat, lng: group.lng }}
+                      clickable={true}
                     >
                       <div
                         className={`flex items-center justify-center w-[40px] h-[40px] rounded-full text-white font-bold border-2 border-white shadow-lg cursor-pointer hover:scale-110 transition-transform ${
@@ -1099,10 +1101,12 @@ export default function Main() {
                         onClick={(e) => {
                           e.stopPropagation();
                           if (mapRef.current && level > 1) {
-                            mapRef.current.setLevel(level - 2);
-                            mapRef.current.setCenter({ lat: group.lat, lng: group.lng });
+                            const nextLevel = level === 4 ? level - 1 : level - 2;
+                            mapRef.current.setLevel(nextLevel);
+                            mapRef.current.setCenter(new kakao.maps.LatLng(group.lat, group.lng));
                           }
                         }}
+                        onMouseDown={(e) => e.stopPropagation()}
                       >
                         {group.count}
                       </div>
@@ -1306,7 +1310,7 @@ export default function Main() {
               <div className="flex flex-col gap-[4px] min-w-[250px]">
                 {/* 정치인 */}
                 <div className="flex gap-[4px]">
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#FF6B6B] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#FF6B6B] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">정치인</p>
                     <Switch
                       checked={showPolitician}
@@ -1315,7 +1319,7 @@ export default function Main() {
                     />
                   </div>
                   {/* 연예인 */}
-                  <div className="w-[120px] justify-between flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#DC2626] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center gap-[8px] px-[16px] py-[10px] rounded-[8px] bg-white border border-[#DC2626] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
                     <p className="font-s2-p">연예인</p>
                     <Switch
                       checked={showCelebrity}
