@@ -171,7 +171,7 @@ export interface DevDetailInfo {
   // 건축정보
   buildInfo: BuildInfo;
   // 리모델링 정보
-  remodelnfo: BuildInfo;
+  remodelInfo: BuildInfo;
 
   rent: ReportValue; // 임대 (미개발)
   remodel: ReportValue; // 리모델링
