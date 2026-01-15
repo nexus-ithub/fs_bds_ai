@@ -295,7 +295,7 @@ export default function Main() {
 
 
   const getMainPolygon = (polygon: PolygonInfo[]) => {
-    return polygon.find((p) => p.current === 'Y') || polygon[0];
+    return polygon?.find((p) => p.current === 'Y') || polygon?.[0];
   }
   const getPolygon = ({ id, lat, lng, changePosition = false }: { id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean }) => {
 
