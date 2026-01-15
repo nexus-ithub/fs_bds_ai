@@ -61,7 +61,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
   const [openEditTitle, setOpenEditTitle] = useState<boolean>(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  // const isMobile = useMediaQuery('(max-width: 767px)');
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const panelRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
@@ -440,21 +440,11 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
 
   const chatContent = (
     <>
-      {/* <div ref={panelRef} className={`fixed ${isMobile ? 'inset-0 z-[60]' : 'inset-y-0 top-[64px] right-0 z-[40]'} flex justify-end`}> */}
-      <div ref={panelRef} className={`fixed inset-y-0 top-[64px] right-0 z-[40] flex justify-end`}>
-        {/* <div
-          ref={mainRef}
-          className={`
-            flex flex-col h-full bg-white ${isMobile ? 'w-full' : 'w-[768px] rounded-l-[12px]'} relative overflow-hidden
-            shadow-[-16px_0_32px_0_rgba(0,0,0,0.08)]
-            transform transition-transform duration-200 ease-out
-            ${mounted && open ? "translate-x-0" : "translate-x-full"}
-          `}
-        > */}
+      <div ref={panelRef} className={`fixed ${isMobile ? 'inset-0 z-[60]' : 'inset-y-0 top-[64px] right-0 z-[40]'} flex justify-end`}>
         <div
           ref={mainRef}
           className={`
-            flex flex-col h-full bg-white w-[768px] rounded-l-[12px] relative overflow-hidden
+            flex flex-col h-full bg-white ${isMobile ? 'w-full' : 'w-[768px] rounded-l-[12px]'} relative overflow-hidden
             shadow-[-16px_0_32px_0_rgba(0,0,0,0.08)]
             transform transition-transform duration-200 ease-out
             ${mounted && open ? "translate-x-0" : "translate-x-full"}
@@ -469,16 +459,14 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               )}
               <AILogo/>
               <p className="font-s2-p text-text-01">{setting?.agentName || "빌딩샵AI"}</p>
-              {/* {
+              {
                 !isMobile && (
                   <>
                     <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
                     <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
                   </>
                 )
-              } */}
-              <VDivider className="!h-[12px]" colorClassName="bg-line-04"/>
-              <p className="font-s2 text-text-03">{setting?.nameDesc || "부동산 매매 및 설계전문 빌딩샵에서 제공하는 부동산 전문 AI 입니다."}</p>
+              }
             </div>
             <div className="flex items-center gap-[12px]">
               <Button variant="outlinegray" className="!text-text-02" onClick={() => {setCurrentSessionId(null); setSelectedChatId(null); setQuestionInput('')}}>{setting?.newchatLabel || "NEW CHAT"}</Button>
@@ -525,33 +513,23 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
               </div>
             </Drawer>
           )}
-          {/* <div className={`${isMobile ? 'w-full' : 'w-[768px]'} h-[calc(100%-64px)] flex flex-col`} onClick={() => menuOpen && setMenuOpen(false)}> */}
-          <div className={`w-[768px] h-[calc(100%-64px)] flex flex-col`} onClick={() => menuOpen && setMenuOpen(false)}>
-              {/* <div ref={chatContainerRef} className={`flex-1 overflow-y-auto scrollbar-hover ${isMobile ? 'px-[20px]' : 'px-[48px]'}`}> */}
-              <div ref={chatContainerRef} className={`flex-1 overflow-y-auto scrollbar-hover px-[48px]`}>
+          <div className={`${isMobile ? 'w-full' : 'w-[768px]'} h-[calc(100%-64px)] flex flex-col`} onClick={() => menuOpen && setMenuOpen(false)}>
+              <div ref={chatContainerRef} className={`flex-1 overflow-y-auto scrollbar-hover ${isMobile ? 'px-[20px]' : 'px-[48px]'}`}>
                 {currentChat?.messages.length === 0 || !currentChat ? (
-                  // <div className={`flex flex-col ${isMobile ? 'py-[40px] gap-[26px]' : 'py-[64px] gap-[40px]'}`}>
-                  <div className={`flex flex-col py-[64px] gap-[40px]`}>
+                  <div className={`flex flex-col ${isMobile ? 'py-[40px] gap-[26px]' : 'py-[64px] gap-[40px]'}`}>
                     <div className="flex flex-col gap-[8px] items-center">
                       <h2 className="font-h2">{setting?.chatTitle || "안녕하세요! 빌딩샵AI 입니다."}</h2>
                       <p className="font-b2 text-center whitespace-pre-line">{setting?.chatSubtitle || "부동산 건물 매매 및 건축설계 전문 빌딩샵입니다.\n관련해서 궁금하신것이 있으시면 무엇이든 물어보세요!"}</p>
                     </div>
-                    {/* <div className={`flex flex-col items-center ${isMobile ? 'gap-[10px]' : 'gap-[16px]'}`}> */}
-                    <div className={`flex flex-col items-center gap-[16px]`}>
+                    <div className={`flex flex-col items-center ${isMobile ? 'gap-[10px]' : 'gap-[16px]'}`}>
                       {setting?.questions
                         ?.filter(q => q.selectedYn === "Y")
                         ?.sort((a, b) => (a.seq ?? 9999) - (b.seq ?? 9999))
                         ?.map((q) => (
-                          // <button
-                          //   key={q.id}
-                          //   onClick={() => handleAskChat(q.question)}
-                          //   className={`${isMobile ? 'w-full' : 'w-[500px]'} flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02`}
-                          //   style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
-                          // >
                           <button
                             key={q.id}
                             onClick={() => handleAskChat(q.question)}
-                            className={`w-[500px] flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02`}
+                            className={`${isMobile ? 'w-full' : 'w-[500px]'} flex items-center gap-[12px] p-[12px] rounded-[4px] border border-line-02`}
                             style={{ boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)' }}
                           >
                             <h2 className="w-[40px] h-[40px] flex shrink-0 items-center justify-center rounded-[4px] bg-surface-second border border-line-02 font-h2">
@@ -585,8 +563,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                   </span>
                 )}
               </div>
-              {/* <div className={`w-full flex flex-col items-center ${isMobile ? 'px-[20px]' : 'px-[32px]'}`}> */}
-              <div className={`w-full flex flex-col items-center px-[32px]`}>
+              <div className={`w-full flex flex-col items-center ${isMobile ? 'px-[20px]' : 'px-[32px]'}`}>
                 <div className="w-full flex items-center gap-[10px] p-[16px] rounded-[4px] border border-line-03">
                   <textarea
                     rows={1}
@@ -674,6 +651,5 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
     </>
   );
 
-  // return isMobile ? createPortal(chatContent, document.body) : chatContent;
-  return chatContent;
+  return isMobile ? createPortal(chatContent, document.body) : chatContent;
 }

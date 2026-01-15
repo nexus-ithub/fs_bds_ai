@@ -73,6 +73,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
           maxWidth: '640px',
         },
       }}
+      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 16px' } } } }}
       open={open}
       onClose={onClose}
       >
@@ -98,7 +99,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
             <DotProgress size="sm"/>
           </div>
           :
-          <div className="p-[24px] space-y-[16px] md:space-y-[24px]">
+          <div className="px-[24px] py-[16px] space-y-[16px] md:space-y-[24px] md:p-[24px]">
             <div className="space-y-[16px] md:space-y-[20px]">
               <p className="font-h4">고객 정보</p>
               <div className="flex gap-[20px] md:flex-row flex-col">
@@ -168,9 +169,9 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
           </div>
         }
         <HDivider/>
-        <div className="w-full flex p-[24px] gap-[10px]">
-          <Button variant="bggray" fontSize="font-h4" size="medium" className="w-[200px]" onClick={() => {onClose()}}>취소</Button>
-          <Button disabled={!name || !phone || (!agree && !config)} className="flex-1" fontSize="font-h4" size="medium" onClick={() => {onSubmit()}}>문의하기</Button>
+        <div className="w-full flex px-[24px] py-[16px] gap-[10px] md:p-[24px]">
+          <Button variant="bggray" fontSize={isMobile ? "font-h5" : "font-h4"} size={isMobile ? "semiMedium" : "medium"} className="w-[30%] md:w-[200px]" onClick={() => {onClose()}}>취소</Button>
+          <Button disabled={!name || !phone || (!agree && !config) || (text.trim().length === 0)} className="flex-1" fontSize={isMobile ? "font-h5" : "font-h4"} size={isMobile ? "semiMedium" : "medium"} onClick={() => {onSubmit()}}>문의하기</Button>
         </div>
     </Dialog>
   )
