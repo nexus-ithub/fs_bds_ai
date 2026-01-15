@@ -7,6 +7,8 @@
 
 body {
   font-family: 'Pretendard Variable', pretendard, sans-serif;
+  /* 모바일 브라우저의 pull-to-refresh 비활성화 */
+  overscroll-behavior-y: contain;
 }
 
 

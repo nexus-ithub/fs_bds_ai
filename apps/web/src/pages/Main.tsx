@@ -970,6 +970,8 @@ export default function Main() {
             }}
             onTouchMove={(e) => {
               if (!touchStart) return;
+              // 브라우저 기본 pull-to-refresh 동작 방지
+              e.preventDefault();
               const currentTouch = e.targetTouches[0].clientY;
               const offset = currentTouch - touchStart;
               setDragOffset(offset);
