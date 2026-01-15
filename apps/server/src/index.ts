@@ -59,13 +59,15 @@ const allowedOrigins = process.env.NODE_ENV === 'production' ? [
   'https://buildingshopai.com',
   'https://www.buildingshopai.com',
   'https://sa.inicis.com',
-  'https://kssa.inicis.com'
+  'https://kssa.inicis.com',
+  'https://fcsa.inicis.com'
 ] : [
   'http://localhost:3000',
   'http://192.168.0.164:3000',
   'http://nexusnas.iptime.org:7500',
   'https://sa.inicis.com',
-  'https://kssa.inicis.com'
+  'https://kssa.inicis.com',
+  'https://fcsa.inicis.com'
 ];
 
 // app.use((req, res, next) => {
