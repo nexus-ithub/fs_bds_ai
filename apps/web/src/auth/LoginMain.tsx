@@ -29,7 +29,7 @@ export const LoginMain = () => {
   const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
-    
+
     if (config) {
       navigate('/main')
     }
@@ -43,7 +43,7 @@ export const LoginMain = () => {
         { withCredentials: true }
       );
       console.log(response.data)
-      
+
       if (response.data.url) {
         // 개발환경에서는 state를 sessionStorage에 저장 (쿠키가 http에서 작동 안 함)
         if (response.data.state && import.meta.env.DEV) {
@@ -61,6 +61,7 @@ export const LoginMain = () => {
         const height = 600;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
+
 
         const popup = window.open(
           response.data.url,
@@ -98,6 +99,26 @@ export const LoginMain = () => {
             window.removeEventListener('message', messageHandler);
           }
         }, 500);
+        // const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);  
+        // if (isMobile) {
+        //   // 모바일: 현재 페이지에서 리다이렉트
+        //   window.location.href = response.data.url;
+        // } else {
+
+        // }
+        // const popup = window.open(
+        //   response.data.url,
+        //   'OAuth Login',
+        //   `width=${width},height=${height},left=${left},top=${top}`
+        // );
+
+        // if (!popup) {
+        //   toast.error('팝업이 차단되었습니다.');
+        //   return;
+        // }
+
+
+
       }
       if (response.data.message) {
         toast.error(response.data.message);
@@ -129,8 +150,8 @@ export const LoginMain = () => {
     });
   };
 
-  const findAccount = async(verifiedName, verifiedPhone) => {
-    try{
+  const findAccount = async (verifiedName, verifiedPhone) => {
+    try {
       const response = await axios.post(`${API_HOST}/api/auth/find-account`, {
         name: verifiedName,
         phone: verifiedPhone
@@ -153,7 +174,7 @@ export const LoginMain = () => {
   useEffect(() => {
     if (location.state?.message) {
       toast.error(location.state.message, { toastId: 'locationError' });
-      window.history.replaceState({}, document.title); 
+      window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
@@ -162,8 +183,8 @@ export const LoginMain = () => {
       <div className="flex flex-col items-center w-full max-w-[664px] h-[720px] flex-shrink-0 rounded">
         <div className="flex flex-col w-[320px] my-[75px] gap-[40px]">
           <div className="flex flex-col gap-[24px] items-center">
-            <button onClick={() => navigate('/main')}> 
-              <BuildingShopBIMain width="228" height="20"/>
+            <button onClick={() => navigate('/main')}>
+              <BuildingShopBIMain width="228" height="20" />
             </button>
             <div className='flex flex-col gap-[6px]'>
               <p className="text-center font-h3">
@@ -175,7 +196,7 @@ export const LoginMain = () => {
             </div>
           </div>
           <div className="flex flex-col gap-[20px]">
-            {LOGIN_TYPES.map(({provider, callback, color, textColor, logo, label, border}) => (
+            {LOGIN_TYPES.map(({ provider, callback, color, textColor, logo, label, border }) => (
               <button
                 key={provider}
                 className={`relative flex items-center justify-center gap-[8px] rounded-[2px] h-[48px] text-[16px] font-h4 ${border}`}
@@ -201,35 +222,35 @@ export const LoginMain = () => {
             ))}
           </div>
           <div className='flex items-center gap-[12px]'>
-            <HDivider/>
-            <button 
+            <HDivider />
+            <button
               className='flex-shrink-0 font-s2 text-text-03'
               onClick={() => handleIdentityVerification()}
             >기존 계정 찾기</button>
-            <HDivider/>
+            <HDivider />
           </div>
           <div className="flex items-center justify-center gap-[24px] font-s2 text-text-03">
             <a
-            href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
-            target="_blank"
-            rel="noopener noreferrer"
+              href="https://chip-flare-463.notion.site/29b1c63ec1af80f99a43dc87641afb7c?source=copy_link"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               서비스 이용약관
             </a>
-            <VDivider/>
+            <VDivider />
             <a
-            href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link"
-            target="_blank"
-            rel="noopener noreferrer"
+              href="https://chip-flare-463.notion.site/29b1c63ec1af80cdbfcfe2ca191d8e15?source=copy_link"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               개인정보 처리방침
             </a>
           </div>
         </div>
       </div>
-      <Dialog 
-        open={openFindAccountDialog} 
-        onClose={() => setOpenFindAccountDialog(false)} 
+      <Dialog
+        open={openFindAccountDialog}
+        onClose={() => setOpenFindAccountDialog(false)}
         slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 0' } } } }}
       >
         <div className='flex flex-col gap-[24px] p-[26px] w-[400px] max-md:w-[320px] max-md:px-[16px] max-md:py-[20px] max-md:gap-[20px]'>

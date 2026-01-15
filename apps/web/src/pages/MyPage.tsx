@@ -150,11 +150,12 @@ export const MyPage = () => {
     getTotalBookmarkedReport();
   }, [config])
 
+  // 데스크탑에서 /myPage 접속 시 자동으로 profile로 이동
   useEffect(() => {
-    if (isDesktop && location.pathname === '/myPage') {
+    if (location.pathname === '/myPage' && isDesktop) {
       navigate('/myPage/profile', { replace: true });
     }
-  }, [isDesktop, location.pathname, navigate])
+  }, [location.pathname, navigate, isDesktop])
 
   return (
     <>

@@ -295,7 +295,7 @@ export default function Main() {
 
 
   const getMainPolygon = (polygon: PolygonInfo[]) => {
-    return polygon.find((p) => p.current === 'Y') || polygon[0];
+    return polygon?.find((p) => p.current === 'Y') || polygon?.[0];
   }
   const getPolygon = ({ id, lat, lng, changePosition = false }: { id?: string | null, lat?: number | null, lng?: number | null, changePosition?: boolean }) => {
 
@@ -970,6 +970,8 @@ export default function Main() {
             }}
             onTouchMove={(e) => {
               if (!touchStart) return;
+              // 브라우저 기본 pull-to-refresh 동작 방지
+              e.preventDefault();
               const currentTouch = e.targetTouches[0].clientY;
               const offset = currentTouch - touchStart;
               setDragOffset(offset);

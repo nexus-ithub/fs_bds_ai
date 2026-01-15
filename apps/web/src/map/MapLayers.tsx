@@ -1,13 +1,14 @@
 import type { AreaPolygons, Coords, DistanceLines, LatLng, PolygonInfo } from "@repo/common";
 import { X } from "lucide-react";
 import React from "react";
+import { createPortal } from "react-dom";
 import { CustomOverlayMap, Map, MapTypeId, Polygon, Polyline, Roadview } from "react-kakao-maps-sdk"
 import { convertXYtoLatLng } from "../../utils";
 
 function MapWalkerIcon({ angle }: { angle: number }) {
   const threshold = 22.5; // 이미지가 변화되어야 되는(각도가 변해야되는) 임계 값
   let className = 'm0'; // 기본값
-  
+
   for (let i = 0; i < 16; i++) { // 각도에 따라 변화되는 앵글 이미지의 수가 16개
     if (angle > (threshold * i) && angle < (threshold * (i + 1))) {
       // 각도(pan)에 따라 아이콘의 class명을 변경
@@ -15,7 +16,7 @@ function MapWalkerIcon({ angle }: { angle: number }) {
       break;
     }
   }
-  
+
   return (
     <div className={`MapWalker ${className}`}>
       <div className="angleBack"></div>
@@ -33,8 +34,8 @@ export const RoadViewOverlay = ({
   setRoadViewCenter: React.Dispatch<React.SetStateAction<{ lat: number, lng: number, pan: number } | null>>;
   polygon: PolygonInfo;
 }) => {
-  return (
-    <div className="fixed top-0 left-[400px] w-[calc(100%-400px)] h-full z-40">
+  return createPortal(
+    <div className="fixed top-0 left-0 md:left-[400px] w-full md:w-[calc(100%-400px)] h-full z-[70]">
       <Roadview
         onViewpointChange={(viewpoint) => {
           console.log(viewpoint);
@@ -65,7 +66,7 @@ export const RoadViewOverlay = ({
         }}
         center={{ lat: roadViewCenter.lat, lng: roadViewCenter.lng }}
         level={4}
-        className="absolute bottom-[2px] left-[2px] w-[400px] h-[340px] z-40"
+        className="absolute bottom-[50px] md:bottom-[2px] left-[2px] w-[60%] h-[150px] md:w-[400px] md:h-[340px] z-40"
       >
         <MapTypeId
           type="ROADVIEW"
@@ -77,24 +78,25 @@ export const RoadViewOverlay = ({
         </CustomOverlayMap>
         {polygon && (
           <Polygon
-            fillColor="var(--color-primary)" // Red fill color
-            fillOpacity={0.3} // 70% opacity
-            strokeColor="var(--color-primary)" // Black border
+            fillColor="var(--color-primary)"
+            fillOpacity={0.3}
+            strokeColor="var(--color-primary)"
             strokeOpacity={1}
             strokeWeight={1.5}
             path={convertXYtoLatLng(polygon.polygon || [])} />
-        )}              
+        )}
       </Map>
 
-      <button 
+      <button
         onClick={() => {
           setRoadViewCenter(null);
         }}
-        className="absolute top-[72px] right-[8px] bg-white/80 p-[8px] rounded-[4px] z-40"
+        className="absolute top-[12px] md:top-[12px] right-[8px] bg-white/80 p-[8px] rounded-[4px] z-40"
       >
-        <X size={30} />
+        <X size={24} className="md:w-[30px] md:h-[30px]" />
       </button>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -129,43 +131,43 @@ export const AreaOverlay = (
           strokeStyle={"solid"}
           fillColor={"var(--color-primary)"}
           fillOpacity={0.2}
-          // onCreate={setPolygonArea}
+        // onCreate={setPolygonArea}
         />
       )}
       {areas.map((area) => (
-    <React.Fragment key={area.id}>
-      <Polygon
-        path={area.paths}
-        strokeWeight={2}
-        strokeColor={"var(--color-primary)"}
-        strokeOpacity={1}
-        strokeStyle={"solid"}
-        fillColor={"var(--color-primary)"}
-        fillOpacity={0.2}
-        onCreate={(polygon) => {
-          area.polygonArea = polygon;
-        }}
-      />
-      <CustomOverlayMap position={area.paths[area.paths.length - 1]} clickable={true}>
-        <div className="relative p-[8px] bg-white rounded-[4px] shadow-md border border-line-03 font-s2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setAreas((prev: AreaPolygons[]) => prev.filter((a) => a.id !== area.id))
+        <React.Fragment key={area.id}>
+          <Polygon
+            path={area.paths}
+            strokeWeight={2}
+            strokeColor={"var(--color-primary)"}
+            strokeOpacity={1}
+            strokeStyle={"solid"}
+            fillColor={"var(--color-primary)"}
+            fillOpacity={0.2}
+            onCreate={(polygon) => {
+              area.polygonArea = polygon;
             }}
-            className="absolute -top-2 -right-2 bg-white rounded-full border border-line-03 p-[2px]"
-          >
-            <X size={12} />
-          </button>
-          총면적{" "}
-          <span className="font-s2-p text-primary pl-[2px]">
-            {Math.round(area.polygonArea?.getArea() ?? 0).toLocaleString()}
-          </span>{" "}
-          m<sup>2</sup>
-        </div>
-      </CustomOverlayMap>
-    </React.Fragment>
-  ))}
+          />
+          <CustomOverlayMap position={area.paths[area.paths.length - 1]} clickable={true}>
+            <div className="relative p-[8px] bg-white rounded-[4px] shadow-md border border-line-03 font-s2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAreas((prev: AreaPolygons[]) => prev.filter((a) => a.id !== area.id))
+                }}
+                className="absolute -top-2 -right-2 bg-white rounded-full border border-line-03 p-[2px]"
+              >
+                <X size={12} />
+              </button>
+              총면적{" "}
+              <span className="font-s2-p text-primary pl-[2px]">
+                {Math.round(area.polygonArea?.getArea() ?? 0).toLocaleString()}
+              </span>{" "}
+              m<sup>2</sup>
+            </div>
+          </CustomOverlayMap>
+        </React.Fragment>
+      ))}
     </>
   );
 };
@@ -238,7 +240,7 @@ export const DistanceOverlay = (
       </ul>
     )
   }
-  
+
   return (
     <>
       {/* 현재 그리고 있는 거리 측정 라인 */}
@@ -269,7 +271,7 @@ export const DistanceOverlay = (
                 position={distancePaths[index + 1]}
                 yAnchor={1}
                 zIndex={2}
-                // clickable={true}
+              // clickable={true}
               >
                 {!isDrawingDistance && distances.length === index + 2 ? (
                   <DistanceInfo distance={distance} />
@@ -320,8 +322,8 @@ export const DistanceOverlay = (
               clickable={true}
             >
               {index === distanceLine.distances.length - 2 ? (
-                <DistanceInfo 
-                  distance={distance} 
+                <DistanceInfo
+                  distance={distance}
                   distanceLineId={distanceLine.id}
                 />
               ) : (
