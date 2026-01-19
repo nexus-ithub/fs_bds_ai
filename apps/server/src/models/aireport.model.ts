@@ -899,7 +899,8 @@ function makeRemodelingInfo(landInfo: LandData, buildingList: BuildingData[], de
       // debugExtraInfo.push(`[최소지상층별면적] ${getAreaStrWithPyeong(remodelInfo.publicAreaPerFloor + minExclusiveArea)}m² (${minExclusiveArea.toFixed(1)}m²(최소전용면적) + ${buildInfo.publicAreaPerFloor.toFixed(1)}m²(공용면적))`);
     }
     const floors = getFloorInfoForJungbukIljo(remodelInfo.buildingArea, remodelInfo.publicAreaPerFloor, maxUpperFloorArea, debug, debugExtraInfo);
-    maxFloorCount = Math.max(maxFloorCount, floors.length);
+    // maxFloorCount = Math.max(maxFloorCount, floors.length);
+    maxFloorCount = floors.length
   }
 
   // 리모델링 후 지상 층수 (최대 2층 증축 가능)
