@@ -105,7 +105,7 @@ export const SignupTerms = () => {
 
   return (
     <div className="flex h-screen items-center justify-center">
-      <div className="w-[360px] flex flex-col gap-[24px] p-[32px] rounded-[8px] border border-line-02 shadow-[0_20px_40px_0_rgba(0,0,0,0.06)]">
+      <div className="w-[360px] flex flex-col gap-[24px] p-[32px] rounded-[8px] border border-line-02 shadow-[0_5px_20px_0_rgba(0,0,0,0.05)]">
         <div className="flex flex-col items-center gap-[6px]">
           <h2 className="font-h2">서비스 약관동의</h2>
           <p className="font-s2 text-text-02">빌딩샵 사용을 위한 약관 동의가 필요해요</p>

@@ -548,7 +548,7 @@ export const AIChat = ({open, onClose}: AIChatProps) => {
                           <p className="rounded-tl-[8px] rounded-tr-[8px] rounded-bl-[8px] bg-surface-second px-[16px] py-[12px] font-b1-p whitespace-pre-line">{msg.content}</p>
                         </div>}
                       {msg.role === 'ai' && 
-                        <p className="w-full font-b1-p py-[40px] border-t border-line-02 whitespace-pre-line">
+                        <p className="w-full font-b1-p border-t border-line-02 whitespace-pre-line py-[24px] md:py-[40px]">
                           {convertSpecificLinks(msg.content)}
                           <span className={`rounded-[2px] font-b3 ${msg.score >= 0.4 ? "ml-[8px] bg-surface-third px-[5px] py-[2px]" : ""}`}>
                             {msg.score >= 0.6 ? "★★★" : msg.score >= 0.5 ? "★★" : msg.score >= 0.4 ? "★" : ""}
