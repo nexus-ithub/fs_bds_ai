@@ -338,13 +338,13 @@ export const LandInfoCard = ({
                 className="w-full mt-[16px] py-[11px]"
                 onClick={(e) => handleOpenAIReport(e)}
               >
-                AI 설계 • 임대 분석 리포트
-                {/* <span className="flex items-center justify-center gap-2">
+                {/* AI 설계 • 임대 분석 리포트 */}
+                <span className="flex items-center justify-center gap-2">
                   <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   개발 후 예상 수익 보기
-                </span> */}
+                </span>
               </Button>
             )
         }
