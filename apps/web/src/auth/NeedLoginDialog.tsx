@@ -12,6 +12,7 @@ export const NeedLoginDialog = ({
     <Dialog
       open={open}
       onClose={onClose}
+      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 10px' } } } }}
     >
       <div className="flex flex-col items-center justify-center px-[40px] pt-[40px] pb-[32px] gap-[8px]">
         <p className="font-h3 md:font-h2 text-center">로그인 후 이용 가능한 서비스입니다.</p>
