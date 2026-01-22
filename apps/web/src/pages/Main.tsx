@@ -179,7 +179,7 @@ export default function Main() {
 
   useEffect(() => {
     getDealAvg();
-  }, [level]);
+  }, [center, level]);
 
   useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
@@ -729,6 +729,10 @@ export default function Main() {
               console.log('onDragEnd')
               console.log(map.getCenter().getLat(), map.getCenter().getLng());
               setFilterCenter({ lat: map.getCenter().getLat(), lng: map.getCenter().getLng() });
+              setCenter({
+                lat: map.getCenter().getLat(),
+                lng: map.getCenter().getLng()
+              })
             }}
             onZoomChanged={(map) => {
               // console.log(map.getLevel());
@@ -836,20 +840,20 @@ export default function Main() {
             {dealAvgList && (
               dealAvgList.map((dealAvg) => (
                 <React.Fragment key={dealAvg.id}>
-                  <Polygon
+                  {/* <Polygon
                     fillColor="green"
                     fillOpacity={0.3}
                     strokeColor="green"
                     strokeOpacity={1}
                     strokeWeight={1.5}
-                    path={convertXYtoLatLng(dealAvg.polygon || [])} />
+                    path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
                   <CustomOverlayMap
                     yAnchor={1.1}
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
-                    <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-                      <span className={`flex items-center font-bold text-green-900 `}>{dealAvg.name}</span>
-                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
-                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                    <div className="relative p-[8px] text-sm flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
+                      {/* <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div> */}
+                      {/* <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div> */}
                     </div>
                   </CustomOverlayMap>
                 </React.Fragment>

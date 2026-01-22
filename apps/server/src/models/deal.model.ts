@@ -22,10 +22,17 @@ export class DealModel {
       // )
       const dealList = await db.query<DealAvgInfo>(
         `
-        SELECT id, name, leg_dong_code as legDongCode, lat, lng, dbreg_dt, polygon
+        SELECT
+          MIN(id) as id,
+          name,
+          leg_dong_code as legDongCode,
+          AVG(lat) as lat,
+          AVG(lng) as lng
         FROM fs_bds.sigungu_boundary
         WHERE lat BETWEEN ? AND ?
         AND lng BETWEEN ? AND ?
+        AND leg_dong_code like "11%"
+        GROUP BY leg_dong_code, name
         `,
         [swLat, neLat, swLng, neLng]
       )
