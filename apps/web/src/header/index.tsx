@@ -297,6 +297,7 @@ export const Header = ({ user }: { user: User }) => {
         open={logoutConfirm}
         onClose={() => { setLogoutConfirm(false) }}
         disableScrollLock={true}
+        slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 8px' } } } }}
       >
         <div className="flex flex-col gap-[20px] min-w-[300px]">
           <h3 className="font-h3 px-[20px] py-[12px] border-b border-line-03">로그아웃</h3>
@@ -312,6 +313,7 @@ export const Header = ({ user }: { user: User }) => {
         open={logoutComplete}
         onClose={() => { setLogoutComplete(false) }}
         disableScrollLock={true}
+        slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 8px' } } } }}
       >
         <div className="flex flex-col gap-[24px] min-w-[300px] p-[20px]">
           <p className="font-h3 text-center pt-[12px]">로그아웃이 완료되었습니다.</p>

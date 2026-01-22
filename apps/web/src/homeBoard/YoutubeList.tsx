@@ -183,7 +183,10 @@ export const YoutubeList = ({
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-[8px]">
-                    <p className="font-h4 h-[60px] line-clamp-3">{video.title}</p>
+                    <p className="font-h4 h-[60px] line-clamp-3 cursor-pointer" onClick={() => {
+                      setSelectedVideo(video);
+                      setOpenVideoMiniPlayer(true);
+                    }}>{video.title}</p>
                     <p className="font-s2 text-text-03">조회수 {formatViews(video.viewCount || 0)}회 ∙ {formatTimeAgo(new Date(video.publishedAt))}</p>
                   </div>
                 </div>

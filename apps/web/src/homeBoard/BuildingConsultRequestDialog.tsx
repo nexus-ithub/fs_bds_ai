@@ -99,7 +99,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
             <DotProgress size="sm"/>
           </div>
           :
-          <div className="px-[24px] pb-[16px] space-y-[16px] md:space-y-[24px] md:p-[24px] md:pt-0">
+          <div className="px-[24px] py-[16px] space-y-[16px] md:space-y-[24px] md:p-[24px]">
             <div className="space-y-[16px] md:space-y-[20px]">
               <p className="font-h4">고객 정보</p>
               <div className="flex gap-[20px] md:flex-row flex-col">
