@@ -392,7 +392,7 @@ export const AIReportDetailDialog = ({ open, landId, estimatedPrice, onClose }: 
                   <div className="flex-1 flex flex-col space-y-[8px] md:space-y-[12px] p-[8px] md:p-0 border md:border-0 border-line-02 rounded-[4px] md:rounded-none md:border-r md:pr-[16px]">
                     <p className="font-s3 md:font-h4 text-center">5년 평균 지가 상승률</p>
                     <HDivider className="hidden md:block" />
-                    <p className="flex-1 text-[18px] md:text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{(aiReportDetail?.result?.avgPublicLandPriceGrowthRate).toFixed(1)}%</p>
+                    <p className="flex-1 text-[18px] md:text-[34px] text-primary font-[var(--font-weight-bold)] flex items-center justify-center">{(aiReportDetail?.result?.avgPublicLandPriceGrowthRate)?.toFixed(1)}%</p>
                   </div>
                   <div className="flex-1 flex flex-col space-y-[8px] md:space-y-[12px] p-[8px] md:p-0 border md:border-0 border-line-02 rounded-[4px] md:rounded-none">
                     <p className="font-s3 md:font-h4 text-center">수익률 환산 가치</p>
