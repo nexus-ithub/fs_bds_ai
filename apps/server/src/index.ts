@@ -19,6 +19,7 @@ import searchRoutes from './routes/search.routes';
 import chatRoutes from './routes/chat.routes';
 import { posthog } from './utils/analytics';
 import { setupExpressErrorHandler } from 'posthog-node';
+import dealRoutes from "./routes/deal.routes";
 dotenv.config();
 
 const app = express();
@@ -115,6 +116,7 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/land', landRoutes);
+app.use('/api/deal', dealRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/bds', bdsRoutes);
 app.use('/api/search', searchRoutes);

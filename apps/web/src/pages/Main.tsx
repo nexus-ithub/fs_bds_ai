@@ -1,7 +1,29 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, Button, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo } from "@repo/common";
+import {
+  type AreaPolygons,
+  type BuildingInfo,
+  Button,
+  type Coords,
+  type DealAvgInfo,
+  type DistanceLines,
+  type DistrictInfo,
+  type EstimatedPriceInfo,
+  krwUnit,
+  type LandInfo,
+  type LatLng,
+  type PlaceList,
+  type PlayerMode,
+  type PolygonInfo,
+  type PolygonInfoWithRepairInfo,
+  type RefDealInfo,
+  type RentInfo,
+  Switch,
+  type UsagePolygon,
+  YoutubeLogo,
+  type YoutubeVideo,
+} from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
@@ -45,6 +67,7 @@ export default function Main() {
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
+  const [dealAvgList, setDealAvgList] = useState<DealAvgInfo[] | null>(null);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
@@ -88,6 +111,7 @@ export default function Main() {
   const [showFilterSetting, setShowFilterSetting] = useState<boolean>(false);
   const [rangeLatDiff, setRangeLatDiff] = useState<number>(0);
   useEffect(() => {
+
     if (filter.on) {
       const bounds = mapRef.current?.getBounds();
       const ne = bounds.getNorthEast();
@@ -151,6 +175,11 @@ export default function Main() {
 
   }, [filter, filterCenter, level, showRemodel, showUsage, showRent]);
 
+
+  useEffect(() => {
+    getDealAvg();
+  }, [level]);
+
   useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
     setIsBottomSheetExpanded(false);
@@ -158,6 +187,28 @@ export default function Main() {
     setDragOffset(0);
     setTouchStart(0);
   }, [landInfo]);
+
+
+  const getDealAvg = () => {
+    const bounds = mapRef.current?.getBounds();
+    if (!bounds) return;
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+
+    axiosInstance.get(`/api/deal/avg`, {
+      params: {
+        neLat: ne.getLat(),
+        neLng: ne.getLng(),
+        swLat: sw.getLat(),
+        swLng: sw.getLng(),
+        type: 'sigungu'
+      }
+    }).then((response) => {
+      setDealAvgList(response.data);
+    }).catch((error) => {
+      console.error('Error finding deal avg:', error);
+    });
+  }
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
@@ -779,6 +830,28 @@ export default function Main() {
                   strokeOpacity={1}
                   strokeWeight={1.5}
                   path={convertXYtoLatLng(polygon?.polygon || [])} />
+              ))
+            )}
+            {dealAvgList && (
+              dealAvgList.map((dealAvg) => (
+                <React.Fragment key={dealAvg.id}>
+                  <Polygon
+                    fillColor="green"
+                    fillOpacity={0.3}
+                    strokeColor="green"
+                    strokeOpacity={1}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(dealAvg.polygon || [])} />
+                  <CustomOverlayMap
+                    yAnchor={1.1}
+                    position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
+                    <div className="relative p-[8px] text-sm flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center font-bold text-green-900 `}>{dealAvg.name}</span>
+                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+                    </div>
+                  </CustomOverlayMap>
+                </React.Fragment>
               ))
             )}
             {remodelPolygonList && (
