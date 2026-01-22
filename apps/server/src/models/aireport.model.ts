@@ -2245,8 +2245,8 @@ export class AIReportModel {
     debug?: boolean;
     rentInfoList?: RentInfo[];
   } | null> {
-    console.log('landId', landId)
-    console.log('estimatedPrice', estimatedPrice)
+    // console.log('landId', landId)
+    // console.log('estimatedPrice', estimatedPrice)
 
     const devDetailInfo = {
       rent: newReportValue(),
@@ -2941,8 +2941,9 @@ export class AIReportModel {
         devDetailInfo
       } = await this.makeDevDetailInfo(landId, estimatedPrice);
       const { remodel, build, rent } = devDetailInfo;
+      // console.log('getAIReportDetail!! ', devDetailInfo)
       let valueArray = [remodel, build, rent].filter((v) => v !== null);
-      valueArray = valueArray.sort((a, b) => b?.grade > a?.grade ? -1 : 1);
+      valueArray = valueArray.sort((a, b) => b?.result.grade > a?.result.grade ? -1 : 1);
       const resultType = valueArray[0] === remodel ? 'remodel' : valueArray[0] === build ? 'build' : 'rent';
       const resultValue = valueArray[0];
       const result = {
