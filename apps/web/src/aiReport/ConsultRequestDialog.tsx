@@ -94,8 +94,14 @@ export const ConsultRequestDialog = ({open, landId, onClose}: ConsultRequestDial
         <div className="px-[16px] md:px-[24px] h-[56px] md:h-[64px] flex items-center justify-between">
           <div className="flex flex-col md:flex-row md:items-center gap-[4px] md:gap-[12px]">
             <p className="font-h4">설계상담요청하기</p>
-            <VDivider className="h-[12px] hidden md:block" colorClassName="bg-line-03"/>
-            <p className="font-s3 md:font-s2 text-text-03">해당 물건의 설계에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+            {
+              !isMobile && (
+                <>
+                  <VDivider className="h-[12px] hidden md:block" colorClassName="bg-line-03"/>
+                  <p className="font-s3 md:font-s2 text-text-03">해당 물건의 설계에 관한 상담을 위해 아래 항목을 입력해 주세요.</p>
+                </>
+              )
+            }
           </div>
           <button
             className="md:hidden flex items-center"

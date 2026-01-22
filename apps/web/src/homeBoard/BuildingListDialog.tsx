@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import useAxiosWithAuth from "../axiosWithAuth";
-import { CloseIcon, getAreaStrWithPyeong, getShortAddress, krwUnit, Spinner, SubTabButton, TabButton, VDivider, type BdsSale } from "@repo/common";
-import React from "react";
-import { CircularProgress, Dialog, DialogContent } from "@mui/material";
+import { CloseIcon, getAreaStrWithPyeong, getShortAddress, krwUnit, TabButton, type BdsSale } from "@repo/common";
+import { CircularProgress, Dialog } from "@mui/material";
 
 
 const BUILDING_LIST_FILTER_TABS = [

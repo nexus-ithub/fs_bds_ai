@@ -4,7 +4,7 @@ import { CheckIcon, ChevronRightCustomIcon, HDivider, type User } from "@repo/co
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { Avatar } from "@mui/material";
+import { Avatar, useMediaQuery } from "@mui/material";
 import { ChevronDownCustomIcon } from "@repo/common";
 import { BookmarkedBds } from "../myPage/BookmarkedBds";
 import { BookmarkedReport } from "../myPage/BookmarkedReport";
@@ -103,6 +103,7 @@ export const MyPage = () => {
   const [reportCount, setReportCount] = useState<number>(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubPage = location.pathname !== '/myPage';
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // 현재 페이지 제목 가져오기
   const getPageTitle = () => {
@@ -151,10 +152,10 @@ export const MyPage = () => {
 
   // 데스크탑에서 /myPage 접속 시 자동으로 profile로 이동
   useEffect(() => {
-    if (location.pathname === '/myPage' && window.innerWidth >= 768) {
+    if (location.pathname === '/myPage' && isDesktop) {
       navigate('/myPage/profile', { replace: true });
     }
-  }, [location.pathname, navigate])
+  }, [location.pathname, navigate, isDesktop])
 
   return (
     <>
@@ -182,42 +183,41 @@ export const MyPage = () => {
                 <p className="font-s2 text-text-02">{reportCount}</p>
               </div>
               {/* <HDivider colorClassName="bg-line-02" dashed={true}/>
-            <div className="flex items-center justify-between gap-[6px]">
-              <p className="font-s2 text-text-03">생성한 AI 리포트</p>
-              <p className="font-s2 text-text-02">32TODO</p>
-            </div> */}
+              <div className="flex items-center justify-between gap-[6px]">
+                <p className="font-s2 text-text-03">생성한 AI 리포트</p>
+                <p className="font-s2 text-text-02">32TODO</p>
+              </div> */}
+            </div>
+          </div>
+          <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
+          <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
+          {/* <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded /> */}
+        </div>
+        {/* 컨텐츠: 모바일에서는 서브페이지일 때만, 데스크탑에서는 항상 */}
+        <div className={`flex-1 overflow-y-auto scrollbar-hover ${isSubPage ? 'flex flex-col' : 'hidden md:block'}`}>
+          {/* 모바일 헤더 */}
+          {isSubPage && (
+            <div className="md:hidden flex items-center justify-center p-[16px] border-b border-line-02 relative">
+              <button
+                onClick={() => navigate('/myPage')}
+                className="absolute left-[20px] flex items-center gap-[8px] font-s1-p text-text-01 rotate-180"
+              >
+                <ChevronRightCustomIcon size={16} />
+              </button>
+              <p className="font-s1-p">{getPageTitle()}</p>
+            </div>
+          )}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
+            <Routes>
+              <Route path="profile" element={<Profile />} />
+              <Route path="additional-info" element={<MyAdditionalInfo />} />
+              {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
+              <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef} /> } />
+              <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
+            </Routes>
           </div>
         </div>
-        <CustomAccordion title="계정 관리" menuItems={accountMenu} defaultExpanded />
-        <CustomAccordion title="관심물건 관리" menuItems={favoriteMenu} defaultExpanded />
-        {/* <CustomAccordion title="AI 리포트" menuItems={reportMenu} defaultExpanded /> */}
-      </div>
-      {/* 컨텐츠: 모바일에서는 서브페이지일 때만, 데스크탑에서는 항상 */}
-      <div className={`flex-1 overflow-y-auto scrollbar-hover ${isSubPage ? 'flex flex-col' : 'hidden md:block'}`}>
-        {/* 모바일 헤더 */}
-        {isSubPage && (
-          <div className="md:hidden flex items-center justify-center p-[16px] border-b border-line-02 relative">
-            <button
-              onClick={() => navigate('/myPage')}
-              className="absolute left-[20px] flex items-center gap-[8px] font-s1-p text-text-01 rotate-180"
-            >
-              <ChevronRightCustomIcon size={16} />
-            </button>
-            <p className="font-s1-p">{getPageTitle()}</p>
-          </div>
-        )}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hover">
-          <Routes>
-            <Route path="profile" element={<Profile />} />
-            <Route path="additional-info" element={<MyAdditionalInfo />} />
-            {/* <Route path="edit-pw" element={<EditPassword /> } /> */}
-            <Route path="bookmarked-bds" element={<BookmarkedBds scrollRef={scrollRef} /> } />
-            <Route path="bookmarked-report" element={<BookmarkedReport scrollRef={scrollRef} />} />
-          </Routes>
-        </div>
-      </div>
     </div>
-    {/* <GNB /> */}
     </>
   )
 }

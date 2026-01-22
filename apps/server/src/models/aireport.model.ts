@@ -861,11 +861,7 @@ function makeRemodelingInfo(landInfo: LandData, buildingList: BuildingData[], de
   // 최대 연면적 
   const maxUpperFloorArea = area * (far / 100);
 
-  // 최대로 올릴수 있는 층수 (현재 건축면적으로 계산)
-  let maxFloorCount = Math.max(currentBuildingGndFloorNumber, Math.ceil(Number(maxUpperFloorArea) / Number(remodelInfo.buildingArea)));
 
-  // 공용면적
-  remodelInfo.publicAreaPerFloor = getDefaultPublicArea(maxUpperFloorArea, maxFloorCount);
   // 건축물 대장의 총 연면적
   const buildingTotalFloorArea = buildingList?.reduce((total, building) => total + (building.totalFloorArea ? parseFloat(building.totalFloorArea) : 0.00), 0.00);
   // 현재 건축물 대장에 연면적이 없으면 총 연면적을 건축면적으로 대체 (1층짜리 건물이라고 생각)
@@ -889,6 +885,8 @@ function makeRemodelingInfo(landInfo: LandData, buildingList: BuildingData[], de
   //   debugExtraInfo.push(`[최대가능층수] ${maxFloorCount}`);
   // }
 
+  let firstFloorArea;
+  let maxFloorCount;
 
   if (isJungbukIljo(landInfo)) {
     if (debug) {
@@ -898,18 +896,31 @@ function makeRemodelingInfo(landInfo: LandData, buildingList: BuildingData[], de
       debugExtraInfo.push(`[공용면적] ${remodelInfo.publicAreaPerFloor.toFixed(1)}m²`);
       // debugExtraInfo.push(`[최소지상층별면적] ${getAreaStrWithPyeong(remodelInfo.publicAreaPerFloor + minExclusiveArea)}m² (${minExclusiveArea.toFixed(1)}m²(최소전용면적) + ${buildInfo.publicAreaPerFloor.toFixed(1)}m²(공용면적))`);
     }
-    const floors = getFloorInfoForJungbukIljo(remodelInfo.buildingArea, remodelInfo.publicAreaPerFloor, maxUpperFloorArea, debug, debugExtraInfo);
-    // maxFloorCount = Math.max(maxFloorCount, floors.length);
+    const floors = getFloorInfoForJungbukIljo(buildingArea, remodelInfo.publicAreaPerFloor, maxUpperFloorArea, debug, debugExtraInfo);
     maxFloorCount = floors.length
+    // 공용면적
+    remodelInfo.publicAreaPerFloor = getDefaultPublicArea(maxUpperFloorArea, maxFloorCount);
+
+    firstFloorArea = floors[0];
+    // 리모델링 후 지상 층수 (최대 2층 증축 가능)
+    remodelInfo.upperFloorCount = Math.min(maxFloorCount, currentBuildingGndFloorNumber + 2);
+    remodelInfo.upperFloorArea = Math.min(floors.reduce((a, b) => a + b, 0), remodelInfo.upperFloorCount * buildingArea);
+
+  } else {
+    // 최대로 올릴수 있는 층수 (현재 건축면적으로 계산)
+    maxFloorCount = Math.max(currentBuildingGndFloorNumber, Math.ceil(Number(maxUpperFloorArea) / Number(remodelInfo.buildingArea)));
+    // 공용면적
+    remodelInfo.publicAreaPerFloor = getDefaultPublicArea(maxUpperFloorArea, maxFloorCount);
+    // 리모델링 후 지상 층수 (최대 2층 증축 가능)
+    remodelInfo.upperFloorCount = Math.min(maxFloorCount, currentBuildingGndFloorNumber + 2);
+    remodelInfo.upperFloorArea = remodelInfo.upperFloorCount * buildingArea;
+
+    const areaPerFloor = remodelInfo.upperFloorArea / remodelInfo.upperFloorCount;
+    firstFloorArea = areaPerFloor;
   }
 
-  // 리모델링 후 지상 층수 (최대 2층 증축 가능)
-  remodelInfo.upperFloorCount = Math.min(maxFloorCount, currentBuildingGndFloorNumber + 2);
-  remodelInfo.upperFloorArea = remodelInfo.upperFloorCount * buildingArea;
-  const areaPerFloor = remodelInfo.upperFloorArea / remodelInfo.upperFloorCount;
-  const firstFloorArea = areaPerFloor;
 
-  remodelInfo.firstFloorExclusiveArea = Math.max(areaPerFloor - (remodelInfo.publicAreaPerFloor), 0);
+  remodelInfo.firstFloorExclusiveArea = Math.max(firstFloorArea - (remodelInfo.publicAreaPerFloor), 0);
   remodelInfo.secondFloorExclusiveArea =
     Math.max(
       remodelInfo.upperFloorArea - remodelInfo.firstFloorExclusiveArea - (remodelInfo.publicAreaPerFloor * (remodelInfo.upperFloorCount - 1)),
@@ -2234,8 +2245,8 @@ export class AIReportModel {
     debug?: boolean;
     rentInfoList?: RentInfo[];
   } | null> {
-    console.log('landId', landId)
-    console.log('estimatedPrice', estimatedPrice)
+    // console.log('landId', landId)
+    // console.log('estimatedPrice', estimatedPrice)
 
     const devDetailInfo = {
       rent: newReportValue(),
@@ -2930,8 +2941,9 @@ export class AIReportModel {
         devDetailInfo
       } = await this.makeDevDetailInfo(landId, estimatedPrice);
       const { remodel, build, rent } = devDetailInfo;
+      // console.log('getAIReportDetail!! ', devDetailInfo)
       let valueArray = [remodel, build, rent].filter((v) => v !== null);
-      valueArray = valueArray.sort((a, b) => b?.grade > a?.grade ? -1 : 1);
+      valueArray = valueArray.sort((a, b) => b?.result.grade > a?.result.grade ? -1 : 1);
       const resultType = valueArray[0] === remodel ? 'remodel' : valueArray[0] === build ? 'build' : 'rent';
       const resultValue = valueArray[0];
       const result = {

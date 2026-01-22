@@ -167,6 +167,7 @@ export default function Main() {
     } else {
       setUsagePolygonList([]);
     }
+
     // if (IS_DEVELOPMENT && showRent) {
     //   getRentInfo();
     // } else {
@@ -1121,7 +1122,7 @@ export default function Main() {
         />
         {
           (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 left-[16px] md:left-[425px] ${showFilterSetting ? 'md:left-[840px]' : ''} top-[81px] bg-white rounded-[4px] flex items-center justify-center px-[12px] py-[14px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+            <div className={`fixed z-30 left-[16px] md:left-[424px] ${showFilterSetting ? 'md:left-[834px]' : ''} md:top-[145px] top-[192px] bg-white rounded-[4px] flex items-center justify-center md:px-[12px] md:py-[14px] px-[8px] py-[10px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
               <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
                 TIP
               </p>

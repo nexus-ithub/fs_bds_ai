@@ -73,10 +73,11 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
           maxWidth: '640px',
         },
       }}
+      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 16px' } } } }}
       open={open}
       onClose={onClose}
       >
-        <div className="px-[24px] h-[54px] flex items-center justify-between md:h-[64px]">
+        <div className="px-[24px] h-[54px] flex items-center justify-between md:h-[64px] shrink-0">
           <div className="flex items-center gap-[12px]">
             <p className="font-h4">매입상담 요청하기</p>
             {
@@ -98,7 +99,7 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
             <DotProgress size="sm"/>
           </div>
           :
-          <div className="p-[24px] space-y-[16px] md:space-y-[24px]">
+          <div className="px-[24px] pb-[16px] space-y-[16px] md:space-y-[24px] md:p-[24px] md:pt-0">
             <div className="space-y-[16px] md:space-y-[20px]">
               <p className="font-h4">고객 정보</p>
               <div className="flex gap-[20px] md:flex-row flex-col">
@@ -145,20 +146,20 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
                     
                     <div className="font-c2 border border-line-02 rounded-[4px] divide-y divide-line-02">
                       <div className="flex divide-x divide-line-02">
-                        <p className="w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">개인정보 수집항목</p>
-                        <p className="px-[12px] py-[8px]">고객명, 고객연락처</p>
+                        <p className="w-[40%] md:w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">개인정보 수집항목</p>
+                        <p className="px-[12px] py-[8px] flex-1">고객명, 고객연락처</p>
                       </div>
                       <div className="flex divide-x divide-line-02">
-                        <p className="w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">수집목적</p>
-                        <p className="px-[12px] py-[8px]">당사가 제공하는 상담서비스를 위해 수집</p>
+                        <p className="w-[40%] md:w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">수집목적</p>
+                        <p className="px-[12px] py-[8px] flex-1">당사가 제공하는 상담서비스를 위해 수집</p>
                       </div>
                       <div className="flex divide-x divide-line-02">
-                        <p className="w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">보유 및 이용기간</p>
-                        <p className="px-[12px] py-[8px]">상담완료 후 고객의 삭제 요청시 또는 5년이내 정보 삭제</p>
+                        <p className="w-[40%] md:w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">보유 및 이용기간</p>
+                        <p className="px-[12px] py-[8px] flex-1">상담완료 후 고객의 삭제 요청시 또는 5년이내 정보 삭제</p>
                       </div>
                       <div className="flex divide-x divide-line-02">
-                        <p className="w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">동의 거부에 따른 불이익의 내용안내</p>
-                        <p className="px-[12px] py-[8px]">상담받을 수 없을뿐, 다른 불이익은 없습니다.</p>
+                        <p className="w-[40%] md:w-[228px] text-text-02 px-[12px] py-[8px] bg-surface-second">동의 거부에 따른 불이익의 내용안내</p>
+                        <p className="px-[12px] py-[8px] flex-1">상담받을 수 없을뿐, 다른 불이익은 없습니다.</p>
                       </div>
                     </div>
                   </div>                    
@@ -168,9 +169,9 @@ export const BuildingConsultRequestDialog = ({open, bdsSale = null, onClose}: Bu
           </div>
         }
         <HDivider/>
-        <div className="w-full flex p-[24px] gap-[10px]">
-          <Button variant="bggray" fontSize="font-h4" size="medium" className="w-[200px]" onClick={() => {onClose()}}>취소</Button>
-          <Button disabled={!name || !phone || (!agree && !config)} className="flex-1" fontSize="font-h4" size="medium" onClick={() => {onSubmit()}}>문의하기</Button>
+        <div className="w-full flex px-[24px] py-[16px] gap-[10px] md:p-[24px]">
+          <Button variant="bggray" fontSize={isMobile ? "font-h5" : "font-h4"} size={isMobile ? "semiMedium" : "medium"} className="w-[30%] md:w-[200px]" onClick={() => {onClose()}}>취소</Button>
+          <Button disabled={!name || !phone || (!agree && !config) || (text.trim().length === 0)} className="flex-1" fontSize={isMobile ? "font-h5" : "font-h4"} size={isMobile ? "semiMedium" : "medium"} onClick={() => {onSubmit()}}>문의하기</Button>
         </div>
     </Dialog>
   )
