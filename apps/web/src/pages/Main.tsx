@@ -850,8 +850,9 @@ export default function Main() {
                   <CustomOverlayMap
                     yAnchor={1.1}
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
-                    <div className="relative p-[8px] text-sm flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <div className="relative flex justify-center items-center p-[8px] text-sm flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
                       <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
+                      <span className={`text-[12px] flex items-center text-gray-200`}>{dealAvg.dealPrice ? krwUnit(dealAvg.dealPrice * 1000, true) : '-'}/평</span>
                       {/* <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div> */}
                       {/* <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div> */}
                     </div>
