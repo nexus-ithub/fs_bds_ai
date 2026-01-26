@@ -154,7 +154,12 @@ export class DealModel {
                 AND b.land_area IS NOT NULL AND b.land_area > 0
                 AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
                 AND (b.price / b.land_area) >= 200
-                AND b.leg_dong_code LIKE '11%'
+                AND b.leg_dong_code IN (
+                  SELECT leg_dong_code FROM fs_bds.eupmyeondong_boundary
+                  WHERE leg_dong_code LIKE '11%'
+                  AND lat BETWEEN ? AND ?
+                  AND lng BETWEEN ? AND ?
+                )
 
               UNION ALL
 
@@ -163,15 +168,20 @@ export class DealModel {
                 CAST(REPLACE(l.price, ',', '') AS DECIMAL) / (l.area * 0.3025) as price_per_pyeong
               FROM fs_bds.land_deal_list l
               WHERE l.price IS NOT NULL AND l.price <> ''
-                AND l.jimok != '도로' AND l.jimok != '구거' 
+                AND l.jimok != '도로' AND l.jimok != '구거'
                 AND l.area IS NOT NULL AND l.area >= 33.3
                 AND (l.cancel_yn != 'O' OR l.cancel_yn IS NULL)
-              AND l.leg_dong_code LIKE '11%'
+                AND l.leg_dong_code IN (
+                  SELECT leg_dong_code FROM fs_bds.eupmyeondong_boundary
+                  WHERE leg_dong_code LIKE '11%'
+                  AND lat BETWEEN ? AND ?
+                  AND lng BETWEEN ? AND ?
+                )
             ) combined
             GROUP BY leg_dong_code
           ) d ON s.legDongCode = d.leg_dong_code
           `,
-          [swLat, neLat, swLng, neLng]
+          [swLat, neLat, swLng, neLng, swLat, neLat, swLng, neLng, swLat, neLat, swLng, neLng]
         )
         console.log('dealList', dealList.length);
         return dealList;

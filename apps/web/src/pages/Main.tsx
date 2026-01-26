@@ -30,7 +30,7 @@ import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
-import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, BotMessageSquare } from "lucide-react";
+import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, BotMessageSquare, CrownIcon } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
@@ -869,12 +869,12 @@ export default function Main() {
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
                     <div
                       className="relative flex justify-center items-center p-[8px] text-[13px] flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none pointer-events-none"
-                      style={index < 3 ? { animation: 'dealAvgBounce 1.5s ease-in-out infinite' } : undefined}
+                      style={index < 3 ? { animation: 'dealAvgBounce 2.0s ease-in-out infinite' } : undefined}
                     >
                       {index < 3 && level > 5 && (
-                        <span className="absolute -top-[12px] -right-[12px] bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-md whitespace-nowrap">
-                          {index === 0 ? '👑 ' : ''}서울 {index + 1}위
-                        </span>
+                        <div className="absolute flex items-center gap-[4px] -top-[12px] -right-[12px] bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-md whitespace-nowrap">
+                          {index === 0 ? <CrownIcon size={14} color="yellow" /> : ''}서울 {index + 1}위
+                        </div>
                       )}
                       <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
                       <span className={`text-[12px] flex items-center text-gray-200`}>{dealAvg.dealPrice ? krwUnit(dealAvg.dealPrice * 1000, true) : '-'}/평</span>
