@@ -114,6 +114,7 @@ export class DealModel {
             ) combined
             GROUP BY sigungu_code
           ) d ON LEFT(s.legDongCode, 5) = d.sigungu_code
+          ORDER BY d.avgPricePerPyeong DESC
           `,
           [swLat, neLat, swLng, neLng]
         )

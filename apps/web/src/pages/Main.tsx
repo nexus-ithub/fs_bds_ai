@@ -75,6 +75,7 @@ export default function Main() {
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
   const [mapTypeId, setMapTypeId] = useState<'ROADMAP' | 'SKYVIEW' | 'USE_DISTRICT'>('ROADMAP');
   const mapRef = useRef<any>(null);
+  const clickTimerRef = useRef<number | null>(null);
 
   const [roadViewCenter, setRoadViewCenter] = useState<{ lat: number, lng: number, pan: number } | null>(null);
   const [level, setLevel] = useState<number>(defaultMapState.level);
@@ -702,6 +703,12 @@ export default function Main() {
 
   return (
     <MainContext.Provider value={contextValue}>
+      <style>{`
+        @keyframes dealAvgBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
       <div className="flex w-full h-full relative pb-0 md:pb-0">
         <div className="flex-1 h-full pb-[64px] md:pb-0">
           <Map
@@ -711,38 +718,47 @@ export default function Main() {
               map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
             }}
             onClick={(_, mouseEvent) => {
-
-              // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
-              if (mapType === 'roadview') {
-                setRoadViewCenter({
-                  lat: mouseEvent.latLng.getLat(),
-                  lng: mouseEvent.latLng.getLng(),
-                  pan: 0,
-                })
-              } else if (mapType === 'area') {
-                if (!isDrawingArea) { setAreaPaths([]); }
-                setAreaPaths((prev) => [
-                  ...prev,
-                  {
-                    lat: mouseEvent.latLng.getLat(),
-                    lng: mouseEvent.latLng.getLng(),
-                  },
-                ])
-                setIsDrawingArea(true);
-              } else if (mapType === 'distance') {
-                if (!isDrawingDistance) { setDistances([]); setDistancePaths([]); }
-                setDistancePaths((prev) => [
-                  ...prev,
-                  {
-                    lat: mouseEvent.latLng.getLat(),
-                    lng: mouseEvent.latLng.getLng(),
-                  },
-                ])
-                setIsDrawingDistance(true);
-                setShowDistanceOverlay(true);
-              } else {
-                getPolygon({ lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng() });
+              // 더블클릭 시 싱글클릭 이벤트 무시
+              if (clickTimerRef.current) {
+                clearTimeout(clickTimerRef.current);
+                clickTimerRef.current = null;
+                return;
               }
+
+              clickTimerRef.current = window.setTimeout(() => {
+                clickTimerRef.current = null;
+
+                if (mapType === 'roadview') {
+                  setRoadViewCenter({
+                    lat: mouseEvent.latLng.getLat(),
+                    lng: mouseEvent.latLng.getLng(),
+                    pan: 0,
+                  })
+                } else if (mapType === 'area') {
+                  if (!isDrawingArea) { setAreaPaths([]); }
+                  setAreaPaths((prev) => [
+                    ...prev,
+                    {
+                      lat: mouseEvent.latLng.getLat(),
+                      lng: mouseEvent.latLng.getLng(),
+                    },
+                  ])
+                  setIsDrawingArea(true);
+                } else if (mapType === 'distance') {
+                  if (!isDrawingDistance) { setDistances([]); setDistancePaths([]); }
+                  setDistancePaths((prev) => [
+                    ...prev,
+                    {
+                      lat: mouseEvent.latLng.getLat(),
+                      lng: mouseEvent.latLng.getLng(),
+                    },
+                  ])
+                  setIsDrawingDistance(true);
+                  setShowDistanceOverlay(true);
+                } else {
+                  getPolygon({ lat: mouseEvent.latLng.getLat(), lng: mouseEvent.latLng.getLng() });
+                }
+              }, 250);
             }}
             center={center}
             level={level}
@@ -845,24 +861,23 @@ export default function Main() {
               ))
             )}
             {dealAvgList && (
-              dealAvgList.map((dealAvg) => (
+              dealAvgList.map((dealAvg, index) => (
                 <React.Fragment key={dealAvg.id}>
-                  {/* <Polygon
-                    fillColor="green"
-                    fillOpacity={0.3}
-                    strokeColor="green"
-                    strokeOpacity={1}
-                    strokeWeight={1.5}
-                    path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
                   <CustomOverlayMap
-                    clickable={true}
+                    clickable={false}
                     yAnchor={1.1}
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
-                    <div className="relative flex justify-center items-center p-[8px] text-[13px] flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <div
+                      className="relative flex justify-center items-center p-[8px] text-[13px] flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none pointer-events-none"
+                      style={index < 3 ? { animation: 'dealAvgBounce 1.5s ease-in-out infinite' } : undefined}
+                    >
+                      {index < 3 && level > 5 && (
+                        <span className="absolute -top-[12px] -right-[12px] bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-md whitespace-nowrap">
+                          {index === 0 ? '👑 ' : ''}서울 {index + 1}위
+                        </span>
+                      )}
                       <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
                       <span className={`text-[12px] flex items-center text-gray-200`}>{dealAvg.dealPrice ? krwUnit(dealAvg.dealPrice * 1000, true) : '-'}/평</span>
-                      {/* <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div> */}
-                      {/* <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div> */}
                     </div>
                   </CustomOverlayMap>
                 </React.Fragment>
@@ -879,10 +894,10 @@ export default function Main() {
                     strokeWeight={1.5}
                     path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
                   <CustomOverlayMap
-                    // clickable={true}
+                    clickable={false}
                     yAnchor={1.1}
                     position={{ lat: deal.lat, lng: deal.lng }}>
-                    <div className="relative text-primary flex justify-center items-center p-[6px] text-[14px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <div className="relative text-primary flex justify-center items-center p-[6px] text-[14px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none pointer-events-none">
                       <span className={`flex items-center font-bold`}>{deal.dealPrice ? krwUnit(deal.dealPrice * 10000, true) : '-'}</span>
                       <span className={`flex items-center text-[12px]`}>{deal.dealDate ? formatDate(deal.dealDate, 'yy년MM월') : '-'}</span>
 
