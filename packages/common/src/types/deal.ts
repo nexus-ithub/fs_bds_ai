@@ -1,11 +1,19 @@
 import { Coords } from "./land";
 
 
-export const TYPE = {
-  SIGUNGU: 'sigungu',
-  EUPMYEONDONG: 'eupmyeondong'
-}
+export type AreaLevel = 'sigungu' | 'eupmyeondong';
 
+export interface DealInfo {
+  id: string;
+  legDongName: string;
+  legDongCode: string;
+  dealDate: Date;
+  dealPrice: number;
+  lat: number;
+  lng: number;
+  type: "building" | "land";
+  // polygon: Coords[] | Coords[][];
+}
 
 export interface DealAvgInfo {
   id: number;

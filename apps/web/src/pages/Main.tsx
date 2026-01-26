@@ -7,6 +7,7 @@ import {
   Button,
   type Coords,
   type DealAvgInfo,
+  type DealInfo,
   type DistanceLines,
   type DistrictInfo,
   type EstimatedPriceInfo,
@@ -68,6 +69,7 @@ export default function Main() {
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
   const [dealAvgList, setDealAvgList] = useState<DealAvgInfo[] | null>(null);
+  const [dealList, setDealList] = useState<DealInfo[] | null>(null);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
@@ -178,8 +180,9 @@ export default function Main() {
 
 
   useEffect(() => {
-    getDealAvg();
-  }, [center, level]);
+    getDealList();
+    // getDealList();
+  }, [center, level, mapRef?.current]);
 
   useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
@@ -190,26 +193,48 @@ export default function Main() {
   }, [landInfo]);
 
 
-  const getDealAvg = () => {
+  const getDealList = () => {
     const bounds = mapRef.current?.getBounds();
     if (!bounds) return;
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
 
-    axiosInstance.get(`/api/deal/avg`, {
-      params: {
-        neLat: ne.getLat(),
-        neLng: ne.getLng(),
-        swLat: sw.getLat(),
-        swLng: sw.getLng(),
-        type: 'sigungu'
-      }
-    }).then((response) => {
-      setDealAvgList(response.data);
-    }).catch((error) => {
-      console.error('Error finding deal avg:', error);
-    });
+    console.log('getDealAvg level', level);
+
+    if (level < 4) {
+      setDealAvgList([]);
+      axiosInstance.get(`/api/deal`, {
+        params: {
+          neLat: ne.getLat(),
+          neLng: ne.getLng(),
+          swLat: sw.getLat(),
+          swLng: sw.getLng()
+        }
+      }).then((response) => {
+        setDealList(response.data);
+      }).catch((error) => {
+        console.error('Error finding deal list:', error);
+      });
+    } else {
+      setDealList([]);
+      axiosInstance.get(`/api/deal/avg`, {
+        params: {
+          neLat: ne.getLat(),
+          neLng: ne.getLng(),
+          swLat: sw.getLat(),
+          swLng: sw.getLng(),
+          type: level > 5 ? 'sigungu' : 'eupmyeondong'
+        }
+      }).then((response) => {
+        setDealAvgList(response.data);
+      }).catch((error) => {
+        console.error('Error finding deal avg:', error);
+      });
+    }
+
   }
+
+
 
   const getFilteredPolygon = () => {
     const bounds = mapRef.current?.getBounds();
@@ -806,25 +831,7 @@ export default function Main() {
               </>
 
             )}
-            {polygonList && (
-              polygonList.map((polygon, index) => (
 
-                <React.Fragment key={polygon.id}>
-                  <Polygon
-                    key={polygon.id}
-                    fillColor="var(--color-primary)"
-                    fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
-                    strokeColor="var(--color-primary)"
-                    strokeOpacity={1}
-                    strokeWeight={1.5}
-                    path={convertXYtoLatLng(polygon?.polygon || [])} />
-                  {polygonAdditionalInfo(polygon, index)}
-
-
-                </React.Fragment>
-
-              ))
-            )}
             {filteredPolygonList && (
               filteredPolygonList.map((polygon) => (
                 <Polygon
@@ -848,13 +855,40 @@ export default function Main() {
                     strokeWeight={1.5}
                     path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
                   <CustomOverlayMap
+                    clickable={true}
                     yAnchor={1.1}
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
-                    <div className="relative flex justify-center items-center p-[8px] text-sm flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                    <div className="relative flex justify-center items-center p-[8px] text-[13px] flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
                       <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
                       <span className={`text-[12px] flex items-center text-gray-200`}>{dealAvg.dealPrice ? krwUnit(dealAvg.dealPrice * 1000, true) : '-'}/평</span>
                       {/* <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div> */}
                       {/* <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div> */}
+                    </div>
+                  </CustomOverlayMap>
+                </React.Fragment>
+              ))
+            )}
+            {dealList && dealList.length > 0 && (
+              dealList.map((deal, index) => (
+                <React.Fragment key={deal.id + index}>
+                  {/* <Polygon
+                    fillColor="green"
+                    fillOpacity={0.3}
+                    strokeColor="green"
+                    strokeOpacity={1}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
+                  <CustomOverlayMap
+                    // clickable={true}
+                    yAnchor={1.1}
+                    position={{ lat: deal.lat, lng: deal.lng }}>
+                    <div className="relative text-primary flex justify-center items-center p-[6px] text-[14px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
+                      <span className={`flex items-center font-bold`}>{deal.dealPrice ? krwUnit(deal.dealPrice * 10000, true) : '-'}</span>
+                      <span className={`flex items-center text-[12px]`}>{deal.dealDate ? formatDate(deal.dealDate, 'yy년MM월') : '-'}</span>
+
+                      {/* <span className={`text-[12px] flex items-center text-gray-200`}>{deal.dealPrice ? krwUnit(deal.dealPrice * 1000, true) : '-'}/평</span> */}
+                      <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+                      <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
                     </div>
                   </CustomOverlayMap>
                 </React.Fragment>
@@ -953,9 +987,27 @@ export default function Main() {
                     </div>
                   </CustomOverlayMap>
                 ))
-
               )
             }
+            {polygonList && (
+              polygonList.map((polygon, index) => (
+
+                <React.Fragment key={polygon.id}>
+                  <Polygon
+                    key={polygon.id}
+                    fillColor="var(--color-primary)"
+                    fillOpacity={polygon.current === 'Y' ? 0.4 : 0.2} // 70% opacity
+                    strokeColor="var(--color-primary)"
+                    strokeOpacity={1}
+                    strokeWeight={1.5}
+                    path={convertXYtoLatLng(polygon?.polygon || [])} />
+                  {polygonAdditionalInfo(polygon, index)}
+
+
+                </React.Fragment>
+
+              ))
+            )}
             <AreaOverlay
               isDrawingArea={isDrawingArea}
               areaPaths={areaPaths}
