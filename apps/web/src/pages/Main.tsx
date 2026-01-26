@@ -898,12 +898,19 @@ export default function Main() {
                     strokeWeight={1.5}
                     path={convertXYtoLatLng(dealAvg.polygon || [])} /> */}
                   <CustomOverlayMap
-                    clickable={false}
+                    clickable={true}
                     yAnchor={1.1}
                     position={{ lat: deal.lat, lng: deal.lng }}>
-                    <div className="relative flex justify-center items-center p-[5px] text-[14px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none pointer-events-none">
+                    <button
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log('deal', deal)
+                        getPolygon({ id: deal.id || '', changePosition: false });
+                      }}
+                      className="relative flex justify-center items-center p-[4px] text-[12px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none">
                       <p className="flex items-center gap-[2px]">
-                        <span className={`flex items-center font-bold ${deal.type === 'building' ? 'bg-blue-500' : 'bg-green-500'} text-white text-[10px] rounded-[4px] px-[4px] py-[2px]`}>{deal.type === 'building' ? '빌딩' : '토지'}</span>
+                        <span className={`flex items-center ${deal.type === 'building' ? 'bg-blue-500' : 'bg-green-500'} text-white text-[10px] rounded-[4px] px-[4px] py-[2px]`}>{deal.type === 'building' ? '빌딩' : '토지'}</span>
                         <span className={`flex items-center font-bold ${deal.type === 'building' ? 'text-blue-500' : 'text-green-500'}`}>{deal.dealPrice ? krwUnit(deal.dealPrice * 10000, true) : '-'}</span></p>
                       <p>
                         <span className={`flex items-center text-[11px]`}>{deal.dealDate ? formatDate(deal.dealDate, 'yy년MM월') : '-'}</span></p>
@@ -911,7 +918,7 @@ export default function Main() {
                       {/* <span className={`text-[12px] flex items-center text-gray-200`}>{deal.dealPrice ? krwUnit(deal.dealPrice * 1000, true) : '-'}/평</span> */}
                       <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
                       <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
-                    </div>
+                    </button>
                   </CustomOverlayMap>
                 </React.Fragment>
               ))
