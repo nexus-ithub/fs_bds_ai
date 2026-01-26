@@ -69,6 +69,7 @@ export class DealModel {
         const dealList = await db.query<DealAvgInfo>(
           `
           SELECT
+            s.id,
             s.legDongCode,
             s.name,
             s.lat,
@@ -123,6 +124,7 @@ export class DealModel {
         const dealList = await db.query<DealAvgInfo>(
           `
           SELECT
+            s.id,
             s.legDongCode,
             s.name,
             s.lat,
