@@ -7,39 +7,53 @@ export class DealModel {
     try {
       const dealList = await db.query<DealInfo>(
         `
-        SELECT
-          'key' as id,
-          leg_dong_name as legDongName,
-          leg_dong_code as legDongCode,
-          jibun,
-          deal_date as dealDate,
-          price as dealPrice, 
-          ST_Y(position) as lat,
-          ST_X(position) as lng,
-          'building' as type
-        FROM fs_bds.building_deal_list
-        WHERE ST_Y(position) BETWEEN ? AND ?
-          AND ST_X(position) BETWEEN ? AND ?
-          AND (cancel_yn IS NULL OR cancel_yn != 'O')
+        SELECT r.id, r.legDongName, r.legDongCode, r.jibun, r.dealDate, r.dealPrice, ap.lat, ap.lng, r.type
+        FROM (
+          SELECT
+            id,
+            legDongName,
+            legDongCode,
+            jibun,
+            dealDate,
+            dealPrice,
+            type,
+            ROW_NUMBER() OVER (PARTITION BY id ORDER BY dealDate DESC) as rn
+          FROM (
+            SELECT
+              id,
+              leg_dong_name as legDongName,
+              leg_dong_code as legDongCode,
+              jibun,
+              deal_date as dealDate,
+              price as dealPrice,
+              'building' as type
+            FROM fs_bds.building_deal_list
+            WHERE (cancel_yn IS NULL OR cancel_yn != 'O')
+              AND price IS NOT NULL AND price <> ''
+              AND land_area IS NOT NULL AND land_area > 0
+              AND deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
 
-        UNION ALL
+            UNION ALL
 
-        SELECT
-          'key' as id,
-          leg_dong_name as legDongName,
-          leg_dong_code as legDongCode,
-          jibun,
-          deal_date as dealDate,
-          price as dealPrice,
-          ST_Y(position) as lat,
-          ST_X(position) as lng,
-          'land' as type
-        FROM fs_bds.land_deal_list
-        WHERE ST_Y(position) BETWEEN ? AND ?
-          AND ST_X(position) BETWEEN ? AND ?
-          AND (cancel_yn IS NULL OR cancel_yn != 'O')
+            SELECT
+              id,
+              leg_dong_name as legDongName,
+              leg_dong_code as legDongCode,
+              jibun,
+              deal_date as dealDate,
+              price as dealPrice,
+              'land' as type
+            FROM fs_bds.land_deal_list
+            WHERE (cancel_yn IS NULL OR cancel_yn != 'O')
+              AND deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
+          ) combined
+        ) r
+        JOIN fs_bds.address_polygon ap ON r.id = ap.id
+        WHERE r.rn = 1
+          AND ap.lat BETWEEN ? AND ?
+          AND ap.lng BETWEEN ? AND ?
         `,
-        [swLat, neLat, swLng, neLng, swLat, neLat, swLng, neLng]
+        [swLat, neLat, swLng, neLng]
       )
       return dealList;
     } catch (error) {
@@ -100,6 +114,7 @@ export class DealModel {
                 AND (b.cancel_yn != 'O' OR b.cancel_yn IS NULL)
                 AND (b.price / b.land_area) >= 200
                 AND b.leg_dong_code LIKE '11%'
+                AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
 
               UNION ALL
 
@@ -108,10 +123,11 @@ export class DealModel {
                 CAST(REPLACE(l.price, ',', '') AS DECIMAL) / (l.area * 0.3025) as price_per_pyeong
               FROM fs_bds.land_deal_list l
               WHERE l.price IS NOT NULL AND l.price <> ''
-                AND l.jimok != '도로' AND l.jimok != '구거' 
+                AND l.jimok != '도로' AND l.jimok != '구거'
                 AND l.area IS NOT NULL AND l.area >= 33.3
                 AND (l.cancel_yn != 'O' OR l.cancel_yn IS NULL)
-              AND l.leg_dong_code LIKE '11%'
+                AND l.leg_dong_code LIKE '11%'
+                AND l.deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
             ) combined
             GROUP BY sigungu_code
           ) d ON LEFT(s.legDongCode, 5) = d.sigungu_code
@@ -162,6 +178,7 @@ export class DealModel {
                   AND lat BETWEEN ? AND ?
                   AND lng BETWEEN ? AND ?
                 )
+                AND b.deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
 
               UNION ALL
 
@@ -179,6 +196,7 @@ export class DealModel {
                   AND lat BETWEEN ? AND ?
                   AND lng BETWEEN ? AND ?
                 )
+                AND l.deal_date >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR)
             ) combined
             GROUP BY leg_dong_code
           ) d ON s.legDongCode = d.leg_dong_code
