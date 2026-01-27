@@ -49,7 +49,7 @@ import MainContext from "../contexts/MainContext";
 
 const MAX_FILTER_DIFF = 0.0065; // 720m 정도
 
-const MIN_LEVEL_SIGNUNGU = 6;
+const MIN_LEVEL_SIGNUNGU = 7;
 const MIN_LEVEL_EUPMYEONDONG = 4;
 
 export default function Main() {
