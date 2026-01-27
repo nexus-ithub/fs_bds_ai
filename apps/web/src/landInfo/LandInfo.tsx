@@ -32,6 +32,7 @@ export const LandInfoCard = ({
   announcedPriceAvg = null,
   onClose,
   onOpenAIReport,
+  onCollapsedHeightChange,
 }: {
   landInfo: LandInfo | null;
   buildingList: BuildingInfo[] | null;
@@ -41,10 +42,12 @@ export const LandInfoCard = ({
   announcedPriceAvg: AnnouncedPriceAvgData | null;
   onClose?: () => void;
   onOpenAIReport?: () => void;
+  onCollapsedHeightChange?: (height: number) => void;
 }) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const collapsedMarkerRef = useRef<HTMLDivElement>(null);
   const posthog = usePostHog()
 
   const announcedPriceRef = useRef<HTMLDivElement>(null);
@@ -107,6 +110,22 @@ export const LandInfoCard = ({
       })
     }
   }, [landInfo]);
+
+  // 축소 상태 바텀시트 높이 측정 (버튼 위까지)
+  useEffect(() => {
+    if (!collapsedMarkerRef.current || !onCollapsedHeightChange) return;
+
+    // DOM 렌더링 완료 후 측정
+    requestAnimationFrame(() => {
+      const marker = collapsedMarkerRef.current;
+      if (!marker) return;
+      const rect = marker.getBoundingClientRect();
+      const parentRect = marker.closest('[data-landinfo-root]')?.getBoundingClientRect();
+      if (parentRect) {
+        onCollapsedHeightChange(rect.top - parentRect.top);
+      }
+    });
+  }, [landInfo, onCollapsedHeightChange]);
 
   useEffect(() => {
 
@@ -171,7 +190,7 @@ export const LandInfoCard = ({
   }
 
   return (
-    <div className="h-full flex flex-col pt-[20px]">
+    <div data-landinfo-root className="h-full flex flex-col pt-[20px]">
       <div className="px-[20px]">
         {/* <p>{landInfo.id}</p> */}
         <div className="space-y-[8px] ">
@@ -331,6 +350,7 @@ export const LandInfoCard = ({
             </p>
           )
         } */}
+        <div ref={collapsedMarkerRef} />
         {
           isAIReportNotAvailable.result ? (
             <div className="mt-[6px] font-s3 border border-line-02 rounded-[4px] py-[14px] px-[8px] text-primary-040 bg-primary-020">
