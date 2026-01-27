@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthRequest, verifyToken } from '../middleware/auth.middleware';
-import { getLandInfo, getPolygonInfo, getPolygonWithSub, getFilteredPolygon, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked, getAIReportDetail, getAIReportDebugInfo, getConsultRequestList, addConsultRequest, getBuildingRepairedPolygon, getUsagePolygon, getRentInfo } from '../controllers/land.controller';
+import { getLandInfo, getPolygonInfo, getPolygonWithSub, getFilteredPolygon, getBusinessDistrict, getPlace, getBuildingList, getEstimatedPrice, getAIReport, addBookmark, isBookmarked, getBookmarkList, getTotalBookmarked, getAIReportDetail, getAIReportDebugInfo, getConsultRequestList, addConsultRequest, getBuildingRepairedPolygon, getUsagePolygon, getRentInfo, getAnnouncedPriceAvg } from '../controllers/land.controller';
 
 
 const router: Router = Router();
@@ -27,6 +27,7 @@ router.get('/bookmark', verifyToken, getBookmarkList);
 router.get('/total-bookmarked', verifyToken, getTotalBookmarked);
 router.get('/consult-request-list', verifyToken, getConsultRequestList);
 router.post('/consult-request', verifyToken, addConsultRequest);
+router.get('/announced-price-avg', getAnnouncedPriceAvg);
 
 
 export default router;

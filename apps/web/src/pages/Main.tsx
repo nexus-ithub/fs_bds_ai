@@ -41,11 +41,18 @@ export default function Main() {
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
   const [showRepairInfo, setShowRepairInfo] = useState<boolean>(false);
+  const [showOverlay, setShowOverlay] = useState<boolean>(true);
   const [repairInfoExpanded, setRepairInfoExpanded] = useState<boolean>(false);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
+  const [announcedPriceAvg, setAnnouncedPriceAvg] = useState<{
+    city: { year: number; avgPrice: number; landCount: number }[];
+    district: { year: number; avgPrice: number; landCount: number }[];
+    dong: { year: number; avgPrice: number; landCount: number }[];
+    individual: { year: number; price: number }[];
+  } | null>(null);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
@@ -303,7 +310,9 @@ export default function Main() {
     setRentInfoList([]);
     setAiReportNotAvailable({ result: false, message: '' });
     setShowRepairInfo(false);
+    setShowOverlay(false);
     setOpenAIReport(false);
+    setAnnouncedPriceAvg(null);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
     const url = id ? `/api/land/polygon-with-sub?id=${id}` : `/api/land/polygon-with-sub?lat=${lat}&lng=${lng}`;
@@ -326,6 +335,7 @@ export default function Main() {
         getEstimatedPrice(mainPolygon.id);
         getBusinessDistrict(mainPolygon.lat, mainPolygon.lng);
         getPlace(mainPolygon.lat, mainPolygon.lng);
+        getAnnouncedPriceAvg(mainPolygon.legDongCode, mainPolygon.id);
         console.log('changePosition', changePosition, mainPolygon.lat, mainPolygon.lng);
         if (changePosition) {
           console.log('setCenter', mainPolygon.lat, mainPolygon.lng);
@@ -361,6 +371,7 @@ export default function Main() {
         console.log(aiReportNotAvailable);
         setAiReportNotAvailable(aiReportNotAvailable);
         setShowRepairInfo(landInfo.lastRepairDivCode != null);
+        setShowOverlay(true);
       })
       .catch((error) => {
         console.error(error);
@@ -439,6 +450,16 @@ export default function Main() {
       .catch((error) => {
         console.error(error);
         toast.error("장소 정보를 가져오는 중 오류가 발생했습니다.");
+      });
+  }
+
+  const getAnnouncedPriceAvg = (legDongCode: string, landId: string) => {
+    axiosInstance.get(`/api/land/announced-price-avg?legDongCode=${legDongCode}&landId=${landId}`)
+      .then((response) => {
+        setAnnouncedPriceAvg(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
       });
   }
 
@@ -596,7 +617,7 @@ export default function Main() {
           </div>
         </CustomOverlayMap>
       )
-    } else if (showRepairInfo && index === 0) {
+    } else if (showOverlay && showRepairInfo && index === 0) {
       return (
         <CustomOverlayMap
           yAnchor={1.1}
@@ -611,7 +632,7 @@ export default function Main() {
             <div className="font-s3-p flex flex-col overflow-visible">
               <div className="flex items-center justify-between pb-[6px]">
                 <p className="font-s1-p text-text">{`${landInfo?.legDongName.replace(/^서울특별시\s+/, '')} ${landInfo?.jibun}`}</p>
-                <button onClick={(e) => { e.stopPropagation(); setShowRepairInfo(false); }}><CloseIcon /></button>
+                <button className="p-1" onClick={(e) => { e.stopPropagation(); setShowOverlay(false); setShowRepairInfo(false); }}><CloseIcon /></button>
               </div>
               <div className="flex flex-col pt-[2px] pb-[6px]">
                 {/* PC: hover 시 툴팁 */}
@@ -662,7 +683,7 @@ export default function Main() {
           </div>
         </CustomOverlayMap>
       )
-    } else if (index === 0 ) {
+    } else if (showOverlay && index === 0) {
       return (
         <CustomOverlayMap
           yAnchor={1.1}
@@ -677,7 +698,7 @@ export default function Main() {
             <div className="font-s3-p flex flex-col overflow-visible">
               <div className="flex items-center justify-between pb-[6px]">
                 <p className="font-s1-p text-text">{`${landInfo?.legDongName.replace(/^서울특별시\s+/, '')} ${landInfo?.jibun}`}</p>
-                <button onClick={(e) => { e.stopPropagation(); setShowRepairInfo(false); }}><CloseIcon /></button>
+                <button className="p-1" onClick={(e) => { e.stopPropagation(); setShowOverlay(false); }}><CloseIcon /></button>
               </div>
               <div className="pt-[6px]">
                 <Button
@@ -720,7 +741,6 @@ export default function Main() {
               map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
             }}
             onClick={(_, mouseEvent) => {
-
               // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
               if (mapType === 'roadview') {
                 setRoadViewCenter({
@@ -1008,6 +1028,7 @@ export default function Main() {
               businessDistrict={businessDistrict}
               estimatedPrice={estimatedPrice}
               place={place}
+              announcedPriceAvg={announcedPriceAvg}
               onClose={() => {
                 setLandInfo(null)
                 setOpenAIReport(false)
@@ -1043,12 +1064,12 @@ export default function Main() {
               } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
             style={{
               top: isDragging
-                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
+                ? `${Math.max(0, Math.min(window.innerHeight - 310, (isBottomSheetExpanded ? 0 : window.innerHeight - 310) + dragOffset))}px`
                 : isBottomSheetExpanded
                   ? '0'
                   : 'auto',
               bottom: 0,
-              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
+              height: isDragging || isBottomSheetExpanded ? 'auto' : '310px',
             }}
             onTouchStart={(e) => {
               setTouchStart(e.targetTouches[0].clientY);
@@ -1087,7 +1108,7 @@ export default function Main() {
               <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
             </div>
             <div
-              className="overflow-y-auto h-full"
+              className={`${isBottomSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'} h-full`}
               style={{
                 height: 'calc(100% - 24px)',
               }}
@@ -1098,9 +1119,11 @@ export default function Main() {
                 businessDistrict={businessDistrict}
                 estimatedPrice={estimatedPrice}
                 place={place}
+                announcedPriceAvg={announcedPriceAvg}
                 onClose={() => {
                   setLandInfo(null);
                   setOpenAIReport(false);
+                  setPolygonList(null)
                   setIsBottomSheetExpanded(false);
                 }}
                 onOpenAIReport={() => {
