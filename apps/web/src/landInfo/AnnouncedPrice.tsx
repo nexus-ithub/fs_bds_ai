@@ -19,7 +19,7 @@ interface AnnouncedPriceProps {
 
 const COLORS = {
   city: { stroke: "#0082FF", fill: "#0082FF15" },        // 한강블루
-  district: { stroke: "#6366F1", fill: "#6366F115" },    // 인디고
+  district: { stroke: "#A855F7", fill: "#A855F715" },    // 보라
   dong: { stroke: "#14B8A6", fill: "#14B8A620" },        // 틸
   individual: { stroke: "#EF4444", fill: "#EF444425" },  // 빨간색 (가장 강조)
 };
@@ -195,19 +195,19 @@ export const AnnouncedPrice = React.forwardRef<HTMLDivElement, AnnouncedPricePro
               >
                 <defs>
                   <linearGradient id="colorCity" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.city.stroke} stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor={COLORS.city.stroke} stopOpacity={0.12}/>
                     <stop offset="95%" stopColor={COLORS.city.stroke} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorDistrict" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.district.stroke} stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor={COLORS.district.stroke} stopOpacity={0.12}/>
                     <stop offset="95%" stopColor={COLORS.district.stroke} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorDong" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.dong.stroke} stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor={COLORS.dong.stroke} stopOpacity={0.15}/>
                     <stop offset="95%" stopColor={COLORS.dong.stroke} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorIndividual" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={COLORS.individual.stroke} stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor={COLORS.individual.stroke} stopOpacity={0.18}/>
                     <stop offset="95%" stopColor={COLORS.individual.stroke} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
