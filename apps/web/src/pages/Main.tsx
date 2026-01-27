@@ -1,13 +1,13 @@
 
 import useAxiosWithAuth from "../axiosWithAuth";
 import { Map, Polygon, MapTypeId, MapMarker, CustomOverlayMap, Polyline, MapInfoWindow } from "react-kakao-maps-sdk";
-import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, Button, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo } from "@repo/common";
+import { type DistrictInfo, type LandInfo, type PlaceList, type YoutubeVideo, type PlayerMode, YoutubeLogo, type LatLng, type AreaPolygons, type DistanceLines, type PolygonInfo, type BuildingInfo, Button, type EstimatedPriceInfo, Switch, type PolygonInfoWithRepairInfo, type RefDealInfo, krwUnit, type UsagePolygon, type Coords, type RentInfo, CloseIcon, getJibunAddress } from "@repo/common";
 import { useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
 import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
-import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, BotMessageSquare } from "lucide-react";
+import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, ChevronDown, BotMessageSquare } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
 import { MapToolbar } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
@@ -41,10 +41,18 @@ export default function Main() {
   const [landInfo, setLandInfo] = useState<LandInfo | null>(null);
   const [aiReportNotAvailable, setAiReportNotAvailable] = useState<{ result: boolean, message: string }>({ result: true, message: '' });
   const [showRepairInfo, setShowRepairInfo] = useState<boolean>(false);
+  const [showOverlay, setShowOverlay] = useState<boolean>(true);
+  const [repairInfoExpanded, setRepairInfoExpanded] = useState<boolean>(false);
   const [buildingList, setBuildingList] = useState<BuildingInfo[] | null>(null);
   const [estimatedPrice, setEstimatedPrice] = useState<EstimatedPriceInfo | null>(null);
   const [businessDistrict, setBusinessDistrict] = useState<DistrictInfo[] | null>(null);
   const [place, setPlace] = useState<PlaceList | null>(null);
+  const [announcedPriceAvg, setAnnouncedPriceAvg] = useState<{
+    city: { year: number; avgPrice: number; landCount: number }[];
+    district: { year: number; avgPrice: number; landCount: number }[];
+    dong: { year: number; avgPrice: number; landCount: number }[];
+    individual: { year: number; price: number }[];
+  } | null>(null);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
@@ -302,7 +310,9 @@ export default function Main() {
     setRentInfoList([]);
     setAiReportNotAvailable({ result: false, message: '' });
     setShowRepairInfo(false);
+    setShowOverlay(false);
     setOpenAIReport(false);
+    setAnnouncedPriceAvg(null);
 
     // const url = id ? `/api/land/polygon?id=${id}` : `/api/land/polygon?lat=${lat}&lng=${lng}`;
     const url = id ? `/api/land/polygon-with-sub?id=${id}` : `/api/land/polygon-with-sub?lat=${lat}&lng=${lng}`;
@@ -325,6 +335,7 @@ export default function Main() {
         getEstimatedPrice(mainPolygon.id);
         getBusinessDistrict(mainPolygon.lat, mainPolygon.lng);
         getPlace(mainPolygon.lat, mainPolygon.lng);
+        getAnnouncedPriceAvg(mainPolygon.legDongCode, mainPolygon.id);
         console.log('changePosition', changePosition, mainPolygon.lat, mainPolygon.lng);
         if (changePosition) {
           console.log('setCenter', mainPolygon.lat, mainPolygon.lng);
@@ -360,6 +371,7 @@ export default function Main() {
         console.log(aiReportNotAvailable);
         setAiReportNotAvailable(aiReportNotAvailable);
         setShowRepairInfo(landInfo.lastRepairDivCode != null);
+        setShowOverlay(true);
       })
       .catch((error) => {
         console.error(error);
@@ -438,6 +450,16 @@ export default function Main() {
       .catch((error) => {
         console.error(error);
         toast.error("장소 정보를 가져오는 중 오류가 발생했습니다.");
+      });
+  }
+
+  const getAnnouncedPriceAvg = (legDongCode: string, landId: string) => {
+    axiosInstance.get(`/api/land/announced-price-avg?legDongCode=${legDongCode}&landId=${landId}`)
+      .then((response) => {
+        setAnnouncedPriceAvg(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
       });
   }
 
@@ -595,16 +617,101 @@ export default function Main() {
           </div>
         </CustomOverlayMap>
       )
-    } else if (showRepairInfo && index === 0) {
+    } else if (showOverlay && showRepairInfo && index === 0) {
       return (
         <CustomOverlayMap
           yAnchor={1.1}
+          zIndex={10}
           position={getPolygonCenter(polygon?.polygon)}>
-          <div className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)]">
-            <div className="font-s3-p flex flex-col">
-              <p className="flex items-center gap-[3px]"><InfoIcon size={14} /> 해당 건물에 대수선 이력이 있습니다.</p>
-              <p>AI 레포트의 사업성에 해당이력은 반영되지 않았음을 알려드립니다.</p>
-              <p>보다 상세한 검토가 필요하시면 고객센터를 통해 별도 문의 바랍니다.</p>
+          <div
+            className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] overflow-visible w-[220px]"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <div className="font-s3-p flex flex-col overflow-visible">
+              <div className="flex items-center justify-between pb-[6px]">
+                <p className="font-s1-p text-text">{`${landInfo?.legDongName.replace(/^서울특별시\s+/, '')} ${landInfo?.jibun}`}</p>
+                <button className="p-1" onClick={(e) => { e.stopPropagation(); setShowOverlay(false); setShowRepairInfo(false); }}><CloseIcon /></button>
+              </div>
+              <div className="flex flex-col pt-[2px] pb-[6px]">
+                {/* PC: hover 시 툴팁 */}
+                <div className="hidden md:block relative group">
+                  <p className="flex items-center gap-[3px] cursor-help">
+                    <InfoIcon size={14} /> 대수선 이력으로 추가 검토 필요
+                  </p>
+                  <div className="hidden group-hover:block absolute left-1/2 -translate-x-1/2 bottom-full mb-[4px] z-50 p-[8px] bg-gray-800 text-white text-xs rounded-[4px] w-[260px] shadow-lg whitespace-normal">
+                    <p>해당 건물에 대수선 이력이 있습니다.</p>
+                    <p>AI 레포트의 사업성에 해당이력은 반영되지 않았음을 알려드립니다.</p>
+                    <p>보다 상세한 검토가 필요하시면 고객센터를 통해 별도 문의 바랍니다.</p>
+                  </div>
+                </div>
+
+                {/* 모바일: 텍스트 클릭으로 접었다 폈다 */}
+                <div className="md:hidden relative">
+                  <p
+                    className="flex items-center gap-[3px] cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); setRepairInfoExpanded(!repairInfoExpanded); }}
+                  >
+                    <InfoIcon size={14} />
+                    <span className="underline decoration-dashed decoration-1 decoration-current/40 underline-offset-4">대수선 이력으로 추가 검토 필요</span>
+                  </p>
+                  {repairInfoExpanded && (
+                    <div className="absolute bottom-full mb-[4px] p-[8px] bg-gray-800 text-white text-xs rounded-[4px] shadow-lg w-[204px] whitespace-normal [word-break:keep-all]">
+                      <p>해당 건물에 대수선 이력이 있습니다.</p>
+                      <p>AI 레포트의 사업성에 해당이력은 반영되지 않았음을 알려드립니다.</p>
+                      <p>보다 상세한 검토가 필요하시면 고객센터를 통해 별도 문의 바랍니다.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="pt-[6px]">
+                <Button
+                  className="w-full"
+                  style={{ animation: 'shadow-pulse 1.3s ease-in-out infinite' }}
+                  onClick={(e) => { e.stopPropagation(); setOpenAIReport(true); }}
+                >
+                  <svg className="w-[14px] h-[14px] mr-[6px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  리포트 보기
+                </Button>
+              </div>
+            </div>
+            <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
+            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
+          </div>
+        </CustomOverlayMap>
+      )
+    } else if (showOverlay && index === 0) {
+      return (
+        <CustomOverlayMap
+          yAnchor={1.1}
+          zIndex={10}
+          position={getPolygonCenter(polygon?.polygon)}>
+          <div
+            className="relative p-[8px] text-sm flex flex-col bg-white text-primary/85 border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] overflow-visible w-[220px]"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <div className="font-s3-p flex flex-col overflow-visible">
+              <div className="flex items-center justify-between pb-[6px]">
+                <p className="font-s1-p text-text">{`${landInfo?.legDongName.replace(/^서울특별시\s+/, '')} ${landInfo?.jibun}`}</p>
+                <button className="p-1" onClick={(e) => { e.stopPropagation(); setShowOverlay(false); }}><CloseIcon /></button>
+              </div>
+              <div className="pt-[6px]">
+                <Button
+                  className="w-full"
+                  style={{ animation: 'shadow-pulse 1.3s ease-in-out infinite' }}
+                  onClick={(e) => { e.stopPropagation(); setOpenAIReport(true); }}
+                >
+                  <svg className="w-[14px] h-[14px] mr-[6px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  리포트 보기
+                </Button>
+              </div>
             </div>
             <div className="absolute bottom-[-7px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[7px] border-t-line-03"></div>
             <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white"></div>
@@ -634,7 +741,6 @@ export default function Main() {
               map.setCopyrightPosition(kakao.maps.CopyrightPosition.BOTTOMRIGHT, true);
             }}
             onClick={(_, mouseEvent) => {
-
               // console.log(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng());
               if (mapType === 'roadview') {
                 setRoadViewCenter({
@@ -922,6 +1028,7 @@ export default function Main() {
               businessDistrict={businessDistrict}
               estimatedPrice={estimatedPrice}
               place={place}
+              announcedPriceAvg={announcedPriceAvg}
               onClose={() => {
                 setLandInfo(null)
                 setOpenAIReport(false)
@@ -957,12 +1064,12 @@ export default function Main() {
               } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
             style={{
               top: isDragging
-                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
+                ? `${Math.max(0, Math.min(window.innerHeight - 310, (isBottomSheetExpanded ? 0 : window.innerHeight - 310) + dragOffset))}px`
                 : isBottomSheetExpanded
                   ? '0'
                   : 'auto',
               bottom: 0,
-              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
+              height: isDragging || isBottomSheetExpanded ? 'auto' : '310px',
             }}
             onTouchStart={(e) => {
               setTouchStart(e.targetTouches[0].clientY);
@@ -1001,7 +1108,7 @@ export default function Main() {
               <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
             </div>
             <div
-              className="overflow-y-auto h-full"
+              className={`${isBottomSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'} h-full`}
               style={{
                 height: 'calc(100% - 24px)',
               }}
@@ -1012,9 +1119,11 @@ export default function Main() {
                 businessDistrict={businessDistrict}
                 estimatedPrice={estimatedPrice}
                 place={place}
+                announcedPriceAvg={announcedPriceAvg}
                 onClose={() => {
                   setLandInfo(null);
                   setOpenAIReport(false);
+                  setPolygonList(null)
                   setIsBottomSheetExpanded(false);
                 }}
                 onOpenAIReport={() => {

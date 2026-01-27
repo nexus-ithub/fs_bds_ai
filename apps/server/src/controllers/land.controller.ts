@@ -746,3 +746,26 @@ export const getConsultRequestList = async (req: AuthRequest, res: Response) => 
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 }
+
+export const getAnnouncedPriceAvg = async (req: AuthRequest, res: Response) => {
+  try {
+    const { legDongCode, landId } = req.query;
+    if (!legDongCode || !landId) {
+      return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
+    }
+
+    const result = await LandModel.findAnnouncedPriceAvg(legDongCode as string, landId as string);
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Get announced price avg error:', err);
+    trackError(err, {
+      message: '공시지가 평균 조회 중 오류 발생',
+      query: req.query,
+      file: 'land.controller.ts',
+      function: 'getAnnouncedPriceAvg',
+      severity: 'error'
+    })
+    res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+  }
+}

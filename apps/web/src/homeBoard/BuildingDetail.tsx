@@ -58,7 +58,7 @@ export const BuildingDetailDialog = ({
   return (
     <Dialog
       maxWidth="xl"
-      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 8px' } } } }}
+      slotProps={{ paper: { sx: { '@media (max-width: 768px)': { margin: 'auto 8px', minWidth: '344px' } } } }}
       open={open} onClose={onClose}>
       <div className="md:w-[768px]">
         <div className="flex items-center justify-between h-[64px] px-[24px]">

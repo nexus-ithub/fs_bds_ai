@@ -13,8 +13,10 @@ import { usePostHog } from 'posthog-js/react'
 import { trackEvent } from "../utils/analytics";
 import { Dialog, DialogActions, DialogContent, Tooltip } from "@mui/material";
 import { checkIsAIReportNotAvailable, getSpecialUsageList, isDistrictPlanning } from "../utils";
+import { AnnouncedPrice, type AnnouncedPriceAvgData } from "./AnnouncedPrice";
 
 const TABS = [
+  "공시지가",
   "토지",
   "건물",
   "상권",
@@ -27,6 +29,7 @@ export const LandInfoCard = ({
   businessDistrict = null,
   estimatedPrice = null,
   place = null,
+  announcedPriceAvg = null,
   onClose,
   onOpenAIReport,
 }: {
@@ -35,6 +38,7 @@ export const LandInfoCard = ({
   businessDistrict: DistrictInfo[] | null;
   estimatedPrice: EstimatedPriceInfo | null;
   place: PlaceList | null;
+  announcedPriceAvg: AnnouncedPriceAvgData | null;
   onClose?: () => void;
   onOpenAIReport?: () => void;
 }) => {
@@ -43,6 +47,7 @@ export const LandInfoCard = ({
   const ref = useRef<HTMLDivElement>(null);
   const posthog = usePostHog()
 
+  const announcedPriceRef = useRef<HTMLDivElement>(null);
   const landRef = useRef<HTMLDivElement>(null);
   const buildingRef = useRef<HTMLDivElement>(null);
   const businessDistrictRef = useRef<HTMLDivElement>(null);
@@ -75,6 +80,7 @@ export const LandInfoCard = ({
 
   const scrollToTab = (tab: number) => {
     const tabRef = [
+      announcedPriceRef,
       landRef,
       buildingRef,
       businessDistrictRef,
@@ -128,7 +134,7 @@ export const LandInfoCard = ({
 
       requestAnimationFrame(() => {
         const scrollTop = scrollContainer.scrollTop;
-        const refs = [landRef, buildingRef, businessDistrictRef, placeRef];
+        const refs = [announcedPriceRef, landRef, buildingRef, businessDistrictRef, placeRef];
 
         // 각 섹션의 컨테이너 기준 top 계산
         const tops = refs.map(r =>
@@ -158,7 +164,7 @@ export const LandInfoCard = ({
     handleScroll();
 
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, [ref, landRef, buildingRef, businessDistrictRef, placeRef, selecting]);
+  }, [ref, announcedPriceRef, landRef, buildingRef, businessDistrictRef, placeRef, selecting]);
 
   if (!landInfo) {
     return null;
@@ -338,13 +344,13 @@ export const LandInfoCard = ({
                 className="w-full mt-[16px] py-[11px]"
                 onClick={(e) => handleOpenAIReport(e)}
               >
-                AI 설계 • 임대 분석 리포트
-                {/* <span className="flex items-center justify-center gap-2">
+                {/* AI 설계 • 임대 분석 리포트 */}
+                <span className="flex items-center justify-center gap-2">
                   <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   개발 후 예상 수익 보기
-                </span> */}
+                </span>
               </Button>
             )
         }
@@ -407,6 +413,13 @@ export const LandInfoCard = ({
             e.stopPropagation();
           }}
         >
+          <AnnouncedPrice
+            data={announcedPriceAvg}
+            ref={announcedPriceRef}
+            cityName={landInfo?.sidoName || "시"}
+            districtName={landInfo?.sigunguName || "구"}
+            dongName={landInfo?.legEupmyeondongName || "동"}
+          />
           <Land landInfo={landInfo} ref={landRef} />
           <Building buildings={buildingList || []} ref={buildingRef} />
           <BusinessDistrict businessDistrict={businessDistrict || []} ref={businessDistrictRef} />
