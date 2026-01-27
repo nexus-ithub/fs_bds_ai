@@ -31,7 +31,7 @@ export const krwUnit = (amount: number, firstUnit?: boolean) => {
       return `${isNegative ? '-' : ''}${Math.floor(man).toLocaleString()}만 ${Math.floor(remainder).toLocaleString()}원`;
     }
     // return `${isNegative ? '-' : ''}${man.toLocaleString()}만원`;
-    return `${isNegative ? '-' : ''}${Math.floor(man).toLocaleString()}만원`;
+    return `${isNegative ? '-' : ''}${Math.floor(man).toLocaleString()}만`;
   }
   return `${isNegative ? '-' : ''}${absAmount.toLocaleString()}원`;
 };

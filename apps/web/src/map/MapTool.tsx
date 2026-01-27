@@ -3,6 +3,42 @@ import { saveMapState } from "../utils";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
+export type MapFilterType = 'deal' | 'volume' | 'commercial' | 'avg_rent' | 'celebrity' | null;
+
+const MAP_FILTER_OPTIONS: { value: MapFilterType; label: string }[] = [
+  { value: 'deal', label: '실거래' },
+  { value: 'volume', label: '거래량' },
+  { value: 'avg_rent', label: '평균임대료' },
+  { value: 'commercial', label: '상권' },
+  { value: 'celebrity', label: '유명인/고위공직자' },
+];
+
+export const MapFilter = ({
+  selected,
+  onChange,
+}: {
+  selected: MapFilterType;
+  onChange: (value: MapFilterType) => void;
+}) => {
+  return (
+    <div className="fixed md:top-[84px] top-[154px] right-[62px] md:right-[80px] z-40 flex flex-col gap-[6px] border-[1px] border-line-03 rounded-[4px] bg-surface-floating p-[6px]">
+      {MAP_FILTER_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          onClick={() => onChange(selected === option.value ? null : option.value)}
+          className={`px-[12px] py-[6px] rounded-[4px] font-c2-p md:font-c3-p font-medium whitespace-nowrap border transition-colors
+            ${selected === option.value
+              ? 'bg-primary text-white border-primary'
+              : 'bg-surface-floating text-gray-700 border-line-03 hover:bg-gray-50'
+            }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export const MapToolbar = ({
   mapType,
   center,

@@ -132,7 +132,7 @@ export const getUsagePolygon = async (req: AuthRequest, res: Response) => {
 export const getRentInfo = async (req: AuthRequest, res: Response) => {
   try {
     const { neLat, neLng, swLat, swLng } = req.query;
-    console.log(req.query)
+    // console.log(req.query)
     if (!neLat || !neLng || !swLat || !swLng) {
       return res.status(400).json({ message: '필수 파라미터가 제공되지 않았습니다.' });
     }
@@ -374,6 +374,7 @@ export const getEstimatedPrice = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: '서버 오류가 발생했습니다.' });
   }
 };
+
 
 
 export const getAIReport = async (req: AuthRequest, res: Response) => {

@@ -14,6 +14,7 @@ import { Dialog, Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
 import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
 import { CalculatorIcon, CircleQuestionMarkIcon } from "lucide-react";
+import Markdown from "react-markdown";
 
 
 export interface AIReportProps {
@@ -523,6 +524,7 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                         <ReportItem title="총사업비" value={krwUnit(sortedReportItems?.[selectedTab]?.value.totalProjectCost || 0, true)} />
                         <ReportItem title="초기자본금" value={krwUnit(sortedReportItems?.[selectedTab]?.value.initialCapital || 0, true)} />
                         <ReportItem title="연간임대수익" value={krwUnit(sortedReportItems?.[selectedTab]?.value.annualRentProfit || 0, true)} />
+                        <ReportItem title="투자자본수익율" value={((sortedReportItems?.[selectedTab]?.value.annualRentProfit / sortedReportItems?.[selectedTab]?.value.initialCapital) * 100).toFixed(1) + '%'} />
                         <ReportItem title="개발후임대수익률" value={(sortedReportItems?.[selectedTab]?.value.profitRatio * 100).toFixed(1) + '%'} />
                         <ReportItem title="연간지가상승률(5개년 평균)" value={(sortedReportItems?.[selectedTab]?.value.avgPublicLandPriceGrowthRate).toFixed(2) + '%'} />
                       </div>
@@ -536,9 +538,9 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     </div>
                   </div>
                 </div>
-                <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
-                  {aiReportResult?.analysisMessage}
-                </p>
+                <div className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px] [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-[6px] [&_li]:pl-[1.5em] [&_li]:-indent-[1.5em]">
+                  <Markdown>{aiReportResult?.analysisMessage}</Markdown>
+                </div>
               </>
           }
 
