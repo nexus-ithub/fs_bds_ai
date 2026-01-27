@@ -189,6 +189,13 @@ export default function Main() {
   }, [center, level, mapRef?.current]);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      mapRef.current?.relayout();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [openLeftPanel]);
+
+  useEffect(() => {
     // Reset bottom sheet to collapsed state when landInfo changes
     setIsBottomSheetExpanded(false);
     setIsDragging(false);
@@ -713,8 +720,122 @@ export default function Main() {
           50% { transform: translateY(-8px); }
         }
       `}</style>
-      <div className="flex w-full h-full relative pb-0 md:pb-0">
-        <div className="flex-1 h-full pb-[64px] md:pb-0">
+      <div className="flex w-full h-full pb-0 md:pb-0">
+        <div className={`hidden md:block flex h-full border-r border-line-03 transition-all duration-300 ease-in-out z-20 overflow-hidden ${openLeftPanel ? 'w-[400px]' : 'w-0 border-r-0'}`}>
+          {/* <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}> */}
+          {landInfo ?
+            <LandInfoCard
+              landInfo={landInfo}
+              buildingList={buildingList}
+              businessDistrict={businessDistrict}
+              estimatedPrice={estimatedPrice}
+              place={place}
+              onClose={() => {
+                setLandInfo(null)
+                setOpenAIReport(false)
+                setPolygonList(null)
+              }}
+              onOpenAIReport={() => {
+                setOpenAIReport(true)
+                console.log('landInfo', landInfo)
+              }}
+            /> :
+            <HomeBoard
+              selectedVideo={selectedVideo}
+              setSelectedVideo={(video) => {
+                setSelectedVideo(video);
+                setPlayerMode("large");
+              }}
+              openVideoMiniPlayer={openVideoMiniPlayer}
+              setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
+            />}
+        </div>
+        <button
+          onClick={() => setOpenLeftPanel(v => !v)}
+          className="absolute top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block transition-all duration-300"
+          style={{ left: openLeftPanel ? '400px' : '0px' }}>
+          {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
+        </button>
+        {/* Mobile BottomSheet */}
+        {landInfo && createPortal(
+          <div
+            onClick={() => {
+              setIsBottomSheetExpanded(true);
+            }}
+            className={`md:hidden z-[60] fixed left-0 right-0 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)] ${isDragging ? '' : 'transition-all duration-300'
+              } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
+            style={{
+              top: isDragging
+                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
+                : isBottomSheetExpanded
+                  ? '0'
+                  : 'auto',
+              bottom: 0,
+              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
+            }}
+            onTouchStart={(e) => {
+              setTouchStart(e.targetTouches[0].clientY);
+              setIsDragging(true);
+            }}
+            onTouchMove={(e) => {
+              if (!touchStart) return;
+              // 브라우저 기본 pull-to-refresh 동작 방지
+              e.preventDefault();
+              const currentTouch = e.targetTouches[0].clientY;
+              const offset = currentTouch - touchStart;
+              setDragOffset(offset);
+            }}
+            onTouchEnd={() => {
+              if (!touchStart) return;
+
+              const threshold = 100; // 100px 이상 드래그 시 상태 변경
+
+              // 아래로 드래그한 경우 (dragOffset > 0)
+              if (dragOffset > threshold) {
+                setIsBottomSheetExpanded(false);
+              }
+              // 위로 드래그한 경우 (dragOffset < 0)
+              else if (dragOffset < -threshold) {
+                setIsBottomSheetExpanded(true);
+              }
+
+              // 리셋
+              setTouchStart(0);
+              setDragOffset(0);
+              setIsDragging(false);
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="w-full flex justify-center pt-[12px] pb-[4px]">
+              <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
+            </div>
+            <div
+              className="overflow-y-auto h-full"
+              style={{
+                height: 'calc(100% - 24px)',
+              }}
+            >
+              <LandInfoCard
+                landInfo={landInfo}
+                buildingList={buildingList}
+                businessDistrict={businessDistrict}
+                estimatedPrice={estimatedPrice}
+                place={place}
+                onClose={() => {
+                  setLandInfo(null);
+                  setOpenAIReport(false);
+                  setIsBottomSheetExpanded(false);
+                }}
+                onOpenAIReport={() => {
+                  setOpenAIReport(true);
+                  console.log('landInfo', landInfo);
+                }}
+              />
+            </div>
+          </div>,
+          document.body
+        )}
+        <div className={`h-full pb-[64px] md:pb-0 flex-1`}>
           <Map
             ref={mapRef}
             mapTypeId={mapTypeId}
@@ -905,7 +1026,7 @@ export default function Main() {
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        console.log('deal', deal)
+                        // console.log('deal', deal)
                         getPolygon({ id: deal.id || '', changePosition: false });
                       }}
                       className="relative flex justify-center items-center p-[4px] text-[12px] flex flex-col bg-white border border-line-03 rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none">
@@ -1073,151 +1194,49 @@ export default function Main() {
             />
           )}
         </div>
-        {/* <div className="w-[400px] h-full border-r border-line-03"> */}
-        <div className={`hidden md:block absolute left-0 top-0 h-full w-full md:w-[400px] bg-white border-r border-line-03 transition-transform duration-300 ease-in-out z-20 ${openLeftPanel ? 'translate-x-0' : '-translate-x-full'}`}>
-          {landInfo ?
-            <LandInfoCard
-              landInfo={landInfo}
-              buildingList={buildingList}
-              businessDistrict={businessDistrict}
-              estimatedPrice={estimatedPrice}
-              place={place}
-              onClose={() => {
-                setLandInfo(null)
-                setOpenAIReport(false)
-                setPolygonList(null)
-              }}
-              onOpenAIReport={() => {
-                setOpenAIReport(true)
-                console.log('landInfo', landInfo)
-              }}
-            /> :
-            <HomeBoard
-              selectedVideo={selectedVideo}
-              setSelectedVideo={(video) => {
-                setSelectedVideo(video);
-                setPlayerMode("large");
-              }}
-              openVideoMiniPlayer={openVideoMiniPlayer}
-              setOpenVideoMiniPlayer={setOpenVideoMiniPlayer}
-            />}
-          <button
-            onClick={() => setOpenLeftPanel(v => !v)}
-            className="absolute -right-[24px] top-1/2 -translate-y-1/2 z-20 text-text-03 bg-white border border-line-03 rounded-r-[8px] px-[1px] py-[10px] hidden md:block">
-            {openLeftPanel ? <ChevronLeft size={21} /> : <ChevronRight size={21} />}
-          </button>
+
+        <div className={`absolute w-[calc(100%-28px)] md:w-[582px] left-[14px] top-[20px] z-40 ${openLeftPanel ? 'md:left-[434px]' : 'md:left-[30px]'}`}>
+          <SearchBar
+            onShowFilterSetting={(on) => {
+              console.log('onShowFilterSetting', on);
+              setShowFilterSetting(on);
+            }}
+            onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
+              console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
+              setFilter({
+                on,
+                areaRange,
+                farRange,
+                buildingAgeRange,
+                usageList,
+              });
+            }}
+            onSelect={(id) => {
+              console.log('onSelect', id);
+              getPolygon({ id, changePosition: true });
+            }}
+          />
         </div>
-        {/* Mobile BottomSheet */}
-        {landInfo && createPortal(
-          <div
-            onClick={() => {
-              setIsBottomSheetExpanded(true);
-            }}
-            className={`md:hidden z-[60] fixed left-0 right-0 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)] ${isDragging ? '' : 'transition-all duration-300'
-              } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
-            style={{
-              top: isDragging
-                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
-                : isBottomSheetExpanded
-                  ? '0'
-                  : 'auto',
-              bottom: 0,
-              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
-            }}
-            onTouchStart={(e) => {
-              setTouchStart(e.targetTouches[0].clientY);
-              setIsDragging(true);
-            }}
-            onTouchMove={(e) => {
-              if (!touchStart) return;
-              // 브라우저 기본 pull-to-refresh 동작 방지
-              e.preventDefault();
-              const currentTouch = e.targetTouches[0].clientY;
-              const offset = currentTouch - touchStart;
-              setDragOffset(offset);
-            }}
-            onTouchEnd={() => {
-              if (!touchStart) return;
-
-              const threshold = 100; // 100px 이상 드래그 시 상태 변경
-
-              // 아래로 드래그한 경우 (dragOffset > 0)
-              if (dragOffset > threshold) {
-                setIsBottomSheetExpanded(false);
-              }
-              // 위로 드래그한 경우 (dragOffset < 0)
-              else if (dragOffset < -threshold) {
-                setIsBottomSheetExpanded(true);
-              }
-
-              // 리셋
-              setTouchStart(0);
-              setDragOffset(0);
-              setIsDragging(false);
-            }}
-          >
-            {/* Drag Handle */}
-            <div className="w-full flex justify-center pt-[12px] pb-[4px]">
-              <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
-            </div>
-            <div
-              className="overflow-y-auto h-full"
-              style={{
-                height: 'calc(100% - 24px)',
-              }}
-            >
-              <LandInfoCard
-                landInfo={landInfo}
-                buildingList={buildingList}
-                businessDistrict={businessDistrict}
-                estimatedPrice={estimatedPrice}
-                place={place}
-                onClose={() => {
-                  setLandInfo(null);
-                  setOpenAIReport(false);
-                  setIsBottomSheetExpanded(false);
-                }}
-                onOpenAIReport={() => {
-                  setOpenAIReport(true);
-                  console.log('landInfo', landInfo);
-                }}
-              />
-            </div>
-          </div>,
-          document.body
-        )}
-        <SearchBar
-          onShowFilterSetting={(on) => {
-            console.log('onShowFilterSetting', on);
-            setShowFilterSetting(on);
-          }}
-          onFilterChange={(on, areaRange, farRange, buildingAgeRange, usageList) => {
-            console.log('onFilterChange', on, areaRange, farRange, buildingAgeRange, usageList);
-            setFilter({
-              on,
-              areaRange,
-              farRange,
-              buildingAgeRange,
-              usageList,
-            });
-          }}
-          onSelect={(id) => {
-            console.log('onSelect', id);
-            getPolygon({ id, changePosition: true });
-          }}
-        />
         {
           (filter.on && (rangeLatDiff > MAX_FILTER_DIFF)) && (
-            <div className={`fixed z-30 left-[16px] md:left-[424px] ${showFilterSetting ? 'md:left-[834px]' : ''} md:top-[145px] top-[192px] bg-white rounded-[4px] flex items-center justify-center md:px-[12px] md:py-[14px] px-[8px] py-[10px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
-              <p className="font-c2-p px-[6px] py-[2px] bg-primary text-white">
+            // <div className={`bg-primary text-white outline outline-1 outline-primary absolute z-30 left-[16px] md:left-[424px] ${showFilterSetting ? 'md:left-[844px]' : ''} md:top-[145px] top-[192px] rounded-[4px] flex items-center justify-center md:px-[12px] md:py-[14px] px-[8px] py-[10px] gap-[10px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]`}>
+            <div
+              style={{ ['--panel-offset' as string]: openLeftPanel ? '400px' : '0px' }}
+              className="bg-red-400 text-white outline outline-1 outline-red-400 absolute z-30 left-1/2 -translate-x-1/2 md:left-[calc((100%-var(--panel-offset))/2+var(--panel-offset))] top-[192px] md:top-[145px] rounded-[4px] flex items-center justify-center md:px-[12px] md:py-[14px] px-[8px] py-[10px] gap-[6px] shadow-[6px_6px_12px_0_rgba(0,0,0,0.06)]">
+              {/* <p className="font-c2-p px-[6px] py-[2px] bg-primary text-gray-100 border">
                 TIP
               </p>
-              <p className="font-s3 text-text-02 whitespace-nowrap">
+               */}
+              <p className="font-c2-p px-[6px] py-[2px] text-gray-100 border">
+                TIP
+              </p>
+              <p className="font-s3 text-gray-100 whitespace-nowrap">
                 필터 결과를 보려면 지도를 더 확대 해주세요.
               </p>
             </div>
           )
         }
+
         <div className="fixed z-30 left-[16px] md:left-[420px] bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]">
           {
             IS_DEVELOPMENT && (
@@ -1345,6 +1364,6 @@ export default function Main() {
         setOpenLeftPanel(true);
       }} /> */}
       </div>
-    </MainContext.Provider>
+    </MainContext.Provider >
   );
 }
