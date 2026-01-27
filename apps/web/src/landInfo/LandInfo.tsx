@@ -436,9 +436,9 @@ export const LandInfoCard = ({
           <AnnouncedPrice
             data={announcedPriceAvg}
             ref={announcedPriceRef}
-            cityName={landInfo?.sidoName || "시"}
-            districtName={landInfo?.sigunguName || "구"}
-            dongName={landInfo?.legEupmyeondongName || "동"}
+            cityName={landInfo?.sidoName || landInfo?.legDongName?.split(" ")[0] || "시"}
+            districtName={landInfo?.sigunguName || landInfo?.legDongName?.split(" ")[1] || "구"}
+            dongName={landInfo?.legEupmyeondongName || landInfo?.legDongName?.split(" ").slice(2).join(" ") || "동"}
           />
           <Land landInfo={landInfo} ref={landRef} />
           <Building buildings={buildingList || []} ref={buildingRef} />
