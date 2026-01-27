@@ -27,7 +27,7 @@ import {
   CloseIcon,
   getJibunAddress
 } from "@repo/common";
-import { useEffect, useRef, useState } from "react";
+import React, { useCallback, useMemo, useEffect, useRef, useState } from "react";
 import { convertXYtoLatLng } from "../../utils";
 import { LandInfoCard } from "../landInfo/LandInfo";
 import { HomeBoard } from "../homeBoard/HomeBoard";
@@ -41,7 +41,6 @@ import { AIChat } from "../aiChat/AIChat";
 import { toast } from "react-toastify";
 import posthog from "posthog-js";
 import { IS_DEVELOPMENT } from "../constants";
-import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { formatDate } from "date-fns";
 import { pointOnFeature, booleanPointInPolygon, point } from "@turf/turf";
@@ -83,6 +82,10 @@ export default function Main() {
     dong: { year: number; avgPrice: number; landCount: number }[];
     individual: { year: number; price: number }[];
   } | null>(null);
+  const [bottomSheetCollapsedHeight, setBottomSheetCollapsedHeight] = useState(312);
+  const handleCollapsedHeightChange = useCallback((height: number) => {
+    setBottomSheetCollapsedHeight(height + 24 + 4);
+  }, []);
   const defaultMapState = loadMapState();
   const [mapType, setMapType] =
     useState<'normal' | 'skyview' | 'use_district' | 'roadview' | 'area' | 'distance'>('normal');
@@ -885,12 +888,12 @@ export default function Main() {
               } ${isBottomSheetExpanded ? 'rounded-none' : 'rounded-t-[20px]'}`}
             style={{
               top: isDragging
-                ? `${Math.max(0, Math.min(window.innerHeight - 380, (isBottomSheetExpanded ? 0 : window.innerHeight - 380) + dragOffset))}px`
+                ? `${Math.max(0, Math.min(window.innerHeight - bottomSheetCollapsedHeight, (isBottomSheetExpanded ? 0 : window.innerHeight - bottomSheetCollapsedHeight) + dragOffset))}px`
                 : isBottomSheetExpanded
                   ? '0'
                   : 'auto',
               bottom: 0,
-              height: isDragging || isBottomSheetExpanded ? 'auto' : '380px',
+              height: isDragging || isBottomSheetExpanded ? 'auto' : `${bottomSheetCollapsedHeight}px`,
             }}
             onTouchStart={(e) => {
               setTouchStart(e.targetTouches[0].clientY);
@@ -929,7 +932,7 @@ export default function Main() {
               <div className="w-[40px] h-[4px] bg-gray-300 rounded-full" />
             </div>
             <div
-              className="overflow-y-auto h-full"
+              className={`${isBottomSheetExpanded ? 'overflow-y-auto' : 'overflow-hidden'} h-full`}
               style={{
                 height: 'calc(100% - 24px)',
               }}
@@ -941,6 +944,7 @@ export default function Main() {
                 estimatedPrice={estimatedPrice}
                 place={place}
                 announcedPriceAvg={announcedPriceAvg}
+                onCollapsedHeightChange={handleCollapsedHeightChange}
                 onClose={() => {
                   setLandInfo(null);
                   setOpenAIReport(false);
