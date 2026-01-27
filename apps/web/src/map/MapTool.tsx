@@ -8,8 +8,8 @@ export type MapFilterType = 'deal' | 'volume' | 'commercial' | 'avg_rent' | 'cel
 const MAP_FILTER_OPTIONS: { value: MapFilterType; label: string }[] = [
   { value: 'deal', label: '실거래' },
   { value: 'volume', label: '거래량' },
-  { value: 'commercial', label: '상권' },
   { value: 'avg_rent', label: '평균임대료' },
+  { value: 'commercial', label: '상권' },
   { value: 'celebrity', label: '유명인/고위공직자' },
 ];
 
@@ -26,7 +26,7 @@ export const MapFilter = ({
         <button
           key={option.value}
           onClick={() => onChange(selected === option.value ? null : option.value)}
-          className={`px-[12px] py-[6px] rounded-[4px] text-[12px] md:text-[13px] font-medium whitespace-nowrap border transition-colors
+          className={`px-[12px] py-[6px] rounded-[4px] font-c2-p md:font-c3-p font-medium whitespace-nowrap border transition-colors
             ${selected === option.value
               ? 'bg-primary text-white border-primary'
               : 'bg-surface-floating text-gray-700 border-line-03 hover:bg-gray-50'

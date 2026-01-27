@@ -105,7 +105,7 @@ export default function Main() {
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [touchStart, setTouchStart] = useState<number>(0);
 
-  const [mapFilter, setMapFilter] = useState<MapFilterType>(null);
+  const [mapFilter, setMapFilter] = useState<MapFilterType>('deal');
 
   const [filter, setFilter] = useState({
     on: false,
