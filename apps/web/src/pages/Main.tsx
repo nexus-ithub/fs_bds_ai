@@ -151,6 +151,7 @@ export default function Main() {
     } else {
       setUsagePolygonList([]);
     }
+
     // if (IS_DEVELOPMENT && showRent) {
     //   getRentInfo();
     // } else {
