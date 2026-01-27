@@ -32,7 +32,7 @@ import { HomeBoard } from "../homeBoard/HomeBoard";
 import { checkIsAIReportNotAvailable, loadMapState, saveMapState } from "../utils";
 import { InfoIcon, PictureInPicture, PictureInPicture2, X, ChevronLeft, ChevronRight, BotMessageSquare, CrownIcon } from "lucide-react";
 import { AreaOverlay, DistanceOverlay, RoadViewOverlay } from "../map/MapLayers";
-import { MapToolbar } from "../map/MapTool";
+import { MapToolbar, MapFilter, type MapFilterType } from "../map/MapTool";
 import { SearchBar } from "../search/SearchBar";
 import { AIReport } from "../aiReport/AIReport";
 import { AIChat } from "../aiChat/AIChat";
@@ -104,6 +104,8 @@ export default function Main() {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [touchStart, setTouchStart] = useState<number>(0);
+
+  const [mapFilter, setMapFilter] = useState<MapFilterType>(null);
 
   const [filter, setFilter] = useState({
     on: false,
@@ -184,9 +186,14 @@ export default function Main() {
 
 
   useEffect(() => {
-    getDealList();
+    if (mapFilter === 'deal') {
+      getDealList();
+    } else {
+      setDealAvgList([]);
+      setDealList([]);
+    }
     // getDealList();
-  }, [center, level, mapRef?.current]);
+  }, [mapFilter, center, level, mapRef?.current]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1186,6 +1193,10 @@ export default function Main() {
             />
           </Map>
 
+          <MapFilter
+            selected={mapFilter}
+            onChange={setMapFilter}
+          />
           <MapToolbar
             mapType={mapType}
             changeMapType={changeMapType}
