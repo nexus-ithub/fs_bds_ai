@@ -1237,7 +1237,7 @@ export default function Main() {
           )
         }
 
-        <div className={`fixed z-30 ${openLeftPanel ? 'md:left-[434px]' : 'md:left-[30px]'} bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]`}>
+        <div className={`fixed z-30 left-[16px] ${openLeftPanel ? 'md:left-[434px]' : 'md:left-[30px]'} bottom-[80px] md:bottom-[22px] flex flex-col gap-[12px]`}>
           {
             IS_DEVELOPMENT && (
               <div className="flex flex-col gap-[4px] min-w-[250px]">
