@@ -200,6 +200,7 @@ export class DealModel {
             ) combined
             GROUP BY leg_dong_code
           ) d ON s.legDongCode = d.leg_dong_code
+          ORDER BY d.avgPricePerPyeong DESC
           `,
           [swLat, neLat, swLng, neLng, swLat, neLat, swLng, neLng, swLat, neLat, swLng, neLng]
         )

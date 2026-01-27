@@ -229,12 +229,14 @@ export default function Main() {
       });
     } else {
       setDealList([]);
+      const latMargin = (ne.getLat() - sw.getLat()) * 0.02;
+      const lngMargin = (ne.getLng() - sw.getLng()) * 0.02;
       axiosInstance.get(`/api/deal/avg`, {
         params: {
-          neLat: ne.getLat(),
-          neLng: ne.getLng(),
-          swLat: sw.getLat(),
-          swLng: sw.getLng(),
+          neLat: ne.getLat() - latMargin,
+          neLng: ne.getLng() - lngMargin,
+          swLat: sw.getLat() + latMargin,
+          swLng: sw.getLng() + lngMargin,
           type: level >= MIN_LEVEL_SIGNUNGU ? 'sigungu' : 'eupmyeondong'
         }
       }).then((response) => {
@@ -991,14 +993,20 @@ export default function Main() {
                   <CustomOverlayMap
                     clickable={false}
                     yAnchor={1.1}
+                    zIndex={index < 3 ? 10 : 1}
                     position={{ lat: dealAvg.lat, lng: dealAvg.lng }}>
                     <div
                       className="relative flex justify-center items-center p-[8px] text-[13px] flex flex-col bg-primary rounded-[8px] shadow-[0_10px_14px_rgba(0,0,0,0.20)] select-none pointer-events-none"
-                      style={level >= MIN_LEVEL_SIGNUNGU && index < 3 ? { animation: 'dealAvgBounce 2.0s ease-in-out infinite' } : undefined}
+                      style={level >= MIN_LEVEL_EUPMYEONDONG && index < 3 ? { animation: 'dealAvgBounce 2.0s ease-in-out infinite' } : undefined}
                     >
                       {level >= MIN_LEVEL_SIGNUNGU && index < 3 && (
                         <div className="absolute flex items-center gap-[4px] -top-[12px] -right-[12px] bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-md whitespace-nowrap">
                           {index === 0 ? <CrownIcon size={14} color="yellow" /> : ''}서울 {index + 1}위
+                        </div>
+                      )}
+                      {level < MIN_LEVEL_SIGNUNGU && level >= MIN_LEVEL_EUPMYEONDONG && index < 3 && (
+                        <div className="absolute flex items-center gap-[4px] -top-[12px] -right-[12px] bg-red-500 text-white text-[10px] font-bold px-[6px] py-[2px] rounded-full shadow-md whitespace-nowrap">
+                          {index === 0 ? <CrownIcon size={14} color="yellow" /> : ''}이 지역 {index + 1}위
                         </div>
                       )}
                       <span className={`flex items-center text-gray-200`}>{dealAvg.name}</span>
