@@ -244,12 +244,7 @@ export interface ConsultRequest {
 }
 
 
-export interface DealInfo {
-  id: string;
-  dealPrice: number;
-  dealDate: Date;
-  dealType: string;
-}
+
 
 export const getJibunAddress = (landInfo: LandInfo) => {
   return `${landInfo?.legDongName} ${landInfo?.jibun}`;
@@ -296,7 +291,7 @@ export const getRatioStr = (value: any) => {
   if (!value) {
     return '-';
   }
-  return Number(value).toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2,}) + '%';
+  return Number(value).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2, }) + '%';
 }
 
 

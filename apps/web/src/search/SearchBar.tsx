@@ -514,7 +514,7 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
     )
   }
   return (
-    <div className="absolute left-[14px] md:left-[424px] top-[20px] w-[calc(100%-28px)] md:w-[582px] h-[48px] bg-white  z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
+    <div className="h-[48px] bg-white z-40 font-c3 space-y-[14px] rounded-[4px] border border-primary-050 shadow-[8px_8px_20px_0_rgba(0,0,0,0.16)]">
       <div className="flex items-center h-full gap-[12px] px-[12px]">
         <div className="hidden md:block">
           {filterSetting()}
@@ -995,14 +995,12 @@ export const SearchBar = ({ onSelect, onFilterChange, onShowFilterSetting }: Sea
                         setUsageList(new Set(usageList));
                       }
                     }}
-                    className={`flex items-center outline-[1px] ${
-                      usageList.has(usage.value) ? 'outline-primary' : 'outline-line-02'
-                    } rounded-[2px] px-[6px] py-[4px]`}
+                    className={`flex items-center outline-[1px] ${usageList.has(usage.value) ? 'outline-primary' : 'outline-line-02'
+                      } rounded-[2px] px-[6px] py-[4px]`}
                   >
                     <p
-                      className={`font-s3 ${
-                        usageList.has(usage.value) ? 'text-primary' : 'text-text-02'
-                      }`}
+                      className={`font-s3 ${usageList.has(usage.value) ? 'text-primary' : 'text-text-02'
+                        }`}
                     >
                       {usage.label}
                     </p>

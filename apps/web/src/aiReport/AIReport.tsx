@@ -14,6 +14,7 @@ import { Dialog, Tooltip } from "@mui/material";
 import { toast } from "react-toastify";
 import { AIReportDebugInfoDialog } from "./AIReportDebugInfoDialog";
 import { CalculatorIcon, CircleQuestionMarkIcon } from "lucide-react";
+import Markdown from "react-markdown";
 
 
 export interface AIReportProps {
@@ -537,9 +538,9 @@ export const AIReport = ({ landId, onClose, onReportCreated }: AIReportProps) =>
                     </div>
                   </div>
                 </div>
-                <p className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px]">
-                  {aiReportResult?.analysisMessage}
-                </p>
+                <div className="w-full font-b3 bg-surface-second px-[16px] py-[12px] rounded-[4px] [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-[6px] [&_li]:pl-[1.5em] [&_li]:-indent-[1.5em]">
+                  <Markdown>{aiReportResult?.analysisMessage}</Markdown>
+                </div>
               </>
           }
 
