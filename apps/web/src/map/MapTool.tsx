@@ -1,7 +1,8 @@
 import { CadastralIcon, CalcAreaIcon, CalcDistanceIcon, MapIcon, MyLocationIcon, SatelliteIcon, Spinner, StreetViewIcon, ZoomController, type LatLng } from "@repo/common";
 import { saveMapState } from "../utils";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { ChevronDown, Filter } from "lucide-react";
 
 export type MapFilterType = 'deal' | 'volume' | 'commercial' | 'avg_rent' | 'celebrity' | null;
 
@@ -20,22 +21,76 @@ export const MapFilter = ({
   selected: MapFilterType;
   onChange: (value: MapFilterType) => void;
 }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedLabel = MAP_FILTER_OPTIONS.find((o) => o.value === selected)?.label;
+
   return (
-    <div className="fixed md:top-[84px] top-[154px] right-[62px] md:right-[80px] z-40 flex flex-col gap-[6px] border-[1px] border-line-03 rounded-[4px] bg-surface-floating p-[6px]">
-      {MAP_FILTER_OPTIONS.map((option) => (
+    <>
+      {/* Desktop: 왼쪽에 세로 목록 */}
+      <div className="hidden md:flex fixed top-[84px] right-[80px] z-40 flex-col gap-[6px] border-[1px] border-line-03 rounded-[4px] bg-surface-floating p-[6px]">
+        {MAP_FILTER_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => onChange(selected === option.value ? null : option.value)}
+            className={`px-[12px] py-[6px] rounded-[4px] font-c3-p font-medum whitespace-nowrap border transition-colors
+              ${selected === option.value
+                ? 'bg-primary text-white border-primary'
+                : 'bg-surface-floating text-gray-700 border-line-03 hover:bg-gray-50'
+              }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mobile: 상단 드롭다운 */}
+      <div ref={ref} className={`md:hidden fixed top-[144px] right-[14px] ${open ? 'z-50' : 'z-40'}`}>
         <button
-          key={option.value}
-          onClick={() => onChange(selected === option.value ? null : option.value)}
-          className={`px-[12px] py-[6px] rounded-[4px] font-c2-p md:font-c3-p font-medium whitespace-nowrap border transition-colors
-            ${selected === option.value
-              ? 'bg-primary text-white border-primary'
-              : 'bg-surface-floating text-gray-700 border-line-03 hover:bg-gray-50'
+          onClick={() => setOpen(!open)}
+          className={`flex items-center gap-[4px] px-[10px] py-[6px] bg-white rounded-[4px] border text-[12px] font-medium transition-colors
+            ${selected
+              ? 'border-primary text-primary'
+              : 'border-line-03 text-gray-700'
             }`}
         >
-          {option.label}
+          <Filter size={14} />
+          <span>{selectedLabel ?? '필터'}</span>
+          <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
-      ))}
-    </div>
+        {open && (
+          <div className="absolute top-full right-0 mt-[4px] flex flex-col gap-[4px] border-[1px] border-line-03 rounded-[4px] bg-surface-floating p-[4px] shadow-lg">
+            {MAP_FILTER_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  onChange(selected === option.value ? null : option.value);
+                  setOpen(false);
+                }}
+                className={`px-[12px] py-[6px] rounded-[4px] font-c2-p font-medium whitespace-nowrap border transition-colors text-left
+                  ${selected === option.value
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-surface-floating text-gray-700 border-line-03'
+                  }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
@@ -125,7 +180,7 @@ export const MapToolbar = ({
 
   return (
     <>
-      <div className="fixed md:top-[84px] top-[154px] right-[14px] md:right-[24px] z-40 font-c3 space-y-[14px]">
+      <div className="fixed md:top-[84px] top-[184px] right-[14px] md:right-[24px] z-40 font-c3 space-y-[14px]">
         <div className="flex flex-col [&>*:not(:last-child)]:mb-[8px] md:[&>*:not(:last-child)]:mb-0 md:rounded-[4px] md:border-[1px] md:border-line-03 md:bg-surface-floating md:divide-y md:divide-line-03">
           <button
             onClick={() => { changeMapType('normal'); }}
