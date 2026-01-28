@@ -1,4 +1,4 @@
-import { Coords } from "./land";
+import { type Coords } from "./land";
 
 
 export type AreaLevel = 'sigungu' | 'eupmyeondong';
