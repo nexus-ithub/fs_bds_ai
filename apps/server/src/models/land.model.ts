@@ -2495,4 +2495,67 @@ export class LandModel {
       throw err;
     }
   }
+
+  static async findAnnouncedPriceAvg(legDongCode: string, landId: string): Promise<{
+    city: { year: number; avgPrice: number; landCount: number }[];
+    district: { year: number; avgPrice: number; landCount: number }[];
+    dong: { year: number; avgPrice: number; landCount: number }[];
+    individual: { year: number; price: number }[];
+  }> {
+    const cityCode = legDongCode.substring(0, 2);
+    const districtCode = legDongCode.substring(0, 5);
+
+    const sql = `
+      SELECT area_code AS areaCode, year, avg_price AS avgPrice, land_count AS landCount
+      FROM announced_price_avg
+      WHERE area_code IN (?, ?, ?)
+      ORDER BY area_code, year
+    `;
+
+    const results = await db.query<{
+      areaCode: string;
+      year: number;
+      avgPrice: number;
+      landCount: number;
+    }>(sql, [cityCode, districtCode, legDongCode]);
+
+    const city = results.filter(r => r.areaCode === cityCode).map(r => ({
+      year: r.year,
+      avgPrice: r.avgPrice,
+      landCount: r.landCount,
+    }));
+
+    const district = results.filter(r => r.areaCode === districtCode).map(r => ({
+      year: r.year,
+      avgPrice: r.avgPrice,
+      landCount: r.landCount,
+    }));
+
+    const dong = results.filter(r => r.areaCode === legDongCode).map(r => ({
+      year: r.year,
+      avgPrice: r.avgPrice,
+      landCount: r.landCount,
+    }));
+
+    // 개별 필지 공시지가 조회
+    const individualSql = `
+      SELECT year, MAX(price) as price
+      FROM individual_announced_price
+      WHERE id = ?
+      GROUP BY year
+      ORDER BY year
+    `;
+
+    const individualResults = await db.query<{
+      year: number;
+      price: number;
+    }>(individualSql, [landId]);
+
+    const individual = individualResults.map(r => ({
+      year: r.year,
+      price: r.price,
+    }));
+
+    return { city, district, dong, individual };
+  }
 }

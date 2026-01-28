@@ -15,13 +15,13 @@ export const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
 export const YOUTUBE_SEARCH_URL = import.meta.env.VITE_YOUTUBE_SEARCH_URL;
 
 const FILTER_TABS = [
-  '👍 조회수 많은 순',
   '📆 최근 업로드 순',
+  '👍 조회수 많은 순',
   '💯 평점 높은 순'
 ]
 const ORDER = [
-  'viewCount',
   'date',
+  'viewCount',
   'rating'
 ]
 
@@ -50,14 +50,28 @@ export const YoutubeList = ({
 }) => {
   const [selectedFilterTab, setSelectedFilterTab] = useState<number>(0);
   const [order, setOrder] = useState<string>(ORDER[0]);
-  const [mainVideo, setMainVideo] = useState<YoutubeVideo | null>(null);
-  const [videos, setVideos] = useState<YoutubeVideo[]>([]);
+  const [videoCache, setVideoCache] = useState<Record<string, YoutubeVideo[]>>({});
 
-  const getVideoList = async () => {
+  // date 순 첫 번째 영상을 추천 영상으로
+  const mainVideo = videoCache['date']?.length > 0 ? videoCache['date'][0] : null;
+
+  // date 순일 때는 첫 번째 제외
+  const videos = order === 'date'
+    ? (videoCache['date']?.slice(1) || [])
+    : (videoCache[order] || []);
+
+  const loadAllVideos = async () => {
     try {
-      const res = await axios.get(`${API_HOST}/api/youtube/list`, {params: {order}});
-
-      setVideos(res.data);
+      const [dateRes, viewCountRes, ratingRes] = await Promise.all([
+        axios.get(`${API_HOST}/api/youtube/list`, {params: {order: 'date'}}),
+        axios.get(`${API_HOST}/api/youtube/list`, {params: {order: 'viewCount'}}),
+        axios.get(`${API_HOST}/api/youtube/list`, {params: {order: 'rating'}})
+      ]);
+      setVideoCache({
+        date: dateRes.data,
+        viewCount: viewCountRes.data,
+        rating: ratingRes.data
+      });
     } catch (error) {
       console.error(error);
       trackError(error, {
@@ -71,42 +85,21 @@ export const YoutubeList = ({
     }
   };
 
-  const getBrandingVideo = async () => {
-    try {
-      const res = await axios.get(`${API_HOST}/api/youtube/branding`);
-      setMainVideo(res.data);
-    } catch (error) {
-      console.error(error);
-      trackError(error, {
-        message: 'Youtube 대표 영상 조회 중 오류 발생',
-        endpoint: '/main',
-        file: 'YoutubeList.tsx',
-        page: window.location.pathname,
-        severity: 'error'
-      })
-      toast.error('대표 영상 정보를 가져오는데 실패했습니다.')
-    }
-  }
-
   useEffect(() => {
-    getVideoList();  
-  }, [order])
-
-  useEffect(() => {
-    getBrandingVideo();
+    loadAllVideos();
   }, [])
 
   return (
     <div className="flex flex-col overflow-auto scrollbar-hover">
-      <div className="flex flex-col gap-[4px] pt-[20px] px-[20px]">
+      {/* <div className="flex flex-col gap-[4px] pt-[20px] px-[20px]">
         <p className="font-h3">빌딩의 신</p>
         <p className="font-s4 text-text-03">당신의 빌딩 투자 파트너 박준연 '빌딩의신' 채널에 오신 것을 환영합니다.</p>
         <p className="font-s4 text-text-03">https://www.youtube.com/@빌딩의신</p>
-      </div>
+      </div> */}
       {videos.length > 0 ? (
         <>
           <div className="flex flex-col gap-[12px] p-[20px]">
-            <p className="font-h3">추천 영상</p>
+            {/* <p className="font-h3">추천 영상</p> */}
             {mainVideo ? (
               <div className="flex flex-col gap-[8px]">
                 <div className="relative h-[200px] rounded-[8px] overflow-hidden">
@@ -190,7 +183,10 @@ export const YoutubeList = ({
                     </div>
                   </div>
                   <div className="flex flex-1 flex-col gap-[8px]">
-                    <p className="font-h4 h-[60px] line-clamp-3">{video.title}</p>
+                    <p className="font-h4 h-[60px] line-clamp-3 cursor-pointer" onClick={() => {
+                      setSelectedVideo(video);
+                      setOpenVideoMiniPlayer(true);
+                    }}>{video.title}</p>
                     <p className="font-s2 text-text-03">조회수 {formatViews(video.viewCount || 0)}회 ∙ {formatTimeAgo(new Date(video.publishedAt))}</p>
                   </div>
                 </div>
