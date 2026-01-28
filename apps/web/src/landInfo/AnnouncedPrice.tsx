@@ -108,20 +108,20 @@ export const AnnouncedPrice = React.forwardRef<HTMLDivElement, AnnouncedPricePro
     const CustomTooltip = ({ active, payload, label }: any) => {
       if (active && payload && payload.length) {
         return (
-          <div className="bg-white border border-line-02 rounded-[8px] p-[14px] shadow-xl">
-            <p className="font-s1-p text-text-01 mb-[10px] pb-[8px] border-b border-line-02">{label}년</p>
-            <div className="space-y-[6px]">
+          <div className="bg-white/95 border border-line-02 rounded-[6px] px-[10px] py-[8px] shadow-lg">
+            <p className="font-c2 text-text-01 mb-[4px] pb-[3px] border-b border-line-02">{label}년</p>
+            <div className="space-y-[2px]">
               {payload.map((entry: any, index: number) => (
                 entry.value && (
-                  <div key={index} className="flex items-center justify-between gap-[16px]">
-                    <div className="flex items-center gap-[6px]">
+                  <div key={index} className="flex items-center justify-between gap-[10px]">
+                    <div className="flex items-center gap-[4px]">
                       <div
-                        className="w-[10px] h-[10px] rounded-full"
+                        className="w-[6px] h-[6px] rounded-full"
                         style={{ backgroundColor: entry.stroke }}
                       />
-                      <span className="font-s3 text-text-03">{entry.name}</span>
+                      <span className="font-c2 text-text-03">{entry.name}</span>
                     </div>
-                    <span className="font-s2-p text-text-01">{krwUnit(entry.value, true)}/㎡</span>
+                    <span className="font-c2 text-text-01">{krwUnit(entry.value, true)}/㎡</span>
                   </div>
                 )
               ))}
